@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Livewire\Portal;
+
+use App\Enums\InvoiceStatus;
+use App\Models\Invitation;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+/**
+ * The public "view my invoice/quote" page `invitations.key` resolves to —
+ * closes the gap flagged in docs/filament-admin-layout-design.md §2.2/§3.5.
+ * No auth: the unguessable `key` (a UUID, minted in Invitation::booted())
+ * *is* the credential, same as the legacy `invitation_key` it replaces.
+ *
+ * Routed (see routes/web.php) behind the same
+ * App\Http\Middleware\ResolveCompanyFromDomain group as the public
+ * homepage, so `{{ $company }}` branding is available in the layout and,
+ * more importantly, so a portal link can't be rendered under the *other*
+ * entity's domain even by mistake — belt-and-suspenders on top of the key
+ * itself already being unguessable.
+ */
+#[Layout('layouts.public')]
+class ViewInvoice extends Component
+{
+    public Invitation $invitation;
+
+    public string $signatureName = '';
+
+    public bool $justSigned = false;
+
+    public function mount(Invitation $invitation): void
+    {
+        $invitation->loadMissing(
+            'invoice.client',
+            'invoice.company.settings',
+            'invoice.items.taxes',
+            'invoice.payments',
+            'invoice.credits',
+            'invoice.documents',
+            'contact',
+        );
+
+        abort_unless(
+            app()->bound('currentCompany') && $invitation->invoice->company_id === app('currentCompany')->id,
+            404
+        );
+
+        if (! $invitation->viewed_at) {
+            $invitation->forceFill(['viewed_at' => now()])->save();
+        }
+
+        if ($invitation->invoice->status === InvoiceStatus::Sent) {
+            $invitation->invoice->forceFill(['status' => InvoiceStatus::Viewed])->saveQuietly();
+        }
+
+        $this->invitation = $invitation;
+    }
+
+    public function sign(): void
+    {
+        $this->validate(['signatureName' => ['required', 'string', 'max:255']]);
+
+        $this->invitation->forceFill([
+            'signature' => $this->signatureName,
+            'signed_at' => now(),
+        ])->save();
+
+        $this->justSigned = true;
+    }
+
+    public function render(): View
+    {
+        return view('livewire.portal.view-invoice');
+    }
+}

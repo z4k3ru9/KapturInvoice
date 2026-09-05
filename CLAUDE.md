@@ -46,6 +46,11 @@ Or just `composer setup` (runs the same steps via the composer script).
   refuses to let you set the `Host` header itself via
   `setExtraHTTPHeaders`. An unmatched host falls back to the first
   company in local/testing envs.
+- **Client portal** (`/portal/{invitation:key}`, same domain-resolved
+  group as the homepage) — no login; the invitation's `key` UUID is the
+  credential. Get a link from an invoice's/quote's "Send" action (which
+  emails it) or the admin's Client Portal Invitations "Copy portal link"
+  action.
 - Currencies/countries are seeded (`CurrencySeeder`/`CountrySeeder`) as
   real lookup tables, not re-derived from the legacy dump.
 
@@ -72,6 +77,22 @@ Or just `composer setup` (runs the same steps via the composer script).
   `number` — wired into each Create page's `mutateFormDataBeforeCreate()`
   and into `InvoiceDuplicator`'s two generated-invoice paths. A manually
   typed number is respected and doesn't consume the sequence.
+- **`App\Livewire\Portal\ViewInvoice`** is the public, unauthenticated
+  "view/e-sign my invoice" page — routed at `/portal/{invitation:key}`,
+  behind the same `ResolveCompanyFromDomain` middleware group as the
+  homepage. The unguessable `invitations.key` UUID *is* the credential.
+  "Pay" is view-only (shows balance due, no real gateway yet — see below).
+- **`App\Services\BillingMailer`** renders and sends the invoice/quote/
+  payment templates stored on `CompanySetting` (`{{token}}` placeholders
+  via `App\Services\EmailTemplateRenderer`) — wired into a Send/Resend
+  table action on Invoices/Quotes and a Send-receipt action on Payments.
+  `App\Console\Commands\SendInvoiceReminders` (scheduled daily,
+  `routes/console.php`) dispatches the `reminder1-4` schedule the same way.
+- **Payment gateway SDK integration** is the one settings/portal feature
+  still just stored config, not wired up — `PaymentGateway` credentials
+  are stored (encrypted) but nothing charges a card yet, so the portal
+  page's balance-due section and mail sending's payment collection both
+  stop at "here's what you owe," not an actual charge.
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
@@ -92,6 +113,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 35 tests as of the invoice-numbering pass
+php artisan test      # 49 tests as of the portal-page + mail-sending pass
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

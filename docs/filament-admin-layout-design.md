@@ -87,9 +87,15 @@ its `key` magic-link, schema §2.3/§4) — read-mostly resource:
 - `Invitation` has no `company_id`/`company()` relation of its own, so
   Filament's automatic tenant scope is disabled (`$isScopedToTenant = false`)
   in favour of an explicit `whereHas('invoice', ...)` scope.
-- ⚠️ The public-facing "view/pay my invoice" Livewire page the `key` is
-  meant to resolve to (§4) isn't built yet — only the admin-side visibility
-  exists so far.
+- ✅ The public-facing "view/e-sign my invoice" page the `key` resolves to
+  is now built — `App\Livewire\Portal\ViewInvoice`, routed at
+  `/portal/{invitation:key}` behind the same domain-resolution middleware
+  as the homepage (§4 below). Viewing stamps `viewed_at` and bumps a
+  `sent` invoice to `viewed`; a "type your name to sign" form stamps
+  `signed_at`/`signature`. ⚠️ "Pay" is view-only for now — with
+  `portal_allow_client_payments` on, the page shows the balance due and a
+  message that online payment isn't wired up yet, rather than faking a
+  charge (see §3.4, still ⚠️).
 
 ### 2.3 Catalog group
 
@@ -214,8 +220,26 @@ Maps to `account_email_settings` (schema §2.1), binds to `CompanySetting`:
   `direction` before/after, `field` due-date-vs-invoice-date) — matches the
   legacy `reminder1-4` columns.
 - *Late Fees* section: 3 tiers of `amount`/`percent`.
-- ⚠️ Templates/reminders are stored but nothing yet reads them to actually
-  send an email — that's the mail-sending layer, not built yet.
+- ✅ **Mail sending** — `App\Services\BillingMailer` renders these stored
+  subject/body templates (`{{token}}` placeholders — client/contact/company
+  name, invoice number, amount, balance, due date, portal link — via
+  `App\Services\EmailTemplateRenderer`) and actually sends them:
+  - A **Send**/**Resend** table action on Invoices and Quotes
+    (`sendInvoice()`/`sendQuote()`) creates-or-reuses the contact's
+    `Invitation`, emails it, stamps `invitations.sent_at`, and bumps a
+    `draft` invoice to `sent`.
+  - A **Send receipt** table action on Payments (`sendPaymentReceipt()`)
+    uses the Payment template.
+  - `App\Console\Commands\SendInvoiceReminders` (scheduled daily at 08:00,
+    `routes/console.php`) matches each company's `reminder1-4` schedule
+    against invoice due/invoice dates and calls `sendReminder()`, which
+    reuses the invoice template with a "Reminder: " subject prefix.
+  - Falls back to a sensible built-in template when a company hasn't
+    filled in its own subject/body.
+  - ⚠️ Reminder matching is exact-date, not "already sent today"-tracked —
+    running the scheduled command twice on the same day would re-send;
+    fine for a once-daily cron, called out rather than silently assumed
+    (mirrors the tasks-timer trade-off in §2.5).
 
 ### 3.4 Payment Gateways ✅ (`PaymentGatewayResource`)
 Maps to `account_gateways` + `account_gateway_settings` (schema §2.4).
@@ -258,10 +282,14 @@ tackling next in roughly this order:
 
 1. ~~**Invoice numbering service**~~ ✅ done — `DocumentNumberGenerator`
    (§2.1/§3.2).
-2. **Public client-portal page** (§2.2/§3.5) — the magic-link
-   view/pay/e-sign flow `invitations.key` is meant to resolve to.
-3. **Email sending** (§3.3) — actually dispatch the stored templates on
-   invoice send/reminder schedule.
+2. ~~**Public client-portal page**~~ ✅ done — `App\Livewire\Portal\ViewInvoice`
+   (§2.2/§3.5), the magic-link view/e-sign flow `invitations.key` resolves
+   to. "Pay" is still view-only — see §3.4, item 4 below.
+3. ~~**Email sending**~~ ✅ done — `App\Services\BillingMailer` +
+   `SendInvoiceReminders` (§3.3): invoice/quote send+resend, payment
+   receipts, and the daily reminder schedule are all wired up.
 4. **Payment gateway SDK integration** (§3.4) — real charge/Test Connection
-   behaviour, not just stored config.
+   behaviour, not just stored config. This is also what the portal page's
+   "Pay now" (§2.2) and mail sending's actual payment collection are
+   waiting on.
 5. **Proposals module** (§2.7) — only if confirmed in scope.

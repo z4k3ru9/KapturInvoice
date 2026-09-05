@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Quotes\Tables;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
+use App\Services\BillingMailer;
 use App\Services\InvoiceDuplicator;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -16,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use RuntimeException;
 
 class QuotesTable
 {
@@ -39,6 +42,26 @@ class QuotesTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('send')
+                    ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Draft ? 'Send' : 'Resend')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
+                    ->requiresConfirmation()
+                    ->action(function (Invoice $record) {
+                        try {
+                            app(BillingMailer::class)->sendQuote($record);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Quote sent')
+                                ->send();
+                        } catch (RuntimeException $e) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Could not send quote')
+                                ->body($e->getMessage())
+                                ->send();
+                        }
+                    }),
                 Action::make('convertToInvoice')
                     ->label('Convert to invoice')
                     ->icon(Heroicon::OutlinedArrowRightCircle)
