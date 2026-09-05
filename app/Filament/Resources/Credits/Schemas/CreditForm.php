@@ -25,7 +25,8 @@ class CreditForm
                     ->label('Applied to invoice')
                     ->relationship('invoice', 'number')
                     ->searchable(),
-                TextInput::make('number'),
+                TextInput::make('number')
+                    ->helperText('Leave blank to auto-assign from the company numbering sequence.'),
                 TextInput::make('amount')
                     ->required()
                     ->numeric()

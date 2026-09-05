@@ -14,13 +14,15 @@ use App\Models\Invoice;
  */
 class InvoiceDuplicator
 {
+    public function __construct(protected DocumentNumberGenerator $numberGenerator) {}
+
     public function convertQuoteToInvoice(Invoice $quote): Invoice
     {
         $invoice = $this->cloneSharedFields($quote);
         $invoice->type = InvoiceType::Invoice;
         $invoice->status = InvoiceStatus::Draft;
         $invoice->converted_from_quote_id = $quote->id;
-        $invoice->number = null;
+        $invoice->number = $this->numberGenerator->next($quote->company, 'invoice');
         $invoice->save();
 
         $this->cloneItems($quote, $invoice);
@@ -38,7 +40,7 @@ class InvoiceDuplicator
         $invoice->is_recurring = false;
         $invoice->recurring_template_id = $template->id;
         $invoice->invoice_date = now()->toDateString();
-        $invoice->number = null;
+        $invoice->number = $this->numberGenerator->next($template->company, 'invoice');
         $invoice->save();
 
         $this->cloneItems($template, $invoice);

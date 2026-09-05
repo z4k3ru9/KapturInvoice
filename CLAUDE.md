@@ -66,6 +66,12 @@ Or just `composer setup` (runs the same steps via the composer script).
   `company_user` pivot) instead set `protected static bool
   $isScopedToTenant = false;` on their Resource and apply an explicit
   `whereHas()` scope in `getEloquentQuery()`.
+- **`App\Services\DocumentNumberGenerator`** assigns invoice/quote/credit
+  numbers from `Company`'s prefix/next_number columns (transactional,
+  `lockForUpdate()`'d) whenever a document is created with a blank
+  `number` — wired into each Create page's `mutateFormDataBeforeCreate()`
+  and into `InvoiceDuplicator`'s two generated-invoice paths. A manually
+  typed number is respected and doesn't consume the sequence.
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
@@ -86,6 +92,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 28 tests as of the last scaffolding pass
+php artisan test      # 35 tests as of the invoice-numbering pass
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

@@ -62,14 +62,17 @@ unified `invoices` + `type`/`is_recurring` pattern), sharing `InvoiceForm`/
   (`InvoiceDuplicator::generateRecurringInstance()`) clones the template
   into a new one-off invoice and stamps `recurring_last_sent_at`.
 
-⚠️ **Numbering is not yet wired to invoice creation** — `EditNumberingSettings`
-(§3.2) edits `invoice_prefix`/`invoice_next_number` on `Company`, but
-`InvoiceForm`'s `number` field is still a plain manual text input; nothing
-yet reads the sequence and auto-assigns/increments it on save. That
-"generate the next number, `lockForUpdate()`'d" service is the next piece
-to build before numbering is actually load-bearing.
+**Numbering** ✅ — `App\Services\DocumentNumberGenerator` reads the
+relevant `{invoice,quote,credit}_prefix`/`_next_number` pair off `Company`
+(edited via `EditNumberingSettings`, §3.2) inside a
+`DB::transaction()` + `lockForUpdate()`, and assigns/increments it whenever
+a document is created with a blank `number` — wired into
+`CreateInvoice`/`CreateQuote`/`CreateCredit`/`CreateRecurringInvoice` and
+into `InvoiceDuplicator`'s two generated-invoice paths. An explicit manual
+`number` (e.g. importing historical data) is respected and does not
+consume the sequence — see `tests/Feature/Filament/DocumentNumberingTest.php`.
 
-**Credits** ✅, **Payments** ✅ — unchanged.
+**Credits** ✅ (now numbering-aware too), **Payments** ✅ — unchanged.
 
 ### 2.2 Clients group
 
@@ -196,9 +199,12 @@ directly to `Company` (the tenant):
   to `tax_rates` rather than the legacy inline `tax_name1/rate1` +
   `tax_name2/rate2` copy, another normalization the schema doc flagged as
   an opportunity).
-- ⚠️ Not yet built: pattern tokens (schema's `_pattern` columns) and the
-  service that actually reads this sequence and assigns/increments
-  `next_number` when an invoice is created — see the note in §2.1.
+- `App\Services\DocumentNumberGenerator` ✅ reads this sequence and
+  assigns/increments `next_number` (transactionally) whenever a
+  document is created — see §2.1.
+- ⚠️ Not yet built: pattern tokens (schema's `_pattern` columns) — numbers
+  are currently just `{prefix}{next_number, zero-padded to 4 digits}`,
+  not a configurable pattern with placeholders.
 
 ### 3.3 Email & Reminders ✅ (`EditEmailSettings`)
 Maps to `account_email_settings` (schema §2.1), binds to `CompanySetting`:
@@ -250,8 +256,8 @@ All seven steps below are built (✅ throughout §1–3); only **Proposals**
 scope. Remaining known gaps, all called out with ⚠️ above and worth
 tackling next in roughly this order:
 
-1. **Invoice numbering service** (§2.1/§3.2) — auto-assign/increment
-   `number` from the company's sequence on save, `lockForUpdate()`'d.
+1. ~~**Invoice numbering service**~~ ✅ done — `DocumentNumberGenerator`
+   (§2.1/§3.2).
 2. **Public client-portal page** (§2.2/§3.5) — the magic-link
    view/pay/e-sign flow `invitations.key` is meant to resolve to.
 3. **Email sending** (§3.3) — actually dispatch the stored templates on
