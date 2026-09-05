@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\HomePage;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
@@ -28,3 +29,10 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
 Route::get('/documents/{document}/download', DocumentDownloadController::class)
     ->middleware('auth')
     ->name('documents.download');
+
+// Async status callbacks from a configured gateway — see
+// App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
+// exemption in bootstrap/app.php (the provider calling this has no
+// Filament session/CSRF token to send).
+Route::post('/webhooks/payment-gateways/{paymentGateway}', PaymentGatewayWebhookController::class)
+    ->name('webhooks.payment-gateways');

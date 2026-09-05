@@ -56,4 +56,9 @@ class Client extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
 }

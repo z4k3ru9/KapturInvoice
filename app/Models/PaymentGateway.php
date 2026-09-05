@@ -27,7 +27,10 @@ class PaymentGateway extends Model
     {
         return [
             'is_enabled' => 'boolean',
-            'config' => 'encrypted',
+            // Structured (base_url/api_key/merchant_id/methods for
+            // `local_api`, a single api_key for the others), still
+            // encrypted at rest — see App\Services\PaymentGateways.
+            'config' => 'encrypted:array',
             'accepted_credit_cards' => 'array',
             'show_address' => 'boolean',
             'require_cvv' => 'boolean',

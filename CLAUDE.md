@@ -88,11 +88,29 @@ Or just `composer setup` (runs the same steps via the composer script).
   table action on Invoices/Quotes and a Send-receipt action on Payments.
   `App\Console\Commands\SendInvoiceReminders` (scheduled daily,
   `routes/console.php`) dispatches the `reminder1-4` schedule the same way.
-- **Payment gateway SDK integration** is the one settings/portal feature
-  still just stored config, not wired up — `PaymentGateway` credentials
-  are stored (encrypted) but nothing charges a card yet, so the portal
-  page's balance-due section and mail sending's payment collection both
-  stop at "here's what you owe," not an actual charge.
+- **`App\Services\PaymentGateways`** is the driver abstraction for
+  `PaymentGateway`: `PaymentGatewayDriver` (interface) +
+  `PaymentGatewayManager` (resolves one by the gateway's `driver` column).
+  The first real target is the company's own **Indonesian payment API** —
+  `LocalApiPaymentGatewayDriver` is a stub wired against a *plausible* REST
+  contract (bearer auth, `POST /v1/charges`, `GET /v1/charges/{ref}`,
+  `GET /v1/ping`), supporting Virtual Account/QRIS/card
+  (`App\Enums\LocalPaymentMethod`) — swap the endpoint paths/response
+  mapping in `mapResponse()` for the real provider's docs once available.
+  `PaymentGateway::config` is now `encrypted:array` (structured
+  `base_url`/`api_key`/`merchant_id`/`methods`), not a flat string. A
+  **Test Connection** table action and a CSRF-exempt webhook route
+  (`POST /webhooks/payment-gateways/{paymentGateway}`) both work today.
+  ⚠️ Nothing in the UI calls `charge()` yet — no "Charge" action on
+  Payments, and the portal page's "Pay" section is still balance-due-only
+  — that's the next real gap once a checkout flow is wanted.
+- **Proposals** (`App\Models\Proposal`/`ProposalTemplate`/`ProposalSnippet`,
+  nav group "Proposals") — a full HTML/CSS document (quote cover letter/
+  SOW), kept separate from Invoices/Quotes. `App\Services\ProposalConverter`
+  turns an accepted one into a real Invoice (one line item from its title/
+  amount), recorded on `proposals.invoice_id`. ⚠️ Admin-side only so far —
+  no send/portal flow, and Proposal Snippets aren't insertable into the
+  rich editor from a picker yet (copy/paste by hand).
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
@@ -113,6 +131,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 49 tests as of the portal-page + mail-sending pass
+php artisan test      # 65 tests as of the payment-gateway-driver + proposals pass
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

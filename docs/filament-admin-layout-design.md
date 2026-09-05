@@ -9,8 +9,7 @@ email, gateways) that schema's `accounts` table crammed into ~140 columns.
 This is a **navigation + page-composition spec** — it says what each screen
 shows and how it's grouped. ✅ = built and covered by a feature test (see
 `tests/Feature/Filament/*Test.php`); ⚠️ = built but deliberately simplified
-(the trade-off is called out inline); the rest remains proposed
-(Proposals, §2.7).
+(the trade-off is called out inline).
 
 ---
 
@@ -28,6 +27,7 @@ sidebar order:
 | **Projects** | Projects ✅ (+ Tasks relation manager ✅), Task Statuses ✅ |
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
 | **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
+| **Proposals** | Proposals ✅ (+ Convert to invoice), Proposal Templates ✅, Proposal Snippets ✅ |
 | **Settings** | Company Profile ✅ (tenant profile page), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
 
 Global lookup data (`countries`, `currencies`, `languages`, `timezones`,
@@ -150,12 +150,35 @@ each parent's own `App\Filament\RelationManagers\DocumentsRelationManager`
 (shared by Invoices and Expenses) — the top-level resource is read-mostly,
 for cross-cutting search/browse.
 
-### 2.7 Proposals (optional module — flagged, not scaffolded)
+### 2.7 Proposals ✅
 
-Per schema §2.7, this is a full HTML/CSS document builder. **Recommend
-deferring** until confirmed needed — if adopted later it's its own group
-(`Proposals`, `Proposal Templates`, `Proposal Snippets`) rather than bolted
-onto Invoices.
+Per schema §2.7, a full HTML/CSS document builder (quote cover letters/
+SOWs) — kept as its own nav group rather than bolted onto Invoices/Quotes,
+confirmed in scope and built:
+
+- **Proposals** ✅ (`ProposalResource`) — title, client (nullable), status
+  (`ProposalStatus`: draft/sent/viewed/accepted/declined), `amount`
+  (single lump sum, not line items), `valid_until`, and `html`/`css`
+  content (a `RichEditor` + a raw CSS textarea). Picking a **Proposal
+  Template** on the form copies its html/css in once (a one-shot virtual
+  select, not a live binding — editing the proposal afterwards doesn't
+  touch the template).
+  - Table actions: **Mark accepted**/**Mark declined** (stamp
+    `responded_at`), and **Convert to invoice**
+    (`App\Services\ProposalConverter`, mirrors
+    `InvoiceDuplicator::convertQuoteToInvoice()`) — creates a real Invoice
+    with one line item from the proposal's title/amount, numbered via
+    `DocumentNumberGenerator`, and records the link on `proposals.invoice_id`
+    (hidden once already converted).
+  - ⚠️ No send/portal flow for proposals yet (unlike Invoices/Quotes) —
+    they're admin-side only for now; `sent_at`/`viewed_at` columns exist
+    on the table but nothing sets them yet.
+- **Proposal Templates** ✅ (`ProposalTemplateResource`) — name + html/css,
+  reusable starting points for the above.
+- **Proposal Snippets** ✅ (`ProposalSnippetResource`) — name + html,
+  reusable fragments. ⚠️ Not yet insertable *into* the rich editor from a
+  picker — they're just a standalone reference library for now (copy/paste
+  by hand).
 
 ### 2.8 Team group ✅
 
@@ -245,12 +268,41 @@ Maps to `account_email_settings` (schema §2.1), binds to `CompanySetting`:
 Maps to `account_gateways` + `account_gateway_settings` (schema §2.4).
 Built as a normal Filament **Resource** (not a custom page) since it's
 naturally a list, grouped under Settings: gateway select (curated —
-Stripe/Midtrans/Xendit/PayPal/Manual, not InvoiceNinja's full ~69-driver
-catalog), credentials field (`encrypted` cast, **never** plaintext — schema
-flags this explicitly), `accepted_credit_cards` checkbox list,
-`show_address`/`require_cvv` toggles, fee section
-(`fee_amount`/`fee_percent` + fee tax). ⚠️ No **Test Connection** action yet
-— that needs an actual gateway SDK integration.
+**Local API (Indonesia)**, Stripe/Midtrans/Xendit/PayPal/Manual, not
+InvoiceNinja's full ~69-driver catalog), credentials
+(`config`, `encrypted:array` cast, **never** plaintext — schema flags this
+explicitly), `accepted_credit_cards` checkbox list, `show_address`/
+`require_cvv` toggles, fee section (`fee_amount`/`fee_percent` + fee tax).
+
+- ✅ **Gateway driver abstraction** — `App\Services\PaymentGateways` gives
+  every driver one contract (`PaymentGatewayDriver`: `charge()`/
+  `checkStatus()`/`handleWebhook()`/`testConnection()`), resolved by
+  `PaymentGatewayManager` from the gateway's `driver` column. The intended
+  first real integration is the company's own Indonesian payment API — a
+  driver stub (`LocalApiPaymentGatewayDriver`) is wired end-to-end against
+  a *plausible* REST contract (bearer token, `POST /v1/charges`,
+  `GET /v1/charges/{reference}`, `GET /v1/ping`) supporting Virtual
+  Account, QRIS, and card (`App\Enums\LocalPaymentMethod`) — swap the
+  endpoint paths/response mapping for the real provider's docs once
+  available; every call is a real `Http` request, so `Http::fake()`
+  exercises it without a live provider (see
+  `tests/Feature/PaymentGateways/`). Other drivers (Stripe/Midtrans/…)
+  remain config-only placeholders — `PaymentGatewayManager` throws until
+  a driver is added for them.
+- ✅ **Test Connection** action on the Payment Gateways table — calls the
+  resolved driver's `testConnection()` and reports configured/reachable/
+  unreachable via a notification.
+- ✅ **Webhook receiver** — `POST /webhooks/payment-gateways/{paymentGateway}`
+  (`PaymentGatewayWebhookController`, CSRF-exempt — see `bootstrap/app.php`)
+  maps a provider's async callback onto a `ChargeResult` and updates the
+  matching `Payment` by `gateway_reference`. ⚠️ Does not verify a payload
+  signature yet — the real provider's signing scheme isn't known.
+- ⚠️ **Nothing initiates a charge yet from the UI** — no "Charge" action on
+  Payments, and the client portal's "Pay" section (§2.2) still only shows
+  the balance due. The driver/manager/webhook plumbing above is real and
+  tested, but wiring it to an actual checkout flow (method picker, VA/QRIS
+  instructions shown to the client, polling `checkStatus()`) is follow-up
+  work once the real API contract is confirmed.
 
 ### 3.5 Client Portal ✅ (`EditClientPortalSettings`)
 Maps to `accounts.enable_client_portal*` (schema §2.1/§4), binds to
@@ -275,21 +327,29 @@ these are `Select` option sources only.
 
 ## 5. Build order — status
 
-All seven steps below are built (✅ throughout §1–3); only **Proposals**
-(§2.7) remains deliberately unscaffolded, pending confirmation it's in
-scope. Remaining known gaps, all called out with ⚠️ above and worth
-tackling next in roughly this order:
+Everything in §1–3 is now built (✅ throughout), including Proposals
+(§2.7, confirmed in scope). What's left is calling out the honest
+remaining trade-offs, roughly in order of what to tackle next:
 
 1. ~~**Invoice numbering service**~~ ✅ done — `DocumentNumberGenerator`
    (§2.1/§3.2).
 2. ~~**Public client-portal page**~~ ✅ done — `App\Livewire\Portal\ViewInvoice`
    (§2.2/§3.5), the magic-link view/e-sign flow `invitations.key` resolves
-   to. "Pay" is still view-only — see §3.4, item 4 below.
+   to. "Pay" is still view-only — see item 4 below.
 3. ~~**Email sending**~~ ✅ done — `App\Services\BillingMailer` +
    `SendInvoiceReminders` (§3.3): invoice/quote send+resend, payment
    receipts, and the daily reminder schedule are all wired up.
-4. **Payment gateway SDK integration** (§3.4) — real charge/Test Connection
-   behaviour, not just stored config. This is also what the portal page's
-   "Pay now" (§2.2) and mail sending's actual payment collection are
-   waiting on.
-5. **Proposals module** (§2.7) — only if confirmed in scope.
+4. ~~**Payment gateway driver abstraction**~~ ✅ done (§3.4) —
+   `PaymentGatewayManager`/`PaymentGatewayDriver`, a stubbed
+   `LocalApiPaymentGatewayDriver` for the Indonesian in-house API, a Test
+   Connection action, and a webhook receiver. **Still open**: an actual
+   checkout flow that calls `charge()` (a portal "Pay now" method picker
+   showing VA/QRIS instructions, or a "Charge" action on Payments) — the
+   plumbing is real and tested, nothing initiates a charge from the UI
+   yet. Swap the driver's placeholder endpoint/response mapping for the
+   real provider's API docs once confirmed.
+5. ~~**Proposals module**~~ ✅ done (§2.7) — Proposals/Proposal
+   Templates/Proposal Snippets, with template-to-proposal copy and
+   Convert-to-invoice. **Still open**: no send/portal flow for proposals
+   (admin-side only), and snippets aren't insertable into the rich editor
+   from a picker yet.

@@ -134,4 +134,19 @@ class Company extends Model implements HasName
     {
         return $this->hasMany(TaskStatus::class);
     }
+
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
+
+    public function proposalTemplates(): HasMany
+    {
+        return $this->hasMany(ProposalTemplate::class);
+    }
+
+    public function proposalSnippets(): HasMany
+    {
+        return $this->hasMany(ProposalSnippet::class);
+    }
 }

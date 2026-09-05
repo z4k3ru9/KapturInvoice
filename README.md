@@ -45,9 +45,13 @@ codebase and one deployment:
     to an Invoice or Expense (polymorphic `documentable`).
   - **Team** — Users (with a Companies relation manager for per-tenant
     role membership).
+  - **Proposals** — Proposals (full HTML/CSS documents, with "Mark
+    accepted/declined" and "Convert to invoice" actions —
+    `App\Services\ProposalConverter`), Proposal Templates, Proposal
+    Snippets.
   - **Settings** — Invoice & Numbering, Email & Reminders, Client Portal
     (singleton pages backed by `Company`/`CompanySetting`), Payment
-    Gateways (encrypted credentials).
+    Gateways (encrypted, structured credentials — see below).
 - **Public homepage** (`/`) — plain Livewire (`App\Livewire\HomePage`),
   entirely separate from the Filament panel. Which company's homepage renders
   is resolved by **domain**, not URL path: `App\Http\Middleware\
@@ -56,10 +60,32 @@ codebase and one deployment:
   `currentCompany`. In local/testing environments, an unmatched host falls
   back to the first company so the homepage is reachable without editing
   `/etc/hosts`.
+- **Client portal** (`/portal/{invitation:key}`) — `App\Livewire\Portal\ViewInvoice`,
+  a public, unauthenticated "view/e-sign my invoice" page in the same
+  domain-resolved route group as the homepage; the unguessable
+  `invitations.key` UUID is the credential. Shows line items, totals,
+  balance, and payment history, and captures an e-signature. "Pay" is
+  view-only for now (see Payment gateways below).
+- **Mail sending** — `App\Services\BillingMailer` renders the invoice/
+  quote/payment `{{token}}` templates stored on `CompanySetting` and sends
+  them via a Send/Resend action on Invoices/Quotes and a Send-receipt
+  action on Payments; `App\Console\Commands\SendInvoiceReminders`
+  (scheduled daily, `routes/console.php`) dispatches the same company's
+  `reminder1-4` schedule.
+- **Payment gateways** — `App\Services\PaymentGateways` gives every
+  gateway driver one contract (`PaymentGatewayDriver`, resolved by
+  `PaymentGatewayManager`). The intended first integration is the
+  company's own Indonesian payment API — `LocalApiPaymentGatewayDriver`
+  supports Virtual Account/QRIS/card against a placeholder REST contract
+  (real HTTP calls, `Http::fake()`-testable), with a Test Connection
+  action and a CSRF-exempt webhook receiver
+  (`POST /webhooks/payment-gateways/{paymentGateway}`). No checkout flow
+  calls `charge()` from the UI yet.
 - **`App\Models\Concerns\BelongsToCompany`** — applied to every directly
   tenant-owned model (`Client`, `Product`, `TaxRate`, `Invoice`, `Credit`,
   `Payment`, `Vendor`, `ExpenseCategory`, `Expense`, `Project`, `Task`,
-  `TaskStatus`, `Document`, `PaymentGateway`). Filament only auto-scopes a
+  `TaskStatus`, `Document`, `PaymentGateway`, `Proposal`,
+  `ProposalTemplate`, `ProposalSnippet`). Filament only auto-scopes a
   Resource's own listing query to the active tenant; this trait additionally
   scopes `Select::relationship()` picker options (so, e.g., the client
   dropdown on the Payment form can't leak another company's clients) and
