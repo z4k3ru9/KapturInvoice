@@ -5,10 +5,10 @@ namespace App\Filament\Pages\Tenancy;
 use App\Models\Company;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\Tenancy\EditTenantProfile;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\TextInput;
 
 class EditCompanyProfile extends EditTenantProfile
 {

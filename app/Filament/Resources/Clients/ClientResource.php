@@ -26,7 +26,7 @@ class ClientResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Billing';
+    protected static string|UnitEnum|null $navigationGroup = 'Clients';
 
     protected static ?string $recordTitleAttribute = 'name';
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Invoices\Tables;
 
+use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,8 +15,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use App\Enums\InvoiceStatus;
-use App\Enums\InvoiceType;
 
 class InvoicesTable
 {

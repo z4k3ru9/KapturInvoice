@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Invoices;
 
+use App\Filament\RelationManagers\DocumentsRelationManager;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Filament\Resources\Invoices\Pages\ListInvoices;
@@ -49,6 +50,7 @@ class InvoiceResource extends Resource
     {
         return [
             ItemsRelationManager::class,
+            DocumentsRelationManager::class,
         ];
     }
 

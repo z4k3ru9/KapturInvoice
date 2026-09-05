@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\HomePage;
 use Illuminate\Support\Facades\Route;
@@ -11,3 +12,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     Route::get('/', HomePage::class)->name('home');
 });
+
+// Linked from the admin panel's Documents resource/relation manager — kept
+// as a plain authenticated route rather than inside the Filament panel
+// group, since it streams a file rather than rendering a page.
+Route::get('/documents/{document}/download', DocumentDownloadController::class)
+    ->middleware('auth')
+    ->name('documents.download');

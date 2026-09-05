@@ -17,8 +17,10 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\TaxRate;
 use App\Models\User;
+use App\Services\InvoiceTotalsCalculator;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -117,8 +119,8 @@ class AdminPanelResourcesTest extends TestCase
             'unit_cost' => 100,
         ]);
 
-        app(\App\Services\InvoiceTotalsCalculator::class)->syncItemTaxes($item, [$taxRate->id]);
-        app(\App\Services\InvoiceTotalsCalculator::class)->recalculate($invoice->fresh());
+        app(InvoiceTotalsCalculator::class)->syncItemTaxes($item, [$taxRate->id]);
+        app(InvoiceTotalsCalculator::class)->recalculate($invoice->fresh());
 
         $invoice->refresh();
 
@@ -133,7 +135,7 @@ class AdminPanelResourcesTest extends TestCase
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);
         $contact = Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'is_primary' => true]);
 
-        \Livewire\Livewire::test(ContactsRelationManager::class, [
+        Livewire::test(ContactsRelationManager::class, [
             'ownerRecord' => $client,
             'pageClass' => ViewClient::class,
         ])->assertCanSeeTableRecords([$contact]);

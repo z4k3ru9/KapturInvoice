@@ -6,9 +6,11 @@ covering both record-style Resources (Clients, Invoices, …) and the
 singleton-style **Settings/Parameters** pages (Company branding, numbering,
 email, gateways) that schema's `accounts` table crammed into ~140 columns.
 
-This is a **navigation + page-composition spec**, not code — it says what
-each screen shows and how it's grouped, so the Filament resources/pages can
-be scaffolded straight from it. ✅ = already built; the rest is proposed.
+This is a **navigation + page-composition spec** — it says what each screen
+shows and how it's grouped. ✅ = built and covered by a feature test (see
+`tests/Feature/Filament/*Test.php`); ⚠️ = built but deliberately simplified
+(the trade-off is called out inline); the rest remains proposed
+(Proposals, §2.7).
 
 ---
 
@@ -19,14 +21,14 @@ sidebar order:
 
 | Group | Contents |
 |---|---|
-| **Billing** | Invoices ✅, Recurring Invoices, Quotes, Credits ✅, Payments ✅ |
-| **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations |
+| **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅, Credits ✅, Payments ✅ |
+| **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
 | **Catalog** | Products ✅, Tax Rates ✅ |
-| **Expenses** | Expenses, Vendors (+ Vendor Contacts relation manager), Expense Categories |
-| **Projects** | Projects, Tasks (+ Task Statuses as a manageable list within Projects settings) |
-| **Documents** | Documents (polymorphic: attached to an Invoice or an Expense) |
-| **Team** | Users, (Roles/Permissions, if `filament-shield` is added) |
-| **Settings** | Company Profile ✅ (tenant profile page), Invoice & Numbering, Email & Reminders, Payment Gateways, Client Portal |
+| **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Projects** | Projects ✅ (+ Tasks relation manager ✅), Task Statuses ✅ |
+| **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
+| **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
+| **Settings** | Company Profile ✅ (tenant profile page), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
 
 Global lookup data (`countries`, `currencies`, `languages`, `timezones`,
 `industries`, `sizes`, `frequencies`) is **seed data, not navigation** — it's
@@ -43,29 +45,29 @@ summarized only where relevant to keep this doc focused on what's new.
 
 ### 2.1 Billing group
 
-**Invoices** ✅ — extend the existing resource with two more record types
-sharing the same table (per schema-reference §2.3's unified `invoices` +
-`invoice_type_id`/`is_recurring` pattern — recommend keeping this as *one*
-Eloquent model with scoped sub-resources rather than three separate tables):
+**Invoices** ✅ — `QuoteResource`/`RecurringInvoiceResource` (both ✅) are
+filtered views onto the same `invoices` table (per schema-reference §2.3's
+unified `invoices` + `type`/`is_recurring` pattern), sharing `InvoiceForm`/
+`InvoiceInfolist`/`ItemsRelationManager`/`DocumentsRelationManager` as-is:
 
-- **Invoices** (`invoice_type = invoice`, `is_recurring = false`) — current
-  resource, unchanged.
-- **Quotes** (`invoice_type = quote`) — same Form/Table/ItemsRelationManager,
-  filtered `->modifyQueryUsing(fn ($q) => $q->where('invoice_type', 'quote'))`;
-  adds a **Convert to Invoice** table action (clones the quote, sets
-  `converted_from_quote_id`, flips `invoice_type`).
-- **Recurring Invoices** (`is_recurring = true`) — same base Form plus a
-  *Schedule* section (`frequency_id` select, `start_date`, `end_date`,
-  `auto_bill` toggle); a **Generate Now** action manually fires the next
-  occurrence for testing.
+- **Invoices** (`type = invoice`) — original resource, unchanged.
+- **Quotes** (`type = quote`) — `QuoteResource::getEloquentQuery()` filters
+  by type; a **Convert to invoice** table action
+  (`App\Services\InvoiceDuplicator::convertQuoteToInvoice()`) clones the
+  quote + its items/taxes into a new invoice and sets
+  `converted_from_quote_id`.
+- **Recurring Invoices** (`is_recurring = true`) — the *Recurring* section
+  already on `InvoiceForm` (frequency/dates/auto-bill) covers the schedule;
+  a **Generate now** table action
+  (`InvoiceDuplicator::generateRecurringInstance()`) clones the template
+  into a new one-off invoice and stamps `recurring_last_sent_at`.
 
-Form sections (current + additions):
-1. *Client & Numbering* — client select, invoice number (readonly, generated), status.
-2. *Line Items* — `ItemsRelationManager` ✅.
-3. *Totals* — subtotal/tax/total (disabled, computed) ✅.
-4. *Terms* — payment terms, notes, footer text.
-5. **New:** *Schedule* (recurring only, see above).
-6. **New:** *Partial Payment* — `partial` amount + `partial_due_date` (schema §2.3).
+⚠️ **Numbering is not yet wired to invoice creation** — `EditNumberingSettings`
+(§3.2) edits `invoice_prefix`/`invoice_next_number` on `Company`, but
+`InvoiceForm`'s `number` field is still a plain manual text input; nothing
+yet reads the sequence and auto-assigns/increments it on save. That
+"generate the next number, `lockForUpdate()`'d" service is the next piece
+to build before numbering is actually load-bearing.
 
 **Credits** ✅, **Payments** ✅ — unchanged.
 
@@ -73,60 +75,71 @@ Form sections (current + additions):
 
 **Clients** ✅ / **Contacts** ✅ — unchanged.
 
-**Client Portal Invitations** (new, maps to `invitations` + `invitation_key`
-magic-link, schema §2.3/§4) — read-mostly resource:
-- Table: invoice #, contact, `sent_date`, `viewed_date`, `signature_date`
-  (icon if e-signed), portal link (copy-to-clipboard action).
+**Client Portal Invitations** ✅ (`InvitationResource`, maps to `invitations` +
+its `key` magic-link, schema §2.3/§4) — read-mostly resource:
+- Table: invoice #, contact, `sent_at`, `viewed_at`, signed icon, portal
+  link (copy-to-clipboard action).
 - No manual create form — invitations are generated when an invoice is sent;
   the resource is for support/visibility, not data entry.
-- This is the piece that later becomes the **public-facing** Livewire
-  "view/pay my invoice" page (magic link, no full login), separate from this
-  admin resource — see schema-reference §4.
+- `Invitation` has no `company_id`/`company()` relation of its own, so
+  Filament's automatic tenant scope is disabled (`$isScopedToTenant = false`)
+  in favour of an explicit `whereHas('invoice', ...)` scope.
+- ⚠️ The public-facing "view/pay my invoice" Livewire page the `key` is
+  meant to resolve to (§4) isn't built yet — only the admin-side visibility
+  exists so far.
 
 ### 2.3 Catalog group
 
 **Products** ✅, **Tax Rates** ✅ — unchanged.
 
-### 2.4 Expenses group (new)
+### 2.4 Expenses group ✅
 
-**Expenses**
-- Form sections: *Details* (vendor select, category select, date, amount,
-  currency), *Client Rebilling* (client select + `should_be_invoiced`
-  toggle — schema §2.5), *Tax* (reuse the same tax-rate multi-select pattern
-  as `ItemsRelationManager` ✅), *Receipt* (Documents relation manager).
-- Table: vendor, category, amount, date, `should_be_invoiced` badge, rebilled
-  invoice link (if any).
+**Expenses** ✅ (`ExpenseResource`)
+- Form sections: *Expense* (vendor select, category select, date, amount as
+  `subtotal`, currency, tax multi-select), *Rebilling* (client select +
+  `should_be_invoiced` toggle — schema §2.5), *Totals* (tax_total/total,
+  disabled/computed), plus a Documents relation manager (shared with
+  Invoices).
+- `tax_rate_ids` is a virtual field, same pattern as `ItemsRelationManager`'s
+  — `App\Services\ExpenseTotalsCalculator` snapshots into `expense_taxes`
+  and recomputes `tax_total`/`total` (normalizing the legacy inline
+  `tax_name1/rate1` + `tax_name2/rate2` columns, same as invoices).
+- Table: vendor, category, date, amount, total, rebill badge, client.
 
-**Vendors** (+ **Vendor Contacts** relation manager, mirrors
-Clients/Contacts ✅ exactly).
+**Vendors** ✅ (+ **Contacts** relation manager ✅, mirrors Clients/Contacts
+exactly).
 
-**Expense Categories** — simple resource (name only), or fold into a
-`ManageExpenseCategories` Filament **Settings-style page** if the list stays
-short (schema shows this as an account-scoped lookup, not global).
+**Expense Categories** ✅ — simple resource (name only), grouped under
+Expenses rather than Settings.
 
-### 2.5 Projects group (new)
+### 2.5 Projects group ✅
 
-**Projects**
+**Projects** ✅
 - Form: client select (nullable), `task_rate`, `budgeted_hours`, `due_date`.
-- Relation manager: **Tasks** (description, status select, running/stopped
-  toggle, computed duration from time entries).
+- Relation manager: **Tasks** ✅ (description, status select, running icon,
+  computed duration, Start/Stop timer table actions).
 
-**Task time entries** — schema's `tasks.time_log` is a serialized
-start/stop blob (§2.6); rebuild as a real child resource/relation manager
-(`task_time_entries`: `started_at`/`stopped_at`) instead of a text column, so
-Filament can show a proper timer widget and sum durations natively.
+⚠️ **Time tracking is simplified** — rather than a full `task_time_entries`
+child table (multiple segments per task), `tasks` carries a single
+`started_at`/`stopped_at`/`is_running` per task (see the tasks migration).
+Fine for "one timer per task"; upgrade to a child table if multiple
+segments per task turn out to be needed.
 
-**Task Statuses** — per-project-owner (account-scoped) kanban columns;
-surface as a small repeater on a Settings page rather than a full resource
-(low record count, edited rarely).
+**Task Statuses** ✅ — implemented as a small top-level resource (mirrors
+Tax Rates) rather than a repeater on a Settings page, since it needed its
+own create/edit/delete affordance as a `Select` option source for Tasks.
 
-### 2.6 Documents group (new)
+### 2.6 Documents group ✅
 
-**Documents** — polymorphic `documentable` (Invoice *or* Expense, never
-both — schema §2.8). Table: filename, attached-to (invoice/expense badge +
-link), size, uploaded-by, download action. Uploads happen inline via each
-parent's own relation manager (Invoice → Documents, Expense → Documents);
-this top-level resource is a cross-cutting search/browse view.
+**Documents** ✅ — polymorphic `documentable` (Invoice *or* Expense, never
+both — schema §2.8). Top-level `DocumentResource` table: filename,
+attached-to, size, download action (streamed via a `documents.download`
+route outside the Filament panel — `DocumentDownloadController` checks
+`$user->canAccessTenant($document->company)` explicitly, since Document's
+`BelongsToCompany` global scope only applies inside a Filament request). Uploads happen inline via
+each parent's own `App\Filament\RelationManagers\DocumentsRelationManager`
+(shared by Invoices and Expenses) — the top-level resource is read-mostly,
+for cross-cutting search/browse.
 
 ### 2.7 Proposals (optional module — flagged, not scaffolded)
 
@@ -135,14 +148,18 @@ deferring** until confirmed needed — if adopted later it's its own group
 (`Proposals`, `Proposal Templates`, `Proposal Snippets`) rather than bolted
 onto Invoices.
 
-### 2.8 Team group
+### 2.8 Team group ✅
 
-**Users** — Filament's own user management (name/email/password,
-`is_super_admin` toggle, company/tenant memberships via the `company_user`
-pivot as a checkbox-list or relation manager). Bring RBAC via
+**Users** ✅ (`UserResource`) — name/email/password, `is_super_admin`
+toggle, plus a **Companies** relation manager (BelongsToMany pivot,
+`AttachAction` with a `role` pivot field) for per-tenant membership.
+`User` has no single `company_id`, so — like Invitations — Filament's
+automatic tenant scope is disabled and `getEloquentQuery()` applies an
+explicit `whereHas('companies', ...)`. Creating a user from within a
+tenant's Team page auto-attaches them to that tenant (role: member).
+RBAC beyond super-admin/company-member is still deferred to
 `filament-shield` (spatie/laravel-permission) rather than reviving the
-legacy JSON `permissions` blob (schema §2.1) — deferred until roles beyond
-"super admin vs. company member" are needed.
+legacy JSON `permissions` blob (schema §2.1).
 
 ---
 
@@ -164,46 +181,53 @@ Already built — name, slug, domain, branding basics. Extend with:
 - *Regional* section: `currency_id`, `country_id`, `timezone_id`,
   `language_id`, `financial_year_start`.
 
-### 3.2 Invoice & Numbering (new page, `EditNumberingSettings`)
-Maps to `accounts`' counter/prefix/pattern columns (schema §2.1/§4):
-- Per-sequence group (repeated for Invoice / Quote / Credit / Client
-  numbers): `prefix` text, `pattern` text (with placeholder tokens shown as
-  helper text, e.g. `{$counter}`), `next_number` integer.
-- *Defaults* section: default `payment_terms`, default `tax_name1/rate1` +
-  `tax_name2/rate2` (account-level fallback taxes, distinct from the
-  per-line-item taxes already modeled via `invoice_item_taxes` ✅).
-- Backing implementation: a service class (already the pattern used for
-  `InvoiceTotalsCalculator` ✅) reads this settings row when generating the
-  next invoice number — never trust a raw incrementing column under
-  concurrent writes; wrap in a DB transaction + `lockForUpdate()`.
+All four below share `App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`
+— a generalized version of Filament's own `EditTenantProfile` (load one
+record on `mount()`, `$this->form->fill()`, save back on submit) that works
+for any per-tenant settings record, not just the tenant model itself.
 
-### 3.3 Email & Reminders (new page, `EditEmailSettings`)
-Maps to `account_email_settings` (schema §2.1):
+### 3.2 Invoice & Numbering ✅ (`EditNumberingSettings`)
+Maps to `accounts`' counter/prefix/pattern columns (schema §2.1/§4), binds
+directly to `Company` (the tenant):
+- Per-sequence group (Invoice / Quote / Credit): `prefix` text,
+  `next_number` integer.
+- *Defaults* section: default `payment_terms`, `default_tax_rate_1_id` +
+  `default_tax_rate_2_id` (account-level fallback taxes — referenced by FK
+  to `tax_rates` rather than the legacy inline `tax_name1/rate1` +
+  `tax_name2/rate2` copy, another normalization the schema doc flagged as
+  an opportunity).
+- ⚠️ Not yet built: pattern tokens (schema's `_pattern` columns) and the
+  service that actually reads this sequence and assigns/increments
+  `next_number` when an invoice is created — see the note in §2.1.
+
+### 3.3 Email & Reminders ✅ (`EditEmailSettings`)
+Maps to `account_email_settings` (schema §2.1), binds to `CompanySetting`:
 - *Templates* section: subject/body pairs for Invoice, Quote, Payment
-  Receipt (rich-text editor fields).
+  (plain text fields for now, not rich-text).
 - *Reminders* section: 4 repeatable blocks (`enabled` toggle, `days`,
-  `direction` before/after due date, `field` due-date-vs-send-date) —
-  matches the legacy `reminder1-4` columns.
+  `direction` before/after, `field` due-date-vs-invoice-date) — matches the
+  legacy `reminder1-4` columns.
 - *Late Fees* section: 3 tiers of `amount`/`percent`.
+- ⚠️ Templates/reminders are stored but nothing yet reads them to actually
+  send an email — that's the mail-sending layer, not built yet.
 
-### 3.4 Payment Gateways (new page, `ManagePaymentGateways`)
-Maps to `account_gateways` + `account_gateway_settings` (schema §2.4):
-- Repeater/relation manager, one row per configured gateway: gateway select
-  (curated list — e.g. Stripe, Midtrans, Xendit, not InvoiceNinja's full
-  ~69-driver catalog per schema's recommendation), credentials fields
-  (stored via Laravel `encrypted` casts, **never** plaintext — schema flags
-  this explicitly), `accepted_credit_cards` checkbox list,
-  `show_address`/`require_cvv` toggles, and a fee section
-  (`fee_amount`/`fee_percent` + fee tax).
-- A **Test Connection** action per gateway row before it can be enabled.
+### 3.4 Payment Gateways ✅ (`PaymentGatewayResource`)
+Maps to `account_gateways` + `account_gateway_settings` (schema §2.4).
+Built as a normal Filament **Resource** (not a custom page) since it's
+naturally a list, grouped under Settings: gateway select (curated —
+Stripe/Midtrans/Xendit/PayPal/Manual, not InvoiceNinja's full ~69-driver
+catalog), credentials field (`encrypted` cast, **never** plaintext — schema
+flags this explicitly), `accepted_credit_cards` checkbox list,
+`show_address`/`require_cvv` toggles, fee section
+(`fee_amount`/`fee_percent` + fee tax). ⚠️ No **Test Connection** action yet
+— that needs an actual gateway SDK integration.
 
-### 3.5 Client Portal (new page, `EditClientPortalSettings`)
-Maps to `accounts.enable_client_portal*` + the invitation/security-code
-flow (schema §2.1/§4):
-- Toggles: portal enabled, allow client-initiated payments, show tasks in
-  portal, require signature on approval.
-- *Security* section: magic-link expiry (if added beyond InvoiceNinja's
-  no-expiry default), 2FA/OTP toggle (maps to `security_codes`).
+### 3.5 Client Portal ✅ (`EditClientPortalSettings`)
+Maps to `accounts.enable_client_portal*` (schema §2.1/§4), binds to
+`CompanySetting`: portal enabled, allow client-initiated payments, show
+tasks in portal, require signature. ⚠️ No 2FA/OTP toggle yet (maps to the
+legacy `security_codes` table) — deferred until the public portal itself
+is built (see §2.2's note).
 
 ---
 
@@ -219,15 +243,19 @@ these are `Select` option sources only.
 
 ---
 
-## 5. Build order (suggested)
+## 5. Build order — status
 
-1. **Settings pages** (§3) — every other new resource references numbering/
-   tax defaults from these, so they unblock the rest.
-2. **Expenses group** (§2.4) — self-contained, reuses the tax multi-select
-   pattern already proven in `ItemsRelationManager` ✅.
-3. **Vendors** (prerequisite for Expenses' vendor select).
-4. **Projects/Tasks** (§2.5) — independent of the above.
-5. **Client Portal Invitations** (§2.2) + **Documents** (§2.6) — both are
-   read-heavy, lower risk, and depend on Invoices ✅/Expenses existing first.
-6. **Team/RBAC** (§2.8) — once more than one role is actually needed.
-7. **Proposals** (§2.7) — only if confirmed in scope.
+All seven steps below are built (✅ throughout §1–3); only **Proposals**
+(§2.7) remains deliberately unscaffolded, pending confirmation it's in
+scope. Remaining known gaps, all called out with ⚠️ above and worth
+tackling next in roughly this order:
+
+1. **Invoice numbering service** (§2.1/§3.2) — auto-assign/increment
+   `number` from the company's sequence on save, `lockForUpdate()`'d.
+2. **Public client-portal page** (§2.2/§3.5) — the magic-link
+   view/pay/e-sign flow `invitations.key` is meant to resolve to.
+3. **Email sending** (§3.3) — actually dispatch the stored templates on
+   invoice send/reminder schedule.
+4. **Payment gateway SDK integration** (§3.4) — real charge/Test Connection
+   behaviour, not just stored config.
+5. **Proposals module** (§2.7) — only if confirmed in scope.
