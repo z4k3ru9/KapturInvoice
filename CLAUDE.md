@@ -5,6 +5,7 @@ platform replacing a legacy InvoiceNinja v4 install, with Filament 5 as the
 multi-tenant admin/billing dashboard. Full background:
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — admin panel nav/page layout, what's built vs. still a gap (✅/⚠️ markers).
+- [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
 - [`README.md`](README.md) — stack table, architecture, setup.
 
 Read this file first on every session — it exists so setup/login/seed
@@ -131,6 +132,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 65 tests as of the payment-gateway-driver + proposals pass
+php artisan test      # 69 tests as of the full-resource-coverage sweep — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

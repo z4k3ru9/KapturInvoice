@@ -5,7 +5,9 @@ Laravel, Livewire), replacing a legacy InvoiceNinja v4 (MariaDB) install.
 See [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md)
 for the source schema this was designed against and the data-import plan, and
 [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md)
-for the full admin panel navigation/page layout this README summarizes.
+for the full admin panel navigation/page layout this README summarizes, and
+[`docs/testing-coverage.md`](docs/testing-coverage.md) for what the test
+suite actually verifies, domain by domain.
 
 ## Stack
 
