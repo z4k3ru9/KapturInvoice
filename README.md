@@ -83,6 +83,19 @@ codebase and one deployment:
   action and a CSRF-exempt webhook receiver
   (`POST /webhooks/payment-gateways/{paymentGateway}`). No checkout flow
   calls `charge()` from the UI yet.
+- **PDF export** — `barryvdh/laravel-dompdf` renders
+  `resources/views/pdf/{invoice,credit}.blade.php` (Invoice covers both
+  Invoice and Quote, same table). A "Download PDF" table action on
+  Invoices/Quotes/Recurring Invoices/Credits and a link on the client
+  portal page both stream it; not attached to outbound emails yet.
+- **Modal-based Create/Edit** — 13 resources without a hard dependency on
+  a relation-manager page (Clients, Vendors, Projects, Products, Tax
+  Rates, Credits, Payments, Payment Gateways, Proposals, Expense
+  Categories, Task Statuses, Proposal Templates, Proposal Snippets) use a
+  Filament modal for Create/Edit instead of a dedicated page — better for
+  focused entry on mobile. Invoices/Quotes/Recurring Invoices/Expenses
+  (need their Items/Documents relation manager) and Users (no View page
+  yet) keep full pages.
 - **`App\Models\Concerns\BelongsToCompany`** — applied to every directly
   tenant-owned model (`Client`, `Product`, `TaxRate`, `Invoice`, `Credit`,
   `Payment`, `Vendor`, `ExpenseCategory`, `Expense`, `Project`, `Task`,

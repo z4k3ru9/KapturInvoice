@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Payments;
 
-use App\Filament\Resources\Payments\Pages\CreatePayment;
-use App\Filament\Resources\Payments\Pages\EditPayment;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Filament\Resources\Payments\Pages\ViewPayment;
 use App\Filament\Resources\Payments\Schemas\PaymentForm;
@@ -49,13 +47,15 @@ class PaymentResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListPayments/this table and on ViewPayment's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page.
     public static function getPages(): array
     {
         return [
             'index' => ListPayments::route('/'),
-            'create' => CreatePayment::route('/create'),
             'view' => ViewPayment::route('/{record}'),
-            'edit' => EditPayment::route('/{record}/edit'),
         ];
     }
 

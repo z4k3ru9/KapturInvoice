@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Projects;
 
-use App\Filament\Resources\Projects\Pages\CreateProject;
-use App\Filament\Resources\Projects\Pages\EditProject;
 use App\Filament\Resources\Projects\Pages\ListProjects;
 use App\Filament\Resources\Projects\Pages\ViewProject;
 use App\Filament\Resources\Projects\RelationManagers\TasksRelationManager;
@@ -52,13 +50,16 @@ class ProjectResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListProjects/this table and on ViewProject's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page so the
+    // Tasks relation manager still has somewhere to live.
     public static function getPages(): array
     {
         return [
             'index' => ListProjects::route('/'),
-            'create' => CreateProject::route('/create'),
             'view' => ViewProject::route('/{record}'),
-            'edit' => EditProject::route('/{record}/edit'),
         ];
     }
 

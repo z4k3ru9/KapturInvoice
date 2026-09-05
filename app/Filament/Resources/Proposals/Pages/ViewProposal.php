@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Proposals\Pages;
 
 use App\Filament\Resources\Proposals\ProposalResource;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -14,6 +15,7 @@ class ViewProposal extends ViewRecord
     {
         return [
             EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

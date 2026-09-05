@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Proposals;
 
-use App\Filament\Resources\Proposals\Pages\CreateProposal;
-use App\Filament\Resources\Proposals\Pages\EditProposal;
 use App\Filament\Resources\Proposals\Pages\ListProposals;
 use App\Filament\Resources\Proposals\Pages\ViewProposal;
 use App\Filament\Resources\Proposals\Schemas\ProposalForm;
@@ -47,13 +45,15 @@ class ProposalResource extends Resource
         return ProposalsTable::configure($table);
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListProposals/this table and on ViewProposal's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page.
     public static function getPages(): array
     {
         return [
             'index' => ListProposals::route('/'),
-            'create' => CreateProposal::route('/create'),
             'view' => ViewProposal::route('/{record}'),
-            'edit' => EditProposal::route('/{record}/edit'),
         ];
     }
 }

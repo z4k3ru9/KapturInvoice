@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Credits\Tables;
 
+use App\Filament\Support\DownloadPdfAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -55,6 +56,7 @@ class CreditsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::credit(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

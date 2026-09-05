@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Vendors;
 
-use App\Filament\Resources\Vendors\Pages\CreateVendor;
-use App\Filament\Resources\Vendors\Pages\EditVendor;
 use App\Filament\Resources\Vendors\Pages\ListVendors;
 use App\Filament\Resources\Vendors\Pages\ViewVendor;
 use App\Filament\Resources\Vendors\RelationManagers\ContactsRelationManager;
@@ -52,13 +50,16 @@ class VendorResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListVendors/this table and on ViewVendor's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page so the
+    // Contacts relation manager still has somewhere to live.
     public static function getPages(): array
     {
         return [
             'index' => ListVendors::route('/'),
-            'create' => CreateVendor::route('/create'),
             'view' => ViewVendor::route('/{record}'),
-            'edit' => EditVendor::route('/{record}/edit'),
         ];
     }
 

@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\ExpenseCategories;
 
-use App\Filament\Resources\ExpenseCategories\Pages\CreateExpenseCategory;
-use App\Filament\Resources\ExpenseCategories\Pages\EditExpenseCategory;
 use App\Filament\Resources\ExpenseCategories\Pages\ListExpenseCategories;
 use App\Models\ExpenseCategory;
 use BackedEnum;
@@ -59,12 +57,14 @@ class ExpenseCategoryResource extends Resource
             ]);
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListExpenseCategories/this table (see
+    // docs/filament-admin-layout-design.md §6).
     public static function getPages(): array
     {
         return [
             'index' => ListExpenseCategories::route('/'),
-            'create' => CreateExpenseCategory::route('/create'),
-            'edit' => EditExpenseCategory::route('/{record}/edit'),
         ];
     }
 }

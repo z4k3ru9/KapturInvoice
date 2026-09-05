@@ -33,11 +33,14 @@ class ProjectsTest extends TestCase
         Filament::setTenant($this->company);
     }
 
-    public function test_resource_index_and_create_pages_render(): void
+    public function test_resource_index_pages_render(): void
     {
+        // Neither keeps a dedicated Create/Edit page anymore — both open
+        // as a modal instead (Project's Tasks relation manager still lives
+        // on its View page), covered by ModalCreateEditTest. See
+        // docs/filament-admin-layout-design.md §6.
         foreach ([ProjectResource::class, TaskStatusResource::class] as $resource) {
             $this->get($resource::getUrl('index', tenant: $this->company))->assertOk();
-            $this->get($resource::getUrl('create', tenant: $this->company))->assertOk();
         }
     }
 

@@ -3,7 +3,10 @@
 namespace App\Filament\Resources\TaxRates\Pages;
 
 use App\Filament\Resources\TaxRates\TaxRateResource;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTaxRate extends ViewRecord
@@ -14,6 +17,9 @@ class ViewTaxRate extends ViewRecord
     {
         return [
             EditAction::make(),
+            DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 }

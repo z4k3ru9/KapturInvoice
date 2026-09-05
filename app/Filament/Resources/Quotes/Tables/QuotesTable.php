@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quotes\Tables;
 
 use App\Enums\InvoiceStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Services\BillingMailer;
 use App\Services\InvoiceDuplicator;
@@ -75,6 +76,7 @@ class QuotesTable
                             ->body("Created invoice #{$invoice->id}.")
                             ->send();
                     }),
+                DownloadPdfAction::invoice(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

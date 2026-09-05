@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Clients;
 
-use App\Filament\Resources\Clients\Pages\CreateClient;
-use App\Filament\Resources\Clients\Pages\EditClient;
 use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Filament\Resources\Clients\Pages\ViewClient;
 use App\Filament\Resources\Clients\RelationManagers\ContactsRelationManager;
@@ -52,13 +50,16 @@ class ClientResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListClients/this table and on ViewClient's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page so the
+    // Contacts relation manager still has somewhere to live.
     public static function getPages(): array
     {
         return [
             'index' => ListClients::route('/'),
-            'create' => CreateClient::route('/create'),
             'view' => ViewClient::route('/{record}'),
-            'edit' => EditClient::route('/{record}/edit'),
         ];
     }
 

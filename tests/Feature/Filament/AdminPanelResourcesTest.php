@@ -64,10 +64,12 @@ class AdminPanelResourcesTest extends TestCase
 
     public function test_resource_create_pages_render(): void
     {
-        foreach ([ClientResource::class, ProductResource::class, TaxRateResource::class, InvoiceResource::class] as $resource) {
-            $this->get($resource::getUrl('create', tenant: $this->company))
-                ->assertOk();
-        }
+        // Only Invoice keeps a dedicated Create page (it needs one to host
+        // the Items relation manager after creating) — Client/Product/
+        // TaxRate dropped theirs in favor of a modal, covered by
+        // ModalCreateEditTest instead. See docs/filament-admin-layout-design.md §6.
+        $this->get(InvoiceResource::getUrl('create', tenant: $this->company))
+            ->assertOk();
     }
 
     public function test_client_belongs_to_company_scope_hides_other_tenants_records(): void

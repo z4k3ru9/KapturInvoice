@@ -3,7 +3,6 @@
 namespace Tests\Feature\Filament;
 
 use App\Enums\ProposalStatus;
-use App\Filament\Resources\Proposals\Pages\CreateProposal;
 use App\Filament\Resources\Proposals\Pages\ListProposals;
 use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\ProposalSnippets\ProposalSnippetResource;
@@ -45,14 +44,14 @@ class ProposalsTest extends TestCase
         Filament::setTenant($this->company);
     }
 
-    public function test_resource_pages_render(): void
+    public function test_resource_index_pages_render(): void
     {
+        // None of the three keeps a dedicated Create page anymore — all
+        // three open via a modal instead, covered by ModalCreateEditTest.
+        // See docs/filament-admin-layout-design.md §6.
         $this->get(ProposalResource::getUrl('index', tenant: $this->company))->assertOk();
-        $this->get(ProposalResource::getUrl('create', tenant: $this->company))->assertOk();
         $this->get(ProposalTemplateResource::getUrl('index', tenant: $this->company))->assertOk();
-        $this->get(ProposalTemplateResource::getUrl('create', tenant: $this->company))->assertOk();
         $this->get(ProposalSnippetResource::getUrl('index', tenant: $this->company))->assertOk();
-        $this->get(ProposalSnippetResource::getUrl('create', tenant: $this->company))->assertOk();
     }
 
     public function test_creating_a_proposal_from_a_template_copies_its_content(): void
@@ -64,11 +63,12 @@ class ProposalsTest extends TestCase
             'css' => 'p { color: navy; }',
         ]);
 
-        Livewire::test(CreateProposal::class, ['tenant' => $this->company])
-            ->fillForm(['title' => 'Website redesign', 'proposal_template_id' => $template->id])
-            ->assertFormSet(['html' => '<p>Scope of work…</p>', 'css' => 'p { color: navy; }'])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        Livewire::test(ListProposals::class)
+            ->mountAction('create')
+            ->setActionData(['title' => 'Website redesign', 'proposal_template_id' => $template->id])
+            ->assertActionDataSet(['html' => '<p>Scope of work…</p>', 'css' => 'p { color: navy; }'])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
 
         $this->assertDatabaseHas('proposals', [
             'company_id' => $this->company->id,

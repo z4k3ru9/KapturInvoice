@@ -37,8 +37,13 @@ class ExpensesTest extends TestCase
     {
         foreach ([ExpenseCategoryResource::class, VendorResource::class, ExpenseResource::class] as $resource) {
             $this->get($resource::getUrl('index', tenant: $this->company))->assertOk();
-            $this->get($resource::getUrl('create', tenant: $this->company))->assertOk();
         }
+
+        // Only Expense keeps a dedicated Create page (it needs one to host
+        // the Documents relation manager after creating) — ExpenseCategory
+        // and Vendor dropped theirs in favor of a modal, covered by
+        // ModalCreateEditTest instead. See docs/filament-admin-layout-design.md §6.
+        $this->get(ExpenseResource::getUrl('create', tenant: $this->company))->assertOk();
     }
 
     public function test_expense_totals_recalculate_from_amount_and_taxes(): void

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
-use App\Filament\Resources\Credits\Pages\CreateCredit;
+use App\Filament\Resources\Credits\Pages\ListCredits;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Quotes\Pages\CreateQuote;
 use App\Models\Client;
@@ -103,10 +103,13 @@ class DocumentNumberingTest extends TestCase
 
     public function test_creating_a_credit_assigns_from_the_credit_sequence(): void
     {
-        Livewire::test(CreateCredit::class, ['tenant' => $this->company])
-            ->fillForm(['client_id' => $this->client->id, 'amount' => 50])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        // Credit has no dedicated Create page (see CreditResource::getPages())
+        // — creation happens via ListCredits' modal CreateAction instead,
+        // whose mutateDataUsing() carries the same numbering logic
+        // CreateCredit::mutateFormDataBeforeCreate() used to.
+        Livewire::test(ListCredits::class)
+            ->callAction('create', data: ['client_id' => $this->client->id, 'amount' => 50])
+            ->assertHasNoActionErrors();
 
         $this->assertDatabaseHas('credits', ['company_id' => $this->company->id, 'number' => 'CRE-0001']);
         $this->assertSame(2, $this->company->fresh()->credit_next_number);

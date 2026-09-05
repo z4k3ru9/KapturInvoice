@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RecurringInvoices\Tables;
 
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Services\InvoiceDuplicator;
 use Filament\Actions\Action;
@@ -55,6 +56,7 @@ class RecurringInvoicesTable
                             ->body("Created invoice #{$invoice->id}.")
                             ->send();
                     }),
+                DownloadPdfAction::invoice(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

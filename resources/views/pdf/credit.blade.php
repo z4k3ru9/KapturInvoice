@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Credit {{ $credit->number }}</title>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #1f2937; }
+        .header { width: 100%; margin-bottom: 24px; }
+        .header td { vertical-align: top; }
+        .company-name { font-size: 18px; font-weight: bold; }
+        .doc-title { font-size: 20px; font-weight: bold; text-align: right; }
+        .doc-meta { text-align: right; color: #6b7280; }
+        .muted { color: #6b7280; }
+        table.totals { width: 260px; margin-left: auto; margin-top: 24px; }
+        table.totals td { padding: 3px 4px; }
+        table.totals tr.total td { font-weight: bold; font-size: 14px; border-top: 2px solid #1f2937; }
+        .text-right { text-align: right; }
+        .notes { margin-top: 24px; }
+        .notes h4 { margin-bottom: 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+    <table class="header">
+        <tr>
+            <td width="50%">
+                <div class="company-name">{{ $credit->company->name }}</div>
+                @if ($credit->company->email)
+                    <div class="muted">{{ $credit->company->email }}</div>
+                @endif
+            </td>
+            <td width="50%">
+                <div class="doc-title">CREDIT</div>
+                <div class="doc-meta">{{ $credit->number }}</div>
+                @if ($credit->credit_date)
+                    <div class="doc-meta">Date: {{ $credit->credit_date->toFormattedDateString() }}</div>
+                @endif
+            </td>
+        </tr>
+    </table>
+
+    <div>
+        <h4 class="muted" style="margin-bottom: 2px; text-transform: uppercase; font-size: 11px;">Issued to</h4>
+        <div style="font-weight: bold;">{{ $credit->client->name }}</div>
+        @if ($credit->client->email)
+            <div class="muted">{{ $credit->client->email }}</div>
+        @endif
+    </div>
+
+    <table class="totals">
+        <tr class="total">
+            <td>Amount</td>
+            <td class="text-right">{{ number_format($credit->amount, 2) }}</td>
+        </tr>
+        @if ($credit->balance != $credit->amount)
+            <tr>
+                <td>Remaining balance</td>
+                <td class="text-right">{{ number_format($credit->balance, 2) }}</td>
+            </tr>
+        @endif
+    </table>
+
+    @if ($credit->public_notes)
+        <div class="notes">
+            <h4>Notes</h4>
+            <div>{{ $credit->public_notes }}</div>
+        </div>
+    @endif
+</body>
+</html>

@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\PaymentGateways;
 
-use App\Filament\Resources\PaymentGateways\Pages\CreatePaymentGateway;
-use App\Filament\Resources\PaymentGateways\Pages\EditPaymentGateway;
 use App\Filament\Resources\PaymentGateways\Pages\ListPaymentGateways;
 use App\Filament\Resources\PaymentGateways\Pages\ViewPaymentGateway;
 use App\Filament\Resources\PaymentGateways\Schemas\PaymentGatewayForm;
@@ -49,13 +47,15 @@ class PaymentGatewayResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListPaymentGateways/this table and on ViewPaymentGateway's header
+    // (see docs/filament-admin-layout-design.md §6); 'view' stays a page.
     public static function getPages(): array
     {
         return [
             'index' => ListPaymentGateways::route('/'),
-            'create' => CreatePaymentGateway::route('/create'),
             'view' => ViewPaymentGateway::route('/{record}'),
-            'edit' => EditPaymentGateway::route('/{record}/edit'),
         ];
     }
 }

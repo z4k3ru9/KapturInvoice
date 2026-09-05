@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\TaskStatuses;
 
-use App\Filament\Resources\TaskStatuses\Pages\CreateTaskStatus;
-use App\Filament\Resources\TaskStatuses\Pages\EditTaskStatus;
 use App\Filament\Resources\TaskStatuses\Pages\ListTaskStatuses;
 use App\Models\TaskStatus;
 use BackedEnum;
@@ -61,12 +59,14 @@ class TaskStatusResource extends Resource
             ]);
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListTaskStatuses/this table (see docs/filament-admin-layout-design.md
+    // §6), which keeps data entry on the same screen (helpful on mobile).
     public static function getPages(): array
     {
         return [
             'index' => ListTaskStatuses::route('/'),
-            'create' => CreateTaskStatus::route('/create'),
-            'edit' => EditTaskStatus::route('/{record}/edit'),
         ];
     }
 }

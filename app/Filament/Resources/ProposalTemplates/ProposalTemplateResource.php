@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\ProposalTemplates;
 
-use App\Filament\Resources\ProposalTemplates\Pages\CreateProposalTemplate;
-use App\Filament\Resources\ProposalTemplates\Pages\EditProposalTemplate;
 use App\Filament\Resources\ProposalTemplates\Pages\ListProposalTemplates;
 use App\Models\ProposalTemplate;
 use BackedEnum;
@@ -71,12 +69,14 @@ class ProposalTemplateResource extends Resource
             ]);
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListProposalTemplates/this table (see
+    // docs/filament-admin-layout-design.md §6).
     public static function getPages(): array
     {
         return [
             'index' => ListProposalTemplates::route('/'),
-            'create' => CreateProposalTemplate::route('/create'),
-            'edit' => EditProposalTemplate::route('/{record}/edit'),
         ];
     }
 }

@@ -353,3 +353,92 @@ remaining trade-offs, roughly in order of what to tackle next:
    Convert-to-invoice. **Still open**: no send/portal flow for proposals
    (admin-side only), and snippets aren't insertable into the rich editor
    from a picker yet.
+6. ~~**PDF export**~~ ✅ done (§7) — invoice/quote/credit PDFs, downloadable
+   from the admin panel and the public portal.
+7. ~~**Modal-based data entry**~~ ✅ done (§8) — Create/Edit as a modal
+   instead of a full page, for every resource where that's safe.
+
+---
+
+## 7. PDF export
+
+Closes the schema-reference's note that "invoice PDF templates become
+Blade views, not a CRUD screen" (§2.9) — via
+[`barryvdh/laravel-dompdf`](https://github.com/barryvdh/laravel-dompdf)
+(dompdf under the hood; no external service, no extra binary to install).
+
+- `resources/views/pdf/invoice.blade.php` renders an Invoice **or** Quote
+  (same `invoices` table, driven by `$invoice->type`) — header/branding,
+  line items, totals, notes/terms/footer, matching the portal page's
+  layout. `resources/views/pdf/credit.blade.php` is the equivalent for
+  Credits.
+- **Admin side**: a "Download PDF" table action on Invoices, Quotes,
+  Recurring Invoices, and Credits, served by
+  `App\Http\Controllers\InvoicePdfController`/`CreditPdfController` at
+  `/invoices/{invoice}/pdf` / `/credits/{credit}/pdf` — same
+  `canAccessTenant()` check as `DocumentDownloadController` (§2.6), since
+  these routes sit outside the Filament panel but still need an auth
+  guard.
+- **Client portal**: a "Download PDF" link on the portal page
+  (`App\Livewire\Portal\ViewInvoice`, §2.2), served by
+  `App\Http\Controllers\Portal\InvoicePdfController` at
+  `/portal/{invitation:key}/pdf` — no auth, same domain-matched check as
+  the portal page itself.
+- ⚠️ No PDF attached to the outbound emails yet (`BillingMailer`, §3.3)
+  — the download links work, but `CompanyTemplatedMail` doesn't attach
+  the PDF to the message itself. A natural next step once wanted.
+
+---
+
+## 8. Modal-based data entry (mobile-friendly forms)
+
+Filament has a built-in fallback: if a resource doesn't register a
+`'create'`/`'edit'` page in `getPages()`, the exact same `CreateAction`/
+`EditAction` already used in its List/Table/View classes automatically
+render as a **modal** instead of navigating to a page — the resource's
+`form()` is reused as-is (`Page::getDefaultActionUrl()` is what gates
+this: it returns a page URL only `if hasPage('create'|'edit')`, else
+`null`, which makes the action fall back to its default modal). No
+template/table code changes were needed anywhere — only each resource's
+`getPages()` and the now-unreachable `Pages/Create*.php`/`Pages/Edit*.php`
+files.
+
+This keeps data entry on the same screen the user was already looking at
+(no navigation, no losing table scroll position/filters) — meaningfully
+better on a small/mobile viewport than a full page swap. Applied to every
+resource where it's safe:
+
+**Converted to modal Create + Edit**: Clients, Vendors, Projects,
+Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
+Expense Categories, Task Statuses, Proposal Templates, Proposal Snippets.
+Where a resource still has a **View** page (most of these do), it's kept
+— relation managers (Clients'/Vendors' Contacts, Projects' Tasks) render
+there fine, and it doubles as a read-only detail page; Delete/Force
+Delete/Restore moved from the old Edit page's header onto the View page's
+header (or, for Payment Gateways, were already on the table row).
+
+**Kept as full pages** (deliberately **not** converted):
+- **Invoices, Quotes, Recurring Invoices** — Edit hosts the Items
+  relation manager (line items + tax pivots), which is the actual point
+  of opening one of these records, not a secondary detail; a modal isn't
+  a good fit for that much nested editing. Numbering
+  (`DocumentNumberGenerator`) and type-forcing logic also live on these
+  Create pages already.
+- **Expenses** — same reasoning, for its Documents relation manager.
+- **Users** — has no dedicated View page (only Edit), which is where the
+  Companies relation manager (per-tenant role membership) lives; dropping
+  Edit would leave that relation manager with nowhere to render without
+  first building a View page for Users, which wasn't done here.
+
+**Special create-time logic, replicated onto the modal action** (previously
+lived in a `CreateXxx::mutateFormDataBeforeCreate()` page-hook, now on the
+`CreateAction` itself via `.mutateDataUsing()`, the direct equivalent):
+- **Credit** — `ListCredits`' `CreateAction` still assigns a number from
+  `DocumentNumberGenerator` when one isn't typed in.
+
+Covered by `tests/Feature/Filament/ModalCreateEditTest.php` — for each of
+the 13 converted resources: asserts the Create/Edit pages are really gone,
+then exercises the actual modal create→edit round-trip
+(`Livewire::test(ListXxx::class)->callAction('create', data: [...])` /
+`->callTableAction('edit', $record, data: [...])`, Filament's own testing
+API for action-based — as opposed to page-based — forms).

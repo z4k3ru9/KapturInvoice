@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Invoices\Tables;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Services\BillingMailer;
 use Filament\Actions\Action;
@@ -86,6 +87,7 @@ class InvoicesTable
                                 ->send();
                         }
                     }),
+                DownloadPdfAction::invoice(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

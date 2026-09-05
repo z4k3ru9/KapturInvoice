@@ -51,6 +51,8 @@ current count) and `vendor/bin/pint --test` before every push.
 | Mail sending (`BillingMailer`) | Invoice/quote send, status-bump-on-send (and non-downgrade), stored-template placeholder rendering, reminder subject prefixing, missing-contact error, payment receipts | `BillingMailerTest` |
 | Reminder schedule (`SendInvoiceReminders`) | Sends on a matching schedule, skips a non-matching due date, skips a zero-balance invoice | `SendInvoiceRemindersTest` |
 | Tenancy pages (Company Profile, Company Registration) | Both render | `FullResourceCoverageTest` |
+| PDF export (Invoices/Quotes/Recurring Invoices, Credits) | Admin download (200 + `application/pdf`), forbidden for a user outside the owning company, public portal download (domain-matched) + 404 on a cross-domain invitation | `PdfExportTest` |
+| Modal-based Create/Edit (13 resources — see design doc §8) | Create/Edit pages are really gone; the modal create→edit round-trip actually works, including Credit's replicated numbering logic | `ModalCreateEditTest` |
 
 ## What's out of scope (and why)
 

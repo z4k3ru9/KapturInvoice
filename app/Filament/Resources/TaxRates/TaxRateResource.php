@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\TaxRates;
 
-use App\Filament\Resources\TaxRates\Pages\CreateTaxRate;
-use App\Filament\Resources\TaxRates\Pages\EditTaxRate;
 use App\Filament\Resources\TaxRates\Pages\ListTaxRates;
 use App\Filament\Resources\TaxRates\Pages\ViewTaxRate;
 use App\Filament\Resources\TaxRates\Schemas\TaxRateForm;
@@ -51,13 +49,15 @@ class TaxRateResource extends Resource
         ];
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListTaxRates/this table and on ViewTaxRate's header (see
+    // docs/filament-admin-layout-design.md §6); 'view' stays a page.
     public static function getPages(): array
     {
         return [
             'index' => ListTaxRates::route('/'),
-            'create' => CreateTaxRate::route('/create'),
             'view' => ViewTaxRate::route('/{record}'),
-            'edit' => EditTaxRate::route('/{record}/edit'),
         ];
     }
 

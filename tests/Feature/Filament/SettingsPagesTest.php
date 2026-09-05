@@ -79,9 +79,11 @@ class SettingsPagesTest extends TestCase
         ]);
     }
 
-    public function test_payment_gateway_resource_index_and_create_pages_render(): void
+    public function test_payment_gateway_resource_index_page_renders(): void
     {
+        // No dedicated Create page anymore — it opens via a modal instead,
+        // covered by ModalCreateEditTest. See
+        // docs/filament-admin-layout-design.md §6.
         $this->get(PaymentGatewayResource::getUrl('index', tenant: $this->company))->assertOk();
-        $this->get(PaymentGatewayResource::getUrl('create', tenant: $this->company))->assertOk();
     }
 }

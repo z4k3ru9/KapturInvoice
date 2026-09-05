@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\ProposalSnippets;
 
-use App\Filament\Resources\ProposalSnippets\Pages\CreateProposalSnippet;
-use App\Filament\Resources\ProposalSnippets\Pages\EditProposalSnippet;
 use App\Filament\Resources\ProposalSnippets\Pages\ListProposalSnippets;
 use App\Models\ProposalSnippet;
 use BackedEnum;
@@ -66,12 +64,14 @@ class ProposalSnippetResource extends Resource
             ]);
     }
 
+    // No 'create'/'edit' pages registered — Filament automatically falls
+    // back to a modal for the CreateAction/EditAction already used in
+    // ListProposalSnippets/this table (see
+    // docs/filament-admin-layout-design.md §6).
     public static function getPages(): array
     {
         return [
             'index' => ListProposalSnippets::route('/'),
-            'create' => CreateProposalSnippet::route('/create'),
-            'edit' => EditProposalSnippet::route('/{record}/edit'),
         ];
     }
 }

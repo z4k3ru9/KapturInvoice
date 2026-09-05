@@ -29,6 +29,9 @@
                         (attn: {{ $invitation->contact->name }})
                     @endif
                 </p>
+                <a href="{{ route('portal.invoice.pdf', $invitation) }}" target="_blank" class="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary-600 hover:underline dark:text-primary-400">
+                    Download PDF
+                </a>
             </div>
 
             <dl class="text-right text-sm">

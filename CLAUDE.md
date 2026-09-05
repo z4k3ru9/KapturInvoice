@@ -51,7 +51,7 @@ Or just `composer setup` (runs the same steps via the composer script).
   group as the homepage) — no login; the invitation's `key` UUID is the
   credential. Get a link from an invoice's/quote's "Send" action (which
   emails it) or the admin's Client Portal Invitations "Copy portal link"
-  action.
+  action. Has a "Download PDF" link (see below).
 - Currencies/countries are seeded (`CurrencySeeder`/`CountrySeeder`) as
   real lookup tables, not re-derived from the legacy dump.
 
@@ -112,6 +112,25 @@ Or just `composer setup` (runs the same steps via the composer script).
   amount), recorded on `proposals.invoice_id`. ⚠️ Admin-side only so far —
   no send/portal flow, and Proposal Snippets aren't insertable into the
   rich editor from a picker yet (copy/paste by hand).
+- **PDF export** (`barryvdh/laravel-dompdf`) — `resources/views/pdf/{invoice,credit}.blade.php`,
+  served by `InvoicePdfController`/`CreditPdfController` (admin, auth +
+  `canAccessTenant()` check, same pattern as `DocumentDownloadController`)
+  and `App\Http\Controllers\Portal\InvoicePdfController` (public portal,
+  same domain-matched guard as the portal page). A "Download PDF" table
+  action exists on Invoices/Quotes/Recurring Invoices/Credits
+  (`App\Filament\Support\DownloadPdfAction`) and as a link on the portal
+  page. ⚠️ Not attached to outbound emails yet.
+- **Modal-based Create/Edit** — 13 resources (Clients, Vendors, Projects,
+  Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
+  Expense Categories, Task Statuses, Proposal Templates, Proposal
+  Snippets) dropped their dedicated Create/Edit **pages**; Filament
+  auto-falls-back to a modal for the same `CreateAction`/`EditAction`
+  already in their List/Table/View classes when no page is registered for
+  that action name (`getPages()` just omits `'create'`/`'edit'` — no
+  other code changes needed). Invoices/Quotes/Recurring Invoices/Expenses
+  (relation-manager-heavy) and Users (no View page to fall back to) keep
+  full pages — see `docs/filament-admin-layout-design.md` §8 for the
+  full reasoning and which resources are which.
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
@@ -132,6 +151,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 69 tests as of the full-resource-coverage sweep — see docs/testing-coverage.md
+php artisan test      # 87 tests as of the PDF-export + modal-forms pass — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

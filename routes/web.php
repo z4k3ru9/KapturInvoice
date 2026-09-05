@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\CreditPdfController;
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
+use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\HomePage;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
@@ -21,6 +24,10 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // double-check the invitation's invoice belongs to the domain it was
     // opened on, and so the layout's company branding matches.
     Route::get('/portal/{invitation:key}', ViewPortalInvoice::class)->name('portal.invoice');
+
+    // "Download PDF" link on the portal page itself (§7) — same
+    // domain-matched guard, no auth.
+    Route::get('/portal/{invitation:key}/pdf', PortalInvoicePdfController::class)->name('portal.invoice.pdf');
 });
 
 // Linked from the admin panel's Documents resource/relation manager — kept
@@ -29,6 +36,16 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
 Route::get('/documents/{document}/download', DocumentDownloadController::class)
     ->middleware('auth')
     ->name('documents.download');
+
+// "Download PDF" table actions on Invoices/Quotes/Recurring Invoices and
+// Credits (§7) — same reasoning as documents.download: outside the
+// Filament panel, so the tenant check happens in the controller itself.
+Route::get('/invoices/{invoice}/pdf', InvoicePdfController::class)
+    ->middleware('auth')
+    ->name('invoices.pdf');
+Route::get('/credits/{credit}/pdf', CreditPdfController::class)
+    ->middleware('auth')
+    ->name('credits.pdf');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
