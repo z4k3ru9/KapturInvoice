@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
+use App\Models\Concerns\BelongsToCompany;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+#[Fillable([
+    'company_id', 'client_id', 'legacy_invoice_id',
+    'type', 'status', 'number', 'po_number', 'invoice_date', 'due_date',
+    'currency_code', 'exchange_rate', 'discount', 'discount_is_percentage',
+    'terms', 'public_notes', 'private_notes', 'footer',
+    'is_recurring', 'recurring_frequency', 'recurring_start_date', 'recurring_end_date',
+    'recurring_template_id', 'auto_bill', 'converted_from_quote_id',
+])]
+class Invoice extends Model
+{
+    use BelongsToCompany, SoftDeletes;
+
+    protected function casts(): array
+    {
+        return [
+            'type' => InvoiceType::class,
+            'status' => InvoiceStatus::class,
+            'invoice_date' => 'date',
+            'due_date' => 'date',
+            'partial_due_date' => 'date',
+            'recurring_start_date' => 'date',
+            'recurring_end_date' => 'date',
+            'recurring_last_sent_at' => 'datetime',
+            'sent_at' => 'datetime',
+            'viewed_at' => 'datetime',
+            'is_recurring' => 'boolean',
+            'auto_bill' => 'boolean',
+            'discount_is_percentage' => 'boolean',
+            'exchange_rate' => 'decimal:4',
+            'discount' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'tax_total' => 'decimal:2',
+            'total' => 'decimal:2',
+            'amount_paid' => 'decimal:2',
+            'balance' => 'decimal:2',
+            'partial_amount' => 'decimal:2',
+        ];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function credits(): HasMany
+    {
+        return $this->hasMany(Credit::class);
+    }
+
+    /** The recurring template that generated this invoice, if any. */
+    public function recurringTemplate(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'recurring_template_id');
+    }
+
+    /** Invoices generated from this recurring template. */
+    public function generatedInvoices(): HasMany
+    {
+        return $this->hasMany(self::class, 'recurring_template_id');
+    }
+
+    /** The quote this invoice was converted from, if any. */
+    public function convertedFromQuote(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'converted_from_quote_id');
+    }
+}

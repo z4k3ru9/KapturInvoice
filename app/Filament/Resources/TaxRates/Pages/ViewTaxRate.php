@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Filament\Resources\TaxRates\Pages;
+
+use App\Filament\Resources\TaxRates\TaxRateResource;
+use Filament\Actions\EditAction;
+use Filament\Resources\Pages\ViewRecord;
+
+class ViewTaxRate extends ViewRecord
+{
+    protected static string $resource = TaxRateResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            EditAction::make(),
+        ];
+    }
+}
