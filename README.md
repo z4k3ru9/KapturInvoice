@@ -109,10 +109,12 @@ npm run build   # or `npm run dev` while working on frontend
 php artisan serve
 ```
 
-`migrate --seed` creates a super-admin user (`test@example.com`, factory
-password) and two example companies (`entity-one.test` / `entity-two.test`
-domains — placeholders, rename in `database/seeders/CompanySeeder.php` or
-edit the seeded `Company` rows once the real two entities are known).
+`migrate --seed` creates a super-admin user — **`test@example.com` /
+`password`** (Laravel's stock `UserFactory` default) — and two example
+companies (`entity-one.test` / `entity-two.test` domains — placeholders,
+rename in `database/seeders/CompanySeeder.php` or edit the seeded
+`Company` rows once the real two entities are known). Log in at
+`/admin` with those credentials.
 
 To see the public homepage for a specific entity locally, either point
 `/etc/hosts` at `127.0.0.1` for its domain, or send a `Host` header:
