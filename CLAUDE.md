@@ -4,6 +4,7 @@ TALL-stack (Tailwind, Alpine, Laravel 13, Livewire 4) billing/invoicing
 platform replacing a legacy InvoiceNinja v4 install, with Filament 5 as the
 multi-tenant admin/billing dashboard. Full background:
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
+- [`docs/price-list-import.md`](docs/price-list-import.md) — vendor pricelist (Hikvision/HiLook) import: parser design, verified row counts, "update this regularly" upsert semantics.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — admin panel nav/page layout, what's built vs. still a gap (✅/⚠️ markers).
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
 - [`README.md`](README.md) — stack table, architecture, setup.
@@ -133,10 +134,10 @@ Or just `composer setup` (runs the same steps via the composer script).
   `EditCompanyProfile` (the tenant-profile page) **or** the dedicated
   `App\Filament\Pages\Settings\EditBrandingSettings` page (Settings nav
   group) — same `Company` row, both forms save to it.
-- **Modal-based Create/Edit** — 13 resources (Clients, Vendors, Projects,
+- **Modal-based Create/Edit** — 14 resources (Clients, Vendors, Projects,
   Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
   Expense Categories, Task Statuses, Proposal Templates, Proposal
-  Snippets) dropped their dedicated Create/Edit **pages**; Filament
+  Snippets, Price List Items) dropped their dedicated Create/Edit **pages**; Filament
   auto-falls-back to a modal for the same `CreateAction`/`EditAction`
   already in their List/Table/View classes when no page is registered for
   that action name (`getPages()` just omits `'create'`/`'edit'` — no
@@ -187,6 +188,21 @@ Or just `composer setup` (runs the same steps via the composer script).
   proposals). Both share `App\Console\Commands\Concerns\ImportsLegacyInvoiceNinja`
   (status derived from financial state, not the source's own status id —
   the two legacy versions don't share one numbering scheme).
+- **`App\Services\PriceListImporter`** parses a vendor pricelist
+  spreadsheet (Hikvision/HiLook dealer pricelists) into `price_list_items`
+  — a *reference* catalog kept separate from `Product`, upserted on
+  `(company_id, brand, sku)` so re-uploading a revised file refreshes
+  rows instead of duplicating them. Header-detection-based, not a fixed
+  column mapping, since a single sheet stacks multiple product families
+  end-to-end each with its own header/spec columns — see
+  `docs/price-list-import.md` for the algorithm and both real files'
+  verified row counts. Runs from `import:pricelist {company} {file}
+  --brand=` or, "to update this regularly" without a shell, the **Catalog
+  > Price List** resource's "Import pricelist" header action. Its
+  "Create/update product" row action (`App\Services\ProductSync`) copies
+  a chosen row's sku/description/price into a real, invoiceable `Product`
+  (`products.price_list_item_id` links the two, so re-running it refreshes
+  the same Product rather than duplicating it).
 - **Public homepage content** (`App\Support\Homepage\PortfolioContent`) —
   the dark "Kinetic Obsidian" portfolio-style design
   (`resources/views/livewire/home-page.blade.php`), per the Google Stitch
@@ -223,6 +239,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 111 tests as of the relation-manager read-only fix pass — see docs/testing-coverage.md
+php artisan test      # 117 tests as of the Price List import feature — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['company_id', 'legacy_product_id', 'sku', 'name', 'description', 'unit_cost', 'default_tax_rate_id'])]
+#[Fillable(['company_id', 'legacy_product_id', 'sku', 'name', 'description', 'unit_cost', 'default_tax_rate_id', 'price_list_item_id'])]
 class Product extends Model
 {
     use BelongsToCompany, SoftDeletes;
@@ -28,5 +28,10 @@ class Product extends Model
     public function defaultTaxRate(): BelongsTo
     {
         return $this->belongsTo(TaxRate::class);
+    }
+
+    public function priceListItem(): BelongsTo
+    {
+        return $this->belongsTo(PriceListItem::class);
     }
 }

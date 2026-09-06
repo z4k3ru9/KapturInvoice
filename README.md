@@ -40,7 +40,9 @@ codebase and one deployment:
     into compact sections rather than one long stack of rows), Client
     Portal Invitations (read-mostly view of the magic-link/e-signature
     flow).
-  - **Catalog** — Products, Tax Rates.
+  - **Catalog** — Products, Tax Rates, Price List (vendor Hikvision/HiLook
+    pricelist reference catalog, self-service "Import pricelist" upload —
+    see [`docs/price-list-import.md`](docs/price-list-import.md)).
   - **Expenses** — Expenses (with a per-tax multi-select mirroring the
     invoice line-item pattern), Vendors (with a Contacts relation manager),
     Expense Categories.

@@ -12,6 +12,8 @@ use App\Filament\Resources\PaymentGateways\Pages\ListPaymentGateways;
 use App\Filament\Resources\PaymentGateways\PaymentGatewayResource;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Filament\Resources\Payments\PaymentResource;
+use App\Filament\Resources\PriceListItems\Pages\ListPriceListItems;
+use App\Filament\Resources\PriceListItems\PriceListItemResource;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Filament\Resources\Products\ProductResource;
 use App\Filament\Resources\Projects\Pages\ListProjects;
@@ -33,6 +35,7 @@ use App\Models\Company;
 use App\Models\Credit;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentGateway;
+use App\Models\PriceListItem;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Proposal;
@@ -48,7 +51,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * The 13 resources listed in docs/filament-admin-layout-design.md §6
+ * The 14 resources listed in docs/filament-admin-layout-design.md §6
  * dropped their dedicated Create/Edit pages in favor of Filament's
  * built-in modal fallback (no page registered for that action name —
  * see the resources' own getPages() comments) — better for focused, one-
@@ -318,5 +321,22 @@ class ModalCreateEditTest extends TestCase
             ->assertHasNoActionErrors();
 
         $this->assertSame('Terms block v2', $snippet->fresh()->name);
+    }
+
+    public function test_price_list_item_create_and_edit_modals_work(): void
+    {
+        $this->assertNoCreateOrEditPage(PriceListItemResource::class);
+
+        Livewire::test(ListPriceListItems::class)
+            ->callAction('create', data: ['brand' => 'Hikvision', 'sku' => 'DS-TEST-1'])
+            ->assertHasNoActionErrors();
+
+        $item = PriceListItem::where('sku', 'DS-TEST-1')->firstOrFail();
+
+        Livewire::test(ListPriceListItems::class)
+            ->callTableAction('edit', $item, data: ['sku' => 'DS-TEST-1-REV2'])
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('DS-TEST-1-REV2', $item->fresh()->sku);
     }
 }

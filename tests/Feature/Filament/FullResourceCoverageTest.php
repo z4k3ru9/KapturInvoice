@@ -9,6 +9,7 @@ use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Resources\PaymentGateways\PaymentGatewayResource;
 use App\Filament\Resources\Payments\PaymentResource;
+use App\Filament\Resources\PriceListItems\PriceListItemResource;
 use App\Filament\Resources\Products\ProductResource;
 use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Proposals\ProposalResource;
@@ -32,6 +33,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PaymentGateway;
+use App\Models\PriceListItem;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Proposal;
@@ -110,6 +112,7 @@ class FullResourceCoverageTest extends TestCase
         $proposalTemplate = ProposalTemplate::create(['company_id' => $this->company->id, 'name' => 'Standard SOW']);
         $proposalSnippet = ProposalSnippet::create(['company_id' => $this->company->id, 'name' => 'Terms block']);
         $proposal = Proposal::create(['company_id' => $this->company->id, 'client_id' => $client->id, 'title' => 'Website redesign', 'amount' => 500]);
+        $priceListItem = PriceListItem::create(['company_id' => $this->company->id, 'brand' => 'Hikvision', 'sku' => 'DS-TEST-1']);
         $otherUser = User::factory()->create();
         $this->company->users()->attach($otherUser, ['role' => 'member']);
 
@@ -131,6 +134,7 @@ class FullResourceCoverageTest extends TestCase
             [ProposalTemplateResource::class, $proposalTemplate],
             [ProposalSnippetResource::class, $proposalSnippet],
             [ProposalResource::class, $proposal],
+            [PriceListItemResource::class, $priceListItem],
             [UserResource::class, $otherUser],
         ];
 
