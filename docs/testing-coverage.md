@@ -56,6 +56,7 @@ current count) and `vendor/bin/pint --test` before every push.
 | Tenancy pages (Company Profile, Company Registration) | Both render | `FullResourceCoverageTest` |
 | PDF export (Invoices/Quotes/Recurring Invoices, Credits) | Admin download (200 + `application/pdf`), forbidden for a user outside the owning company, public portal download (domain-matched) + 404 on a cross-domain invitation, template includes company/client tax IDs and the embedded logo data URI | `PdfExportTest` |
 | Modal-based Create/Edit (13 resources — see design doc §8) | Create/Edit pages are really gone; the modal create→edit round-trip actually works, including Credit's replicated numbering logic | `ModalCreateEditTest` |
+| Relation manager Create action on View pages | The Create action is actually visible (not silently hidden by Filament's read-only-View-pages default — see `AdminPanelProvider`) for Client/Vendor contacts, Project tasks, Invoice items | `RelationManagerViewPageActionsTest` |
 | Client billing defaults | Creating a client with a default discount, selecting that client prefilling `InvoiceForm`'s discount fields, the condensed View page showing tax ID/discount | `ClientBillingDefaultsTest` |
 | Dashboard (`DashboardPeriod`, `RevenueOverview`, `RevenueTrendChart`, `ExpiringQuotesWidget`) | Period resolution for every option (unit-tested in isolation) + page render + stats computed correctly for known fixture data + expiring-quotes filtering (window, excludes already-converted) | `DashboardPeriodTest` (unit), `DashboardWidgetsTest` |
 
