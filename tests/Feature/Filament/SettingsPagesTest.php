@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Filament\Pages\Settings\EditBrandingSettings;
 use App\Filament\Pages\Settings\EditClientPortalSettings;
 use App\Filament\Pages\Settings\EditEmailSettings;
 use App\Filament\Pages\Settings\EditNumberingSettings;
@@ -10,11 +11,13 @@ use App\Models\Company;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * The four Settings pages/resource from docs/filament-admin-layout-design.md
+ * The five Settings pages/resource from docs/filament-admin-layout-design.md
  * §3 — each is a singleton per company, loaded/saved via
  * App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord.
  */
@@ -77,6 +80,23 @@ class SettingsPagesTest extends TestCase
             'company_id' => $this->company->id,
             'portal_require_signature' => true,
         ]);
+    }
+
+    public function test_branding_settings_page_renders_and_saves(): void
+    {
+        Storage::fake(config('filesystems.default'));
+
+        $this->get(EditBrandingSettings::getUrl(tenant: $this->company))->assertOk();
+
+        Livewire::test(EditBrandingSettings::class)
+            ->set('data.logo_path', UploadedFile::fake()->image('logo.png'))
+            ->set('data.primary_color', '#112233')
+            ->call('save');
+
+        $company = $this->company->fresh();
+        $this->assertSame('#112233', $company->primary_color);
+        $this->assertNotNull($company->logo_path);
+        Storage::disk(config('filesystems.default'))->assertExists($company->logo_path);
     }
 
     public function test_payment_gateway_resource_index_page_renders(): void

@@ -122,7 +122,11 @@ Or just `composer setup` (runs the same steps via the composer script).
   page. Prints the company logo (`Company::getLogoDataUri()` — inlines the
   upload as base64, since dompdf can't fetch a `Storage::url()` for the
   `local` disk) plus company and client `tax_number`. ⚠️ Not attached to
-  outbound emails yet.
+  outbound emails yet. The logo/color fields it reads (`logo_path`,
+  `primary_color`, `secondary_color`) are editable from **either**
+  `EditCompanyProfile` (the tenant-profile page) **or** the dedicated
+  `App\Filament\Pages\Settings\EditBrandingSettings` page (Settings nav
+  group) — same `Company` row, both forms save to it.
 - **Modal-based Create/Edit** — 13 resources (Clients, Vendors, Projects,
   Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
   Expense Categories, Task Statuses, Proposal Templates, Proposal
@@ -167,10 +171,19 @@ Or just `composer setup` (runs the same steps via the composer script).
   `Company` itself) are Filament **Pages**
   (`App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`),
   never Resources.
+- `composer.json`'s `require.php` is `^8.3`, but the CI matrix
+  (`.github/workflows/tests.yml`) also runs PHP 8.4/8.5 — a plain
+  `composer update` on a PHP 8.4+ machine will happily lock Symfony
+  packages that require PHP ≥8.4.1 (their newest majors), silently
+  breaking the PHP 8.3 CI job even though nothing in `composer.json`
+  changed. `composer.json`'s `config.platform.php` is pinned to `8.3.0`
+  specifically so dependency resolution always targets the floor
+  `composer.json` promises — re-run `composer update` after touching
+  `require`/`require-dev`, don't hand-edit `composer.lock`.
 
 ## Verify before pushing
 
 ```sh
-php artisan test      # 101 tests as of the dashboard/PDF-branding/billing-defaults pass — see docs/testing-coverage.md
+php artisan test      # 102 tests as of the branding-settings page pass — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

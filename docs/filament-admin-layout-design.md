@@ -28,7 +28,7 @@ sidebar order:
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
 | **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
 | **Proposals** | Proposals ✅ (+ Convert to invoice), Proposal Templates ✅, Proposal Snippets ✅ |
-| **Settings** | Company Profile ✅ (tenant profile page), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
+| **Settings** | Company Profile ✅ (tenant profile page), Branding ✅ (logo/colors, also editable from Company Profile), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
 
 Global lookup data (`countries`, `currencies`, `languages`, `timezones`,
 `industries`, `sizes`, `frequencies`) is **seed data, not navigation** — it's
@@ -215,7 +215,7 @@ InvoiceNinja's `accounts` table (~140 columns) and
 `account_email_settings`/`account_gateway_settings` are **one row per
 tenant** — that's a Filament **custom Page**, not a Resource (no list/create/
 delete; just one form that loads/saves the current tenant's settings row(s)).
-Split into four focused pages under the **Settings** nav group, each backed
+Split into focused pages under the **Settings** nav group, each backed
 by its own settings table (`company_settings`, `numbering_settings`,
 `email_settings`, no single 140-column monolith — schema §2.1 explicitly
 recommends this split):
@@ -227,7 +227,16 @@ Already built — name, slug, domain, branding basics. Extend with:
 - *Regional* section: `currency_id`, `country_id`, `timezone_id`,
   `language_id`, `financial_year_start`.
 
-All four below share `App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`
+### 3.1b Branding ✅ (`EditBrandingSettings`, Settings nav group)
+Same `logo_path`/`primary_color`/`secondary_color` columns as 3.1's
+*Branding* section, exposed as its own page under **Settings** too — same
+reasoning as 3.2 below: the logo prints on every invoice/credit PDF
+(`Company::getLogoDataUri()`) and shouldn't only be discoverable via the
+tenant-switcher's "Edit profile" menu. Both forms write to the same
+`Company` row, so a change from either page is immediately reflected on
+the other (and on the next PDF/homepage render).
+
+All Settings pages below share `App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`
 — a generalized version of Filament's own `EditTenantProfile` (load one
 record on `mount()`, `$this->form->fill()`, save back on submit) that works
 for any per-tenant settings record, not just the tenant model itself.

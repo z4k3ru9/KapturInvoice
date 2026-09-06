@@ -54,9 +54,11 @@ codebase and one deployment:
     accepted/declined" and "Convert to invoice" actions —
     `App\Services\ProposalConverter`), Proposal Templates, Proposal
     Snippets.
-  - **Settings** — Invoice & Numbering, Email & Reminders, Client Portal
-    (singleton pages backed by `Company`/`CompanySetting`), Payment
-    Gateways (encrypted, structured credentials — see below).
+  - **Settings** — Branding (logo/colors — same fields as the tenant
+    Company Profile page, exposed here too for discoverability),
+    Invoice & Numbering, Email & Reminders, Client Portal (singleton pages
+    backed by `Company`/`CompanySetting`), Payment Gateways (encrypted,
+    structured credentials — see below).
 - **Public homepage** (`/`) — plain Livewire (`App\Livewire\HomePage`),
   entirely separate from the Filament panel. Which company's homepage renders
   is resolved by **domain**, not URL path: `App\Http\Middleware\

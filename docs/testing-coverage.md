@@ -42,7 +42,7 @@ current count) and `vendor/bin/pint --test` before every push.
 | Projects & Tasks | Page renders, start/stop timer table actions | `ProjectsTest` |
 | Documents & Client Portal Invitations | Index page renders, tenant scoping via the invoice relation (no direct `company_id`) | `DocumentsAndInvitationsTest` |
 | Team (Users) | Page renders, tenant-membership scoping, new-user auto-attach to current tenant, Companies relation manager | `UsersTest`, `FullResourceCoverageTest` |
-| Settings pages (Numbering, Email & Reminders, Client Portal, Payment Gateways) | Renders + save round-trip for each singleton page | `SettingsPagesTest` |
+| Settings pages (Branding, Numbering, Email & Reminders, Client Portal, Payment Gateways) | Renders + save round-trip for each singleton page (Branding includes a faked logo upload) | `SettingsPagesTest` |
 | Proposals, Proposal Templates, Proposal Snippets | Page renders, template→proposal content copy, Convert-to-invoice (+ rejecting a double conversion), Mark accepted/declined | `ProposalsTest`, `FullResourceCoverageTest` |
 | Payment gateway driver | Charge request/response mapping, missing-config error, status polling, Test Connection success/failure, webhook payload mapping | `LocalApiPaymentGatewayDriverTest` |
 | Payment gateway webhook endpoint | Updates the matching Payment by `gateway_reference`, no-ops on an unknown reference, CSRF-exempt | `PaymentGatewayWebhookTest` |
