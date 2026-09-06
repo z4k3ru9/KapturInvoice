@@ -1,6 +1,6 @@
 {{--
     Portfolio-style homepage — "Kinetic Obsidian" dark design system, per the
-    Google Stitch "TALL IT Services Portfolio" project (docs/homepage-design.md).
+    Google Stitch "TALL IT Services Portfolio" project.
     Content (services/partners/copy) comes from App\Support\Homepage\PortfolioContent,
     keyed by company slug — see that class for why it isn't a DB-editable field.
 --}}

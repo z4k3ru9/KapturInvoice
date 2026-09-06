@@ -53,9 +53,6 @@ class ImportInvoiceNinjaV4 extends Command
 
     private int $accountId;
 
-    /** @var array<int, int> legacy tax_rates.id => new TaxRate id */
-    private array $taxRateMap = [];
-
     /** @var array<int, int> legacy products.id => new Product id */
     private array $productMap = [];
 
@@ -157,14 +154,13 @@ class ImportInvoiceNinjaV4 extends Command
     private function importTaxRates(Company $company): void
     {
         foreach ($this->source('tax_rates')->get() as $row) {
-            $taxRate = TaxRate::create([
+            TaxRate::create([
                 'company_id' => $company->id,
                 'legacy_tax_rate_id' => $row->id,
                 'name' => $row->name,
                 'rate' => $row->rate,
                 'is_inclusive' => (bool) $row->is_inclusive,
             ]);
-            $this->taxRateMap[$row->id] = $taxRate->id;
             $this->bump('tax_rates');
         }
     }

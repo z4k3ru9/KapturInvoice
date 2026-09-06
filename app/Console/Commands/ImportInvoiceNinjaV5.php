@@ -391,8 +391,14 @@ class ImportInvoiceNinjaV5 extends Command
                 'description' => $lineItem['description'],
                 'quantity' => $lineItem['quantity'],
                 'unit_cost' => $unitCost,
-                'discount' => $lineItem['is_amount_discount'] ? $lineItem['discount'] : 0,
-                'discount_is_percentage' => false,
+                // Preserve the discount in whatever shape the source used —
+                // App\Services\InvoiceTotalsCalculator::recalculate() derives
+                // line_total fresh from quantity/unit_cost/discount(_is_percentage)
+                // every time it runs (e.g. from finalizeInvoiceTotals() below),
+                // so storing a flat 0 here for a percentage discount would
+                // silently discard it on the very next recalculation.
+                'discount' => $lineItem['discount'],
+                'discount_is_percentage' => ! $lineItem['is_amount_discount'],
                 'line_total' => $lineTotal,
             ]);
             $this->bump('invoice_items');
@@ -638,6 +644,12 @@ class ImportInvoiceNinjaV5 extends Command
                 'amount' => $this->money($row->amount),
                 'refunded_amount' => $this->money($row->refunded ?? 0),
                 'currency_code' => $company->currency_code,
+                // `method` deliberately left blank: v5's `payments.type_id`
+                // has no lookup table in the dump (baked into the app's own
+                // code, unlike v4's `payment_types` table), and every real
+                // payment in this dump shares the same type_id — not enough
+                // to safely infer what it means without risking a wrong
+                // label on real historical payment methods.
                 'gateway_reference' => $row->transaction_reference,
                 'status' => $this->mapLegacyPaymentStatus($row->status_id),
                 'payment_date' => $row->date,
