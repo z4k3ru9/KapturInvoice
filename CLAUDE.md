@@ -119,7 +119,10 @@ Or just `composer setup` (runs the same steps via the composer script).
   same domain-matched guard as the portal page). A "Download PDF" table
   action exists on Invoices/Quotes/Recurring Invoices/Credits
   (`App\Filament\Support\DownloadPdfAction`) and as a link on the portal
-  page. ⚠️ Not attached to outbound emails yet.
+  page. Prints the company logo (`Company::getLogoDataUri()` — inlines the
+  upload as base64, since dompdf can't fetch a `Storage::url()` for the
+  `local` disk) plus company and client `tax_number`. ⚠️ Not attached to
+  outbound emails yet.
 - **Modal-based Create/Edit** — 13 resources (Clients, Vendors, Projects,
   Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
   Expense Categories, Task Statuses, Proposal Templates, Proposal
@@ -131,6 +134,23 @@ Or just `composer setup` (runs the same steps via the composer script).
   (relation-manager-heavy) and Users (no View page to fall back to) keep
   full pages — see `docs/filament-admin-layout-design.md` §8 for the
   full reasoning and which resources are which.
+- **Client billing defaults** — `Client::default_discount`/
+  `default_discount_is_percentage` prefill `InvoiceForm`'s invoice-level
+  discount fields when a client is selected (still freely editable after).
+  Per-item discount is a separate, pre-existing thing
+  (`ItemsRelationManager`'s `discount`/`discount_is_percentage`, applied
+  per line before `InvoiceTotalsCalculator` sums the invoice `subtotal`)
+  — client defaults only seed the invoice-level one.
+- **`App\Filament\Pages\Dashboard`** replaces Filament's stock dashboard —
+  real stats (`RevenueOverview`), a trend chart (`RevenueTrendChart`), and
+  an upcoming/expired-quotes list (`ExpiringQuotesWidget`), all under
+  `app/Filament/Widgets/`, sharing one period filter
+  (`App\Filament\Support\DashboardPeriod::resolve($pageFilters)` via
+  `Filament\Widgets\Concerns\InteractsWithPageFilters`). ⚠️ All three
+  widgets set `$isLazy = false` — Filament's lazy-widget placeholder
+  rendering 500s on a `columnSpan` that can't collapse to a scalar (a
+  Filament/Livewire bug, not this app's), so lazy-loading is off rather
+  than worked around. See `docs/filament-admin-layout-design.md` §9.
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
@@ -151,6 +171,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 87 tests as of the PDF-export + modal-forms pass — see docs/testing-coverage.md
+php artisan test      # 101 tests as of the dashboard/PDF-branding/billing-defaults pass — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

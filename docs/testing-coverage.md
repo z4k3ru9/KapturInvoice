@@ -1,11 +1,12 @@
 # KapturInvoice — Test Coverage Design
 
 What "tested" means here, and a domain-by-domain map of what actually is,
-so a gap is a documented decision rather than an unknown. All tests are
-Feature tests under `tests/Feature/` (PHPUnit + `RefreshDatabase` +
-Livewire's `Livewire::test()`/`assertOk()` HTTP checks) — there is no
-separate unit-test layer and no browser/E2E suite (see **What's out of
-scope**, below).
+so a gap is a documented decision rather than an unknown. Almost every
+test is a Feature test under `tests/Feature/` (PHPUnit + `RefreshDatabase`
++ Livewire's `Livewire::test()`/`assertOk()` HTTP checks); a handful of
+pure-logic classes with no database/HTTP involvement (currently just
+`DashboardPeriod`) get a plain `tests/Unit/` test instead — there's no
+browser/E2E suite (see **What's out of scope**, below).
 
 Run the whole suite with `php artisan test` (see `CLAUDE.md` for the
 current count) and `vendor/bin/pint --test` before every push.
@@ -51,8 +52,10 @@ current count) and `vendor/bin/pint --test` before every push.
 | Mail sending (`BillingMailer`) | Invoice/quote send, status-bump-on-send (and non-downgrade), stored-template placeholder rendering, reminder subject prefixing, missing-contact error, payment receipts | `BillingMailerTest` |
 | Reminder schedule (`SendInvoiceReminders`) | Sends on a matching schedule, skips a non-matching due date, skips a zero-balance invoice | `SendInvoiceRemindersTest` |
 | Tenancy pages (Company Profile, Company Registration) | Both render | `FullResourceCoverageTest` |
-| PDF export (Invoices/Quotes/Recurring Invoices, Credits) | Admin download (200 + `application/pdf`), forbidden for a user outside the owning company, public portal download (domain-matched) + 404 on a cross-domain invitation | `PdfExportTest` |
+| PDF export (Invoices/Quotes/Recurring Invoices, Credits) | Admin download (200 + `application/pdf`), forbidden for a user outside the owning company, public portal download (domain-matched) + 404 on a cross-domain invitation, template includes company/client tax IDs and the embedded logo data URI | `PdfExportTest` |
 | Modal-based Create/Edit (13 resources — see design doc §8) | Create/Edit pages are really gone; the modal create→edit round-trip actually works, including Credit's replicated numbering logic | `ModalCreateEditTest` |
+| Client billing defaults | Creating a client with a default discount, selecting that client prefilling `InvoiceForm`'s discount fields, the condensed View page showing tax ID/discount | `ClientBillingDefaultsTest` |
+| Dashboard (`DashboardPeriod`, `RevenueOverview`, `RevenueTrendChart`, `ExpiringQuotesWidget`) | Period resolution for every option (unit-tested in isolation) + page render + stats computed correctly for known fixture data + expiring-quotes filtering (window, excludes already-converted) | `DashboardPeriodTest` (unit), `DashboardWidgetsTest` |
 
 ## What's out of scope (and why)
 
@@ -66,10 +69,6 @@ current count) and `vendor/bin/pint --test` before every push.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.
-- **No PDF generation tests** — no PDF export exists yet (see
-  `docs/invoiceninja-v4-schema-reference.md`'s note that invoice
-  PDF templates become Blade views, not a CRUD screen); nothing to test
-  until that's built.
 - **No load/performance testing.**
 
 ## Keeping this current

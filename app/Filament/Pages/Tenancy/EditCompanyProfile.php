@@ -35,6 +35,10 @@ class EditCompanyProfile extends EditTenantProfile
                             ->unique(Company::class, 'domain', ignoreRecord: true),
                         TextInput::make('email')->email()->maxLength(255),
                         TextInput::make('phone')->tel()->maxLength(255),
+                        TextInput::make('tax_number')
+                            ->label('Tax ID')
+                            ->helperText('Printed on invoice/credit PDFs.')
+                            ->maxLength(255),
                         TextInput::make('currency_code')->label('Default currency')->length(3),
                     ]),
                 Section::make('Branding')

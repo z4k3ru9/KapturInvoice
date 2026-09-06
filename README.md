@@ -35,8 +35,11 @@ codebase and one deployment:
     Quotes and Recurring Invoices (filtered views of the same `invoices`
     table, with "Convert to invoice" / "Generate now" actions —
     `App\Services\InvoiceDuplicator`), Credits, Payments.
-  - **Clients** — Clients (with a Contacts relation manager), Client Portal
-    Invitations (read-mostly view of the magic-link/e-signature flow).
+  - **Clients** — Clients (with a Contacts relation manager, a per-client
+    default discount that prefills new invoices, and a View page grouped
+    into compact sections rather than one long stack of rows), Client
+    Portal Invitations (read-mostly view of the magic-link/e-signature
+    flow).
   - **Catalog** — Products, Tax Rates.
   - **Expenses** — Expenses (with a per-tax multi-select mirroring the
     invoice line-item pattern), Vendors (with a Contacts relation manager),
@@ -85,9 +88,11 @@ codebase and one deployment:
   calls `charge()` from the UI yet.
 - **PDF export** — `barryvdh/laravel-dompdf` renders
   `resources/views/pdf/{invoice,credit}.blade.php` (Invoice covers both
-  Invoice and Quote, same table). A "Download PDF" table action on
-  Invoices/Quotes/Recurring Invoices/Credits and a link on the client
-  portal page both stream it; not attached to outbound emails yet.
+  Invoice and Quote, same table), including the company's logo
+  (`Company::getLogoDataUri()`, inlined as base64) and both the company's
+  and client's tax IDs. A "Download PDF" table action on Invoices/Quotes/
+  Recurring Invoices/Credits and a link on the client portal page both
+  stream it; not attached to outbound emails yet.
 - **Modal-based Create/Edit** — 13 resources without a hard dependency on
   a relation-manager page (Clients, Vendors, Projects, Products, Tax
   Rates, Credits, Payments, Payment Gateways, Proposals, Expense
@@ -96,6 +101,14 @@ codebase and one deployment:
   focused entry on mobile. Invoices/Quotes/Recurring Invoices/Expenses
   (need their Items/Documents relation manager) and Users (no View page
   yet) keep full pages.
+- **Dashboard** — `App\Filament\Pages\Dashboard` replaces Filament's stock
+  welcome page: `RevenueOverview` (total revenue for the selected period,
+  live pending/overdue invoice counts), `RevenueTrendChart` (a line chart
+  of completed payments, bucketed by day or month), and
+  `ExpiringQuotesWidget` (quotes due within 14 days or already past,
+  excluding converted ones). One period filter
+  (`App\Filament\Support\DashboardPeriod` — this week/month/year, last
+  year, or a custom range) drives the stats and the chart together.
 - **`App\Models\Concerns\BelongsToCompany`** — applied to every directly
   tenant-owned model (`Client`, `Product`, `TaxRate`, `Invoice`, `Credit`,
   `Payment`, `Vendor`, `ExpenseCategory`, `Expense`, `Project`, `Task`,

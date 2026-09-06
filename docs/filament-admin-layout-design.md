@@ -76,7 +76,21 @@ consume the sequence — see `tests/Feature/Filament/DocumentNumberingTest.php`.
 
 ### 2.2 Clients group
 
-**Clients** ✅ / **Contacts** ✅ — unchanged.
+**Clients** ✅ / **Contacts** ✅ — plus:
+- ✅ **Billing defaults** — `default_discount`/`default_discount_is_percentage`
+  on `Client`, prefilled onto `InvoiceForm`'s (invoice-level) discount
+  fields when a client is selected (still freely editable per invoice
+  afterwards). Per-item discount already existed separately
+  (`ItemsRelationManager`'s `discount`/`discount_is_percentage`, applied
+  to each line's `line_total` before `InvoiceTotalsCalculator` sums the
+  invoice's `subtotal`) — client defaults are the *invoice-level* one's
+  starting point, not a third discount mechanism.
+- ✅ **Condensed View page** — `ClientInfolist` groups fields into compact,
+  multi-column sections (Overview/Contact/Address/Billing) instead of one
+  long stack of full-width rows — the same "why cram a huge form into a
+  screen" instinct behind §8's modal conversions, applied to a *read*
+  page instead of an edit one (View still has to stay a full page here,
+  for the Contacts relation manager — see §8).
 
 **Client Portal Invitations** ✅ (`InvitationResource`, maps to `invitations` +
 its `key` magic-link, schema §2.3/§4) — read-mostly resource:
@@ -357,6 +371,14 @@ remaining trade-offs, roughly in order of what to tackle next:
    from the admin panel and the public portal.
 7. ~~**Modal-based data entry**~~ ✅ done (§8) — Create/Edit as a modal
    instead of a full page, for every resource where that's safe.
+8. ~~**Client billing defaults + condensed View page**~~ ✅ done (§2.2) —
+   `default_discount`/`default_discount_is_percentage` prefilling
+   `InvoiceForm`, and `ClientInfolist` regrouped into compact sections.
+9. ~~**PDF branding**~~ ✅ done (§7) — company logo + company/client tax
+   IDs now print on the invoice/credit PDF.
+10. ~~**Dashboard**~~ ✅ done (§9) — real revenue/pending/overdue stats, a
+    trend chart, and an upcoming/expired-quotes list replace Filament's
+    stock "framework info" welcome page.
 
 ---
 
@@ -384,6 +406,12 @@ Blade views, not a CRUD screen" (§2.9) — via
   `App\Http\Controllers\Portal\InvoicePdfController` at
   `/portal/{invitation:key}/pdf` — no auth, same domain-matched check as
   the portal page itself.
+- ✅ **Branding on the PDF itself** — both templates print the company's
+  logo (`Company::getLogoDataUri()` — reads the upload straight off its
+  disk and inlines it as a base64 `data:` URI, since dompdf can't
+  reliably fetch a `Storage::url()` for the `local` disk the upload
+  defaults to) plus the company's own `tax_number` (new column) and the
+  client's `tax_number` (already existed, just wasn't printed).
 - ⚠️ No PDF attached to the outbound emails yet (`BillingMailer`, §3.3)
   — the download links work, but `CompanyTemplatedMail` doesn't attach
   the PDF to the message itself. A natural next step once wanted.
@@ -442,3 +470,49 @@ then exercises the actual modal create→edit round-trip
 (`Livewire::test(ListXxx::class)->callAction('create', data: [...])` /
 `->callTableAction('edit', $record, data: [...])`, Filament's own testing
 API for action-based — as opposed to page-based — forms).
+
+---
+
+## 9. Dashboard
+
+Replaces Filament's stock dashboard (`App\Filament\Pages\Dashboard extends
+Filament\Pages\Dashboard`, registered in `AdminPanelProvider` in place of
+the framework one) with the "welcome page shows real numbers, like
+InvoiceNinja's own dashboard" the schema-reference doc's own tone implies
+was always the point — see §5, item 10.
+
+- **Period filter** — `use Filament\Pages\Dashboard\Concerns\HasFiltersForm;`
+  + a `filtersForm()` with one `Select` (`this_week`/`this_month`/
+  `this_year`/`last_year`/`custom`, the last revealing two `DatePicker`s).
+  `App\Filament\Support\DashboardPeriod::resolve($pageFilters)` is the one
+  place that turns that selection into a concrete `{start, end, group_by}`
+  — every widget below calls it, via
+  `Filament\Widgets\Concerns\InteractsWithPageFilters`, so they never
+  disagree about what "this period" means. `group_by` is `day` for a
+  week/month-sized window and `month` for a year-sized one (or a long
+  custom range, >60 days) — this is what makes the trend chart's bucket
+  count stay sane whether you're looking at a week or a year.
+- **`RevenueOverview`** (`StatsOverviewWidget`) — three stats:
+  - **Total revenue** — sum of completed `Payment.amount` within the
+    selected period.
+  - **Pending invoices** / **Overdue invoices** — count + outstanding
+    `balance` of non-draft, non-paid invoices with `due_date` in the
+    future / already past. Deliberately **not** period-filtered — like
+    InvoiceNinja's own dashboard, these are a live "what needs attention
+    right now" snapshot, not a historical report for the selected window.
+- **`RevenueTrendChart`** (`ChartWidget`, line) — completed-payment totals
+  bucketed per `group_by`, labeled per-day (`Sep 3`) or per-month
+  (`Sep 2026`) across the selected period.
+- **`ExpiringQuotesWidget`** (`TableWidget`) — quotes (`type = quote`)
+  whose `due_date` — this rebuild's stand-in for a quote's "valid until";
+  there's no separate expiry column — falls within the next 14 days or
+  has already passed, excluding ones already converted to an invoice
+  (`Invoice::convertedInvoices()`, the reverse of `convertedFromQuote()`).
+  Also not period-filtered, same reasoning as Pending/Overdue above.
+- ⚠️ **Widgets are not lazy-loaded** (`protected static bool $isLazy =
+  false;` on all three) — Filament's lazy-placeholder rendering path
+  5xx's when a widget's `columnSpan` can't collapse to a plain scalar for
+  the placeholder's grid-column attribute (a Filament/Livewire
+  attribute-bag bug, not something in this app's control). None of these
+  three run expensive queries, so disabling lazy-loading has no real
+  performance cost here — flagged in case a future widget does need it.

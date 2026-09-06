@@ -17,15 +17,22 @@
         .text-right { text-align: right; }
         .notes { margin-top: 24px; }
         .notes h4 { margin-bottom: 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+        .logo { max-height: 48px; max-width: 220px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
     <table class="header">
         <tr>
             <td width="50%">
+                @if ($logoDataUri = $credit->company->getLogoDataUri())
+                    <img class="logo" src="{{ $logoDataUri }}" alt="{{ $credit->company->name }}">
+                @endif
                 <div class="company-name">{{ $credit->company->name }}</div>
                 @if ($credit->company->email)
                     <div class="muted">{{ $credit->company->email }}</div>
+                @endif
+                @if ($credit->company->tax_number)
+                    <div class="muted">Tax ID: {{ $credit->company->tax_number }}</div>
                 @endif
             </td>
             <td width="50%">
@@ -43,6 +50,9 @@
         <div style="font-weight: bold;">{{ $credit->client->name }}</div>
         @if ($credit->client->email)
             <div class="muted">{{ $credit->client->email }}</div>
+        @endif
+        @if ($credit->client->tax_number)
+            <div class="muted">Tax ID: {{ $credit->client->tax_number }}</div>
         @endif
     </div>
 

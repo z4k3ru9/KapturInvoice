@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -90,5 +91,48 @@ class PdfExportTest extends TestCase
         $invitation = Invitation::create(['invoice_id' => $invoice->id, 'contact_id' => $contact->id]);
 
         $this->get("http://{$other->domain}/portal/{$invitation->key}/pdf")->assertNotFound();
+    }
+
+    public function test_invoice_pdf_template_includes_company_and_client_tax_ids(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD', 'tax_number' => 'CO-TAX-999']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co', 'tax_number' => 'CLIENT-TAX-123']);
+        $invoice = Invoice::create(['company_id' => $company->id, 'client_id' => $client->id, 'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0001']);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('CO-TAX-999', $html);
+        $this->assertStringContainsString('CLIENT-TAX-123', $html);
+    }
+
+    public function test_credit_pdf_template_includes_company_and_client_tax_ids(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD', 'tax_number' => 'CO-TAX-999']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co', 'tax_number' => 'CLIENT-TAX-123']);
+        $credit = Credit::create(['company_id' => $company->id, 'client_id' => $client->id, 'number' => 'CRE-0001', 'amount' => 50]);
+        $credit->loadMissing('client', 'company');
+
+        $html = view('pdf.credit', ['credit' => $credit])->render();
+
+        $this->assertStringContainsString('CO-TAX-999', $html);
+        $this->assertStringContainsString('CLIENT-TAX-123', $html);
+    }
+
+    public function test_invoice_pdf_template_embeds_the_company_logo_as_a_data_uri(): void
+    {
+        Storage::fake(config('filesystems.default'));
+        Storage::disk(config('filesystems.default'))->put('logos/acme.png', base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+        ));
+
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD', 'logo_path' => 'logos/acme.png']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create(['company_id' => $company->id, 'client_id' => $client->id, 'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0001']);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('data:image/png;base64,', $html);
     }
 }

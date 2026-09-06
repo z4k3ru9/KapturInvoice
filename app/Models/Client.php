@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'company_id', 'legacy_client_id',
     'name', 'currency_code', 'email', 'phone', 'website',
     'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country_code',
-    'tax_number', 'id_number', 'notes',
+    'tax_number', 'id_number', 'default_discount', 'default_discount_is_percentage', 'notes',
 ])]
 class Client extends Model
 {
@@ -24,6 +24,8 @@ class Client extends Model
         return [
             'balance' => 'decimal:2',
             'paid_to_date' => 'decimal:2',
+            'default_discount' => 'decimal:2',
+            'default_discount_is_percentage' => 'boolean',
         ];
     }
 

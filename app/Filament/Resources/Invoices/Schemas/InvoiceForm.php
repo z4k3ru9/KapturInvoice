@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Models\Client;
 use App\Models\Invoice;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -12,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
 class InvoiceForm
@@ -32,6 +34,17 @@ class InvoiceForm
                             ->relationship('client', 'name')
                             ->searchable()
                             ->required()
+                            ->live()
+                            ->afterStateUpdated(function (?string $state, Set $set) {
+                                // Prefills the client's default discount (§
+                                // "Billing defaults" on ClientForm) — still
+                                // just a starting point, editable below like
+                                // any other field.
+                                if ($client = Client::find($state)) {
+                                    $set('discount', $client->default_discount);
+                                    $set('discount_is_percentage', $client->default_discount_is_percentage);
+                                }
+                            })
                             ->columnSpanFull(),
                         Select::make('type')
                             ->options(InvoiceType::class)

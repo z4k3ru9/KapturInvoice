@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * The Filament tenant model: one row per billed entity. KapturInvoice runs
@@ -17,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * numbering sequence, sharing a single admin panel.
  */
 #[Fillable([
-    'name', 'slug', 'domain', 'email', 'phone',
+    'name', 'slug', 'domain', 'email', 'phone', 'tax_number',
     'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country_code',
     'currency_code', 'timezone', 'logo_path', 'primary_color', 'secondary_color',
     'invoice_prefix', 'invoice_next_number',
@@ -61,6 +63,35 @@ class Company extends Model implements HasName
     public function getFilamentName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * The logo as a base64 data URI, for embedding in a PDF — dompdf can't
+     * reliably fetch a `Storage::url()` (the upload's disk is `local` by
+     * default, not web-accessible), so this reads the file directly and
+     * inlines it instead. Returns null (rather than throwing) when there's
+     * no logo or the stored file is missing, so a PDF still renders fine
+     * without one.
+     */
+    public function getLogoDataUri(): ?string
+    {
+        if (blank($this->logo_path)) {
+            return null;
+        }
+
+        try {
+            $disk = Storage::disk(config('filesystems.default'));
+
+            if (! $disk->exists($this->logo_path)) {
+                return null;
+            }
+
+            $mimeType = $disk->mimeType($this->logo_path) ?: 'image/png';
+
+            return 'data:'.$mimeType.';base64,'.base64_encode($disk->get($this->logo_path));
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     public function users(): BelongsToMany

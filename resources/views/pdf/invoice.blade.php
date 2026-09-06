@@ -22,12 +22,16 @@
         table.totals tr.total td { font-weight: bold; font-size: 14px; border-top: 2px solid #1f2937; }
         .notes { margin-top: 24px; }
         .notes h4 { margin-bottom: 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+        .logo { max-height: 48px; max-width: 220px; margin-bottom: 6px; }
     </style>
 </head>
 <body>
     <table class="header">
         <tr>
             <td width="50%">
+                @if ($logoDataUri = $invoice->company->getLogoDataUri())
+                    <img class="logo" src="{{ $logoDataUri }}" alt="{{ $invoice->company->name }}">
+                @endif
                 <div class="company-name">{{ $invoice->company->name }}</div>
                 @if ($invoice->company->address_line_1)
                     <div class="muted">{{ $invoice->company->address_line_1 }}</div>
@@ -37,6 +41,9 @@
                 @endif
                 @if ($invoice->company->email)
                     <div class="muted">{{ $invoice->company->email }}</div>
+                @endif
+                @if ($invoice->company->tax_number)
+                    <div class="muted">Tax ID: {{ $invoice->company->tax_number }}</div>
                 @endif
             </td>
             <td width="50%">
@@ -63,6 +70,9 @@
         @endif
         @if ($invoice->client->email)
             <div class="muted">{{ $invoice->client->email }}</div>
+        @endif
+        @if ($invoice->client->tax_number)
+            <div class="muted">Tax ID: {{ $invoice->client->tax_number }}</div>
         @endif
     </div>
 

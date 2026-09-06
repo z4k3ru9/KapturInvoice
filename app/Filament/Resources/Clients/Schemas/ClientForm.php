@@ -6,6 +6,7 @@ use App\Models\Currency;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -39,6 +40,17 @@ class ClientForm
                         TextInput::make('legacy_client_id')
                             ->numeric()
                             ->helperText('Legacy InvoiceNinja client id, for import traceability.'),
+                    ]),
+                Section::make('Billing defaults')
+                    ->description('Prefilled onto new invoices for this client (editable per invoice).')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('default_discount')
+                            ->label('Default discount')
+                            ->numeric()
+                            ->default(0),
+                        Toggle::make('default_discount_is_percentage')
+                            ->label('Discount is a percentage'),
                     ]),
                 Section::make('Address')
                     ->columns(2)
