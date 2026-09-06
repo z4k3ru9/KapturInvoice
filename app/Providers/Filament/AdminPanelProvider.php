@@ -52,6 +52,23 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
             ])
+            // Filament defaults every relation manager rendered on a
+            // resource's View page to read-only (Create/Edit/Delete/etc.
+            // actions all silently hidden — no error, just an empty
+            // header-actions slot) — see
+            // Filament\Panel::hasReadOnlyRelationManagersOnResourceViewPagesByDefault().
+            // Since creating a record redirects to its View page by
+            // default (Filament\Resources\Pages\CreateRecord::getRedirectUrl()
+            // prefers `view` over `edit` when both exist), this silently
+            // broke the *primary* path for adding invoice/expense line
+            // items, client/vendor contacts, and project tasks — all of
+            // which live in relation managers on resources that are
+            // "relation-manager-heavy" full pages specifically so those
+            // relation managers stay interactive (see CLAUDE.md's
+            // Modal-based Create/Edit convention). Disabled globally
+            // rather than per-relation-manager since every one of them in
+            // this app expects to be interactive wherever it's shown.
+            ->readOnlyRelationManagersOnResourceViewPagesByDefault(false)
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

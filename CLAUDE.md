@@ -144,6 +144,16 @@ Or just `composer setup` (runs the same steps via the composer script).
   (relation-manager-heavy) and Users (no View page to fall back to) keep
   full pages — see `docs/filament-admin-layout-design.md` §8 for the
   full reasoning and which resources are which.
+- **`AdminPanelProvider` disables Filament's `readOnlyRelationManagersOnResourceViewPagesByDefault`**
+  (defaults to `true` upstream). Without this, every relation manager
+  shown on a resource's View page silently hides its Create/Edit/Delete
+  actions (no error — the header-actions slot just renders empty), and
+  since creating a record redirects to its View page by default when one
+  exists, this broke the primary way to add invoice/expense line items,
+  client/vendor contacts, and project tasks — worse for Clients/Vendors/
+  Projects (modal-based, no Edit *page* to fall back to at all). See
+  `RelationManagerViewPageActionsTest` for the regression coverage (fails
+  without the fix, across Client/Vendor/Project/Invoice).
 - **Client billing defaults** — `Client::default_discount`/
   `default_discount_is_percentage` prefill `InvoiceForm`'s invoice-level
   discount fields when a client is selected (still freely editable after).
@@ -213,6 +223,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 107 tests as of the data-import commands pass — see docs/testing-coverage.md
+php artisan test      # 111 tests as of the relation-manager read-only fix pass — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
