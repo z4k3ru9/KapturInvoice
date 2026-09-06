@@ -180,6 +180,12 @@ Or just `composer setup` (runs the same steps via the composer script).
   specifically so dependency resolution always targets the floor
   `composer.json` promises — re-run `composer update` after touching
   `require`/`require-dev`, don't hand-edit `composer.lock`.
+- **`.github/workflows/tests.yml`** builds frontend assets (`npm ci` +
+  `npm run build`) before `php artisan test` — `public/build/` is
+  gitignored, and the public homepage layout's `@vite` directive throws
+  `ViteManifestNotFoundException` (500, not a graceful fallback) without
+  it. Easy to miss locally since a stale `public/build/manifest.json`
+  from an earlier `npm run build` masks the gap.
 
 ## Verify before pushing
 
