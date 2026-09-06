@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/tallstackui/tallstackui/src/resources/views/**/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+@theme {
+    /*
+     * A local/system font stack rather than a remotely-fetched font — keeps
+     * the asset build working offline/in CI without depending on a font
+     * CDN being reachable at build time. Swap in a self-hosted or CDN
+     * webfont here if desired.
+     */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
