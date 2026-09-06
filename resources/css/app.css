@@ -18,7 +18,7 @@
      * "Kinetic Obsidian" — the dark portfolio design system used by the
      * public homepage (resources/views/livewire/home-page.blade.php) for
      * both entities, per the Google Stitch "TALL IT Services Portfolio"
-     * project (docs/homepage-design.md). Namespaced with its own tokens
+     * project. Namespaced with its own tokens
      * rather than touching --color-primary etc. so it can't bleed into
      * the portal/admin UI, which don't use these utility names. Unlike
      * --font-sans above, these fonts ARE fetched from Google Fonts (see

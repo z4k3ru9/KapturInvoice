@@ -7,7 +7,7 @@ use App\Models\Company;
 /**
  * Curated marketing copy for the public homepage's "portfolio" layout (the
  * Google Stitch "TALL IT Services Portfolio" design — see
- * docs/homepage-design.md). Keyed by Company slug rather than stored on the
+ * resources/views/livewire/home-page.blade.php). Keyed by Company slug rather than stored on the
  * model/settings table: this is bespoke copy for the two known real
  * entities (both Surabaya IT/security-infrastructure integrators — the
  * "services"/"partners" lists below are drawn from their actual historical
