@@ -1,0 +1,527 @@
+# KapturInvoice Admin Panel — Layout Design
+
+Draft layout for **every domain catalogued in
+[`invoiceninja-v4-schema-reference.md`](invoiceninja-v4-schema-reference.md)**,
+covering both record-style Resources (Clients, Invoices, …) and the
+singleton-style **Settings/Parameters** pages (Company branding, numbering,
+email, gateways) that schema's `accounts` table crammed into ~140 columns.
+
+This is a **navigation + page-composition spec** — it says what each screen
+shows and how it's grouped. ✅ = built and covered by a feature test (see
+`tests/Feature/Filament/*Test.php`); ⚠️ = built but deliberately simplified
+(the trade-off is called out inline).
+
+---
+
+## 1. Navigation groups
+
+Filament's sidebar is organized into `navigationGroup`s. Proposed groups, in
+sidebar order:
+
+| Group | Contents |
+|---|---|
+| **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅, Credits ✅, Payments ✅ |
+| **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
+| **Catalog** | Products ✅, Tax Rates ✅ |
+| **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Projects** | Projects ✅ (+ Tasks relation manager ✅), Task Statuses ✅ |
+| **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
+| **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
+| **Proposals** | Proposals ✅ (+ Convert to invoice), Proposal Templates ✅, Proposal Snippets ✅ |
+| **Settings** | Company Profile ✅ (tenant profile page), Branding ✅ (logo/colors, also editable from Company Profile), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
+
+Global lookup data (`countries`, `currencies`, `languages`, `timezones`,
+`industries`, `sizes`, `frequencies`) is **seed data, not navigation** — it's
+consumed as `Select` options on the resources above, never gets its own menu
+item (per schema-reference §2.9).
+
+---
+
+## 2. Resource layouts by domain
+
+Each entry: **Form** (create/edit schema, in sections), **Table** (columns +
+filters), **Infolist** (view page), and relation managers. ✅ resources are
+summarized only where relevant to keep this doc focused on what's new.
+
+### 2.1 Billing group
+
+**Invoices** ✅ — `QuoteResource`/`RecurringInvoiceResource` (both ✅) are
+filtered views onto the same `invoices` table (per schema-reference §2.3's
+unified `invoices` + `type`/`is_recurring` pattern), sharing `InvoiceForm`/
+`InvoiceInfolist`/`ItemsRelationManager`/`DocumentsRelationManager` as-is:
+
+- **Invoices** (`type = invoice`) — original resource, unchanged.
+- **Quotes** (`type = quote`) — `QuoteResource::getEloquentQuery()` filters
+  by type; a **Convert to invoice** table action
+  (`App\Services\InvoiceDuplicator::convertQuoteToInvoice()`) clones the
+  quote + its items/taxes into a new invoice and sets
+  `converted_from_quote_id`.
+- **Recurring Invoices** (`is_recurring = true`) — the *Recurring* section
+  already on `InvoiceForm` (frequency/dates/auto-bill) covers the schedule;
+  a **Generate now** table action
+  (`InvoiceDuplicator::generateRecurringInstance()`) clones the template
+  into a new one-off invoice and stamps `recurring_last_sent_at`.
+
+**Numbering** ✅ — `App\Services\DocumentNumberGenerator` reads the
+relevant `{invoice,quote,credit}_prefix`/`_next_number` pair off `Company`
+(edited via `EditNumberingSettings`, §3.2) inside a
+`DB::transaction()` + `lockForUpdate()`, and assigns/increments it whenever
+a document is created with a blank `number` — wired into
+`CreateInvoice`/`CreateQuote`/`CreateCredit`/`CreateRecurringInvoice` and
+into `InvoiceDuplicator`'s two generated-invoice paths. An explicit manual
+`number` (e.g. importing historical data) is respected and does not
+consume the sequence — see `tests/Feature/Filament/DocumentNumberingTest.php`.
+
+**Credits** ✅ (now numbering-aware too), **Payments** ✅ — unchanged.
+
+### 2.2 Clients group
+
+**Clients** ✅ / **Contacts** ✅ — plus:
+- ✅ **Billing defaults** — `default_discount`/`default_discount_is_percentage`
+  on `Client`, prefilled onto `InvoiceForm`'s (invoice-level) discount
+  fields when a client is selected (still freely editable per invoice
+  afterwards). Per-item discount already existed separately
+  (`ItemsRelationManager`'s `discount`/`discount_is_percentage`, applied
+  to each line's `line_total` before `InvoiceTotalsCalculator` sums the
+  invoice's `subtotal`) — client defaults are the *invoice-level* one's
+  starting point, not a third discount mechanism.
+- ✅ **Condensed View page** — `ClientInfolist` groups fields into compact,
+  multi-column sections (Overview/Contact/Address/Billing) instead of one
+  long stack of full-width rows — the same "why cram a huge form into a
+  screen" instinct behind §8's modal conversions, applied to a *read*
+  page instead of an edit one (View still has to stay a full page here,
+  for the Contacts relation manager — see §8).
+
+**Client Portal Invitations** ✅ (`InvitationResource`, maps to `invitations` +
+its `key` magic-link, schema §2.3/§4) — read-mostly resource:
+- Table: invoice #, contact, `sent_at`, `viewed_at`, signed icon, portal
+  link (copy-to-clipboard action).
+- No manual create form — invitations are generated when an invoice is sent;
+  the resource is for support/visibility, not data entry.
+- `Invitation` has no `company_id`/`company()` relation of its own, so
+  Filament's automatic tenant scope is disabled (`$isScopedToTenant = false`)
+  in favour of an explicit `whereHas('invoice', ...)` scope.
+- ✅ The public-facing "view/e-sign my invoice" page the `key` resolves to
+  is now built — `App\Livewire\Portal\ViewInvoice`, routed at
+  `/portal/{invitation:key}` behind the same domain-resolution middleware
+  as the homepage (§4 below). Viewing stamps `viewed_at` and bumps a
+  `sent` invoice to `viewed`; a "type your name to sign" form stamps
+  `signed_at`/`signature`. ⚠️ "Pay" is view-only for now — with
+  `portal_allow_client_payments` on, the page shows the balance due and a
+  message that online payment isn't wired up yet, rather than faking a
+  charge (see §3.4, still ⚠️).
+
+### 2.3 Catalog group
+
+**Products** ✅, **Tax Rates** ✅ — unchanged.
+
+### 2.4 Expenses group ✅
+
+**Expenses** ✅ (`ExpenseResource`)
+- Form sections: *Expense* (vendor select, category select, date, amount as
+  `subtotal`, currency, tax multi-select), *Rebilling* (client select +
+  `should_be_invoiced` toggle — schema §2.5), *Totals* (tax_total/total,
+  disabled/computed), plus a Documents relation manager (shared with
+  Invoices).
+- `tax_rate_ids` is a virtual field, same pattern as `ItemsRelationManager`'s
+  — `App\Services\ExpenseTotalsCalculator` snapshots into `expense_taxes`
+  and recomputes `tax_total`/`total` (normalizing the legacy inline
+  `tax_name1/rate1` + `tax_name2/rate2` columns, same as invoices).
+- Table: vendor, category, date, amount, total, rebill badge, client.
+
+**Vendors** ✅ (+ **Contacts** relation manager ✅, mirrors Clients/Contacts
+exactly).
+
+**Expense Categories** ✅ — simple resource (name only), grouped under
+Expenses rather than Settings.
+
+### 2.5 Projects group ✅
+
+**Projects** ✅
+- Form: client select (nullable), `task_rate`, `budgeted_hours`, `due_date`.
+- Relation manager: **Tasks** ✅ (description, status select, running icon,
+  computed duration, Start/Stop timer table actions).
+
+⚠️ **Time tracking is simplified** — rather than a full `task_time_entries`
+child table (multiple segments per task), `tasks` carries a single
+`started_at`/`stopped_at`/`is_running` per task (see the tasks migration).
+Fine for "one timer per task"; upgrade to a child table if multiple
+segments per task turn out to be needed.
+
+**Task Statuses** ✅ — implemented as a small top-level resource (mirrors
+Tax Rates) rather than a repeater on a Settings page, since it needed its
+own create/edit/delete affordance as a `Select` option source for Tasks.
+
+### 2.6 Documents group ✅
+
+**Documents** ✅ — polymorphic `documentable` (Invoice *or* Expense, never
+both — schema §2.8). Top-level `DocumentResource` table: filename,
+attached-to, size, download action (streamed via a `documents.download`
+route outside the Filament panel — `DocumentDownloadController` checks
+`$user->canAccessTenant($document->company)` explicitly, since Document's
+`BelongsToCompany` global scope only applies inside a Filament request). Uploads happen inline via
+each parent's own `App\Filament\RelationManagers\DocumentsRelationManager`
+(shared by Invoices and Expenses) — the top-level resource is read-mostly,
+for cross-cutting search/browse.
+
+### 2.7 Proposals ✅
+
+Per schema §2.7, a full HTML/CSS document builder (quote cover letters/
+SOWs) — kept as its own nav group rather than bolted onto Invoices/Quotes,
+confirmed in scope and built:
+
+- **Proposals** ✅ (`ProposalResource`) — title, client (nullable), status
+  (`ProposalStatus`: draft/sent/viewed/accepted/declined), `amount`
+  (single lump sum, not line items), `valid_until`, and `html`/`css`
+  content (a `RichEditor` + a raw CSS textarea). Picking a **Proposal
+  Template** on the form copies its html/css in once (a one-shot virtual
+  select, not a live binding — editing the proposal afterwards doesn't
+  touch the template).
+  - Table actions: **Mark accepted**/**Mark declined** (stamp
+    `responded_at`), and **Convert to invoice**
+    (`App\Services\ProposalConverter`, mirrors
+    `InvoiceDuplicator::convertQuoteToInvoice()`) — creates a real Invoice
+    with one line item from the proposal's title/amount, numbered via
+    `DocumentNumberGenerator`, and records the link on `proposals.invoice_id`
+    (hidden once already converted).
+  - ⚠️ No send/portal flow for proposals yet (unlike Invoices/Quotes) —
+    they're admin-side only for now; `sent_at`/`viewed_at` columns exist
+    on the table but nothing sets them yet.
+- **Proposal Templates** ✅ (`ProposalTemplateResource`) — name + html/css,
+  reusable starting points for the above.
+- **Proposal Snippets** ✅ (`ProposalSnippetResource`) — name + html,
+  reusable fragments. ⚠️ Not yet insertable *into* the rich editor from a
+  picker — they're just a standalone reference library for now (copy/paste
+  by hand).
+
+### 2.8 Team group ✅
+
+**Users** ✅ (`UserResource`) — name/email/password, `is_super_admin`
+toggle, plus a **Companies** relation manager (BelongsToMany pivot,
+`AttachAction` with a `role` pivot field) for per-tenant membership.
+`User` has no single `company_id`, so — like Invitations — Filament's
+automatic tenant scope is disabled and `getEloquentQuery()` applies an
+explicit `whereHas('companies', ...)`. Creating a user from within a
+tenant's Team page auto-attaches them to that tenant (role: member).
+RBAC beyond super-admin/company-member is still deferred to
+`filament-shield` (spatie/laravel-permission) rather than reviving the
+legacy JSON `permissions` blob (schema §2.1).
+
+---
+
+## 3. Settings & Parameters (singleton pages, not Resources)
+
+InvoiceNinja's `accounts` table (~140 columns) and
+`account_email_settings`/`account_gateway_settings` are **one row per
+tenant** — that's a Filament **custom Page**, not a Resource (no list/create/
+delete; just one form that loads/saves the current tenant's settings row(s)).
+Split into focused pages under the **Settings** nav group, each backed
+by its own settings table (`company_settings`, `numbering_settings`,
+`email_settings`, no single 140-column monolith — schema §2.1 explicitly
+recommends this split):
+
+### 3.1 Company Profile ✅ (`EditCompanyProfile`, Filament's tenant-profile page)
+Already built — name, slug, domain, branding basics. Extend with:
+- *Branding* section: logo upload, `primary_color`/`secondary_color` color
+  pickers, `page_size` select.
+- *Regional* section: `currency_id`, `country_id`, `timezone_id`,
+  `language_id`, `financial_year_start`.
+
+### 3.1b Branding ✅ (`EditBrandingSettings`, Settings nav group)
+Same `logo_path`/`primary_color`/`secondary_color` columns as 3.1's
+*Branding* section, exposed as its own page under **Settings** too — same
+reasoning as 3.2 below: the logo prints on every invoice/credit PDF
+(`Company::getLogoDataUri()`) and shouldn't only be discoverable via the
+tenant-switcher's "Edit profile" menu. Both forms write to the same
+`Company` row, so a change from either page is immediately reflected on
+the other (and on the next PDF/homepage render).
+
+All Settings pages below share `App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`
+— a generalized version of Filament's own `EditTenantProfile` (load one
+record on `mount()`, `$this->form->fill()`, save back on submit) that works
+for any per-tenant settings record, not just the tenant model itself.
+
+### 3.2 Invoice & Numbering ✅ (`EditNumberingSettings`)
+Maps to `accounts`' counter/prefix/pattern columns (schema §2.1/§4), binds
+directly to `Company` (the tenant):
+- Per-sequence group (Invoice / Quote / Credit): `prefix` text,
+  `next_number` integer.
+- *Defaults* section: default `payment_terms`, `default_tax_rate_1_id` +
+  `default_tax_rate_2_id` (account-level fallback taxes — referenced by FK
+  to `tax_rates` rather than the legacy inline `tax_name1/rate1` +
+  `tax_name2/rate2` copy, another normalization the schema doc flagged as
+  an opportunity).
+- `App\Services\DocumentNumberGenerator` ✅ reads this sequence and
+  assigns/increments `next_number` (transactionally) whenever a
+  document is created — see §2.1.
+- ⚠️ Not yet built: pattern tokens (schema's `_pattern` columns) — numbers
+  are currently just `{prefix}{next_number, zero-padded to 4 digits}`,
+  not a configurable pattern with placeholders.
+
+### 3.3 Email & Reminders ✅ (`EditEmailSettings`)
+Maps to `account_email_settings` (schema §2.1), binds to `CompanySetting`:
+- *Templates* section: subject/body pairs for Invoice, Quote, Payment
+  (plain text fields for now, not rich-text).
+- *Reminders* section: 4 repeatable blocks (`enabled` toggle, `days`,
+  `direction` before/after, `field` due-date-vs-invoice-date) — matches the
+  legacy `reminder1-4` columns.
+- *Late Fees* section: 3 tiers of `amount`/`percent`.
+- ✅ **Mail sending** — `App\Services\BillingMailer` renders these stored
+  subject/body templates (`{{token}}` placeholders — client/contact/company
+  name, invoice number, amount, balance, due date, portal link — via
+  `App\Services\EmailTemplateRenderer`) and actually sends them:
+  - A **Send**/**Resend** table action on Invoices and Quotes
+    (`sendInvoice()`/`sendQuote()`) creates-or-reuses the contact's
+    `Invitation`, emails it, stamps `invitations.sent_at`, and bumps a
+    `draft` invoice to `sent`.
+  - A **Send receipt** table action on Payments (`sendPaymentReceipt()`)
+    uses the Payment template.
+  - `App\Console\Commands\SendInvoiceReminders` (scheduled daily at 08:00,
+    `routes/console.php`) matches each company's `reminder1-4` schedule
+    against invoice due/invoice dates and calls `sendReminder()`, which
+    reuses the invoice template with a "Reminder: " subject prefix.
+  - Falls back to a sensible built-in template when a company hasn't
+    filled in its own subject/body.
+  - ⚠️ Reminder matching is exact-date, not "already sent today"-tracked —
+    running the scheduled command twice on the same day would re-send;
+    fine for a once-daily cron, called out rather than silently assumed
+    (mirrors the tasks-timer trade-off in §2.5).
+
+### 3.4 Payment Gateways ✅ (`PaymentGatewayResource`)
+Maps to `account_gateways` + `account_gateway_settings` (schema §2.4).
+Built as a normal Filament **Resource** (not a custom page) since it's
+naturally a list, grouped under Settings: gateway select (curated —
+**Local API (Indonesia)**, Stripe/Midtrans/Xendit/PayPal/Manual, not
+InvoiceNinja's full ~69-driver catalog), credentials
+(`config`, `encrypted:array` cast, **never** plaintext — schema flags this
+explicitly), `accepted_credit_cards` checkbox list, `show_address`/
+`require_cvv` toggles, fee section (`fee_amount`/`fee_percent` + fee tax).
+
+- ✅ **Gateway driver abstraction** — `App\Services\PaymentGateways` gives
+  every driver one contract (`PaymentGatewayDriver`: `charge()`/
+  `checkStatus()`/`handleWebhook()`/`testConnection()`), resolved by
+  `PaymentGatewayManager` from the gateway's `driver` column. The intended
+  first real integration is the company's own Indonesian payment API — a
+  driver stub (`LocalApiPaymentGatewayDriver`) is wired end-to-end against
+  a *plausible* REST contract (bearer token, `POST /v1/charges`,
+  `GET /v1/charges/{reference}`, `GET /v1/ping`) supporting Virtual
+  Account, QRIS, and card (`App\Enums\LocalPaymentMethod`) — swap the
+  endpoint paths/response mapping for the real provider's docs once
+  available; every call is a real `Http` request, so `Http::fake()`
+  exercises it without a live provider (see
+  `tests/Feature/PaymentGateways/`). Other drivers (Stripe/Midtrans/…)
+  remain config-only placeholders — `PaymentGatewayManager` throws until
+  a driver is added for them.
+- ✅ **Test Connection** action on the Payment Gateways table — calls the
+  resolved driver's `testConnection()` and reports configured/reachable/
+  unreachable via a notification.
+- ✅ **Webhook receiver** — `POST /webhooks/payment-gateways/{paymentGateway}`
+  (`PaymentGatewayWebhookController`, CSRF-exempt — see `bootstrap/app.php`)
+  maps a provider's async callback onto a `ChargeResult` and updates the
+  matching `Payment` by `gateway_reference`. ⚠️ Does not verify a payload
+  signature yet — the real provider's signing scheme isn't known.
+- ⚠️ **Nothing initiates a charge yet from the UI** — no "Charge" action on
+  Payments, and the client portal's "Pay" section (§2.2) still only shows
+  the balance due. The driver/manager/webhook plumbing above is real and
+  tested, but wiring it to an actual checkout flow (method picker, VA/QRIS
+  instructions shown to the client, polling `checkStatus()`) is follow-up
+  work once the real API contract is confirmed.
+
+### 3.5 Client Portal ✅ (`EditClientPortalSettings`)
+Maps to `accounts.enable_client_portal*` (schema §2.1/§4), binds to
+`CompanySetting`: portal enabled, allow client-initiated payments, show
+tasks in portal, require signature. ⚠️ No 2FA/OTP toggle yet (maps to the
+legacy `security_codes` table) — deferred until the public portal itself
+is built (see §2.2's note).
+
+---
+
+## 4. What's deliberately excluded from this layout
+
+Per schema-reference §1/§2.9, these never get a nav item or a page:
+`lookup_*` tables, `db_servers`, InvoiceNinja's own `companies` (product
+billing plan)/`affiliates`/`licenses`, `user_accounts`, `invoice_designs`
+(PDF templates become Blade views, not a CRUD screen), and static reference
+tables (`countries`, `currencies`, `languages`, `timezones`, `industries`,
+`sizes`, `frequencies`, `date_formats`, `datetime_formats`, `themes`) —
+these are `Select` option sources only.
+
+---
+
+## 5. Build order — status
+
+Everything in §1–3 is now built (✅ throughout), including Proposals
+(§2.7, confirmed in scope). What's left is calling out the honest
+remaining trade-offs, roughly in order of what to tackle next:
+
+1. ~~**Invoice numbering service**~~ ✅ done — `DocumentNumberGenerator`
+   (§2.1/§3.2).
+2. ~~**Public client-portal page**~~ ✅ done — `App\Livewire\Portal\ViewInvoice`
+   (§2.2/§3.5), the magic-link view/e-sign flow `invitations.key` resolves
+   to. "Pay" is still view-only — see item 4 below.
+3. ~~**Email sending**~~ ✅ done — `App\Services\BillingMailer` +
+   `SendInvoiceReminders` (§3.3): invoice/quote send+resend, payment
+   receipts, and the daily reminder schedule are all wired up.
+4. ~~**Payment gateway driver abstraction**~~ ✅ done (§3.4) —
+   `PaymentGatewayManager`/`PaymentGatewayDriver`, a stubbed
+   `LocalApiPaymentGatewayDriver` for the Indonesian in-house API, a Test
+   Connection action, and a webhook receiver. **Still open**: an actual
+   checkout flow that calls `charge()` (a portal "Pay now" method picker
+   showing VA/QRIS instructions, or a "Charge" action on Payments) — the
+   plumbing is real and tested, nothing initiates a charge from the UI
+   yet. Swap the driver's placeholder endpoint/response mapping for the
+   real provider's API docs once confirmed.
+5. ~~**Proposals module**~~ ✅ done (§2.7) — Proposals/Proposal
+   Templates/Proposal Snippets, with template-to-proposal copy and
+   Convert-to-invoice. **Still open**: no send/portal flow for proposals
+   (admin-side only), and snippets aren't insertable into the rich editor
+   from a picker yet.
+6. ~~**PDF export**~~ ✅ done (§7) — invoice/quote/credit PDFs, downloadable
+   from the admin panel and the public portal.
+7. ~~**Modal-based data entry**~~ ✅ done (§8) — Create/Edit as a modal
+   instead of a full page, for every resource where that's safe.
+8. ~~**Client billing defaults + condensed View page**~~ ✅ done (§2.2) —
+   `default_discount`/`default_discount_is_percentage` prefilling
+   `InvoiceForm`, and `ClientInfolist` regrouped into compact sections.
+9. ~~**PDF branding**~~ ✅ done (§7) — company logo + company/client tax
+   IDs now print on the invoice/credit PDF.
+10. ~~**Dashboard**~~ ✅ done (§9) — real revenue/pending/overdue stats, a
+    trend chart, and an upcoming/expired-quotes list replace Filament's
+    stock "framework info" welcome page.
+
+---
+
+## 7. PDF export
+
+Closes the schema-reference's note that "invoice PDF templates become
+Blade views, not a CRUD screen" (§2.9) — via
+[`barryvdh/laravel-dompdf`](https://github.com/barryvdh/laravel-dompdf)
+(dompdf under the hood; no external service, no extra binary to install).
+
+- `resources/views/pdf/invoice.blade.php` renders an Invoice **or** Quote
+  (same `invoices` table, driven by `$invoice->type`) — header/branding,
+  line items, totals, notes/terms/footer, matching the portal page's
+  layout. `resources/views/pdf/credit.blade.php` is the equivalent for
+  Credits.
+- **Admin side**: a "Download PDF" table action on Invoices, Quotes,
+  Recurring Invoices, and Credits, served by
+  `App\Http\Controllers\InvoicePdfController`/`CreditPdfController` at
+  `/invoices/{invoice}/pdf` / `/credits/{credit}/pdf` — same
+  `canAccessTenant()` check as `DocumentDownloadController` (§2.6), since
+  these routes sit outside the Filament panel but still need an auth
+  guard.
+- **Client portal**: a "Download PDF" link on the portal page
+  (`App\Livewire\Portal\ViewInvoice`, §2.2), served by
+  `App\Http\Controllers\Portal\InvoicePdfController` at
+  `/portal/{invitation:key}/pdf` — no auth, same domain-matched check as
+  the portal page itself.
+- ✅ **Branding on the PDF itself** — both templates print the company's
+  logo (`Company::getLogoDataUri()` — reads the upload straight off its
+  disk and inlines it as a base64 `data:` URI, since dompdf can't
+  reliably fetch a `Storage::url()` for the `local` disk the upload
+  defaults to) plus the company's own `tax_number` (new column) and the
+  client's `tax_number` (already existed, just wasn't printed).
+- ⚠️ No PDF attached to the outbound emails yet (`BillingMailer`, §3.3)
+  — the download links work, but `CompanyTemplatedMail` doesn't attach
+  the PDF to the message itself. A natural next step once wanted.
+
+---
+
+## 8. Modal-based data entry (mobile-friendly forms)
+
+Filament has a built-in fallback: if a resource doesn't register a
+`'create'`/`'edit'` page in `getPages()`, the exact same `CreateAction`/
+`EditAction` already used in its List/Table/View classes automatically
+render as a **modal** instead of navigating to a page — the resource's
+`form()` is reused as-is (`Page::getDefaultActionUrl()` is what gates
+this: it returns a page URL only `if hasPage('create'|'edit')`, else
+`null`, which makes the action fall back to its default modal). No
+template/table code changes were needed anywhere — only each resource's
+`getPages()` and the now-unreachable `Pages/Create*.php`/`Pages/Edit*.php`
+files.
+
+This keeps data entry on the same screen the user was already looking at
+(no navigation, no losing table scroll position/filters) — meaningfully
+better on a small/mobile viewport than a full page swap. Applied to every
+resource where it's safe:
+
+**Converted to modal Create + Edit**: Clients, Vendors, Projects,
+Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
+Expense Categories, Task Statuses, Proposal Templates, Proposal Snippets.
+Where a resource still has a **View** page (most of these do), it's kept
+— relation managers (Clients'/Vendors' Contacts, Projects' Tasks) render
+there fine, and it doubles as a read-only detail page; Delete/Force
+Delete/Restore moved from the old Edit page's header onto the View page's
+header (or, for Payment Gateways, were already on the table row).
+
+**Kept as full pages** (deliberately **not** converted):
+- **Invoices, Quotes, Recurring Invoices** — Edit hosts the Items
+  relation manager (line items + tax pivots), which is the actual point
+  of opening one of these records, not a secondary detail; a modal isn't
+  a good fit for that much nested editing. Numbering
+  (`DocumentNumberGenerator`) and type-forcing logic also live on these
+  Create pages already.
+- **Expenses** — same reasoning, for its Documents relation manager.
+- **Users** — has no dedicated View page (only Edit), which is where the
+  Companies relation manager (per-tenant role membership) lives; dropping
+  Edit would leave that relation manager with nowhere to render without
+  first building a View page for Users, which wasn't done here.
+
+**Special create-time logic, replicated onto the modal action** (previously
+lived in a `CreateXxx::mutateFormDataBeforeCreate()` page-hook, now on the
+`CreateAction` itself via `.mutateDataUsing()`, the direct equivalent):
+- **Credit** — `ListCredits`' `CreateAction` still assigns a number from
+  `DocumentNumberGenerator` when one isn't typed in.
+
+Covered by `tests/Feature/Filament/ModalCreateEditTest.php` — for each of
+the 13 converted resources: asserts the Create/Edit pages are really gone,
+then exercises the actual modal create→edit round-trip
+(`Livewire::test(ListXxx::class)->callAction('create', data: [...])` /
+`->callTableAction('edit', $record, data: [...])`, Filament's own testing
+API for action-based — as opposed to page-based — forms).
+
+---
+
+## 9. Dashboard
+
+Replaces Filament's stock dashboard (`App\Filament\Pages\Dashboard extends
+Filament\Pages\Dashboard`, registered in `AdminPanelProvider` in place of
+the framework one) with the "welcome page shows real numbers, like
+InvoiceNinja's own dashboard" the schema-reference doc's own tone implies
+was always the point — see §5, item 10.
+
+- **Period filter** — `use Filament\Pages\Dashboard\Concerns\HasFiltersForm;`
+  + a `filtersForm()` with one `Select` (`this_week`/`this_month`/
+  `this_year`/`last_year`/`custom`, the last revealing two `DatePicker`s).
+  `App\Filament\Support\DashboardPeriod::resolve($pageFilters)` is the one
+  place that turns that selection into a concrete `{start, end, group_by}`
+  — every widget below calls it, via
+  `Filament\Widgets\Concerns\InteractsWithPageFilters`, so they never
+  disagree about what "this period" means. `group_by` is `day` for a
+  week/month-sized window and `month` for a year-sized one (or a long
+  custom range, >60 days) — this is what makes the trend chart's bucket
+  count stay sane whether you're looking at a week or a year.
+- **`RevenueOverview`** (`StatsOverviewWidget`) — three stats:
+  - **Total revenue** — sum of completed `Payment.amount` within the
+    selected period.
+  - **Pending invoices** / **Overdue invoices** — count + outstanding
+    `balance` of non-draft, non-paid invoices with `due_date` in the
+    future / already past. Deliberately **not** period-filtered — like
+    InvoiceNinja's own dashboard, these are a live "what needs attention
+    right now" snapshot, not a historical report for the selected window.
+- **`RevenueTrendChart`** (`ChartWidget`, line) — completed-payment totals
+  bucketed per `group_by`, labeled per-day (`Sep 3`) or per-month
+  (`Sep 2026`) across the selected period.
+- **`ExpiringQuotesWidget`** (`TableWidget`) — quotes (`type = quote`)
+  whose `due_date` — this rebuild's stand-in for a quote's "valid until";
+  there's no separate expiry column — falls within the next 14 days or
+  has already passed, excluding ones already converted to an invoice
+  (`Invoice::convertedInvoices()`, the reverse of `convertedFromQuote()`).
+  Also not period-filtered, same reasoning as Pending/Overdue above.
+- ⚠️ **Widgets are not lazy-loaded** (`protected static bool $isLazy =
+  false;` on all three) — Filament's lazy-placeholder rendering path
+  5xx's when a widget's `columnSpan` can't collapse to a plain scalar for
+  the placeholder's grid-column attribute (a Filament/Livewire
+  attribute-bag bug, not something in this app's control). None of these
+  three run expensive queries, so disabling lazy-loading has no real
+  performance cost here — flagged in case a future widget does need it.
