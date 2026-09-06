@@ -1,0 +1,727 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Console\Commands\Concerns\ImportsLegacyInvoiceNinja;
+use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
+use App\Enums\PaymentStatus;
+use App\Models\Client;
+use App\Models\Company;
+use App\Models\Contact;
+use App\Models\Credit;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
+use App\Models\Invitation;
+use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\Payment;
+use App\Models\Product;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\TaskStatus;
+use App\Models\TaxRate;
+use App\Models\Vendor;
+use App\Models\VendorContact;
+use App\Services\ExpenseTotalsCalculator;
+use App\Services\InvoiceTotalsCalculator;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Imports a legacy InvoiceNinja **v5** MySQL/MariaDB dump (invoices/quotes/
+ * credits/recurring_invoices as separate tables, each carrying its own
+ * `line_items` JSON blob rather than a shared `invoice_items` table) into
+ * KapturInvoice's schema for one target Company. See docs/data-import.md.
+ *
+ * Reads from the `legacy_v5` connection (config/database.php) — point it
+ * at a database you've already restored the dump into, e.g.:
+ *   mysql -uroot legacy_v5 < axentech_ninj876.sql
+ */
+class ImportInvoiceNinjaV5 extends Command
+{
+    use ImportsLegacyInvoiceNinja;
+
+    protected $signature = 'import:invoiceninja-v5
+        {company : Target Company slug}
+        {--legacy-company-id= : companies.id in the source dump to import (defaults to the only row present)}
+        {--connection=legacy_v5 : Laravel DB connection name for the source dump}';
+
+    protected $description = 'Import a legacy InvoiceNinja v5 dump into one KapturInvoice Company';
+
+    private string $conn;
+
+    private int $legacyCompanyId;
+
+    /** @var array<int, int> */
+    private array $productMap = [];
+
+    /** @var array<int, int> */
+    private array $clientMap = [];
+
+    /** @var array<int, int> legacy client_contacts.id => new Contact id */
+    private array $contactMap = [];
+
+    /** @var array<int, int> */
+    private array $vendorMap = [];
+
+    /** @var array<int, int> */
+    private array $projectMap = [];
+
+    /** @var array<int, int> */
+    private array $taskStatusMap = [];
+
+    /** @var array<int, int> legacy invoices.id => new Invoice id (quotes/invoices share this map, keys never collide across the two source tables) */
+    private array $invoiceIdMap = [];
+
+    /** @var array<int, int> legacy quotes.id => new Invoice id */
+    private array $quoteIdMap = [];
+
+    public function handle(): int
+    {
+        $company = Company::query()->where('slug', $this->argument('company'))->first();
+
+        if (! $company) {
+            $this->error("No company with slug [{$this->argument('company')}].");
+
+            return self::FAILURE;
+        }
+
+        $this->conn = $this->option('connection');
+
+        if (! DB::connection($this->conn)->getSchemaBuilder()->hasTable('companies')) {
+            $this->error("Connection [{$this->conn}] doesn't look like a restored InvoiceNinja v5 dump (no `companies` table).");
+
+            return self::FAILURE;
+        }
+
+        $this->legacyCompanyId = (int) ($this->option('legacy-company-id')
+            ?: DB::connection($this->conn)->table('companies')->value('id'));
+
+        DB::transaction(function () use ($company) {
+            $this->importTaxRates($company);
+            $this->importProducts($company);
+            $this->importClientsAndContacts($company);
+            $this->importVendorsAndContacts($company);
+            $this->importExpenseCategories($company);
+            $this->importProjects($company);
+            $this->importTaskStatuses($company);
+            $this->importInvoices($company);
+            $this->importQuotes($company);
+            $this->importExpenses($company);
+            $this->importCredits($company);
+            $this->importPayments($company);
+            $this->finalizeInvoiceTotals();
+            $this->recomputeClientBalances($company);
+            $this->bumpNumberingSequences($company);
+        });
+
+        $this->printStats();
+        $this->reconcile($company);
+
+        return self::SUCCESS;
+    }
+
+    private function source(string $table)
+    {
+        return DB::connection($this->conn)->table($table)->where('company_id', $this->legacyCompanyId);
+    }
+
+    private function importTaxRates(Company $company): void
+    {
+        foreach ($this->source('tax_rates')->where('is_deleted', 0)->get() as $row) {
+            TaxRate::create([
+                'company_id' => $company->id,
+                'legacy_tax_rate_id' => $row->id,
+                'name' => $row->name,
+                'rate' => $row->rate,
+                'is_inclusive' => false,
+            ]);
+            $this->bump('tax_rates');
+        }
+    }
+
+    private function importProducts(Company $company): void
+    {
+        foreach ($this->source('products')->where('is_deleted', 0)->get() as $row) {
+            $product = Product::create([
+                'company_id' => $company->id,
+                'legacy_product_id' => $row->id,
+                'sku' => $row->product_key ?: null,
+                // `price` is the sale price actually billed on invoices;
+                // `cost` is an (unused, always 0 in this dataset) internal
+                // cost-basis field — deliberately not imported as unit_cost.
+                'name' => $row->notes ?: ($row->product_key ?: 'Product'),
+                'description' => $row->notes,
+                'unit_cost' => $row->price ?? 0,
+            ]);
+            $this->productMap[$row->id] = $product->id;
+            $this->bump('products');
+        }
+    }
+
+    private function importClientsAndContacts(Company $company): void
+    {
+        foreach ($this->source('clients')->get() as $row) {
+            $client = Client::create([
+                'company_id' => $company->id,
+                'legacy_client_id' => $row->id,
+                'name' => $row->name ?: 'Client #'.$row->id,
+                'currency_code' => $company->currency_code,
+                'phone' => $row->phone,
+                'website' => $row->website,
+                'address_line_1' => $row->address1,
+                'address_line_2' => $row->address2,
+                'city' => $row->city,
+                'state' => $row->state,
+                'postal_code' => $row->postal_code,
+                'tax_number' => $row->vat_number ?: null,
+                'id_number' => $row->id_number ?: null,
+                'balance' => $this->money($row->balance),
+                'paid_to_date' => $this->money($row->paid_to_date),
+                'notes' => trim(collect([$row->private_notes, $row->public_notes])->filter()->implode("\n\n")) ?: null,
+                'deleted_at' => $row->deleted_at,
+            ]);
+            $this->clientMap[$row->id] = $client->id;
+            $this->bump('clients');
+
+            $primaryEmail = null;
+
+            foreach (DB::connection($this->conn)->table('client_contacts')->where('client_id', $row->id)->get() as $contactRow) {
+                $contact = Contact::create([
+                    'client_id' => $client->id,
+                    'legacy_contact_id' => $contactRow->id,
+                    'first_name' => $contactRow->first_name ?: 'Contact',
+                    'last_name' => $contactRow->last_name,
+                    'email' => $contactRow->email ?: null,
+                    'phone' => $contactRow->phone,
+                    'is_primary' => (bool) $contactRow->is_primary,
+                ]);
+                $this->contactMap[$contactRow->id] = $contact->id;
+                $this->bump('contacts');
+
+                if ($contactRow->is_primary && filled($contactRow->email)) {
+                    $primaryEmail = $contactRow->email;
+                }
+            }
+
+            if ($primaryEmail) {
+                $client->update(['email' => $primaryEmail]);
+            }
+        }
+    }
+
+    private function importVendorsAndContacts(Company $company): void
+    {
+        foreach ($this->source('vendors')->get() as $row) {
+            $vendor = Vendor::create([
+                'company_id' => $company->id,
+                'legacy_vendor_id' => $row->id,
+                'name' => $row->name ?: 'Vendor #'.$row->id,
+                'phone' => $row->phone,
+                'website' => $row->website,
+                'address_line_1' => $row->address1,
+                'address_line_2' => $row->address2,
+                'city' => $row->city,
+                'state' => $row->state,
+                'postal_code' => $row->postal_code,
+                'notes' => $row->private_notes,
+                'deleted_at' => $row->deleted_at,
+            ]);
+            $this->vendorMap[$row->id] = $vendor->id;
+            $this->bump('vendors');
+
+            foreach (DB::connection($this->conn)->table('vendor_contacts')->where('vendor_id', $row->id)->get() as $contactRow) {
+                VendorContact::create([
+                    'vendor_id' => $vendor->id,
+                    'legacy_vendor_contact_id' => $contactRow->id,
+                    'first_name' => $contactRow->first_name ?: 'Contact',
+                    'last_name' => $contactRow->last_name,
+                    'email' => $contactRow->email ?: null,
+                    'phone' => $contactRow->phone,
+                    'is_primary' => (bool) $contactRow->is_primary,
+                ]);
+                $this->bump('vendor_contacts');
+            }
+        }
+    }
+
+    private function importExpenseCategories(Company $company): void
+    {
+        foreach ($this->source('expense_categories')->where('is_deleted', 0)->get() as $row) {
+            ExpenseCategory::create([
+                'company_id' => $company->id,
+                'legacy_expense_category_id' => $row->id,
+                'name' => $row->name,
+            ]);
+            $this->bump('expense_categories');
+        }
+    }
+
+    private function importProjects(Company $company): void
+    {
+        foreach ($this->source('projects')->where('is_deleted', 0)->get() as $row) {
+            $project = Project::create([
+                'company_id' => $company->id,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                'legacy_project_id' => $row->id,
+                'name' => $row->name ?: 'Project #'.$row->id,
+                'task_rate' => $row->task_rate,
+                'budgeted_hours' => $row->budgeted_hours,
+                'due_date' => $row->due_date,
+                'notes' => $row->private_notes,
+            ]);
+            $this->projectMap[$row->id] = $project->id;
+            $this->bump('projects');
+        }
+    }
+
+    private function importTaskStatuses(Company $company): void
+    {
+        foreach ($this->source('task_statuses')->where('is_deleted', 0)->get() as $row) {
+            $status = TaskStatus::create([
+                'company_id' => $company->id,
+                'legacy_task_status_id' => $row->id,
+                'name' => $row->name,
+                'sort_order' => $row->status_order ?? $row->status_sort_order ?? 0,
+            ]);
+            $this->taskStatusMap[$row->id] = $status->id;
+            $this->bump('task_statuses');
+        }
+
+        // No `tasks` rows exist in the one real v5 dump this was built
+        // against (a fresh install with no time-tracking usage yet), so
+        // task import itself is intentionally not implemented here — see
+        // ImportInvoiceNinjaV4 for the pattern (time_log JSON -> a single
+        // started_at/stopped_at segment) if a v5 source ever has any.
+        if ($this->source('tasks')->exists()) {
+            $this->warn('This dump has `tasks` rows, which this v5 importer does not yet migrate — see the docblock above importTaskStatuses().');
+        }
+    }
+
+    /**
+     * v5 stores each invoice/quote/credit's line items as its own
+     * `line_items` JSON column rather than a shared item table — decode it
+     * into the same shape used across every entity type.
+     *
+     * Most real invoices in this dump don't set tax on the line item at
+     * all — tax is applied once at the *invoice* level
+     * (`invoices.tax_name1`/`tax_rate1`, occasionally `uses_inclusive_taxes`
+     * meaning the item's own `cost` already has that tax baked in). The
+     * target schema has no invoice-level tax column (tax is only ever a
+     * per-item `invoice_item_taxes` row — see CLAUDE.md's "Normalized tax
+     * pivots"), so a header-level tax with no matching per-item tax is
+     * pushed down onto every item here, extracting it back out of an
+     * already-tax-inclusive `cost` rather than adding it on top when
+     * `uses_inclusive_taxes` says the line total already includes it —
+     * otherwise the invoice's `total` would come out ~11% too high.
+     *
+     * @return array<int, array{title: string, description: ?string, quantity: float, unit_cost: float, discount: float, is_amount_discount: bool, inclusive_tax_rate: ?float, taxes: array<int, array{name: string, rate: float}>}>
+     */
+    private function decodeLineItems(?string $json, ?object $parentRow = null): array
+    {
+        $items = json_decode((string) $json, true);
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $headerTax = null;
+        if ($parentRow && filled($parentRow->tax_name1 ?? null) && (float) ($parentRow->tax_rate1 ?? 0) > 0) {
+            $headerTax = ['name' => $parentRow->tax_name1, 'rate' => (float) $parentRow->tax_rate1];
+        }
+        $headerTaxIsInclusive = (bool) ($parentRow->uses_inclusive_taxes ?? false);
+
+        return collect($items)->map(function (array $item) use ($headerTax, $headerTaxIsInclusive) {
+            $taxes = [];
+
+            foreach ([[$item['tax_name1'] ?? null, $item['tax_rate1'] ?? 0], [$item['tax_name2'] ?? null, $item['tax_rate2'] ?? 0], [$item['tax_name3'] ?? null, $item['tax_rate3'] ?? 0]] as [$name, $rate]) {
+                if (filled($name) && (float) $rate > 0) {
+                    $taxes[] = ['name' => $name, 'rate' => (float) $rate];
+                }
+            }
+
+            $inclusiveTaxRate = null;
+
+            if ($taxes === [] && $headerTax) {
+                if ($headerTaxIsInclusive) {
+                    $inclusiveTaxRate = $headerTax['rate'];
+                    $taxes[] = $headerTax;
+                } else {
+                    $taxes[] = $headerTax;
+                }
+            }
+
+            return [
+                'title' => $item['product_key'] ?: 'Item',
+                'description' => $item['notes'] ?? null,
+                'quantity' => (float) ($item['quantity'] ?? 1),
+                'unit_cost' => (float) ($item['cost'] ?? 0),
+                'discount' => (float) ($item['discount'] ?? 0),
+                'is_amount_discount' => (bool) ($item['is_amount_discount'] ?? false),
+                'inclusive_tax_rate' => $inclusiveTaxRate,
+                'taxes' => $taxes,
+            ];
+        })->all();
+    }
+
+    private function createInvoiceItems(Invoice $invoice, array $lineItems): void
+    {
+        foreach ($lineItems as $lineItem) {
+            $unitCost = $lineItem['unit_cost'];
+
+            // An inclusive header tax means $unitCost already has it baked
+            // in — divide it back out (App\Services\InvoiceTotalsCalculator
+            // recomputes line_total itself from quantity*unit_cost, so it's
+            // unit_cost that must be tax-exclusive, not just line_total,
+            // or the tax ends up counted twice).
+            if ($lineItem['inclusive_tax_rate']) {
+                $unitCost = $unitCost / (1 + $lineItem['inclusive_tax_rate'] / 100);
+            }
+
+            $lineGross = $lineItem['quantity'] * $unitCost;
+            $discount = $lineItem['is_amount_discount']
+                ? $lineItem['discount']
+                : $lineGross * ($lineItem['discount'] / 100);
+            $lineTotal = $this->money($lineGross - $discount);
+
+            $item = InvoiceItem::create([
+                'invoice_id' => $invoice->id,
+                'title' => $lineItem['title'],
+                'description' => $lineItem['description'],
+                'quantity' => $lineItem['quantity'],
+                'unit_cost' => $unitCost,
+                'discount' => $lineItem['is_amount_discount'] ? $lineItem['discount'] : 0,
+                'discount_is_percentage' => false,
+                'line_total' => $lineTotal,
+            ]);
+            $this->bump('invoice_items');
+
+            foreach ($lineItem['taxes'] as $tax) {
+                $item->taxes()->create([
+                    'tax_rate_id' => null,
+                    'name' => $tax['name'],
+                    'rate' => $tax['rate'],
+                    'amount' => $this->money($lineTotal * ($tax['rate'] / 100)),
+                ]);
+                $this->bump('invoice_item_taxes');
+            }
+        }
+    }
+
+    private function importInvoices(Company $company): void
+    {
+        foreach ($this->source('invoices')->orderBy('id')->get() as $row) {
+            $invoice = Invoice::create([
+                'company_id' => $company->id,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                'legacy_invoice_id' => $row->id,
+                'type' => InvoiceType::Invoice,
+                'status' => InvoiceStatus::Draft, // placeholder, set in finalizeInvoiceTotals()
+                'number' => $row->number,
+                'po_number' => $row->po_number,
+                'invoice_date' => $row->date,
+                'due_date' => $row->due_date,
+                'currency_code' => $company->currency_code,
+                'discount' => $row->discount ?? 0,
+                'discount_is_percentage' => ! (bool) $row->is_amount_discount,
+                'subtotal' => 0,
+                'tax_total' => 0,
+                'total' => 0,
+                'amount_paid' => 0,
+                'balance' => 0,
+                'partial_amount' => $row->partial ?? 0,
+                'partial_due_date' => $row->partial_due_date,
+                'terms' => $row->terms,
+                'public_notes' => $row->public_notes,
+                'private_notes' => $row->private_notes,
+                'footer' => $row->footer,
+                'is_recurring' => false,
+                'auto_bill' => (bool) $row->auto_bill_enabled,
+                'deleted_at' => $row->deleted_at,
+            ]);
+            $this->invoiceIdMap[$row->id] = $invoice->id;
+            $this->bump('invoices');
+
+            $this->createInvoiceItems($invoice, $this->decodeLineItems($row->line_items, $row));
+
+            $sentAt = null;
+            $viewedAt = null;
+
+            foreach (DB::connection($this->conn)->table('invoice_invitations')->where('invoice_id', $row->id)->get() as $inviteRow) {
+                if (! isset($this->contactMap[$inviteRow->client_contact_id])) {
+                    continue;
+                }
+
+                Invitation::create([
+                    'invoice_id' => $invoice->id,
+                    'contact_id' => $this->contactMap[$inviteRow->client_contact_id],
+                    'legacy_invitation_id' => $inviteRow->id,
+                    'key' => $inviteRow->key,
+                    'sent_at' => $inviteRow->sent_date,
+                    'viewed_at' => $inviteRow->viewed_date,
+                    'signed_at' => $inviteRow->signature_date,
+                    'signature' => $inviteRow->signature_base64,
+                ]);
+                $this->bump('invitations');
+
+                if ($inviteRow->sent_date && (! $sentAt || $inviteRow->sent_date < $sentAt)) {
+                    $sentAt = $inviteRow->sent_date;
+                }
+                if ($inviteRow->viewed_date && (! $viewedAt || $inviteRow->viewed_date > $viewedAt)) {
+                    $viewedAt = $inviteRow->viewed_date;
+                }
+            }
+
+            if ($sentAt || $viewedAt) {
+                $invoice->forceFill(['sent_at' => $sentAt, 'viewed_at' => $viewedAt])->saveQuietly();
+            }
+        }
+    }
+
+    private function importQuotes(Company $company): void
+    {
+        foreach ($this->source('quotes')->orderBy('id')->get() as $row) {
+            $quote = Invoice::create([
+                'company_id' => $company->id,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                // `legacy_invoice_id` isn't unique-constrained, so it's fine
+                // that quotes.id and invoices.id ranges can overlap (they're
+                // separate source tables) — this column is just a debugging/
+                // audit trail back to the dump, not a join key.
+                'legacy_invoice_id' => $row->id,
+                'type' => InvoiceType::Quote,
+                'status' => InvoiceStatus::Draft,
+                'number' => $row->number,
+                'po_number' => $row->po_number,
+                'invoice_date' => $row->date,
+                'due_date' => $row->due_date,
+                'currency_code' => $company->currency_code,
+                'discount' => $row->discount ?? 0,
+                'discount_is_percentage' => ! (bool) $row->is_amount_discount,
+                'subtotal' => 0,
+                'tax_total' => 0,
+                'total' => 0,
+                'amount_paid' => 0,
+                'balance' => 0,
+                'partial_amount' => $row->partial ?? 0,
+                'partial_due_date' => $row->partial_due_date,
+                'terms' => $row->terms,
+                'public_notes' => $row->public_notes,
+                'private_notes' => $row->private_notes,
+                'footer' => $row->footer,
+                'is_recurring' => false,
+                'deleted_at' => $row->deleted_at,
+            ]);
+            $this->quoteIdMap[$row->id] = $quote->id;
+            $this->bump('quotes');
+
+            $this->createInvoiceItems($quote, $this->decodeLineItems($row->line_items, $row));
+
+            foreach (DB::connection($this->conn)->table('quote_invitations')->where('quote_id', $row->id)->get() as $inviteRow) {
+                if (! isset($this->contactMap[$inviteRow->client_contact_id])) {
+                    continue;
+                }
+
+                Invitation::create([
+                    'invoice_id' => $quote->id,
+                    'contact_id' => $this->contactMap[$inviteRow->client_contact_id],
+                    'legacy_invitation_id' => $inviteRow->id,
+                    'key' => $inviteRow->key,
+                    'sent_at' => $inviteRow->sent_date,
+                    'viewed_at' => $inviteRow->viewed_date,
+                    'signed_at' => $inviteRow->signature_date,
+                    'signature' => $inviteRow->signature_base64,
+                ]);
+                $this->bump('invitations');
+
+                if ($inviteRow->sent_date || $inviteRow->viewed_date) {
+                    $quote->forceFill([
+                        'sent_at' => $quote->sent_at ?? $inviteRow->sent_date,
+                        'viewed_at' => $inviteRow->viewed_date ?? $quote->viewed_at,
+                    ])->saveQuietly();
+                }
+            }
+
+            // v5's `quotes.invoice_id` points at the invoice this quote was
+            // converted into, if any.
+            if ($row->invoice_id && isset($this->invoiceIdMap[$row->invoice_id])) {
+                Invoice::withTrashed()->whereKey($this->invoiceIdMap[$row->invoice_id])
+                    ->update(['converted_from_quote_id' => $quote->id]);
+            }
+        }
+    }
+
+    private function importExpenses(Company $company): void
+    {
+        foreach ($this->source('expenses')->where('is_deleted', 0)->get() as $row) {
+            $expense = Expense::create([
+                'company_id' => $company->id,
+                'vendor_id' => $this->vendorMap[$row->vendor_id] ?? null,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                'invoice_id' => $this->invoiceIdMap[$row->invoice_id] ?? null,
+                'legacy_expense_id' => $row->id,
+                'expense_date' => $row->date,
+                'currency_code' => $company->currency_code,
+                'exchange_rate' => $row->exchange_rate ?: 1,
+                'subtotal' => $this->money($row->amount),
+                'should_be_invoiced' => (bool) $row->should_be_invoiced,
+                'transaction_reference' => $row->transaction_reference,
+                'private_notes' => $row->private_notes,
+            ]);
+
+            foreach ([[$row->tax_name1, $row->tax_rate1], [$row->tax_name2, $row->tax_rate2], [$row->tax_name3, $row->tax_rate3]] as [$name, $rate]) {
+                if (filled($name) && (float) $rate > 0) {
+                    $expense->taxes()->create([
+                        'tax_rate_id' => null,
+                        'name' => $name,
+                        'rate' => $rate,
+                        'amount' => $this->money($expense->subtotal * ($rate / 100)),
+                    ]);
+                }
+            }
+
+            app(ExpenseTotalsCalculator::class)->recalculate($expense);
+            $this->bump('expenses');
+        }
+    }
+
+    private function importCredits(Company $company): void
+    {
+        foreach ($this->source('credits')->where('is_deleted', 0)->get() as $row) {
+            Credit::create([
+                'company_id' => $company->id,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                'legacy_credit_id' => $row->id,
+                'number' => $row->number,
+                'amount' => $this->money($row->amount),
+                'balance' => $this->money($row->balance),
+                'credit_date' => $row->date,
+                'public_notes' => $row->public_notes,
+                'private_notes' => $row->private_notes,
+                'deleted_at' => $row->deleted_at,
+            ]);
+            $this->bump('credits');
+        }
+    }
+
+    /**
+     * Each real payment in this dump applies to at most one invoice via
+     * `paymentables` (paymentable_type='invoices') — a payment with no
+     * paymentables row was never actually applied (voided/failed). A
+     * payment split across several invoices doesn't occur in the source
+     * data this was built against; if one ever does, only the first
+     * paymentable is used and the rest are logged as a warning rather than
+     * silently dropping money.
+     */
+    private function importPayments(Company $company): void
+    {
+        foreach ($this->source('payments')->where('is_deleted', 0)->get() as $row) {
+            $paymentables = DB::connection($this->conn)->table('paymentables')
+                ->where('payment_id', $row->id)
+                ->where('paymentable_type', 'invoices')
+                ->get();
+
+            $invoiceId = $paymentables->isNotEmpty()
+                ? ($this->invoiceIdMap[$paymentables->first()->paymentable_id] ?? null)
+                : null;
+
+            if ($paymentables->count() > 1) {
+                $this->warn("Payment #{$row->id} applies to multiple invoices — only the first was linked; amount is still recorded in full.");
+            }
+
+            Payment::create([
+                'company_id' => $company->id,
+                'client_id' => $this->clientMap[$row->client_id] ?? null,
+                'invoice_id' => $invoiceId,
+                'legacy_payment_id' => $row->id,
+                'amount' => $this->money($row->amount),
+                'refunded_amount' => $this->money($row->refunded ?? 0),
+                'currency_code' => $company->currency_code,
+                'gateway_reference' => $row->transaction_reference,
+                'status' => $this->mapLegacyPaymentStatus($row->status_id),
+                'payment_date' => $row->date,
+                'notes' => $row->private_notes,
+            ]);
+            $this->bump('payments');
+        }
+    }
+
+    private function finalizeInvoiceTotals(): void
+    {
+        $calculator = app(InvoiceTotalsCalculator::class);
+
+        foreach ([...$this->invoiceIdMap, ...$this->quoteIdMap] as $invoiceId) {
+            $invoice = Invoice::withTrashed()->find($invoiceId);
+            $paid = Payment::query()
+                ->where('invoice_id', $invoice->id)
+                ->where('status', PaymentStatus::Completed)
+                ->sum(DB::raw('amount - refunded_amount'));
+
+            $invoice->forceFill(['amount_paid' => $this->money($paid)])->saveQuietly();
+            $calculator->recalculate($invoice);
+
+            $resolved = $this->resolveDocumentStatus(
+                (float) $invoice->total,
+                (float) $invoice->balance,
+                (float) $invoice->amount_paid,
+                $invoice->sent_at?->toDateTimeString(),
+                $invoice->viewed_at?->toDateTimeString(),
+            );
+            $invoice->forceFill(['status' => $resolved['status']])->saveQuietly();
+        }
+    }
+
+    private function recomputeClientBalances(Company $company): void
+    {
+        foreach (Client::withTrashed()->where('company_id', $company->id)->get() as $client) {
+            $balance = Invoice::withTrashed()
+                ->where('client_id', $client->id)
+                ->where('type', InvoiceType::Invoice)
+                ->sum('balance');
+
+            $paidToDate = Payment::query()
+                ->where('client_id', $client->id)
+                ->where('status', PaymentStatus::Completed)
+                ->sum(DB::raw('amount - refunded_amount'));
+
+            $client->forceFill([
+                'balance' => $this->money($balance),
+                'paid_to_date' => $this->money($paidToDate),
+            ])->saveQuietly();
+        }
+    }
+
+    private function bumpNumberingSequences(Company $company): void
+    {
+        $company->forceFill([
+            'invoice_next_number' => Invoice::withTrashed()->where('company_id', $company->id)->where('type', InvoiceType::Invoice)->count() + 1,
+            'quote_next_number' => Invoice::withTrashed()->where('company_id', $company->id)->where('type', InvoiceType::Quote)->count() + 1,
+            'credit_next_number' => Credit::query()->where('company_id', $company->id)->count() + 1,
+        ])->save();
+    }
+
+    private function reconcile(Company $company): void
+    {
+        $sourceTotal = $this->money(
+            $this->source('invoices')->sum('amount') + $this->source('quotes')->sum('amount')
+        );
+        $targetTotal = $this->money(Invoice::withTrashed()->where('company_id', $company->id)->sum('total'));
+
+        $sourcePayments = $this->money($this->source('payments')->where('is_deleted', 0)->sum('amount'));
+        $targetPayments = $this->money(Payment::query()->where('company_id', $company->id)->sum('amount'));
+
+        $this->info("Invoice+quote totals — source: {$sourceTotal}, recomputed from imported items: {$targetTotal}.");
+        $this->info("Payments — source: {$sourcePayments}, imported: {$targetPayments}.");
+
+        $tolerance = max(1.0, $sourceTotal * 0.001);
+
+        if (abs($sourceTotal - $targetTotal) > $tolerance) {
+            $this->warn('Invoice totals differ by more than 0.1% — investigate before trusting the import.');
+        }
+
+        if (abs($sourcePayments - $targetPayments) > 1.0) {
+            $this->warn('Payment totals differ — investigate before trusting the import.');
+        }
+    }
+}

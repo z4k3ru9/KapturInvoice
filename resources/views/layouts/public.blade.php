@@ -8,6 +8,10 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+        {{-- Pushed by the portfolio homepage view only (Google Fonts for its
+             "Kinetic Obsidian" design system) — empty on the portal page. --}}
+        @stack('head')
+
         @livewireStyles
         @tallStackUiStyle
     </head>

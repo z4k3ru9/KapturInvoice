@@ -32,21 +32,27 @@ Or just `composer setup` (runs the same steps via the composer script).
   default — `Hash::make('password')`, not a random string). This user has
   `is_super_admin = true` and is attached to both seeded companies as
   `owner`.
-- **Two seeded companies** (`CompanySeeder`, placeholders — rename once
-  the real two entities are known): `Entity One` (`entity-one.test`,
-  prefixes `E1-`/`Q1-`/`C1-`) and `Entity Two` (`entity-two.test`,
-  prefixes `E2-`/`Q2-`/`C2-`). Switch between them via the tenant menu once
-  logged in, or jump straight to `/admin/entity-one`/`/admin/entity-two`.
+- **Two seeded companies** (`CompanySeeder`) — the two real Surabaya
+  IT/security-infrastructure integrators this replaces legacy InvoiceNinja
+  installs for: **Karunia Abadi** (`karuniaabadi.id`, prefixes
+  `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **PT. Axen
+  Technology Indonesia** (`axentechnology.web.id`, prefixes
+  `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Switch between
+  them via the tenant menu once logged in, or jump straight to
+  `/admin/karunia-abadi`/`/admin/axen-technology-indonesia`. See
+  `docs/data-import.md` to actually load either one's real historical
+  invoices/clients/payments via `import:invoiceninja-v4`/`-v5`.
 - **Public homepage** (`/`, plain Livewire, outside the Filament panel) is
   resolved by the request's `Host` header, not URL path — to preview a
   specific entity locally without editing `/etc/hosts`, either send a
-  `Host` header (`curl -H "Host: entity-one.test" http://127.0.0.1:8000/`)
+  `Host` header (`curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/`)
   or, for a real browser/Playwright session, launch Chromium with
-  `--host-resolver-rules="MAP entity-one.test 127.0.0.1,MAP entity-two.test 127.0.0.1"`
-  and navigate to `http://entity-one.test:8000/` directly — Chromium
+  `--host-resolver-rules="MAP karuniaabadi.id 127.0.0.1,MAP axentechnology.web.id 127.0.0.1"`
+  and navigate to `http://karuniaabadi.id:8000/` directly — Chromium
   refuses to let you set the `Host` header itself via
   `setExtraHTTPHeaders`. An unmatched host falls back to the first
-  company in local/testing envs.
+  company in local/testing envs. The homepage itself is a dark "IT
+  services portfolio" design (see the Dashboard/homepage bullet below).
 - **Client portal** (`/portal/{invitation:key}`, same domain-resolved
   group as the homepage) — no login; the invitation's `key` UUID is the
   credential. Get a link from an invoice's/quote's "Send" action (which
@@ -163,6 +169,23 @@ Or just `composer setup` (runs the same steps via the composer script).
   `ItemsRelationManager` for the canonical pattern.
 - **`legacy_*_id` column** on every importable table, for tracing rows
   back to the source InvoiceNinja dump.
+- **`import:invoiceninja-v4`/`import:invoiceninja-v5`** (`App\Console\Commands`)
+  load a legacy dump — already restored into its own MySQL/MariaDB
+  database, never the app's own DB — into one target Company. See
+  `docs/data-import.md` for the full mapping, the two real companies'
+  verified reconciliation numbers, and known gaps (document files,
+  proposals). Both share `App\Console\Commands\Concerns\ImportsLegacyInvoiceNinja`
+  (status derived from financial state, not the source's own status id —
+  the two legacy versions don't share one numbering scheme).
+- **Public homepage content** (`App\Support\Homepage\PortfolioContent`) —
+  the dark "Kinetic Obsidian" portfolio-style design
+  (`resources/views/livewire/home-page.blade.php`), per the Google Stitch
+  "TALL IT Services Portfolio" project. Curated copy (services/partners/
+  process) is keyed by `Company::$slug` in code, not a DB-editable
+  field — see that class's docblock for why (bespoke real-brand copy for
+  two known companies, not a generic CMS field). A company with no
+  bespoke entry gets `PortfolioContent::default()`, a generic-but-honest
+  fallback so the page never 500s.
 - Full Filament resource file layout per resource: `{Name}Resource.php`,
   `Schemas/{Name}Form.php`, `Schemas/{Name}Infolist.php`,
   `Tables/{Name}Table.php`, `Pages/{Create,Edit,List,View}{Name}.php` —
@@ -190,6 +213,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 102 tests as of the branding-settings page pass — see docs/testing-coverage.md
+php artisan test      # 107 tests as of the data-import commands pass — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
