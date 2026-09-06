@@ -13,4 +13,55 @@
      */
     --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /*
+     * "Kinetic Obsidian" — the dark portfolio design system used by the
+     * public homepage (resources/views/livewire/home-page.blade.php) for
+     * both entities, per the Google Stitch "TALL IT Services Portfolio"
+     * project (docs/homepage-design.md). Namespaced with its own tokens
+     * rather than touching --color-primary etc. so it can't bleed into
+     * the portal/admin UI, which don't use these utility names. Unlike
+     * --font-sans above, these fonts ARE fetched from Google Fonts (see
+     * the @stack('head') push in the homepage view) — this is a live
+     * production page, not an offline build artifact, so the runtime
+     * network dependency is an acceptable trade for matching the design.
+     */
+    --color-surface-canvas: #0a0a0c;
+    --color-surface-card: #111114;
+    --color-surface-container: #18181c;
+    --color-primary: #4cd7f6;
+    --color-primary-container: #06b6d4;
+    --color-secondary: #4edea3;
+    --color-secondary-container: #00a572;
+    --color-on-surface: #f3f2f4;
+    --color-on-surface-variant: #9ba3a7;
+    --color-outline-subtle: rgba(255, 255, 255, 0.08);
+    --color-outline-divider: rgba(255, 255, 255, 0.12);
+
+    --font-headline: 'Syne', sans-serif;
+    --font-portfolio-body: 'Geist', sans-serif;
+    --font-portfolio-mono: 'JetBrains Mono', monospace;
+}
+
+/* Portfolio homepage decorative background/animation — not expressible as
+   plain Tailwind utilities, ported verbatim from the Stitch design export. */
+.portfolio-tech-grid {
+    background-size: 48px 48px;
+    background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+@keyframes portfolio-sweep {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.portfolio-radar-sweep {
+    animation: portfolio-sweep 18s linear infinite;
+}
+@keyframes portfolio-pulse-slow {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 0.8; }
+}
+.portfolio-pulse-glow {
+    animation: portfolio-pulse-slow 4s ease-in-out infinite;
 }

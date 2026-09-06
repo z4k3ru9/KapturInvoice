@@ -4,8 +4,8 @@ What "tested" means here, and a domain-by-domain map of what actually is,
 so a gap is a documented decision rather than an unknown. Almost every
 test is a Feature test under `tests/Feature/` (PHPUnit + `RefreshDatabase`
 + Livewire's `Livewire::test()`/`assertOk()` HTTP checks); a handful of
-pure-logic classes with no database/HTTP involvement (currently just
-`DashboardPeriod`) get a plain `tests/Unit/` test instead — there's no
+pure-logic classes with no database/HTTP involvement (`DashboardPeriod`,
+`PortfolioContent`) get a plain `tests/Unit/` test instead — there's no
 browser/E2E suite (see **What's out of scope**, below).
 
 Run the whole suite with `php artisan test` (see `CLAUDE.md` for the
@@ -48,6 +48,8 @@ current count) and `vendor/bin/pint --test` before every push.
 | Payment gateway webhook endpoint | Updates the matching Payment by `gateway_reference`, no-ops on an unknown reference, CSRF-exempt | `PaymentGatewayWebhookTest` |
 | Payment gateway admin actions | Test Connection notification (success / not-configured) | `PaymentGatewayActionsTest` |
 | Public homepage | Domain-matched rendering, local/testing fallback, contact-form submission | `HomePageTest` |
+| Homepage portfolio content (`PortfolioContent`) | Bespoke content for each real company, honest generic fallback for an unknown one (unit-tested in isolation) | `PortfolioContentTest` (unit) |
+| Legacy data import (`import:invoiceninja-v4`/`-v5`) | Core pipeline against a small synthetic "legacy" database (client/contact backfill, invoice item + tax totals, status derivation, payment linking, recomputed client balance) — see `docs/data-import.md` for the real-dump reconciliation numbers, which aren't reproducible in an automated test since the real dumps/PII are never committed | `ImportInvoiceNinjaV4Test`, `ImportInvoiceNinjaV5Test` |
 | Public client portal | Renders for the domain-matched company, marks viewed + bumps `sent`→`viewed`, 404s on a cross-domain invitation, e-signature capture | `ViewInvoicePortalTest` |
 | Mail sending (`BillingMailer`) | Invoice/quote send, status-bump-on-send (and non-downgrade), stored-template placeholder rendering, reminder subject prefixing, missing-contact error, payment receipts | `BillingMailerTest` |
 | Reminder schedule (`SendInvoiceReminders`) | Sends on a matching schedule, skips a non-matching due date, skips a zero-balance invoice | `SendInvoiceRemindersTest` |

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\Inquiry;
+use App\Support\Homepage\PortfolioContent;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -56,6 +57,8 @@ class HomePage extends Component
 
     public function render(): View
     {
-        return view('livewire.home-page');
+        return view('livewire.home-page', [
+            'portfolio' => PortfolioContent::for($this->company),
+        ]);
     }
 }

@@ -114,6 +114,42 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        /*
+        |----------------------------------------------------------------
+        | Legacy InvoiceNinja import sources
+        |----------------------------------------------------------------
+        |
+        | Read-only connections to a locally-imported copy of a legacy
+        | InvoiceNinja MySQL/MariaDB dump, used only by
+        | `import:invoiceninja-v4`/`import:invoiceninja-v5` (see
+        | app/Console/Commands and docs/data-import.md). Not used by the
+        | app itself — safe to leave unconfigured/unreachable outside a
+        | one-off import run.
+        |
+        */
+
+        'legacy_v4' => [
+            'driver' => 'mariadb',
+            'host' => env('LEGACY_V4_DB_HOST', '127.0.0.1'),
+            'port' => env('LEGACY_V4_DB_PORT', '3306'),
+            'database' => env('LEGACY_V4_DB_DATABASE', 'legacy_v4'),
+            'username' => env('LEGACY_V4_DB_USERNAME', 'root'),
+            'password' => env('LEGACY_V4_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'prefix' => '',
+        ],
+
+        'legacy_v5' => [
+            'driver' => 'mariadb',
+            'host' => env('LEGACY_V5_DB_HOST', '127.0.0.1'),
+            'port' => env('LEGACY_V5_DB_PORT', '3306'),
+            'database' => env('LEGACY_V5_DB_DATABASE', 'legacy_v5'),
+            'username' => env('LEGACY_V5_DB_USERNAME', 'root'),
+            'password' => env('LEGACY_V5_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'prefix' => '',
+        ],
+
     ],
 
     /*

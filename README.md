@@ -66,7 +66,16 @@ codebase and one deployment:
   `companies.domain` and binds the resolved `Company` into the container as
   `currentCompany`. In local/testing environments, an unmatched host falls
   back to the first company so the homepage is reachable without editing
-  `/etc/hosts`.
+  `/etc/hosts`. The page itself is a dark "IT services portfolio" design
+  (services/partners/process copy per company via
+  `App\Support\Homepage\PortfolioContent`) with the contact-inquiry form
+  built into it, matching the Google Stitch "TALL IT Services Portfolio"
+  reference project.
+- **Legacy data import** — `import:invoiceninja-v4`/`import:invoiceninja-v5`
+  load a restored legacy InvoiceNinja dump (a separate MySQL/MariaDB
+  connection, never this app's own DB) into one target Company, with
+  totals/balances recomputed (not copied) and reconciled against the
+  source. See [`docs/data-import.md`](docs/data-import.md).
 - **Client portal** (`/portal/{invitation:key}`) — `App\Livewire\Portal\ViewInvoice`,
   a public, unauthenticated "view/e-sign my invoice" page in the same
   domain-resolved route group as the homepage; the unguessable
@@ -166,17 +175,19 @@ php artisan serve
 ```
 
 `migrate --seed` creates a super-admin user — **`test@example.com` /
-`password`** (Laravel's stock `UserFactory` default) — and two example
-companies (`entity-one.test` / `entity-two.test` domains — placeholders,
-rename in `database/seeders/CompanySeeder.php` or edit the seeded
-`Company` rows once the real two entities are known). Log in at
-`/admin` with those credentials.
+`password`** (Laravel's stock `UserFactory` default) — and the two real
+companies this replaces legacy InvoiceNinja installs for: Karunia Abadi
+(`karuniaabadi.id`) and PT. Axen Technology Indonesia
+(`axentechnology.web.id`) — see `database/seeders/CompanySeeder.php`. Log
+in at `/admin` with those credentials. To load either one's real
+historical invoices/clients/payments, see
+[`docs/data-import.md`](docs/data-import.md).
 
 To see the public homepage for a specific entity locally, either point
 `/etc/hosts` at `127.0.0.1` for its domain, or send a `Host` header:
 
 ```sh
-curl -H "Host: entity-one.test" http://127.0.0.1:8000/
+curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/
 ```
 
 The admin panel is always at `/admin` regardless of host.
