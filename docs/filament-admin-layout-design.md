@@ -22,7 +22,7 @@ sidebar order:
 |---|---|
 | **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅, Credits ✅, Payments ✅ |
 | **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
-| **Catalog** | Products ✅, Tax Rates ✅ |
+| **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
 | **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
 | **Projects** | Projects ✅ (+ Tasks relation manager ✅), Task Statuses ✅ |
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
@@ -114,6 +114,18 @@ its `key` magic-link, schema §2.3/§4) — read-mostly resource:
 ### 2.3 Catalog group
 
 **Products** ✅, **Tax Rates** ✅ — unchanged.
+
+**Price List** ✅ (`PriceListItemResource`) — the vendor pricelist
+reference catalog (Hikvision/HiLook), see
+[`docs/price-list-import.md`](price-list-import.md). Table: brand badge +
+filter, SKU/Basic Model (searchable), category, description (truncated,
+searchable), reference price, a linked-product icon, imported-at/source
+file (toggleable). "Import pricelist" header action opens a modal
+(vendor `.xlsx` upload + brand) that runs `App\Services\PriceListImporter`
+and shows a created/updated/skipped-sheets summary. "Create/update
+product" row action (`App\Services\ProductSync`) links a row to a real
+`Product` via `products.price_list_item_id`. Modal-based create/edit, like
+the other simple Catalog resources.
 
 ### 2.4 Expenses group ✅
 
@@ -447,7 +459,8 @@ resource where it's safe:
 
 **Converted to modal Create + Edit**: Clients, Vendors, Projects,
 Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
-Expense Categories, Task Statuses, Proposal Templates, Proposal Snippets.
+Expense Categories, Task Statuses, Proposal Templates, Proposal Snippets,
+Price List Items.
 Where a resource still has a **View** page (most of these do), it's kept
 — relation managers (Clients'/Vendors' Contacts, Projects' Tasks) render
 there fine, and it doubles as a read-only detail page; Delete/Force
