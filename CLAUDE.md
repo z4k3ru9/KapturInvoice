@@ -4,7 +4,7 @@ TALL-stack (Tailwind, Alpine, Laravel 13, Livewire 4) billing/invoicing
 platform replacing a legacy InvoiceNinja v4 install, with Filament 5 as the
 multi-tenant admin/billing dashboard. Full background:
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
-- [`docs/price-list-import.md`](docs/price-list-import.md) — vendor pricelist (Hikvision/HiLook) import: parser design, verified row counts, "update this regularly" upsert semantics.
+- [`docs/price-list-import.md`](docs/price-list-import.md) — vendor pricelist (Hikvision/HiLook, Ruijie/Reyee) import: parser design, verified row counts, "update this regularly" upsert semantics.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — admin panel nav/page layout, what's built vs. still a gap (✅/⚠️ markers).
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
 - [`README.md`](README.md) — stack table, architecture, setup.
@@ -189,8 +189,9 @@ Or just `composer setup` (runs the same steps via the composer script).
   (status derived from financial state, not the source's own status id —
   the two legacy versions don't share one numbering scheme).
 - **`App\Services\PriceListImporter`** parses a vendor pricelist
-  spreadsheet (Hikvision/HiLook dealer pricelists) into `price_list_items`
-  — a *reference* catalog kept separate from `Product`, upserted on
+  spreadsheet (Hikvision/HiLook dealer pricelists, Ruijie/Reyee runrate
+  pricebooks) into `price_list_items` — a *reference* catalog kept
+  separate from `Product`, upserted on
   `(company_id, brand, sku)` so re-uploading a revised file refreshes
   rows instead of duplicating them. Header-detection-based, not a fixed
   column mapping, since a single sheet stacks multiple product families
@@ -239,6 +240,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 117 tests as of the Price List import feature — see docs/testing-coverage.md
+php artisan test      # 118 tests as of the Ruijie/Reyee price list format support — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
