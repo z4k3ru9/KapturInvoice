@@ -9,8 +9,9 @@ use OpenSpout\Reader\XLSX\Reader;
 
 /**
  * Imports a vendor's own pricelist spreadsheet (real-world examples this
- * was built and hand-verified against: Hikvision/HiLook dealer pricelists —
- * see docs/price-list-import.md) into `price_list_items`, upserting on
+ * was built and hand-verified against: Hikvision/HiLook dealer pricelists,
+ * Ruijie/Reyee runrate pricebooks — see docs/price-list-import.md) into
+ * `price_list_items`, upserting on
  * (company_id, brand, sku) so re-running the same/an updated file just
  * refreshes prices rather than duplicating rows — this is the "update this
  * regularly" path, run from either `import:pricelist` or the Price List
@@ -189,7 +190,17 @@ class PriceListImporter
                 $modelCol = $col;
             } elseif ($descriptionCol === null && in_array($normalized, ['description', 'descriptions'], true)) {
                 $descriptionCol = $col;
-            } elseif (str_contains($normalized, 'price') || $normalized === 'msrp') {
+            } elseif (
+                ! str_contains($normalized, 'service')
+                && (str_contains($normalized, 'price') || str_contains($normalized, 'msrp'))
+            ) {
+                // "contains msrp"/"contains price", not an exact match —
+                // real headers dress the tier up with extra qualifiers
+                // ("MSRP Inc. PPN", "Bottom Dealer Price(IDR) Exc PPN").
+                // Excludes anything with "service" in the label (Ruijie's
+                // "Service Products Price ... (USD per Year)" is a support/
+                // renewal add-on priced in a different currency and unit
+                // entirely — not a per-unit price tier for this SKU).
                 $priceCols[trim($value)] = $col;
             }
         }
@@ -198,15 +209,30 @@ class PriceListImporter
             return null;
         }
 
+        // Some vendor sheets never label the description column at all —
+        // seen in the Ruijie/Reyee "SMB Pricebook" sheet, across two real
+        // file revisions (one leaves the header cell blank, the other has
+        // a stray unrelated value in it) — but the column is consistently
+        // the one right after Model, and really does hold description
+        // text in every data row. Only used when no column was explicitly
+        // labeled Description/Descriptions.
+        if ($descriptionCol === null && ! in_array($modelCol + 1, $priceCols, true)) {
+            $candidate = $modelCol + 1;
+
+            if (array_key_exists($candidate, $values)) {
+                $descriptionCol = $candidate;
+            }
+        }
+
         return ['model' => $modelCol, 'description' => $descriptionCol, 'prices' => $priceCols];
     }
 
     /**
      * Prefers the dealer's own cost tier (however the vendor happens to
-     * label it this file: "Dealer price", "to DPP", …) over a public/MSRP
-     * tier, since that's the more useful default for a reseller pricing
-     * their own products from this catalog — falls back to MSRP, then
-     * whatever's first, rather than leaving it blank.
+     * label it this file: "Dealer price", "Installer price", "to DPP", …)
+     * over a public/MSRP tier, since that's the more useful default for a
+     * reseller pricing their own products from this catalog — falls back
+     * to MSRP, then whatever's first, rather than leaving it blank.
      *
      * @param  array<string, float>  $prices
      */
@@ -215,7 +241,7 @@ class PriceListImporter
         foreach ($prices as $label => $amount) {
             $normalized = strtolower($label);
 
-            if (str_contains($normalized, 'dealer')) {
+            if (str_contains($normalized, 'dealer') || str_contains($normalized, 'installer')) {
                 return $amount;
             }
 
