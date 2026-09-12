@@ -7,7 +7,7 @@ Remote: `https://github.com/z4k3ru9/KapturInvoice.git`
 
 ## Result
 
-Gate 0 is partially complete. The repository is clean, PHP dependencies install successfully, the Laravel application boots, migrations run on a fresh SQLite database, and the existing test suite passes all 102 tests. The test suite is now independent of a locally generated Vite manifest through the shared test base, while the production-like asset build remains an environment prerequisite.
+Gate 0 is complete. The repository is clean, PHP and JavaScript dependencies install from their lock files, the Laravel application boots, migrations run from a clean SQLite database, the full test suite passes, and the production asset build produces the required Vite manifest.
 
 ## Environment observed
 
@@ -19,11 +19,11 @@ Gate 0 is partially complete. The repository is clean, PHP dependencies install 
 | Filament | 5.7.8 |
 | Livewire | 4.4.3 |
 | TallStack UI | 4.1.0 |
-| Node | 20.15.1; below the declared floor of the installed Vite/Rolldown toolchain |
-| npm | 10.7.0 |
+| Node | 22.23.2, compatible with the installed Vite/Rolldown toolchain |
+| npm | 10.9.8 |
 | Database | SQLite local database created and migrated successfully |
 | Queue | Database queue configured |
-| Working tree | Clean after the test-base fix and documentation update |
+| Working tree | Clean |
 
 ## Checks performed
 
@@ -31,22 +31,15 @@ Gate 0 is partially complete. The repository is clean, PHP dependencies install 
 - Initialized a local `.env` and application key for testing.
 - Created the local SQLite database and ran all current migrations.
 - Ran the existing test suite: 102 passed, 463 assertions.
-- Attempted the frontend asset build with the locked JavaScript dependencies.
+- Reinstalled JavaScript dependencies from `package-lock.json` with `npm ci`.
+- Built frontend assets with `npm run build` and confirmed `public/build/manifest.json` exists.
 
-## Current blocker
+## Gate 0 resolution
 
-`npm run build` still cannot load Rolldown's macOS native optional binding. The installed Node version is also below the package engine requirements. The public rendering tests no longer fail for this reason in the PHP test suite, but a reproducible production-like asset build is still required before Gate 0 can close.
+The compatible Node 22 runtime was used and JavaScript dependencies were reinstalled with an isolated npm cache because the machine's default npm cache contained root-owned files. The locked dependency set remained unchanged. The build completed successfully and the PHP suite remained green after the clean migration.
 
-This is an environment prerequisite, not a reason to change application dependencies or begin the renovation.
-
-## Required resolution before Gate 1
-
-1. Use Node `20.19+` or Node `22.12+` for the current Vite toolchain.
-2. Reinstall JavaScript dependencies with optional platform bindings enabled.
-3. Run `npm run build` and confirm `public/build/manifest.json` exists.
-4. Rerun `composer test` after the asset environment is corrected and confirm the result remains 102 passing tests.
-5. Preserve the clean branch and do not commit generated local environment files.
+No generated local environment files or ignored build artifacts were committed.
 
 ## Renovation implication
 
-The test baseline is now green, but implementation should begin only after the asset toolchain is reproducible and Gate 0 is explicitly closed. The next unchecked Claude task is to restore a compatible Node environment, run `npm run build`, verify `public/build/manifest.json`, and update this report. Gate 1 should then start with company isolation, roles, settings, numbering, and audit foundations, using the approved canonical data model rather than extending the legacy payment and mutable-document relationships.
+Gate 0 is explicitly closed. The next unchecked Claude task is Phase `01-company-foundation`: implement company isolation, roles, settings, numbering, and audit foundations using the approved canonical data model rather than extending the legacy payment and mutable-document relationships.
