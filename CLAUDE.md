@@ -6,11 +6,73 @@ multi-tenant admin/billing dashboard. Full background:
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — admin panel nav/page layout, what's built vs. still a gap (✅/⚠️ markers).
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
+- [`docs/rebuild/CLAUDE.md`](docs/rebuild/CLAUDE.md) — approved renovation handoff for the job-centric rebuild. Read this before coding the new product flow, data model, migration, documents, portal, or UI/UX work.
 - [`README.md`](README.md) — stack table, architecture, setup.
 
 Read this file first on every session — it exists so setup/login/seed
 facts don't need to be re-derived by grepping migrations and seeders each
 time.
+
+## Renovation guardrails
+
+When working on the approved job-centric rebuild, read the handoff docs in
+this order before changing code:
+
+1. `AGENTS.md`.
+2. [`docs/rebuild/PRD.md`](docs/rebuild/PRD.md) for product scope.
+3. [`docs/rebuild/CONTEXT.md`](docs/rebuild/CONTEXT.md) for canonical
+   business language.
+4. [`docs/rebuild/DESIGN.md`](docs/rebuild/DESIGN.md) for the UI/UX flow
+   and appearance contract.
+5. [`docs/rebuild/Specs.md`](docs/rebuild/Specs.md) for the execution
+   contract.
+6. [`docs/rebuild/specs/FINALIZED-DECISIONS.md`](docs/rebuild/specs/FINALIZED-DECISIONS.md)
+   for binding decisions.
+7. [`docs/rebuild/specs/README.md`](docs/rebuild/specs/README.md) and
+   [`docs/rebuild/specs/IMPLEMENTATION-STRUCTURE.md`](docs/rebuild/specs/IMPLEMENTATION-STRUCTURE.md)
+   for phase order and architecture.
+8. Only the active phase file under `docs/rebuild/specs/`.
+
+Start with Gate 0, then work one phase and one vertical slice at a time.
+Do not start UI polish, broad rewrites, or deferred features ahead of the
+phase gate. Stop at each phase checkpoint with passing tests or a
+documented blocker.
+
+Keep all financial logic in tested domain actions/services; UI components
+orchestrate but do not own calculation, numbering, authorization, or
+mutation rules. Treat company scoping, authorization, document integrity,
+money precision, and audit history as blocking safety boundaries.
+
+Use change control for any request that changes an approved role, tax
+behavior, numbering, workflow state, payment behavior, migration rule,
+legal output, or launch/deferred scope. For UI work, follow
+[`docs/rebuild/DESIGN.md`](docs/rebuild/DESIGN.md) before inventing a
+component pattern.
+
+Critical product guards:
+
+- Companies are isolated deployments at launch. No cross-company records,
+  files, portal access, password synchronization, or financial
+  synchronization.
+- Issued documents, verified payments, receipts, snapshots, PDFs, and
+  audit events are never physically deleted.
+- Do not mix inclusive and exclusive taxable lines on one document. Apply
+  discounts before tax. Use the approved two-decimal calculation and
+  upward final-Rupiah rounding rule.
+- A payment is an event; allocations determine balances; one verified
+  event produces one receipt. Post-receipt allocation changes create a
+  linked receipt amendment instead of modifying history.
+- Use a Customer Order Confirmation when a customer accepts without
+  providing a Customer PO.
+- Do not build deferred capabilities unless the approved specs change:
+  online payment gateway, refunds, write-offs, full journal, inventory,
+  recurring billing, generic projects/tasks, vendor login, client uploads,
+  SSO, electronic signing, or central cross-server synchronization.
+
+At every pause during the renovation, report the active phase, completed
+requirements, changed files, migrations applied locally, test
+commands/results, known failures, next unchecked task, and whether the
+phase is safe to continue.
 
 ## Local setup (already done in most sandboxes — verify, don't redo blindly)
 
