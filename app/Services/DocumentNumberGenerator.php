@@ -53,6 +53,15 @@ class DocumentNumberGenerator
         // annual sequence, for example KA-INV-A-2026090001."
         'receipt' => 'RCT',
         'invoice_amendment' => 'INV-A',
+        // Phase 05 (docs/rebuild/specs/05-procurement-and-delivery):
+        // vendor purchase order, vendor bill, vendor payment receipt,
+        // delivery order, and handover report — FINALIZED-DECISIONS.md §2's
+        // launch document codes.
+        'vendor_purchase_order' => 'VPO',
+        'vendor_bill' => 'VBL',
+        'vendor_payment' => 'VPR',
+        'delivery_order' => 'DO',
+        'handover_report' => 'HOR',
     ];
 
     public function next(Company $company, string $sequence): string

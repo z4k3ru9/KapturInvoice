@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable([
     'company_id', 'client_id', 'quotation_id', 'number', 'status',
-    'approved_value', 'source_snapshot',
+    'approved_value', 'source_snapshot', 'requires_handover',
 ])]
 class SalesOrder extends Model
 {
@@ -33,6 +33,7 @@ class SalesOrder extends Model
             'status' => SalesOrderStatus::class,
             'approved_value' => 'decimal:2',
             'source_snapshot' => 'array',
+            'requires_handover' => 'boolean',
             'approved_at' => 'datetime',
             'operational_closed_at' => 'datetime',
             'financial_closed_at' => 'datetime',
@@ -79,5 +80,52 @@ class SalesOrder extends Model
     public function isFullyClosed(): bool
     {
         return $this->operational_closed_at !== null && $this->financial_closed_at !== null;
+    }
+
+    /** Phase 05 (docs/rebuild/specs/05-procurement-and-delivery). */
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class);
+    }
+
+    public function handoverReports(): HasMany
+    {
+        return $this->hasMany(HandoverReport::class);
+    }
+
+    public function jobCostAllocations(): HasMany
+    {
+        return $this->hasMany(JobCostAllocation::class);
+    }
+
+    /** Invoices billed against this job (App\Models\Invoice::sales_order_id, Phase 04). */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * "Goods-only jobs may close operationally after delivery; installation
+     * / service jobs require handover before operational closure." Checks
+     * every `sales_order_items` row has had its full quantity covered by
+     * `delivery_order_items` — the completeness gate
+     * App\Actions\Delivery\CompleteHandover/App\Actions\Sales\
+     * CloseJobOperationally consult before an Admin/Owner override.
+     */
+    public function isFullyDelivered(): bool
+    {
+        $delivered = DeliveryOrderItem::query()
+            ->whereIn('sales_order_item_id', $this->items()->pluck('id'))
+            ->selectRaw('sales_order_item_id, sum(quantity_delivered) as total')
+            ->groupBy('sales_order_item_id')
+            ->pluck('total', 'sales_order_item_id');
+
+        foreach ($this->items as $item) {
+            if ((float) ($delivered[$item->id] ?? 0) < (float) $item->quantity) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
