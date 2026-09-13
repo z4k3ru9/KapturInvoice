@@ -189,7 +189,8 @@ class ModalCreateEditTest extends TestCase
             ->assertHasNoActionErrors();
 
         $credit = Credit::where('client_id', $client->id)->firstOrFail();
-        $this->assertSame('CRE-0001', $credit->number);
+        // "ACME-CR-{yearmonth}0001" — see App\Services\DocumentNumberGenerator.
+        $this->assertSame('ACME-CR-'.now()->format('Ym').'0001', $credit->number);
 
         Livewire::test(ListCredits::class)
             ->callTableAction('edit', $credit, data: ['amount' => 75])

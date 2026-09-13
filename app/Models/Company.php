@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -19,7 +20,7 @@ use Throwable;
  * numbering sequence, sharing a single admin panel.
  */
 #[Fillable([
-    'name', 'slug', 'domain', 'email', 'phone', 'tax_number',
+    'name', 'slug', 'code', 'is_active', 'domain', 'email', 'phone', 'tax_number',
     'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country_code',
     'currency_code', 'timezone', 'logo_path', 'primary_color', 'secondary_color',
     'invoice_prefix', 'invoice_next_number',
@@ -31,13 +32,52 @@ class Company extends Model implements HasName
 {
     use SoftDeletes;
 
+    /**
+     * Mirrors the DB defaults for columns callers commonly leave unset
+     * (e.g. `Company::create([...])` in tests/seeders) — without this,
+     * the in-memory model right after create() would read these as null
+     * until a fresh `find()`/`fresh()`, which broke
+     * canAccessTenant()'s `$tenant->is_active` check on a
+     * just-created company.
+     */
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
     protected function casts(): array
     {
         return [
             'invoice_next_number' => 'integer',
             'quote_next_number' => 'integer',
             'credit_next_number' => 'integer',
+            'is_active' => 'boolean',
+            'codes_locked_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $company) {
+            // A numbering code is required to issue any document (see
+            // App\Services\DocumentNumberGenerator) and is configurable
+            // only before first issuance — but requiring every caller to
+            // supply one explicitly at creation would be a footgun for
+            // every future company/test fixture. Derive a sane default
+            // from the slug when none is given; an Owner/Admin can still
+            // change it (via Settings) any time before it locks.
+            if (blank($company->code) && filled($company->slug)) {
+                $company->code = Str::of($company->slug)->upper()->replace('-', '')->substr(0, 10)->toString();
+            }
+        });
+    }
+
+    /** Companies that are not disabled — see docs/rebuild/specs/01-company-foundation/Specs.md "Reject unknown, disabled, or mismatched company contexts." */
+    public function scopeActive($query)
+    {
+        // Table-qualified: this scope also runs through the `companies()`
+        // BelongsToMany relation alongside `wherePivot('is_active', ...)`
+        // on `company_user`, where an unqualified `is_active` is ambiguous.
+        return $query->where('companies.is_active', true);
     }
 
     public function defaultTaxRate1(): BelongsTo
@@ -53,6 +93,31 @@ class Company extends Model implements HasName
     public function settings(): HasOne
     {
         return $this->hasOne(CompanySetting::class);
+    }
+
+    public function taxSetting(): HasOne
+    {
+        return $this->hasOne(CompanyTaxSetting::class);
+    }
+
+    public function numberingSequences(): HasMany
+    {
+        return $this->hasMany(NumberingSequence::class);
+    }
+
+    public function auditEvents(): HasMany
+    {
+        return $this->hasMany(AuditEvent::class);
+    }
+
+    public function sourceRecords(): HasMany
+    {
+        return $this->hasMany(SourceRecord::class);
+    }
+
+    public function userInvitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class);
     }
 
     public function paymentGateways(): HasMany

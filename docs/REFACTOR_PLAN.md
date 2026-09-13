@@ -201,7 +201,7 @@ KEEP/MODIFY/DEPRECATE calls in §1 land in the right phase.
 | Approved phase | What from §1 lands here |
 |---|---|
 | **00 — Gate 0 (closed)** | N/A — already done; 118 tests green on this branch as of this audit. |
-| **01 — Company foundation** | `Company`/`CompanySetting` MODIFY, `company_tax_settings`/`numbering_sequences`/`audit_events`/`source_records` BUILD NEW, `DocumentNumberGenerator` MODIFY (major). Cross-company denial tests. |
+| **01 — Company foundation (complete)** | Done — see `docs/rebuild/outputs/15-phase-01-checkpoint-report.md`. `Company`/`CompanySetting` MODIFIED, `company_tax_settings`/`numbering_sequences`/`audit_events`/`source_records`/`user_invitations` BUILT, `DocumentNumberGenerator` rewritten to the new format, `CompanyRole` enum + Gate::before policy layer + `CompanyMembershipService`/`PeriodLockService` added, 161 tests passing (up from 119). |
 | **02 — Parties and catalog** | `Client`/`Vendor`/`Product`/`PriceListItem` KEEP+extend, `catalog_items` type field BUILD, `Invitation`→`portal_links` MODIFY. |
 | **03 — Sales and job** | `Invoice`/`InvoiceType` split → `quotations` BUILD NEW, `SalesOrder`/`payment_milestones`/`job_variations` BUILD NEW, `Project`/`Task`/`TaskStatus` frozen+hidden (DEPRECATE). |
 | **04 — Billing and receivables** | `InvoiceTotalsCalculator` MODIFY (discount-before-tax fix), `Invoice`/`InvoiceItem`/`InvoiceItemTax` MODIFY (major) with `invoice_tax_snapshots`/`tax_recaps` BUILD NEW, `Payment` MODIFY (major) with `payment_allocations`/`payment_verification_events`/`receipts`/`payment_reversals` BUILD NEW, `Credit`/`RecurringInvoice` DEPRECATE from nav. |

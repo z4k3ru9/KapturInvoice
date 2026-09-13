@@ -89,7 +89,8 @@ class ProposalsTest extends TestCase
 
         $invoice = app(ProposalConverter::class)->convertToInvoice($proposal);
 
-        $this->assertSame('INV-0001', $invoice->number);
+        // "ACME-INV-{yearmonth}0001" — see App\Services\DocumentNumberGenerator.
+        $this->assertSame('ACME-INV-'.now()->format('Ym').'0001', $invoice->number);
         $this->assertSame('500.00', (string) $invoice->total);
         $this->assertSame($invoice->id, $proposal->fresh()->invoice_id);
     }

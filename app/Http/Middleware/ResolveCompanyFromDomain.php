@@ -27,12 +27,15 @@ class ResolveCompanyFromDomain
     {
         $host = preg_replace('/^www\./', '', $request->getHost());
 
-        $company = Company::query()->where('domain', $host)->first();
+        $company = Company::query()->active()->where('domain', $host)->first();
 
         if (! $company && app()->environment(['local', 'testing'])) {
-            $company = Company::query()->orderBy('id')->first();
+            $company = Company::query()->active()->orderBy('id')->first();
         }
 
+        // A disabled company must not be reachable through a stale/known
+        // domain, a portal link, or a PDF download — reject it exactly
+        // like an unknown host rather than exposing that it exists.
         abort_unless($company, 404);
 
         // Bound into the container (not just set on the request attributes)
