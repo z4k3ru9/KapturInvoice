@@ -20,11 +20,12 @@ sidebar order:
 
 | Group | Contents |
 |---|---|
-| **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅, Credits ✅, Payments ✅ |
+| **Sales** | Quotations ✅ (`QuotationResource`, Phase 03), Jobs ✅ (`SalesOrderResource`, Phase 03) |
+| **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅ (legacy — see §2.0), Credits ✅, Payments ✅ |
 | **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
 | **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
 | **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
-| **Projects** | Projects ✅ (+ Tasks relation manager ✅), Task Statuses ✅ |
+| **Projects** | ⚠️ hidden from navigation as of Phase 03 (`shouldRegisterNavigation() => false`) — frozen legacy data only, superseded by the Sales group's Jobs. See §2.0/§2.5. |
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
 | **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
 | **Proposals** | Proposals ✅ (+ Convert to invoice), Proposal Templates ✅, Proposal Snippets ✅ |
@@ -43,12 +44,58 @@ Each entry: **Form** (create/edit schema, in sections), **Table** (columns +
 filters), **Infolist** (view page), and relation managers. ✅ resources are
 summarized only where relevant to keep this doc focused on what's new.
 
+### 2.0 Sales group ✅ (Phase 03 — parties-and-catalog's successor slice)
+
+The canonical job-centric aggregate from
+[`docs/rebuild/specs/03-sales-and-job/Specs.md`](rebuild/specs/03-sales-and-job/Specs.md)
+— see `docs/REFACTOR_PLAN.md` §2 risk #3 for why this is new rather than an
+extension of `QuoteResource`/`ProjectResource` (both stay exactly as they
+are, for already-imported legacy data only):
+
+- **Quotations** (`QuotationResource`, over a new `quotations` table, not
+  `invoices`/`type=quote`) — full lifecycle
+  (`Draft → Approved → Sent → {Accepted, Rejected, Expired}`, `Cancelled`
+  from any non-terminal state), each transition enforced by
+  `QuotationStatus::canTransitionTo()` via row actions, never a bare field
+  edit. **Accept** prompts for a customer PO number/date; leaving it blank
+  generates an internal Customer Order Confirmation (`COC`, never
+  presented as customer-issued) via `App\Actions\Sales\AcceptQuotation`.
+  **Create job** (visible only once Accepted, and only once) hands off to
+  `App\Actions\Sales\CreateSalesOrderFromQuotation`. Items relation manager
+  mirrors `InvoiceResource`'s bounded/server-searched product picker.
+- **Jobs** (`SalesOrderResource`, model label "Job") — no create/edit page
+  at all (see above: a job is only ever born from an accepted quotation).
+  The View page's three relation managers satisfy the phase's acceptance
+  criteria ("find the accepted quote, PO state, milestones, ... without
+  navigating through unrelated legacy project screens"):
+  - **Items** — read-only snapshot copied at job-creation time.
+  - **Milestones** — full CRUD while the job is Draft; a job's **Approve**
+    row action (`App\Actions\Sales\ApproveSalesOrder`) blocks unless the
+    milestone total exactly equals the job's current approved value.
+  - **Variations** — append-only; written only via the **Record
+    variation** header action (`App\Actions\Sales\ApproveJobVariation`),
+    which checks the approver holds Owner/Admin
+    (`CompanyRole::jobVariationApprovalRoles()`) and advances the job's
+    approved value while leaving every prior row untouched.
+  - **Advance status**/**Cancel** row actions on the index table drive the
+    rest of the state matrix (`Procurement → In Progress → Delivered →
+    Handed Over → Closed`), via `App\Actions\Sales\TransitionSalesOrderStatus`.
+
+⚠️ Not yet built here (later phases, not oversights): tax computation
+against `Quotation::pricing_mode` (Phase 04's `TaxCalculationService`),
+generating invoices from milestones (Phase 04), procurement/delivery/
+handover/job-cost relation managers (Phase 05), and a PDF/portal view for
+quotations (Phase 06).
+
 ### 2.1 Billing group
 
 **Invoices** ✅ — `QuoteResource`/`RecurringInvoiceResource` (both ✅) are
 filtered views onto the same `invoices` table (per schema-reference §2.3's
 unified `invoices` + `type`/`is_recurring` pattern), sharing `InvoiceForm`/
-`InvoiceInfolist`/`ItemsRelationManager`/`DocumentsRelationManager` as-is:
+`InvoiceInfolist`/`ItemsRelationManager`/`DocumentsRelationManager` as-is.
+`QuoteResource` now serves only already-imported/legacy quotes — every new
+quotation is created through the Sales group's `QuotationResource` instead
+(§2.0):
 
 - **Invoices** (`type = invoice`) — original resource, unchanged.
 - **Quotes** (`type = quote`) — `QuoteResource::getEloquentQuery()` filters
@@ -147,7 +194,13 @@ exactly).
 **Expense Categories** ✅ — simple resource (name only), grouped under
 Expenses rather than Settings.
 
-### 2.5 Projects group ✅
+### 2.5 Projects group ⚠️ (frozen and hidden from navigation as of Phase 03)
+
+Both resources below still exist, still work if opened by direct URL, and
+still hold any legacy-imported data — only `shouldRegisterNavigation()`
+returns `false` now, per Phase 03's "Keep generic legacy projects/tasks
+out of the launch navigation" (§2.0 above covers the group that replaces
+them for new work).
 
 **Projects** ✅
 - Form: client select (nullable), `task_rate`, `budgeted_hours`, `due_date`.

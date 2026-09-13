@@ -53,4 +53,17 @@ enum CompanyRole: string
     {
         return [self::Owner, self::Accountant];
     }
+
+    /**
+     * Owner/Admin only, per docs/rebuild/specs/03-sales-and-job/Specs.md
+     * ("Support overrun, out-of-scope work, and item substitutions only
+     * through Owner/Admin approval with reason") and
+     * docs/rebuild/specs/FINALIZED-DECISIONS.md §4.
+     *
+     * @return array<int, self>
+     */
+    public static function jobVariationApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
 }
