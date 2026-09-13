@@ -1,5 +1,9 @@
 # KapturInvoice Gate 0 Baseline Report
 
+> **Historical implementation evidence only.** This report does not approve
+> the current `main` branch or release readiness. Current progressive
+> specifications and current-branch verification are authoritative.
+
 Date: 2026-09-12
 Repository: `/Users/richardpangalila/Downloads/KapturInvoice`  
 Branch: `main`  

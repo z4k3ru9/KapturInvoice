@@ -1,5 +1,9 @@
 # Phase 01 — Company and Access Foundation: Checkpoint Report
 
+> **Historical implementation evidence only.** This report does not approve
+> the current `main` branch or release readiness. Current progressive
+> specifications and current-branch verification are authoritative.
+
 Date: 2026-09-13
 Branch: `claude/invoiceninja-schema-reference-6s9aqc`
 Phase: `01-company-foundation`
