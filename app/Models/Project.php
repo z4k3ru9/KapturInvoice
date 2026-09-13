@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * FROZEN — legacy generic project/task tracking, imported from
+ * InvoiceNinja. Per docs/rebuild/Specs.md §3 ("generic project/task/time
+ * tracking" is deferred/disabled scope) and docs/REFACTOR_PLAN.md §1.1/§2
+ * risk #3, this is NOT the job-centric rebuild's "job" concept — that is
+ * the new `SalesOrder` aggregate (docs/rebuild/specs/03-sales-and-job),
+ * built fresh rather than extended from here. Do not add milestones,
+ * procurement, delivery, or billing behavior to Project/Task; keep them
+ * read-only/hidden from launch navigation once SalesOrder lands.
+ */
 #[Fillable([
     'company_id', 'client_id', 'legacy_project_id',
     'name', 'task_rate', 'budgeted_hours', 'due_date', 'notes',
