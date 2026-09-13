@@ -4,6 +4,7 @@ namespace App\Actions\Billing;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\PricingMode;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Services\AuditLogger;
@@ -49,7 +50,7 @@ class AmendIssuedInvoice
                 'client_id' => $original->client_id,
                 'sales_order_id' => $original->sales_order_id,
                 'type' => InvoiceType::Invoice,
-                'pricing_mode' => $original->pricing_mode,
+                'pricing_mode' => $original->pricing_mode ?? PricingMode::Exclusive,
                 'currency_code' => $original->currency_code,
                 'invoice_date' => now()->toDateString(),
                 'due_date' => $original->due_date,

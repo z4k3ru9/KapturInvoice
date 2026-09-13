@@ -266,6 +266,67 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 04 (billing and receivables)** — authoritative
+  calculation and immutable customer receivables, per
+  `docs/rebuild/specs/04-billing-and-receivables/Specs.md`. Extends
+  (rather than replaces) the legacy `Invoice`/`InvoiceItem`/`Payment`
+  classes, per `docs/REFACTOR_PLAN.md`'s phase table — unlike
+  `Quotation`/`SalesOrder` in Phase 03, real invoice/payment history
+  already lives here:
+  - **`App\Services\Tax\TaxCalculationService`** — the pure, stateless
+    engine (no model writes): line subtotal → line discount → global
+    discount (deterministic largest-remainder allocation) → taxable base
+    → tax → total, per `FINALIZED-DECISIONS.md` §3. Karunia
+    (`CompanyTaxSetting::tax_enabled = false`) always returns zero tax;
+    Axen applies the approved 12% PPN / 11-12 DPP Nilai Lain factor only
+    to `TaxCategory::StandardTaxable` lines (`App\Models\InvoiceItem::
+    resolveTaxCategory()` falls back line → product → StandardTaxable).
+    The final payable total is rounded upward to a whole Rupiah, with
+    the pre-round amount and rounding adjustment kept alongside it.
+  - **`App\Actions\Billing\IssueInvoice`** — the only path from
+    `InvoiceStatus::Draft`/`Approved` to `Issued`: advances Draft→Approved
+    →Issued in one call, computes totals via `TaxCalculationService`,
+    and writes an immutable `App\Models\InvoiceTaxSnapshot` (plus an
+    `App\Models\TaxRecap` when the result is taxable) — never a bare
+    status/total edit. `App\Actions\Billing\AmendIssuedInvoice`/
+    `VoidAndReissueInvoice` are the only corrections to an issued
+    invoice: each creates a brand-new linked `Invoice` row (via
+    `original_invoice_id`) and flips the original to `Amended`/`Void`
+    with a required reason — the original's own number, total, and tax
+    snapshot are never touched. Amendments get their own `INV-A`
+    numbering sequence; a void-and-reissue gets a fresh plain `INV`
+    number.
+  - **`App\Actions\Receivables\*`** — `RecordCustomerPayment` (always
+    starts `PaymentStatus::Pending`, requires a `proof_path`),
+    `VerifyCustomerPayment` (Owner/Admin/Accountant only —
+    `CompanyRole::paymentVerificationRoles()` — and a cheque requires
+    `cheque_cleared_at` first), `AllocateCustomerPayment` (only across
+    invoices sharing the payment's own `company_id`/`client_id`, never
+    exceeding the payment's amount — an unallocated remainder is a
+    visible overpayment, not an error), `IssuePaymentReceipt` (exactly
+    one `App\Models\Receipt` per verified payment, DB-enforced via a
+    unique `payment_id`), `ReverseCustomerPayment` (preserves the
+    payment/receipt/allocation history — a reversed payment's
+    allocations simply stop counting toward any invoice's balance),
+    `AmendPaymentAllocation` (only once a receipt already exists;
+    preserves the receipt's own snapshot and records the before/after
+    split on a new `App\Models\ReceiptAmendment` row instead). No
+    invoice's `amount_paid`/`balance`/billable status is ever hand-set —
+    `App\Services\Receivables\RecalculateInvoiceReceivables` is the only
+    writer, summing only `is_active` allocations from `Verified`
+    payments.
+  - Full Filament wiring on the existing `InvoiceResource`/
+    `PaymentResource` tables (Issue/Amend/Void & reissue; Verify/
+    Allocate/Issue receipt/Reverse/Amend allocation), each action
+    catching `RuntimeException` into a danger `Notification` — see
+    `App\Filament\Resources\Invoices\Tables\InvoicesTable`/
+    `App\Filament\Resources\Payments\Tables\PaymentsTable`.
+  - Deliberately not built this phase (see
+    `docs/rebuild/outputs/18-phase-04-checkpoint-report.md` for the
+    full breakdown): the Livewire tax scratchpad UI, PDF rendering of
+    tax snapshots/recaps, `Credit`/`RecurringInvoice` nav deprecation,
+    and any procurement/job-cost/delivery work — all correctly Phase
+    05/06 scope.
 - **Renovation Phase 03 (sales and job)** — the job-centric aggregate
   from `docs/rebuild/specs/03-sales-and-job/Specs.md`, built as new
   canonical classes beside (not replacing) the legacy resources, per
@@ -364,6 +425,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 193 tests as of Phase 03 (sales and job) — see docs/testing-coverage.md
+php artisan test      # 232 tests as of Phase 04 (billing and receivables) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
