@@ -63,4 +63,9 @@ class Client extends Model
     {
         return $this->hasMany(Proposal::class);
     }
+
+    public function portalLinks(): HasMany
+    {
+        return $this->hasMany(PortalLink::class);
+    }
 }

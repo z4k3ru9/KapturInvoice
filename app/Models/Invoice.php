@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'is_recurring', 'recurring_frequency', 'recurring_start_date', 'recurring_end_date',
     'recurring_template_id', 'auto_bill', 'converted_from_quote_id',
     'sales_order_id', 'pricing_mode', 'original_invoice_id', 'void_reason', 'correction_reason',
+    'document_language',
 ])]
 class Invoice extends Model
 {
@@ -148,5 +149,18 @@ class Invoice extends Model
     public function allocations(): HasMany
     {
         return $this->hasMany(PaymentAllocation::class);
+    }
+
+    /**
+     * Printed-document language: this invoice's own override when set,
+     * otherwise the owning company's `default_document_language`, otherwise
+     * Bahasa Indonesia — see
+     * docs/rebuild/specs/06-documents-portal-reporting/Specs.md "Printed
+     * documents default to Bahasa Indonesia with per-document English
+     * override."
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }
