@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Invoices\Schemas;
 use App\Models\Invoice;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class InvoiceInfolist
@@ -95,6 +96,58 @@ class InvoiceInfolist
                 TextEntry::make('viewed_at')
                     ->dateTime()
                     ->placeholder('-'),
+
+                Section::make('Billing (Phase 04)')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('pricing_mode')
+                            ->badge(),
+                        TextEntry::make('salesOrder.number')
+                            ->label('Job')
+                            ->placeholder('-'),
+                        TextEntry::make('approved_at')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        TextEntry::make('issued_at')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        TextEntry::make('voided_at')
+                            ->dateTime()
+                            ->placeholder('-'),
+                        TextEntry::make('originalInvoice.number')
+                            ->label('Corrects invoice')
+                            ->placeholder('-'),
+                        TextEntry::make('correction.number')
+                            ->label('Corrected by')
+                            ->placeholder('-'),
+                        TextEntry::make('void_reason')
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                        TextEntry::make('correction_reason')
+                            ->placeholder('-')
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make('Tax snapshot')
+                    ->visible(fn (Invoice $record) => $record->taxSnapshot !== null)
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('taxSnapshot.taxable_base_total')->label('Taxable base')->numeric(),
+                        TextEntry::make('taxSnapshot.tax_total')->label('Tax total')->numeric(),
+                        TextEntry::make('taxSnapshot.rounding_adjustment')->label('Rounding adjustment')->numeric(),
+                        TextEntry::make('taxSnapshot.captured_at')->label('Captured at')->dateTime(),
+                    ]),
+
+                Section::make('Tax recap')
+                    ->visible(fn (Invoice $record) => $record->taxRecap !== null)
+                    ->columns(3)
+                    ->schema([
+                        TextEntry::make('taxRecap.reporting_period')->label('Reporting period'),
+                        TextEntry::make('taxRecap.manual_entry_status')->label('Status')->badge(),
+                        TextEntry::make('taxRecap.external_reference')->label('External reference')->placeholder('-'),
+                        TextEntry::make('taxRecap.filing_date')->label('Filing date')->date()->placeholder('-'),
+                    ]),
+
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),

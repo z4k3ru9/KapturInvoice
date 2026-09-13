@@ -119,7 +119,38 @@ into `InvoiceDuplicator`'s two generated-invoice paths. An explicit manual
 `number` (e.g. importing historical data) is respected and does not
 consume the sequence — see `tests/Feature/Filament/DocumentNumberingTest.php`.
 
-**Credits** ✅ (now numbering-aware too), **Payments** ✅ — unchanged.
+**Credits** ✅ (now numbering-aware too) — unchanged.
+
+**Invoices — billing engine (Phase 04 — 04-billing-and-receivables)** ✅ —
+`InvoicesTable` gains three new row actions on top of the unchanged
+Send/Download PDF ones: **Issue** (Draft/Approved → Issued via
+`App\Actions\Billing\IssueInvoice`, writing an immutable tax snapshot),
+**Amend**, and **Void & reissue** (`App\Actions\Billing\
+AmendIssuedInvoice`/`VoidAndReissueInvoice` — each opens a modal with a
+required reason and a corrected-items repeater, creates a brand-new
+linked invoice, and leaves the original's own number/total/tax snapshot
+untouched). `InvoiceForm` gained a `pricing_mode` select; `InvoiceInfolist`
+gained a "Billing" section (job link, lifecycle timestamps, original/
+correction cross-links) and, once issued, "Tax snapshot"/"Tax recap"
+sections. `QuoteResource`/legacy `Invoice` rows (`type=invoice`, drafted
+before this phase) work exactly as before — nothing here is required to
+use the new actions until an invoice owner chooses to Issue it.
+
+**Payments — verification and receivables (Phase 04)** ✅ —
+`PaymentsTable` gains **Verify** (Owner/Admin/Accountant only,
+`App\Actions\Receivables\VerifyCustomerPayment` — a cheque requires a
+cleared-on date first), **Allocate**/**Amend allocation** (a repeater of
+invoice + amount rows, restricted to the payment's own client/company —
+`AllocateCustomerPayment`/`AmendPaymentAllocation`), **Issue receipt**
+(`IssuePaymentReceipt` — exactly one per verified payment), and
+**Reverse** (`ReverseCustomerPayment` — preserves the payment/receipt/
+allocation history rather than deleting anything). `PaymentForm` gained
+`proof_path` (file upload), `reference`, and `cheque_cleared_at`; its
+`status` default changed from Completed to Pending to match the new
+verify-before-receipt flow (a legacy imported row's `Completed` status
+is untouched). `PaymentInfolist` gained a "Verification & receivables"
+section surfacing the job link, verifier, receipt number, and any
+reversal reason.
 
 ### 2.2 Clients group
 

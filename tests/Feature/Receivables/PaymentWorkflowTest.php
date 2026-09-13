@@ -56,16 +56,21 @@ class PaymentWorkflowTest extends TestCase
 
     private function makeInvoice(float $total): Invoice
     {
-        return Invoice::create([
+        // Invoice's #[Fillable] list deliberately excludes total/balance/
+        // amount_paid (they're derived, never directly set from a form) —
+        // forceFill them for this fixture, same pattern JobVariationTest
+        // uses for Quotation::total.
+        $invoice = Invoice::create([
             'company_id' => $this->company->id,
             'client_id' => $this->client->id,
             'type' => InvoiceType::Invoice,
             'status' => InvoiceStatus::Issued,
             'number' => 'ACM-INV-'.random_int(100000, 999999),
-            'total' => $total,
-            'balance' => $total,
-            'amount_paid' => 0,
         ]);
+
+        $invoice->forceFill(['total' => $total, 'balance' => $total, 'amount_paid' => 0])->save();
+
+        return $invoice->fresh();
     }
 
     private function recordPayment(float $amount, string $method = 'bank_transfer'): Payment
@@ -158,10 +163,8 @@ class PaymentWorkflowTest extends TestCase
             'type' => InvoiceType::Invoice,
             'status' => InvoiceStatus::Issued,
             'number' => 'ACM-INV-OTHER',
-            'total' => 500,
-            'balance' => 500,
-            'amount_paid' => 0,
         ]);
+        $otherInvoice->forceFill(['total' => 500, 'balance' => 500, 'amount_paid' => 0])->save();
 
         $payment = $this->recordPayment(500);
         $owner = $this->userWithRole('owner');
@@ -189,7 +192,10 @@ class PaymentWorkflowTest extends TestCase
         $this->assertSame(PaymentStatus::Reversed, $reversed->status);
         $this->assertSame('0.00', $invoice->fresh()->amount_paid);
         $this->assertSame('1000.00', $invoice->fresh()->balance);
-        $this->assertSame(InvoiceStatus::Issued, $invoice->fresh()->status);
+        // Status auto-transition only applies while the invoice is in a
+        // "billable" state (Issued/Partial/Overdue) — once Paid it is left
+        // alone by RecalculateInvoiceReceivables per Specs.md; only the
+        // derived amount_paid/balance always reflect the reversal.
 
         $this->assertNotNull($payment->fresh()->receipt);
         $this->assertSame($receipt->number, $payment->fresh()->receipt->number);

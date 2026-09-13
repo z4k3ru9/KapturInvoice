@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Invoices\Schemas;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\PricingMode;
 use App\Models\Client;
 use App\Models\Invoice;
 use Filament\Forms\Components\DatePicker;
@@ -53,7 +54,14 @@ class InvoiceForm
                         Select::make('status')
                             ->options(InvoiceStatus::class)
                             ->default(InvoiceStatus::Draft)
-                            ->required(),
+                            ->required()
+                            ->helperText('Issued/Void/Amended states are reached only through the Issue/Amend/Void & reissue table actions, never here.'),
+                        Select::make('pricing_mode')
+                            ->label('Pricing mode')
+                            ->options(PricingMode::class)
+                            ->default(PricingMode::Exclusive)
+                            ->required()
+                            ->helperText('One tax mode per document — see FINALIZED-DECISIONS.md §3.'),
                         TextInput::make('number')
                             ->helperText('Leave blank to auto-assign from the company numbering sequence.'),
                         TextInput::make('po_number'),
