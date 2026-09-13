@@ -13,8 +13,9 @@ Read [implementation structure](IMPLEMENTATION-STRUCTURE.md), [finalized decisio
 5. [Billing and receivables](04-billing-and-receivables/Specs.md)
 6. [Procurement and delivery](05-procurement-and-delivery/Specs.md)
 7. [Documents, portal, and reporting](06-documents-portal-reporting/Specs.md)
-8. [Migration and cutover](07-migration-and-cutover/Specs.md)
-9. [Release readiness](08-release-readiness/Specs.md)
+8. [Phase 06B: UX, browser QA, and SOA completion](06b-ux-browser-soa/Specs.md)
+9. [Migration and cutover](07-migration-and-cutover/Specs.md)
+10. [Release readiness](08-release-readiness/Specs.md)
 
 ## Pause protocol
 
