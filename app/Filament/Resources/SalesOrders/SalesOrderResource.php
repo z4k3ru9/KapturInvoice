@@ -4,6 +4,8 @@ namespace App\Filament\Resources\SalesOrders;
 
 use App\Filament\Resources\SalesOrders\Pages\ListSalesOrders;
 use App\Filament\Resources\SalesOrders\Pages\ViewSalesOrder;
+use App\Filament\Resources\SalesOrders\RelationManagers\DeliveryOrdersRelationManager;
+use App\Filament\Resources\SalesOrders\RelationManagers\HandoverReportsRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\MilestonesRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\VariationsRelationManager;
@@ -58,6 +60,8 @@ class SalesOrderResource extends Resource
             ItemsRelationManager::class,
             MilestonesRelationManager::class,
             VariationsRelationManager::class,
+            DeliveryOrdersRelationManager::class,
+            HandoverReportsRelationManager::class,
         ];
     }
 
