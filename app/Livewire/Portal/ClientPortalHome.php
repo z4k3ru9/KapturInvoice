@@ -56,13 +56,17 @@ class ClientPortalHome extends Component
     private function loadInvoices(PortalLink $portalLink): Collection
     {
         $query = $portalLink->contact->is_billing_contact
-            ? $portalLink->client->invoices()->where('type', InvoiceType::Invoice)
+            ? $portalLink->client->invoices()
             : Invoice::query()
                 ->where('client_id', $portalLink->client_id)
-                ->where('type', InvoiceType::Invoice)
                 ->whereHas('invitations', fn ($q) => $q->where('contact_id', $portalLink->contact_id));
 
         return $query
+            // Client-facing documents only — never quotes or recurring
+            // invoice templates (App\Filament\Resources\RecurringInvoices'
+            // `is_recurring = true` rows are templates, not real invoices).
+            ->where('type', InvoiceType::Invoice)
+            ->where('is_recurring', false)
             ->with(['payments.receipt', 'invitations' => fn ($q) => $q->where('contact_id', $portalLink->contact_id)])
             ->orderByDesc('invoice_date')
             ->get();

@@ -8,6 +8,7 @@ use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfControll
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
+use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,14 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // "Download PDF" link on the portal page itself (§7) — same
     // domain-matched guard, no auth.
     Route::get('/portal/{invitation:key}/pdf', PortalInvoicePdfController::class)->name('portal.invoice.pdf');
+
+    // The broader, contact-scoped "portal link"
+    // (docs/rebuild/specs/06-documents-portal-reporting/Specs.md) — a
+    // designated billing contact's full client billing history, or an
+    // ordinary contact's explicitly-shared-documents view. Separate from
+    // the single-invoice `invitations.key` route above; see
+    // App\Models\PortalLink and App\Livewire\Portal\ClientPortalHome.
+    Route::get('/portal/link/{portalLink:key}', ClientPortalHome::class)->name('portal.client-home');
 });
 
 // Internal-user invitation accept page (App\Services\CompanyMembershipService::invite(),
