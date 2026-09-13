@@ -38,6 +38,21 @@ this order before changing code:
    for phase order and architecture.
 8. Only the active phase file under `docs/rebuild/specs/`.
 
+## Token-efficient sessions
+
+- Use Caveman full style for internal progress and status messages when the
+  session is long or the token budget is constrained: terse, accurate, and
+  without repeated context.
+- Keep technical terms, commands, paths, numbers, warnings, and acceptance
+  criteria exact.
+- Use normal clear prose for `memory.md`, requirements, specifications, code
+  comments, commit messages, checkpoint reports, and handoff records.
+- Do not re-read unchanged files, repeat settled decisions, restart completed
+  audits, or ask again for decisions recorded in `memory.md`.
+- If compression could make a security warning, destructive action, financial
+  rule, or implementation order ambiguous, use normal prose for that part.
+- `/caveman off` returns session communication to normal style.
+
 Start with Gate 0, then work one phase and one vertical slice at a time.
 Do not start UI polish, broad rewrites, or deferred features ahead of the
 phase gate. Stop at each phase checkpoint with passing tests or a
