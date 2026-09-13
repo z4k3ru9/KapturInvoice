@@ -1,5 +1,9 @@
 # Phase 03 — Sales, Customer PO, and Job: Checkpoint Report
 
+> **Historical implementation evidence only.** This report does not approve
+> the current `main` branch or release readiness. Current progressive
+> specifications and current-branch verification are authoritative.
+
 Date: 2026-09-14
 Branch: `claude/invoiceninja-schema-reference-6s9aqc`
 Phase: `03-sales-and-job`

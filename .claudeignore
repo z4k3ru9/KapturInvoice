@@ -1,0 +1,63 @@
+# Secrets and local machine state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crt
+.DS_Store
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Generated frontend assets
+/public/build/
+/public/hot
+/public/storage/
+
+# Runtime data
+/storage/framework/cache/
+/storage/framework/sessions/
+/storage/framework/views/
+/storage/logs/
+/storage/app/private/
+/storage/app/public/
+
+# Local databases and exports
+*.sqlite
+*.sqlite-journal
+*.db
+*.dump
+*.sql.gz
+/backups/
+/tmp/
+/private/
+
+# Test and tool caches
+.phpunit.result.cache
+.php-cs-fixer.cache
+.phpstan.resultCache.php
+.npm/
+.cache/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Generated or temporary reports
+coverage/
+screenshots/
+playwright-report/
+test-results/
+
+# Large binary assets
+*.zip
+*.tar
+*.gz
+*.mp4
+*.mov
+*.psd
