@@ -53,6 +53,19 @@ this order before changing code:
   rule, or implementation order ambiguous, use normal prose for that part.
 - `/caveman off` returns session communication to normal style.
 
+## Compact Instructions
+
+When compacting history, ALWAYS preserve:
+
+- Target file paths being actively modified.
+- Approved architectural decisions from `docs`.
+- Active failing test names and stack trace errors.
+- Database schema changes and migration rules.
+
+After compaction, continue from the last recorded phase checkpoint. Do not
+restart repository discovery or repeat settled decisions unless current files
+provide contradictory evidence.
+
 Start with Gate 0, then work one phase and one vertical slice at a time.
 Do not start UI polish, broad rewrites, or deferred features ahead of the
 phase gate. Stop at each phase checkpoint with passing tests or a
