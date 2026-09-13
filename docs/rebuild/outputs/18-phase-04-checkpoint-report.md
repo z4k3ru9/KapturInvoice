@@ -9,15 +9,16 @@ Status: **complete** — tests passing, migrations clean from a fresh database, 
 > the current `main` branch or release readiness. Current progressive
 > specifications and current-branch verification are authoritative.
 >
-> **Superseded in part:** `docs/rebuild/specs/FINALIZED-DECISIONS.md` §7
-> (added after this report) requires vendor payments to use the same
-> parallel immutable event model as customer payments — proof required
-> before verification, partial allocation, exactly one Vendor Payment
-> Receipt per verified event, and linked amendment/reversal records for
-> corrections. The vendor-payment work actually built (Phase 05's
-> `VendorPayment`/`RecordVendorPayment`) does not meet this: it has no
-> verification step, no `VendorPaymentReceipt`, and no amendment/reversal
-> path. This is open rework, not yet scheduled to a phase.
+> **Superseded in part, since fixed:** `docs/rebuild/specs/
+> FINALIZED-DECISIONS.md` §7 (added after this report) requires vendor
+> payments to use the same parallel immutable event model as customer
+> payments. Phase 05's original `VendorPayment`/`RecordVendorPayment` did
+> not meet this — see the same note on
+> `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`, which was
+> corrected before Phase 06B started (`VendorPaymentStatus`,
+> `VerifyVendorPayment`, `IssueVendorPaymentReceipt`,
+> `ReverseVendorPayment`, `AmendVendorPayment`,
+> `VendorPaymentReceipt`/`Reversal`/`Amendment` models).
 
 ## What this phase built
 

@@ -348,12 +348,23 @@ pages, always tied to one (ideally already-Approved) Vendor PO.
   bill line can be split across several jobs, guarded against
   over-allocation.
 - **Payments** relation manager — read-only list (recording happens via
-  the table action below, not a generic Create here).
+  the table action below, not a generic Create here). Row actions carry
+  the vendor payment's own parallel immutable event lifecycle
+  (FINALIZED-DECISIONS.md §7, added after Phase 05 shipped a simpler
+  direct-record model — see the corrective work folded into that phase's
+  checkpoint report): **Verify** (Pending only; Owner/Admin/Accountant;
+  requires proof already uploaded, and a cheque needs a cleared date),
+  **Issue receipt** (Verified, not yet receipted — assigns the `VPR`
+  number), **Amend** (already receipted — corrects the amount with a
+  reason, preserving the receipt), **Reverse** (Pending or Verified —
+  reason required, preserves the receipt/history). Only a Verified
+  payment counts toward the bill's `amount_paid`/status.
 - Table row actions: **Submit** (Draft), **Approve** (Submitted; Owner/
   Admin/Accountant), **Record payment** (Approved/PartiallyPaid — proof
-  upload, method, reference; blocked above the PO's payment ceiling until
-  an Owner/Admin approves a variance on the PO, per
-  FINALIZED-DECISIONS.md §4).
+  upload, method, reference; starts Pending, doesn't count until verified
+  above; blocked above the PO's payment ceiling — Pending and Verified
+  payments both count against it — until an Owner/Admin approves a
+  variance on the PO, per FINALIZED-DECISIONS.md §4).
 
 **Jobs** (`SalesOrderResource`, §2.0) gained two more relation managers
 this phase — **Delivery Orders** and **Handover Reports** — both
