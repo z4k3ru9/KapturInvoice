@@ -66,4 +66,15 @@ enum CompanyRole: string
     {
         return [self::Owner, self::Admin];
     }
+
+    /**
+     * "Accountant and higher verify payments" —
+     * docs/rebuild/specs/04-billing-and-receivables/Specs.md.
+     *
+     * @return array<int, self>
+     */
+    public static function paymentVerificationRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
 }
