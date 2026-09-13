@@ -3,18 +3,33 @@
 namespace App\Filament\Pages\Tenancy;
 
 use App\Models\Company;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Pages\Tenancy\EditTenantProfile;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class EditCompanyProfile extends EditTenantProfile
 {
     public static function getLabel(): string
     {
         return 'Company profile';
+    }
+
+    /** "View settings: Owner/Admin ... Auditor never" (docs/rebuild/Specs.md §10). */
+    public static function canAccess(array $parameters = []): bool
+    {
+        $user = Auth::user();
+        $tenant = Filament::getTenant();
+
+        if (! $user || ! $tenant) {
+            return false;
+        }
+
+        return $user->can('viewSettings', $tenant);
     }
 
     public function form(Schema $schema): Schema
@@ -51,6 +66,14 @@ class EditCompanyProfile extends EditTenantProfile
                 Section::make('Document numbering')
                     ->columns(3)
                     ->schema([
+                        TextInput::make('code')
+                            ->label('Company code')
+                            ->helperText(fn (?Company $record) => filled($record?->codes_locked_at)
+                                ? 'Locked: this company has already issued a numbered document.'
+                                : 'Used in new document numbers, e.g. KJA-INV-2026090001. Locks after the first document is issued.')
+                            ->maxLength(20)
+                            ->disabled(fn (?Company $record) => filled($record?->codes_locked_at))
+                            ->dehydrated(),
                         TextInput::make('invoice_prefix')->maxLength(20),
                         TextInput::make('quote_prefix')->maxLength(20),
                         TextInput::make('credit_prefix')->maxLength(20),

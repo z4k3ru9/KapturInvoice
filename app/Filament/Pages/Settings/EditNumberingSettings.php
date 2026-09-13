@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Settings;
 
 use App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord;
+use App\Filament\Pages\Settings\Concerns\RestrictsToSettingsRoles;
 use App\Models\TaxRate;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -26,6 +27,7 @@ use UnitEnum;
 class EditNumberingSettings extends Page
 {
     use InteractsWithSettingsRecord;
+    use RestrictsToSettingsRoles;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHashtag;
 

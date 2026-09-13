@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'late_fee2_amount', 'late_fee2_percent',
     'late_fee3_amount', 'late_fee3_percent',
     'portal_enabled', 'portal_allow_client_payments', 'portal_show_tasks', 'portal_require_signature',
+    'period_locked_through',
 ])]
 class CompanySetting extends Model
 {
@@ -49,6 +50,7 @@ class CompanySetting extends Model
             'portal_allow_client_payments' => 'boolean',
             'portal_show_tasks' => 'boolean',
             'portal_require_signature' => 'boolean',
+            'period_locked_through' => 'date',
         ];
     }
 

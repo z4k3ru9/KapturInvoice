@@ -6,6 +6,7 @@ use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
+use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,12 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // domain-matched guard, no auth.
     Route::get('/portal/{invitation:key}/pdf', PortalInvoicePdfController::class)->name('portal.invoice.pdf');
 });
+
+// Internal-user invitation accept page (App\Services\CompanyMembershipService::invite(),
+// App\Mail\UserInvitationMail) — no domain resolution or auth: the token
+// itself is the credential, and the company is fixed by the invitation
+// rather than by which domain this is opened on.
+Route::get('/invitations/{token}', AcceptInvitation::class)->name('invitations.accept');
 
 // Linked from the admin panel's Documents resource/relation manager — kept
 // as a plain authenticated route rather than inside the Filament panel

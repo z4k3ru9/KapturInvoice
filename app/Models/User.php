@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\CompanyRole;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
@@ -54,12 +55,51 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     public function getTenants(Panel $panel): Collection
     {
         return $this->is_super_admin
-            ? Company::query()->get()
-            : $this->companies;
+            ? Company::query()->active()->get()
+            : $this->companies()->active()->wherePivot('is_active', true)->get();
     }
 
     public function canAccessTenant(Model $tenant): bool
     {
-        return $this->is_super_admin || $this->companies()->whereKey($tenant->getKey())->exists();
+        if (! $tenant instanceof Company || ! $tenant->is_active) {
+            return false;
+        }
+
+        return $this->is_super_admin
+            || $this->companies()->whereKey($tenant->getKey())->wherePivot('is_active', true)->exists();
+    }
+
+    /**
+     * This user's membership role for the given company, or null if they
+     * have no (active) membership — including a super admin, who bypasses
+     * role checks entirely rather than holding one.
+     */
+    public function companyRole(Model $company): ?CompanyRole
+    {
+        $pivot = $this->companies()
+            ->wherePivot('is_active', true)
+            ->whereKey($company->getKey())
+            ->first()
+            ?->pivot;
+
+        return $pivot ? CompanyRole::tryFrom($pivot->role) : null;
+    }
+
+    /**
+     * True for a super admin (who bypasses per-company role checks
+     * entirely) or an active member holding one of the given roles.
+     * Central check used by the Gate::before hook in AppServiceProvider
+     * and by policies/UI — see
+     * docs/rebuild/specs/01-company-foundation/Specs.md.
+     */
+    public function hasCompanyRole(Model $company, CompanyRole ...$roles): bool
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
+
+        $role = $this->companyRole($company);
+
+        return $role !== null && in_array($role, $roles, true);
     }
 }
