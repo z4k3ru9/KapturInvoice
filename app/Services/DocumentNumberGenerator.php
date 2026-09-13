@@ -46,6 +46,13 @@ class DocumentNumberGenerator
         // §2/§4) — and the Sales Order / Job aggregate itself.
         'coc' => 'COC',
         'sales_order' => 'SO',
+        // Phase 04 (docs/rebuild/specs/04-billing-and-receivables): a
+        // numbered receipt for one verified payment event, and an
+        // amendment invoice's own annual sequence — FINALIZED-DECISIONS.md
+        // §2: "Amendments use the original code plus -A and their own
+        // annual sequence, for example KA-INV-A-2026090001."
+        'receipt' => 'RCT',
+        'invoice_amendment' => 'INV-A',
     ];
 
     public function next(Company $company, string $sequence): string
