@@ -34,6 +34,7 @@ Implement authoritative financial calculations and immutable customer receivable
 - Issued documents are never edited or deleted in place.
 - Corrections use amendment or void-and-reissue with reason and new number.
 - Tax recap is separate, one per taxable issued invoice/amendment, prefilled, manually adjustable with reason and audit event. It retains the transaction period and separately stores reporting period, external reference/serial, manual-entry status, filing date, notes, and attachment/reference.
+- Vendor payments use a parallel immutable event model: proof is required before verification, allocations may be partial, one verified event produces one Vendor Payment Receipt, and later corrections create linked amendments or reversals without mutating the original event.
 
 ## Required tests
 

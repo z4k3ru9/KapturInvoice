@@ -25,6 +25,10 @@ Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, rep
 - Preserve historical source document numbers exactly, even if they do not follow the new format. New numbering begins only for documents issued after cutover.
 - Idempotency key is source system + version + company + entity type + source ID.
 - Quarantine uncertain mappings and missing financial data.
+- Import confidently mapped historical credits as read-only records that reduce
+  the applicable balance. Quarantine uncertain credits and exclude them from
+  confirmed balances until Owner review; include both confirmed and unresolved
+  credit counts and amounts in reconciliation output.
 - Support restart from last completed entity checkpoint.
 - Reconcile counts, line totals, discounts, tax, payments, allocations, open balances, vendor due balances, source numbers/dates, and exceptions per company.
 
@@ -50,6 +54,16 @@ Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, rep
 8. Activate renovated workflows.
 9. Keep legacy systems read-only.
 10. Run next-business-day post-cutover reconciliation.
+
+## Deployment evidence and approval
+
+Company A and Company B require separate release checkpoints even when they
+share a codebase. Each checkpoint records the deployed commit, domain/SSL,
+configuration, tax behavior, numbering, portal isolation, document samples,
+queue/scheduler, backup/restore, browser/accessibility results, and open
+exceptions. The Owner signs each checkpoint. Accountant and Admin may supply
+supporting evidence but cannot replace Owner approval for tax, balances,
+migration, restore verification, or release.
 
 ## Pause checkpoint
 
