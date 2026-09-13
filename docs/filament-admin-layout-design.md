@@ -581,6 +581,44 @@ Blade views, not a CRUD screen" (§2.9) — via
 - ⚠️ No PDF attached to the outbound emails yet (`BillingMailer`, §3.3)
   — the download links work, but `CompanyTemplatedMail` doesn't attach
   the PDF to the message itself. A natural next step once wanted.
+- ✅ **Bahasa Indonesia default / English override (Phase 06 —
+  06-documents-portal-reporting)** — both templates now resolve
+  `$invoice->resolveDocumentLanguage()`/`$credit->resolveDocumentLanguage()`
+  (a per-document `document_language` override, else the company's
+  `default_document_language`, else `'id'`) and render every label via
+  `__('documents.*')` (`resources/lang/{id,en}/documents.php`). ⚠️ The
+  Indonesian label set is a constructed best-effort, not a pre-existing
+  approved glossary — flagged in that file's own docblock; needs sign-off
+  from an Indonesian tax/accounting professional before production, per
+  `FINALIZED-DECISIONS.md` §6.
+
+---
+
+## 7.1 Client portal — beyond one invoice (Phase 06)
+
+The per-invoice `Invitation`/`ViewInvoice` page (§2.2) stays exactly as
+it was — it's still how a single Send action shares one document. This
+phase adds a second, broader mechanism for "a billing contact can see
+their whole billing history":
+
+- **`App\Models\PortalLink`** — a contact-scoped link (`key` UUID,
+  `expires_at` default 30 days out, `revoked_at`), generated via a
+  **Generate portal link** row action on the Client resource's Contacts
+  relation manager (emails it via `BillingMailer::sendPortalLink()`) and
+  revoked via a new read-only **Portal Links** relation manager's
+  **Revoke** action.
+- **`App\Livewire\Portal\ClientPortalHome`** (`/portal/link/{portalLink:key}`,
+  same `ResolveCompanyFromDomain`-guarded group as the existing portal
+  routes) — a designated billing contact (`Contact::is_billing_contact`,
+  Phase 02) sees every one of the client's invoices; an ordinary contact
+  sees only the invoices they already have an explicit `Invitation` for
+  (no new "sharing" table — `Invitation` itself is the "explicitly
+  shared documents" record, per `FINALIZED-DECISIONS.md` §5). Never
+  shows vendor cost, margin, internal approval state, audit history, or
+  tax recap adjustments.
+- A revoked or expired link 404s exactly like a cross-company link does
+  — there is no "this link has expired" page that would itself leak
+  anything to someone probing a stale URL.
 
 ---
 
@@ -683,3 +721,14 @@ was always the point — see §5, item 10.
   attribute-bag bug, not something in this app's control). None of these
   three run expensive queries, so disabling lazy-loading has no real
   performance cost here — flagged in case a future widget does need it.
+- **`JobMarginReport`** (`TableWidget`, Phase 06 —
+  06-documents-portal-reporting) — the job-cost/margin report deferred
+  from Phase 05's acceptance criteria. Lists every job with its sales
+  value (invoice totals excluding tax; Void/Amended/Cancelled invoices
+  excluded), allocated gross cost, margin, and unallocated purchasing
+  cost as four separate columns — the last two are never blended
+  together, per "job margin clearly distinguishes allocated gross cost
+  from unallocated purchasing cost." Company-scoped for free via
+  `SalesOrder`'s `BelongsToCompany` scope; registered the same way the
+  three widgets above are — dropped into `app/Filament/Widgets/` for
+  `AdminPanelProvider`'s `discoverWidgets()`, no `Dashboard.php` change.

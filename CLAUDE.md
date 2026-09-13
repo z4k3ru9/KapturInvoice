@@ -266,6 +266,73 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 06 (documents, portal, and reporting)** — per
+  `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
+  the backend-testable, high-value pieces; full visual QA/WCAG/browser
+  testing was deliberately NOT built — see
+  `docs/rebuild/outputs/21-phase-06-checkpoint-report.md` for why this
+  matches, rather than contradicts, this project's already-established
+  "no browser/E2E suite" policy (`docs/testing-coverage.md` "What's out
+  of scope").
+  - **Document localization** — `Invoice`/`Credit` gain a
+    `document_language` column (nullable; falls back to the new
+    `CompanySetting::default_document_language`, then `'id'`) and a
+    `resolveDocumentLanguage()` helper. `resources/lang/{id,en}/
+    documents.php` hold the printed-document label set — Bahasa
+    Indonesia is the default (`FINALIZED-DECISIONS.md`), English is a
+    per-document override. **No pre-existing approved Indonesian
+    glossary artifact exists in this repo** — the `id` values are a
+    constructed, standard-Indonesian-invoicing-terminology best effort,
+    flagged in that file's own docblock; have an Indonesian tax/
+    accounting professional validate the actual wording before
+    production, per `FINALIZED-DECISIONS.md` §6. `invoice.blade.php`/
+    `credit.blade.php` resolve the language and render every label via
+    `__('documents.*')` — the document-type word specifically (not
+    `InvoiceType::getLabel()`, which stays English-only for Filament's
+    own UI) comes from its own translation key.
+  - **`App\Models\PortalLink`** — a broader, contact-scoped, revocable/
+    expiring (30-day default) portal link, alongside (not replacing) the
+    existing per-invoice `Invitation`. `App\Actions\Portal\
+    GeneratePortalLink`/`RevokePortalLink` create/revoke it;
+    `App\Livewire\Portal\ClientPortalHome` (routed `/portal/link/
+    {portalLink:key}`, same `ResolveCompanyFromDomain` middleware group
+    as the existing portal routes) shows a designated billing contact
+    (`Contact::is_billing_contact`, Phase 02) every one of their client's
+    invoices, or an ordinary contact only the invoices they have an
+    explicit `Invitation` for — reusing `Invitation` as the "explicitly
+    shared documents" mechanism per `FINALIZED-DECISIONS.md` §5, rather
+    than building a separate sharing table. A revoked or expired link
+    404s exactly like a cross-company/nonexistent one — "cannot expose
+    disabled actions through stale links" is structural, not a
+    UI-level hide. Wired into `ClientResource`'s Contacts relation
+    manager ("Generate portal link" row action, emailed via
+    `BillingMailer::sendPortalLink()`) and a new read-only Portal Links
+    relation manager (a "Revoke" action).
+  - **`App\Actions\Billing\SuppressReminder`** — Owner/Admin/Accountant
+    only (`CompanyRole::paymentVerificationRoles()`, reused rather than a
+    new role helper), requires a reason, records an
+    `App\Models\ReminderSuppression` row and an audit event.
+    `SendInvoiceReminders` skips a tier for an invoice when a recent
+    suppression covers it — same one-send-per-day granularity the
+    command already documents as a known limitation, not a more elaborate
+    recurring-suppression model.
+  - **`App\Filament\Widgets\JobMarginReport`** — the job-cost/margin
+    report deferred from Phase 05's acceptance criteria ("Job margin
+    clearly distinguishes allocated gross cost from unallocated
+    purchasing cost"). A company-scoped, paginated `TableWidget` listing
+    every job's sales value (invoice totals excluding tax, Void/Amended/
+    Cancelled invoices excluded), allocated gross cost
+    (`SalesOrder::jobCostAllocations()`), margin, and unallocated
+    purchasing cost as four genuinely separate columns — never blended
+    into one number. Registered the same way the existing three
+    dashboard widgets already are: dropped into `app/Filament/Widgets/`
+    for `AdminPanelProvider`'s `discoverWidgets()` to pick up, no change
+    to `App\Filament\Pages\Dashboard` needed or made.
+  - Deliberately not built this phase: the Livewire tax scratchpad UI
+    (still Phase 04's own deferred item), a Statement of Account (`SOA`)
+    document type, autosave/Alpine dynamic-row work, company theme
+    tokens beyond what already exists, and any browser/visual-QA/WCAG
+    test suite — see the checkpoint report for the full reasoning.
 - **Renovation Phase 05 (procurement and delivery)** — connects vendor
   purchasing and physical fulfillment to each job, per
   `docs/rebuild/specs/05-procurement-and-delivery/Specs.md`. Resolves
@@ -501,6 +568,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 270 tests as of Phase 05 (procurement and delivery) — see docs/testing-coverage.md
+php artisan test      # 293 tests as of Phase 06 (documents, portal, and reporting) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
