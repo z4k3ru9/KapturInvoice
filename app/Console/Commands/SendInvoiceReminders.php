@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Company;
+use App\Models\ReminderSuppression;
 use App\Services\BillingMailer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,11 @@ use Throwable;
  * reminder if run twice on the same day — no `reminder{n}_sent_at`
  * tracking column exists yet to dedupe within a day. Fine for a daily
  * cron; flagged here rather than silently assumed.
+ *
+ * A App\Models\ReminderSuppression recorded within the last day covers
+ * "today's" send for its exact invoice+tier — the same one-send-per-day
+ * granularity as the limitation above, not a more elaborate recurring
+ * suppression model. See App\Actions\Billing\SuppressReminder.
  */
 class SendInvoiceReminders extends Command
 {
@@ -72,6 +78,16 @@ class SendInvoiceReminders extends Command
                     ->get();
 
                 foreach ($invoices as $invoice) {
+                    $isSuppressed = ReminderSuppression::query()
+                        ->where('invoice_id', $invoice->id)
+                        ->where('tier', $tier)
+                        ->where('suppressed_at', '>=', now()->subDay())
+                        ->exists();
+
+                    if ($isSuppressed) {
+                        continue;
+                    }
+
                     try {
                         $mailer->sendReminder($invoice, $tier);
                         $sent++;
