@@ -5,6 +5,18 @@ Branch: `claude/invoiceninja-schema-reference-6s9aqc`
 Phase: `06-documents-portal-reporting`
 Status: **complete (scoped)** — tests passing, migrations clean from a fresh database, next phase is `07-migration-and-cutover`.
 
+> **Historical implementation evidence only.** This report does not approve
+> the current `main` branch or release readiness. Current progressive
+> specifications and current-branch verification are authoritative.
+>
+> **Superseded:** `docs/rebuild/specs/06b-ux-browser-soa/Specs.md` (added
+> to `main` after this report, merged into this branch since) makes the
+> browser/visual-QA/autosave/dynamic-row/SOA/terminology-validation work
+> this report scoped out a **mandatory gate before Phase 07**, not an
+> open user decision. The scope note below is otherwise accurate about
+> what Phase 06 itself built and why — read it alongside Phase 06B's
+> Specs.md, which is now the authority on what remains.
+
 ## Scope note — read this first
 
 This phase's Specs.md asks for two very different kinds of work: (a)

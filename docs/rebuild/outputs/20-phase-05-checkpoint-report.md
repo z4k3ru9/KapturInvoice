@@ -5,6 +5,17 @@ Branch: `claude/invoiceninja-schema-reference-6s9aqc`
 Phase: `05-procurement-and-delivery`
 Status: **complete** — tests passing, migrations clean from a fresh database, next phase is `06-documents-portal-reporting`.
 
+> **Historical implementation evidence only.** This report does not approve
+> the current `main` branch or release readiness. Current progressive
+> specifications and current-branch verification are authoritative.
+>
+> **Superseded in part:** see the same note in
+> `docs/rebuild/outputs/18-phase-04-checkpoint-report.md` — the
+> `VendorPayment` model this phase built is a simple direct-record (no
+> verification/receipt/amendment/reversal), and
+> `docs/rebuild/specs/FINALIZED-DECISIONS.md` §7 now requires the full
+> parallel event model. Open rework, not yet scheduled to a phase.
+
 ## Expense vs. Vendor Bill — the risk #6 decision
 
 `docs/REFACTOR_PLAN.md` §2 risk #6 deliberately left this open, to be
