@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Clients;
 use App\Filament\Resources\Clients\Pages\ListClients;
 use App\Filament\Resources\Clients\Pages\ViewClient;
 use App\Filament\Resources\Clients\RelationManagers\ContactsRelationManager;
+use App\Filament\Resources\Clients\RelationManagers\PortalLinksRelationManager;
 use App\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Filament\Resources\Clients\Schemas\ClientInfolist;
 use App\Filament\Resources\Clients\Tables\ClientsTable;
@@ -47,6 +48,7 @@ class ClientResource extends Resource
     {
         return [
             ContactsRelationManager::class,
+            PortalLinksRelationManager::class,
         ];
     }
 
