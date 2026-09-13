@@ -20,11 +20,12 @@ sidebar order:
 
 | Group | Contents |
 |---|---|
-| **Sales** | Quotations ✅ (`QuotationResource`, Phase 03), Jobs ✅ (`SalesOrderResource`, Phase 03) |
+| **Sales** | Quotations ✅ (`QuotationResource`, Phase 03), Jobs ✅ (`SalesOrderResource`, Phase 03 + Phase 05 delivery/handover/closure) |
 | **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅ (legacy — see §2.0), Credits ✅, Payments ✅ |
 | **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
 | **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
-| **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Expenses** | Expenses ✅ (frozen non-job cost bucket, see §2.4/§2.9), Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Procurement** | Vendor Purchase Orders ✅ (`VendorPurchaseOrderResource`, Phase 05), Vendor Bills ✅ (`VendorBillResource`, Phase 05) |
 | **Projects** | ⚠️ hidden from navigation as of Phase 03 (`shouldRegisterNavigation() => false`) — frozen legacy data only, superseded by the Sales group's Jobs. See §2.0/§2.5. |
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
 | **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
@@ -225,6 +226,13 @@ exactly).
 **Expense Categories** ✅ — simple resource (name only), grouped under
 Expenses rather than Settings.
 
+`Expense` itself is now a **frozen, non-job-linked cost bucket** as of
+Phase 05 (docs/rebuild/specs/05-procurement-and-delivery) — it stays
+exactly as-is (still fully usable for overhead/reimbursable costs), but
+any cost that needs a Vendor PO, partial payments, or job-cost allocation
+goes through the new **Procurement** group (§2.9) instead. See
+`docs/REFACTOR_PLAN.md` §2 risk #6 for the mapping decision.
+
 ### 2.5 Projects group ⚠️ (frozen and hidden from navigation as of Phase 03)
 
 Both resources below still exist, still work if opened by direct URL, and
@@ -302,6 +310,59 @@ tenant's Team page auto-attaches them to that tenant (role: member).
 RBAC beyond super-admin/company-member is still deferred to
 `filament-shield` (spatie/laravel-permission) rather than reviving the
 legacy JSON `permissions` blob (schema §2.1).
+
+### 2.9 Procurement group ✅ (Phase 05 — 05-procurement-and-delivery)
+
+The vendor-purchasing side of the job-centric rebuild, built as a new
+aggregate beside the frozen `Expense`/`ExpenseCategory` resources (§2.4).
+
+**Vendor Purchase Orders** ✅ (`VendorPurchaseOrderResource`) — full
+create/edit/view/list pages.
+- Form: vendor select, `number` (blank = auto-assign `VPO` sequence),
+  `po_date`/`due_date`/`delivery_date`, terms/notes, a disabled `total`
+  (edit-only, recomputed by the Items relation manager).
+- **Items** relation manager — product picker (bounded/server-searched,
+  same convention as every other item picker in this app), quantity/
+  unit_cost/line_total; `App\Services\Procurement\
+  VendorPurchaseOrderTotalsCalculator` keeps `total` in sync.
+- **Variances** relation manager — read-only list
+  (`isReadOnly() => true`) plus a custom "Record variance" header action
+  (Owner/Admin only, via `App\Actions\Procurement\
+  ApproveVendorPoVariance`) — the exact `isReadOnly`-plus-custom-
+  `Action::make()` pattern `VariationsRelationManager` established in
+  Phase 03. The PO's own `total` is never touched by an approved
+  variance; only the effective payment ceiling
+  (`VendorPurchaseOrder::paymentCeiling()`) moves.
+- Table row action: **Approve** (Draft only).
+
+**Vendor Bills** ✅ (`VendorBillResource`) — full create/edit/view/list
+pages, always tied to one (ideally already-Approved) Vendor PO.
+- Form: vendor select, a PO select scoped to the chosen vendor's approved
+  POs, `number` (blank = auto-assign `VBL`), bill_date/due_date, notes,
+  disabled total/amount_paid/balance (edit-only).
+- **Items** relation manager — product/PO-item picker, net/tax amount
+  fields (`line_total` kept as their sum via `App\Services\Procurement\
+  VendorBillTotalsCalculator`), an "unallocated remainder" column
+  (`VendorBillItem::unallocatedAmount()`), and an **Allocate to job** row
+  action (via `App\Actions\Procurement\AllocateJobCost`) — one vendor
+  bill line can be split across several jobs, guarded against
+  over-allocation.
+- **Payments** relation manager — read-only list (recording happens via
+  the table action below, not a generic Create here).
+- Table row actions: **Submit** (Draft), **Approve** (Submitted; Owner/
+  Admin/Accountant), **Record payment** (Approved/PartiallyPaid — proof
+  upload, method, reference; blocked above the PO's payment ceiling until
+  an Owner/Admin approves a variance on the PO, per
+  FINALIZED-DECISIONS.md §4).
+
+**Jobs** (`SalesOrderResource`, §2.0) gained two more relation managers
+this phase — **Delivery Orders** and **Handover Reports** — both
+read-only lists with one custom header action each ("Record delivery"/
+"Record handover", the latter with an Owner/Admin override toggle for a
+job that isn't yet fully delivered) — plus two new table row actions,
+**Close operationally** and **Close financially** (the latter's override
+path requires the acting user be exactly Owner, never Admin, per
+FINALIZED-DECISIONS.md §4's "Admin may prepare but cannot finalize").
 
 ---
 
