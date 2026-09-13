@@ -91,7 +91,13 @@ current count) and `vendor/bin/pint --test` before every push.
   (Alpine behavior, drag-and-drop, real form submission via a rendered
   DOM) aren't caught by it. A one-off Playwright pass was used earlier in
   this project only to eyeball the two public-homepage domains, not kept
-  as a repeatable suite.
+  as a repeatable suite. **This decision is superseded by
+  `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`**, added to `main`
+  after this document was written: Phase 06B is a hard, mandatory gate
+  requiring a repository-owned Playwright suite in CI before Phase 07 can
+  start. Do not cite this bullet as a reason to skip or narrow that
+  phase's browser-test requirement — update this section once Phase 06B
+  actually lands the suite.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.

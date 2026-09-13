@@ -12,6 +12,19 @@ re-run completed audits unless new evidence contradicts them.
   historical evidence only and do not approve current work.
 - The application is being rebuilt progressively; do not begin broad rewrites
   or deferred features without an approved change request.
+- Working branch `claude/invoiceninja-schema-reference-6s9aqc` has
+  implemented and verified Phases 01-06 (293 tests, migrations clean, Pint
+  clean, `npm run build` clean) — this is ahead of `main`, which still only
+  carries Phase 01-03 code plus this session's doc-only commits (merged into
+  the working branch, no conflicts). Phase 06's own checkpoint report scoped
+  out browser/visual-QA/SOA/autosave work as an open user decision; Phase 06B
+  (added to `main` after that report) makes it a mandatory gate instead —
+  treat Phase 06 as *backend-complete, UX-incomplete*, not phase-complete.
+- Known rework, not yet scheduled to a phase: Phase 05's `VendorPayment` is a
+  simple direct-record model (no verification, no `VendorPaymentReceipt`, no
+  amendment/reversal) and does not meet FINALIZED-DECISIONS.md §7's
+  parallel-immutable-event requirement for vendor payments. Flag before
+  Phase 07 migrates vendor-payment history into it.
 
 ## Binding product decisions
 
