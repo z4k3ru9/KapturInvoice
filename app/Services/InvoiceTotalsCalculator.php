@@ -51,7 +51,6 @@ class InvoiceTotalsCalculator
         $invoice->loadMissing('items.taxes');
 
         $subtotal = 0;
-        $taxTotal = 0;
 
         foreach ($invoice->items as $item) {
             $lineGross = $item->quantity * $item->unit_cost;
@@ -67,14 +66,44 @@ class InvoiceTotalsCalculator
             }
 
             $subtotal += $lineTotal;
-            $taxTotal += $item->taxes->sum('amount');
         }
 
-        $discount = $invoice->discount_is_percentage
+        $documentDiscount = $invoice->discount_is_percentage
             ? $subtotal * ($invoice->discount / 100)
             : $invoice->discount;
 
-        $total = round($subtotal - $discount + $taxTotal, 2);
+        // syncItemTaxes() computes each tax row against the line's own
+        // (post-line-discount) total, before any document-level discount is
+        // known. That document discount must still reduce the *taxable base*
+        // before tax — so re-derive each line's taxable base here (line total
+        // minus its proportional share of the document discount) and
+        // recompute tax from the stored rate against that base, rather than
+        // taxing the undiscounted subtotal and subtracting the discount
+        // afterward. Recomputing from `rate` (not scaling the previously
+        // stored `amount`) keeps this idempotent across repeated calls.
+        $taxTotal = 0;
+
+        foreach ($invoice->items as $item) {
+            $lineTotal = (float) $item->line_total;
+
+            $lineShareOfDiscount = $subtotal > 0
+                ? $documentDiscount * ($lineTotal / $subtotal)
+                : 0;
+
+            $taxableBase = max(0, $lineTotal - $lineShareOfDiscount);
+
+            foreach ($item->taxes as $itemTax) {
+                $adjustedAmount = round($taxableBase * ((float) $itemTax->rate / 100), 2);
+
+                if ((float) $itemTax->amount !== $adjustedAmount) {
+                    $itemTax->forceFill(['amount' => $adjustedAmount])->saveQuietly();
+                }
+
+                $taxTotal += $adjustedAmount;
+            }
+        }
+
+        $total = round($subtotal - $documentDiscount + $taxTotal, 2);
         $balance = round($total - $invoice->amount_paid, 2);
 
         $invoice->forceFill([

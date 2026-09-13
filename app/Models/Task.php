@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * FROZEN — legacy generic project/task tracking, imported from
+ * InvoiceNinja. See the freeze notice on App\Models\Project: this is not
+ * the job-centric rebuild's job concept (that's the new `SalesOrder`
+ * aggregate). Do not extend.
+ */
 #[Fillable([
     'company_id', 'project_id', 'client_id', 'invoice_id', 'task_status_id', 'legacy_task_id',
     'description', 'started_at', 'stopped_at', 'is_running', 'sort_order',

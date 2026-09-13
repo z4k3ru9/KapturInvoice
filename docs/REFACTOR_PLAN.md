@@ -260,11 +260,17 @@ authorization boundary is unverified."*
 1. **Splitting `invoices` into `quotations` + `invoices`** — the single
    highest blast-radius change; five files/resources currently share the
    combined table.
-2. **`InvoiceTotalsCalculator`'s discount-after-tax bug** — already
-   identified by the requirements-gathering session, not new; fix before any
-   tax-snapshot work builds on top of it.
-3. **`Project`/`Task` naming collision with the new `SalesOrder`** — real risk
-   of someone extending the wrong model into "the job."
+2. ~~**`InvoiceTotalsCalculator`'s discount-after-tax bug**~~ — **fixed**
+   (see `app/Services/InvoiceTotalsCalculator.php`: document-level discount
+   now reduces each line's taxable base before tax is recomputed from the
+   stored rate, idempotently, rather than being subtracted from an
+   already-taxed total). Regression test:
+   `tests/Feature/Filament/AdminPanelResourcesTest::test_document_level_discount_reduces_the_taxable_base_before_tax`.
+3. ~~**`Project`/`Task` naming collision with the new `SalesOrder`**~~ —
+   **mitigated**: `Project`/`Task`/`TaskStatus` now carry an explicit
+   "FROZEN, do not extend into the job concept" docblock pointing at this
+   plan and at `docs/rebuild/specs/03-sales-and-job`. The actual `SalesOrder`
+   build is still Phase 03 work.
 4. **`legacy_*_id` provenance columns** on nearly every imported model must
    survive every schema split, or the two import commands' idempotency
    guarantee breaks silently — enforced only by
