@@ -33,4 +33,15 @@ class Vendor extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    /** Phase 05 (docs/rebuild/specs/05-procurement-and-delivery). */
+    public function purchaseOrders(): HasMany
+    {
+        return $this->hasMany(VendorPurchaseOrder::class);
+    }
+
+    public function bills(): HasMany
+    {
+        return $this->hasMany(VendorBill::class);
+    }
 }

@@ -77,4 +77,38 @@ enum CompanyRole: string
     {
         return [self::Owner, self::Admin, self::Accountant];
     }
+
+    /**
+     * "Accountant and higher may self-approve" a vendor bill —
+     * docs/rebuild/specs/05-procurement-and-delivery/Specs.md.
+     *
+     * @return array<int, self>
+     */
+    public static function vendorBillApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
+
+    /**
+     * Owner/Admin only — mirrors `jobVariationApprovalRoles()` for the
+     * equivalent vendor-side exception (FINALIZED-DECISIONS.md §4).
+     *
+     * @return array<int, self>
+     */
+    public static function vendorPoVarianceApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
+
+    /**
+     * "Staff and higher can record/approve delivery and handover" —
+     * every role except the read-only Auditor, i.e. the same set as
+     * {@see mutatingRoles()}.
+     *
+     * @return array<int, self>
+     */
+    public static function deliveryAndHandoverRoles(): array
+    {
+        return self::mutatingRoles();
+    }
 }
