@@ -266,6 +266,82 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 05 (procurement and delivery)** — connects vendor
+  purchasing and physical fulfillment to each job, per
+  `docs/rebuild/specs/05-procurement-and-delivery/Specs.md`. Resolves
+  `docs/REFACTOR_PLAN.md` §2 risk #6 (Expense vs. Vendor Bill): builds a
+  wholly new aggregate beside the legacy `Expense` model rather than
+  renaming/absorbing it — `Expense` doesn't map 1:1 to "a vendor payable
+  that may be paid in parts, tied to a job's cost" (no PO linkage, no
+  partial-payment tracking, no job-cost allocation), so it stays frozen
+  as a parallel non-job cost bucket, exactly the "new canonical classes
+  beside legacy" precedent `Quotation`/`SalesOrder` set in Phase 03:
+  - **`App\Models\VendorPurchaseOrder`/`VendorPurchaseOrderItem`**
+    (`App\Filament\Resources\VendorPurchaseOrders`, "Procurement" nav
+    group) — a Draft→Approved lifecycle
+    (`App\Enums\VendorPurchaseOrderStatus`); once created the PO's own
+    `total` is immutable — an over-budget bill is handled entirely by
+    `App\Models\VendorPoVariance` (append-only, Owner/Admin-only via
+    `App\Actions\Procurement\ApproveVendorPoVariance`,
+    `CompanyRole::vendorPoVarianceApprovalRoles()`), which raises the
+    effective payment ceiling
+    (`VendorPurchaseOrder::paymentCeiling()`) without ever touching the
+    PO.
+  - **`App\Models\VendorBill`/`VendorBillItem`**
+    (`App\Filament\Resources\VendorBills`) — always tied to one Vendor
+    PO; `App\Enums\VendorBillStatus` drives
+    `Draft → Submitted → Approved → PartiallyPaid → Paid`
+    (`App\Actions\Procurement\SubmitVendorBill`/`ApproveVendorBill`,
+    Owner/Admin/Accountant via `CompanyRole::vendorBillApprovalRoles()`).
+    Approving a bill never checks it against the PO ceiling — per
+    FINALIZED-DECISIONS.md §4 the block is entirely on *payment*:
+    `App\Actions\Procurement\RecordVendorPayment` sums every payment
+    across every bill on the same PO and refuses to exceed
+    `paymentCeiling()`, naming the shortfall and requiring a variance
+    first. `App\Services\Procurement\RecalculateVendorBillPayments` is
+    the only writer of a bill's `amount_paid`/`balance`/billable status
+    (mirrors `RecalculateInvoiceReceivables` from Phase 04). Each
+    `VendorBillItem` keeps net/tax/gross components separately
+    (`FINALIZED-DECISIONS.md` §3: "for Karunia, vendor tax is permitted
+    and treated as nonrecoverable gross cost" — no input-tax-credit
+    engine is built).
+  - **`App\Models\JobCostAllocation`** (append-only) — written only by
+    `App\Actions\Procurement\AllocateJobCost`, which splits one
+    `VendorBillItem`'s gross cost across one or more Jobs, guarded by
+    `VendorBillItem::unallocatedAmount()` so a source line is never
+    over-allocated. "One vendor purchase may serve multiple jobs" is
+    literal: the same item can be allocated to several `SalesOrder`s.
+  - **`App\Models\DeliveryOrder`/`DeliveryOrderItem`,
+    `App\Models\HandoverReport`** — recorded via
+    `App\Actions\Delivery\CompleteDelivery`/`CompleteHandover`
+    (`CompanyRole::deliveryAndHandoverRoles()`, i.e. everyone but
+    Auditor). A job may have multiple partial Delivery Orders.
+    `SalesOrder::requires_handover` (new column, default `true`) decides
+    whether `CompleteHandover` requires
+    `SalesOrder::isFullyDelivered()` first — Owner/Admin may override
+    with a reason.
+  - **`App\Actions\Sales\CloseJobOperationally`/`CloseJobFinancially`** —
+    operational closure needs a Handover Report for a job that
+    `requires_handover`, or just one recorded Delivery Order for a
+    goods-only job. Financial closure is blocked by any outstanding
+    invoice balance linked to the job (`Invoice::sales_order_id`) unless
+    the acting user's role is *exactly* Owner (never Admin — "Admin may
+    prepare but cannot finalize the override," FINALIZED-DECISIONS.md
+    §4) and supplies both a reason and an outstanding-balance summary.
+    `SalesOrder::isFullyClosed()` (Phase 03) is now actually meaningful:
+    true only once both actions have each run.
+  - Full Filament wiring: both new resources follow the established
+    full-page-plus-relation-managers shape; `SalesOrderResource` gains
+    `DeliveryOrdersRelationManager`/`HandoverReportsRelationManager`
+    (read-only lists, each with one custom "record" header action, the
+    same `isReadOnly()`-plus-custom-`Action::make()` pattern
+    `VariationsRelationManager` established in Phase 03) and two new
+    row actions (Close operationally/Close financially).
+  - Deliberately not built this phase (see
+    `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`): vendor PO/
+    bill PDF export, a dedicated job-cost/margin report, and any
+    attachment/evidence upload beyond the existing pattern — all
+    correctly Phase 06 (`documents-portal-reporting`) scope.
 - **Renovation Phase 04 (billing and receivables)** — authoritative
   calculation and immutable customer receivables, per
   `docs/rebuild/specs/04-billing-and-receivables/Specs.md`. Extends
@@ -425,6 +501,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 232 tests as of Phase 04 (billing and receivables) — see docs/testing-coverage.md
+php artisan test      # 270 tests as of Phase 05 (procurement and delivery) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
