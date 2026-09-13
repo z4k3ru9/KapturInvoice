@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/** One per verified VendorPayment — see App\Enums\VendorPaymentStatus. */
+#[Fillable(['company_id', 'vendor_payment_id', 'number', 'issued_at'])]
+class VendorPaymentReceipt extends Model
+{
+    protected function casts(): array
+    {
+        return [
+            'issued_at' => 'datetime',
+        ];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function vendorPayment(): BelongsTo
+    {
+        return $this->belongsTo(VendorPayment::class);
+    }
+
+    /** Never mutates this receipt's own snapshot — see VendorPaymentAmendment. */
+    public function amendments(): HasMany
+    {
+        return $this->hasMany(VendorPaymentAmendment::class);
+    }
+}

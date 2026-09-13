@@ -3,10 +3,10 @@
 namespace App\Actions\Procurement;
 
 use App\Enums\VendorBillStatus;
+use App\Enums\VendorPaymentStatus;
 use App\Models\VendorBill;
 use App\Models\VendorPayment;
 use App\Services\AuditLogger;
-use App\Services\DocumentNumberGenerator;
 use App\Services\Procurement\RecalculateVendorBillPayments;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -17,20 +17,23 @@ use RuntimeException;
  * Payment above the PO total is blocked until Admin or Owner approves
  * the variance with a reason; the original PO remains immutable." —
  * docs/rebuild/specs/05-procurement-and-delivery/Specs.md,
- * docs/rebuild/specs/FINALIZED-DECISIONS.md §4. Unlike a customer
- * Payment (Phase 04), a vendor payment carries no verification step —
- * it counts toward the bill's paid amount as soon as it is recorded, via
- * App\Services\Procurement\RecalculateVendorBillPayments. The PO ceiling
- * check considers every payment across every bill raised against the
- * same Vendor PO, not just this bill, since one PO may be billed in
- * parts across multiple VendorBill rows.
+ * docs/rebuild/specs/FINALIZED-DECISIONS.md §4/§7. Mirrors
+ * App\Actions\Receivables\RecordCustomerPayment: this only records the
+ * event at VendorPaymentStatus::Pending — it does not yet count toward
+ * the bill's paid amount (App\Services\Procurement\
+ * RecalculateVendorBillPayments only sums Verified events; see
+ * App\Actions\Procurement\VerifyVendorPayment). The PO ceiling check
+ * still considers every non-reversed payment across every bill raised
+ * against the same Vendor PO (Pending as well as Verified — an
+ * awaiting-verification payment is still a real commitment against the
+ * ceiling), not just this bill, since one PO may be billed in parts
+ * across multiple VendorBill rows.
  */
 class RecordVendorPayment
 {
     public function __construct(
         private AuditLogger $auditLogger,
         private RecalculateVendorBillPayments $recalculator,
-        private DocumentNumberGenerator $numberGenerator,
     ) {}
 
     /**
@@ -55,6 +58,7 @@ class RecordVendorPayment
 
         $existingPayments = round((float) VendorPayment::query()
             ->whereIn('vendor_bill_id', $po->bills()->pluck('id'))
+            ->where('status', '!=', VendorPaymentStatus::Reversed->value)
             ->sum('amount'), 2);
 
         if (($existingPayments + $amount) > ($ceiling + 0.01)) {
@@ -68,7 +72,7 @@ class RecordVendorPayment
             $payment = VendorPayment::create([
                 'company_id' => $bill->company_id,
                 'vendor_bill_id' => $bill->id,
-                'number' => $this->numberGenerator->next($bill->company, 'vendor_payment'),
+                'status' => VendorPaymentStatus::Pending,
                 'amount' => $amount,
                 'payment_date' => $data['payment_date'],
                 'method' => $data['method'] ?? null,

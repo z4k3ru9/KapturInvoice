@@ -5,8 +5,10 @@ namespace Tests\Feature\Procurement;
 use App\Actions\Procurement\ApproveVendorBill;
 use App\Actions\Procurement\ApproveVendorPoVariance;
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
+use App\Actions\Procurement\IssueVendorPaymentReceipt;
 use App\Actions\Procurement\RecordVendorPayment;
 use App\Actions\Procurement\SubmitVendorBill;
+use App\Actions\Procurement\VerifyVendorPayment;
 use App\Enums\VendorBillStatus;
 use App\Models\Company;
 use App\Models\User;
@@ -109,14 +111,21 @@ class VendorBillWorkflowTest extends TestCase
         $payment = app(RecordVendorPayment::class)->record($bill->fresh(), [
             'amount' => 1000000,
             'payment_date' => now(),
+            'proof_path' => 'vendor-payment-proofs/proof.pdf',
         ]);
+
+        // Recorded but not yet verified — does not count toward the bill yet.
+        $this->assertSame('0.00', $bill->fresh()->amount_paid);
+
+        app(VerifyVendorPayment::class)->verify($payment, $owner);
+        $receipt = app(IssueVendorPaymentReceipt::class)->issue($payment->fresh());
 
         $fresh = $bill->fresh();
         $this->assertSame(VendorBillStatus::Paid, $fresh->status);
         $this->assertSame('0.00', $fresh->balance);
         $this->assertSame('1000000.00', $fresh->amount_paid);
-        $this->assertNotNull($payment->number);
-        $this->assertStringContainsString('-VPR-', $payment->number);
+        $this->assertNotNull($receipt->number);
+        $this->assertStringContainsString('-VPR-', $receipt->number);
     }
 
     public function test_partial_vendor_payment_and_remaining_due_date(): void
@@ -130,10 +139,12 @@ class VendorBillWorkflowTest extends TestCase
         app(SubmitVendorBill::class)->submit($bill);
         app(ApproveVendorBill::class)->approve($bill->fresh(), $owner);
 
-        app(RecordVendorPayment::class)->record($bill->fresh(), [
+        $payment = app(RecordVendorPayment::class)->record($bill->fresh(), [
             'amount' => 400000,
             'payment_date' => now(),
+            'proof_path' => 'vendor-payment-proofs/proof.pdf',
         ]);
+        app(VerifyVendorPayment::class)->verify($payment, $owner);
 
         $fresh = $bill->fresh();
         $this->assertSame(VendorBillStatus::PartiallyPaid, $fresh->status);
@@ -167,7 +178,9 @@ class VendorBillWorkflowTest extends TestCase
         $payment = app(RecordVendorPayment::class)->record($bill->fresh(), [
             'amount' => 1200000,
             'payment_date' => now(),
+            'proof_path' => 'vendor-payment-proofs/proof.pdf',
         ]);
+        app(VerifyVendorPayment::class)->verify($payment, $owner);
 
         $this->assertSame('1200000.00', $payment->amount);
         $this->assertSame(VendorBillStatus::Paid, $bill->fresh()->status);

@@ -20,11 +20,13 @@ re-run completed audits unless new evidence contradicts them.
   out browser/visual-QA/SOA/autosave work as an open user decision; Phase 06B
   (added to `main` after that report) makes it a mandatory gate instead —
   treat Phase 06 as *backend-complete, UX-incomplete*, not phase-complete.
-- Known rework, not yet scheduled to a phase: Phase 05's `VendorPayment` is a
-  simple direct-record model (no verification, no `VendorPaymentReceipt`, no
-  amendment/reversal) and does not meet FINALIZED-DECISIONS.md §7's
-  parallel-immutable-event requirement for vendor payments. Flag before
-  Phase 07 migrates vendor-payment history into it.
+- Fixed: Phase 05's `VendorPayment` was a simple direct-record model (no
+  verification, no `VendorPaymentReceipt`, no amendment/reversal) that did
+  not meet FINALIZED-DECISIONS.md §7's parallel-immutable-event requirement
+  for vendor payments. Corrected before starting Phase 06B — see
+  `App\Enums\VendorPaymentStatus` and `App\Actions\Procurement\
+  {VerifyVendorPayment,IssueVendorPaymentReceipt,ReverseVendorPayment,
+  AmendVendorPayment}` (303 tests, up from 293).
 
 ## Binding product decisions
 

@@ -9,12 +9,22 @@ Status: **complete** — tests passing, migrations clean from a fresh database, 
 > the current `main` branch or release readiness. Current progressive
 > specifications and current-branch verification are authoritative.
 >
-> **Superseded in part:** see the same note in
-> `docs/rebuild/outputs/18-phase-04-checkpoint-report.md` — the
-> `VendorPayment` model this phase built is a simple direct-record (no
-> verification/receipt/amendment/reversal), and
-> `docs/rebuild/specs/FINALIZED-DECISIONS.md` §7 now requires the full
-> parallel event model. Open rework, not yet scheduled to a phase.
+> **Superseded in part, since fixed:** the `VendorPayment` model this
+> phase originally built was a simple direct-record (no verification/
+> receipt/amendment/reversal), which did not meet
+> `docs/rebuild/specs/FINALIZED-DECISIONS.md` §7's parallel immutable
+> event model requirement (added after this report). Corrected before
+> Phase 06B started: `VendorPayment` now carries
+> `App\Enums\VendorPaymentStatus` (Pending/Verified/Reversed);
+> `App\Actions\Procurement\VerifyVendorPayment` (Owner/Admin/Accountant,
+> proof required, cheque clearance) is the only path to `Verified`, which
+> `App\Services\Procurement\RecalculateVendorBillPayments` now requires
+> before a payment counts toward a bill; `IssueVendorPaymentReceipt`
+> issues exactly one `VendorPaymentReceipt` (carrying the `VPR` launch
+> code, moved off the payment's own record-time `number`) per verified
+> event; `ReverseVendorPayment`/`AmendVendorPayment` correct a payment
+> without mutating it. See `tests/Feature/Procurement/
+> VendorPaymentLifecycleTest.php`.
 
 ## Expense vs. Vendor Bill — the risk #6 decision
 

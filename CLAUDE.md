@@ -381,16 +381,29 @@ Or just `composer setup` (runs the same steps via the composer script).
     Owner/Admin/Accountant via `CompanyRole::vendorBillApprovalRoles()`).
     Approving a bill never checks it against the PO ceiling — per
     FINALIZED-DECISIONS.md §4 the block is entirely on *payment*:
-    `App\Actions\Procurement\RecordVendorPayment` sums every payment
-    across every bill on the same PO and refuses to exceed
-    `paymentCeiling()`, naming the shortfall and requiring a variance
-    first. `App\Services\Procurement\RecalculateVendorBillPayments` is
-    the only writer of a bill's `amount_paid`/`balance`/billable status
-    (mirrors `RecalculateInvoiceReceivables` from Phase 04). Each
-    `VendorBillItem` keeps net/tax/gross components separately
-    (`FINALIZED-DECISIONS.md` §3: "for Karunia, vendor tax is permitted
-    and treated as nonrecoverable gross cost" — no input-tax-credit
-    engine is built).
+    `App\Actions\Procurement\RecordVendorPayment` sums every
+    non-reversed payment across every bill on the same PO and refuses to
+    exceed `paymentCeiling()`, naming the shortfall and requiring a
+    variance first. **Vendor payments are a parallel immutable event
+    model** (`FINALIZED-DECISIONS.md` §7, corrected after Phase 05
+    originally shipped a simpler direct-record `VendorPayment`): a
+    recorded payment starts `App\Enums\VendorPaymentStatus::Pending` and
+    only counts toward a bill once
+    `App\Actions\Procurement\VerifyVendorPayment` (Owner/Admin/
+    Accountant, proof required, cheque needs a cleared date) moves it to
+    `Verified` — `App\Services\Procurement\RecalculateVendorBillPayments`
+    is the only writer of a bill's `amount_paid`/`balance`/billable
+    status and sums only `Verified` rows (mirrors
+    `RecalculateInvoiceReceivables` from Phase 04, now exactly).
+    `App\Actions\Procurement\IssueVendorPaymentReceipt` issues exactly
+    one `App\Models\VendorPaymentReceipt` (the `VPR` launch code, moved
+    here from the payment's own record-time `number`) per verified
+    event; `ReverseVendorPayment`/`AmendVendorPayment` correct a payment
+    without mutating it, mirroring `ReverseCustomerPayment`/
+    `AmendPaymentAllocation`. Each `VendorBillItem` keeps net/tax/gross
+    components separately (`FINALIZED-DECISIONS.md` §3: "for Karunia,
+    vendor tax is permitted and treated as nonrecoverable gross cost" —
+    no input-tax-credit engine is built).
   - **`App\Models\JobCostAllocation`** (append-only) — written only by
     `App\Actions\Procurement\AllocateJobCost`, which splits one
     `VendorBillItem`'s gross cost across one or more Jobs, guarded by
@@ -587,6 +600,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 293 tests as of Phase 06 (documents, portal, and reporting) — see docs/testing-coverage.md
+php artisan test      # 303 tests as of the FINALIZED-DECISIONS.md §7 vendor-payment-model fix — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

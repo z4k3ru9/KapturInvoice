@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Actions\Procurement\RecordVendorPayment;
 use App\Enums\VendorBillStatus;
+use App\Enums\VendorPaymentStatus;
 use App\Enums\VendorPurchaseOrderStatus;
 use App\Filament\Resources\VendorBills\Pages\ListVendorBills;
 use App\Filament\Resources\VendorBills\Pages\ViewVendorBill;
 use App\Filament\Resources\VendorBills\RelationManagers\ItemsRelationManager;
+use App\Filament\Resources\VendorBills\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\VendorPurchaseOrders\Pages\ListVendorPurchaseOrders;
 use App\Models\Client;
 use App\Models\Company;
@@ -131,11 +134,44 @@ class ProcurementActionsTest extends TestCase
                 'reference' => 'TRX-001',
             ]);
 
+        // Recorded but not yet verified — FINALIZED-DECISIONS.md §7's
+        // parallel immutable event model means it does not count toward
+        // the bill's paid amount until verified (see PaymentsRelationManager).
         $fresh = $bill->fresh();
-        $this->assertSame(400.0, (float) $fresh->amount_paid);
-        $this->assertSame(600.0, (float) $fresh->balance);
-        $this->assertSame(VendorBillStatus::PartiallyPaid, $fresh->status);
+        $this->assertSame(0.0, (float) $fresh->amount_paid);
+        $this->assertSame(VendorBillStatus::Approved, $fresh->status);
         $this->assertSame(1, $fresh->payments()->count());
+        $this->assertSame(VendorPaymentStatus::Pending, $fresh->payments()->first()->status);
+    }
+
+    public function test_the_verify_and_issue_receipt_relation_manager_actions_settle_a_vendor_payment(): void
+    {
+        $po = $this->approvedPurchaseOrder(1000);
+        $bill = $this->draftBill($po, 1000);
+        $bill->forceFill(['status' => VendorBillStatus::Approved])->save();
+
+        // Bypasses the recordPayment table action's FileUpload field —
+        // Livewire test helpers can't stage a fake upload through a plain
+        // string value, and proof is only required at verification, not
+        // at record time.
+        $payment = app(RecordVendorPayment::class)->record($bill, [
+            'amount' => 1000,
+            'payment_date' => now(),
+            'proof_path' => 'vendor-payment-proofs/proof.pdf',
+        ]);
+
+        Livewire::test(PaymentsRelationManager::class, ['ownerRecord' => $bill, 'pageClass' => ViewVendorBill::class])
+            ->callTableAction('verify', $payment);
+
+        $this->assertSame(VendorPaymentStatus::Verified, $payment->fresh()->status);
+        $this->assertSame(1000.0, (float) $bill->fresh()->amount_paid);
+        $this->assertSame(VendorBillStatus::Paid, $bill->fresh()->status);
+
+        Livewire::test(PaymentsRelationManager::class, ['ownerRecord' => $bill, 'pageClass' => ViewVendorBill::class])
+            ->callTableAction('issueReceipt', $payment->fresh());
+
+        $this->assertNotNull($payment->fresh()->receipt);
+        $this->assertStringContainsString('-VPR-', $payment->fresh()->receipt->number);
     }
 
     public function test_the_allocate_to_job_relation_manager_table_action_allocates_cost_to_a_sales_order(): void
