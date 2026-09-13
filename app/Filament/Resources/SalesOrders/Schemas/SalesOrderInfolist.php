@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\SalesOrders\Schemas;
 
 use App\Models\SalesOrder;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 /**
@@ -32,10 +34,15 @@ class SalesOrderInfolist
                     ->label('PO type')
                     ->formatStateUsing(fn (?bool $state) => $state ? 'System-generated COC' : 'Customer-supplied PO'),
                 TextEntry::make('approved_at')->dateTime()->placeholder('-'),
-                TextEntry::make('operational_closed_at')->dateTime()->placeholder('-'),
-                TextEntry::make('financial_closed_at')->dateTime()->placeholder('-'),
                 TextEntry::make('cancelled_at')->dateTime()->placeholder('-'),
                 TextEntry::make('created_at')->dateTime(),
+                Section::make('Fulfillment & closure')
+                    ->columns(3)
+                    ->schema([
+                        IconEntry::make('requires_handover')->boolean(),
+                        TextEntry::make('operational_closed_at')->dateTime()->placeholder('-'),
+                        TextEntry::make('financial_closed_at')->dateTime()->placeholder('-'),
+                    ]),
                 TextEntry::make('deleted_at')
                     ->dateTime()
                     ->visible(fn (SalesOrder $record): bool => $record->trashed()),
