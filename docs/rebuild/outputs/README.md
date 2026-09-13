@@ -1,5 +1,12 @@
 # KapturInvoice Revamp Preparation
 
+> **Historical handoff note:** Claude-generated checkpoint reports in this
+> directory are historical implementation evidence only. They do not approve
+> the current `main` branch or release readiness. The current progressive
+> specifications, current-branch verification, current tests,
+> migration/reconciliation evidence, and Owner-approved release checkpoint
+> are authoritative.
+
 This directory is the handoff pack for the next UI-design and programming session.
 
 ## Reading order

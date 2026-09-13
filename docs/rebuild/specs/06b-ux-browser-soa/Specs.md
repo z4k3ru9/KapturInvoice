@@ -35,6 +35,11 @@ superseded by the accepted Phase 06B decision.
   dates for payments and receipts.
 - SOA includes opening balance, invoices, credit documents, receipts,
   payments, closing balance, and aging. It is company/client scoped.
+- Imported historical credits are read-only. Confidently mapped credits reduce
+  the applicable balance; uncertain credits remain quarantined and excluded
+  from confirmed balances until reviewed. The SOA distinguishes confirmed
+  imported credits from unresolved exceptions. New credit-note creation,
+  editing, refunds, and write-offs remain deferred.
 - Voided, amended, and reversed records remain visible with status labels;
   excluded amounts must not inflate the current outstanding balance.
 - A generated or sent SOA preserves an immutable PDF snapshot. A preview may
