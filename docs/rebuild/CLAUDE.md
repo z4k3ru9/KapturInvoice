@@ -13,6 +13,20 @@ Use this file as the short operational entry point for the KapturInvoice renovat
 7. [specs/README.md](specs/README.md) and [specs/IMPLEMENTATION-STRUCTURE.md](specs/IMPLEMENTATION-STRUCTURE.md) for phase order and architecture.
 8. Only the active phase file under `specs/`.
 
+## Active-phase execution
+
+Before changing code:
+
+1. Read `../../AGENTS.md`.
+2. Read `CONTEXT.md`, `PRD.md`, `DESIGN.md`, and `specs/FINALIZED-DECISIONS.md`.
+3. Read `specs/README.md`.
+4. Read only the currently assigned phase specification in full.
+5. Treat the canonical specifications as authoritative over generated checkpoint reports.
+6. Do not modify UI while working on structure, domain, migration, or authorization tasks unless the active phase explicitly requires it.
+7. Stop at the phase checkpoint when acceptance criteria are complete or the token budget is low.
+
+`.claudeignore` excludes dependencies, secrets, runtime data, caches, and generated artifacts only. Keep source code, tests, migrations, legacy schema references, and all `docs/rebuild/` requirements visible because they are required for the reboot.
+
 This directory is the approved renovation handoff. Keep it versioned with the implementation work and update it only through explicit change control when product, financial, tax, legal, migration, or UI behavior changes.
 
 ## Working rules
