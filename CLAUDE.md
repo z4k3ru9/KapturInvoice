@@ -14,6 +14,10 @@ Read this file first on every session — it exists so setup/login/seed
 facts don't need to be re-derived by grepping migrations and seeders each
 time.
 
+Read [`memory.md`](memory.md) once after this file. It records settled project
+decisions, current state, and anti-loop rules. Do not re-grill settled
+decisions or repeatedly reread unchanged historical reports.
+
 ## Renovation guardrails
 
 When working on the approved job-centric rebuild, read the handoff docs in
