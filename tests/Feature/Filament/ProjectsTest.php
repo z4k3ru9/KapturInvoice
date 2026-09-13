@@ -44,6 +44,20 @@ class ProjectsTest extends TestCase
         }
     }
 
+    /**
+     * Phase 03 requirement (docs/rebuild/specs/03-sales-and-job/Specs.md):
+     * "Keep generic legacy projects/tasks out of the launch navigation."
+     * The resources/routes/data above stay fully intact for legacy data —
+     * only the sidebar entry is hidden, once the SalesOrder/Job resource
+     * (App\Filament\Resources\SalesOrders) supersedes them as the launch
+     * "job" concept.
+     */
+    public function test_project_and_task_status_resources_are_hidden_from_navigation(): void
+    {
+        $this->assertFalse(ProjectResource::shouldRegisterNavigation());
+        $this->assertFalse(TaskStatusResource::shouldRegisterNavigation());
+    }
+
     public function test_tasks_relation_manager_can_start_and_stop_a_timer(): void
     {
         $project = Project::create(['company_id' => $this->company->id, 'name' => 'Website revamp']);

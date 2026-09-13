@@ -40,6 +40,12 @@ class DocumentNumberGenerator
         'invoice' => 'INV',
         'quote' => 'QUO',
         'credit' => 'CR',
+        // Phase 03 (docs/rebuild/specs/03-sales-and-job): a system-generated
+        // Customer Order Confirmation, issued only when a quotation is
+        // accepted without a supplied customer PO (FINALIZED-DECISIONS.md
+        // §2/§4) — and the Sales Order / Job aggregate itself.
+        'coc' => 'COC',
+        'sales_order' => 'SO',
     ];
 
     public function next(Company $company, string $sequence): string

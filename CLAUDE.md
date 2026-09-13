@@ -266,6 +266,54 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 03 (sales and job)** — the job-centric aggregate
+  from `docs/rebuild/specs/03-sales-and-job/Specs.md`, built as new
+  canonical classes beside (not replacing) the legacy resources, per
+  `docs/REFACTOR_PLAN.md` §2 risk #3:
+  - **`App\Models\Quotation`/`QuotationItem`** (own `quotations`/
+    `quotation_items` tables, `App\Filament\Resources\Quotations`,
+    Sales nav group) — a full lifecycle
+    (`Draft → Approved → Sent → {Accepted, Rejected, Expired}`,
+    `Cancelled` from anywhere non-terminal), enforced by
+    `App\Enums\QuotationStatus::canTransitionTo()` via
+    `App\Actions\Sales\TransitionQuotationStatus`/`AcceptQuotation` —
+    never a bare status field edit. Accepting without a supplied
+    customer PO number generates an internal Customer Order
+    Confirmation (`COC` — a new `DocumentNumberGenerator` sequence),
+    flagged `customer_po_is_system_generated` and never presented as
+    customer-issued. The existing `App\Filament\Resources\Quotes`
+    (over `invoices`/`type=quote`) is untouched and now serves only
+    already-imported/legacy quotes — see `Quotation`'s docblock.
+  - **`App\Models\SalesOrder`/`SalesOrderItem`** (the "Job", nav label
+    "Job", `App\Filament\Resources\SalesOrders`) — created only from an
+    Accepted quotation via
+    `App\Actions\Sales\CreateSalesOrderFromQuotation` (no create/edit
+    page exists), which snapshots the quotation's items and header
+    fields (`sales_orders.source_snapshot`) so a job's history can never
+    be retroactively altered by anything happening to the quotation
+    afterward. `App\Enums\SalesOrderStatus` drives the
+    `Draft → Approved → Procurement → In Progress → Delivered → Handed
+    Over → Closed` matrix (`Cancelled` from any non-terminal state)
+    through `App\Actions\Sales\TransitionSalesOrderStatus`; `Draft →
+    Approved` instead goes through `App\Actions\Sales\ApproveSalesOrder`,
+    which blocks unless `payment_milestones` sum to exactly the job's
+    `approved_value`.
+  - **`App\Models\JobVariation`** (`job_variations`, append-only) —
+    written only by `App\Actions\Sales\ApproveJobVariation`, which
+    requires the approver hold Owner/Admin
+    (`CompanyRole::jobVariationApprovalRoles()`), records a reason and
+    before/after job value on a new row, and advances
+    `SalesOrder::approved_value` — never edits or deletes a prior
+    variation.
+  - **`App\Models\Project`/`Task`/`TaskStatus` are now hidden from
+    navigation** (`shouldRegisterNavigation() => false`) — per Specs.md
+    "Keep generic legacy projects/tasks out of the launch navigation."
+    The resources/data are untouched, just no longer in the sidebar.
+  - Full tax computation against `Quotation::pricing_mode`, generating
+    invoices from milestones, and procurement/delivery/handover/job-cost
+    relation managers are deliberately not built here — see
+    `docs/rebuild/outputs/17-phase-03-checkpoint-report.md` for the full
+    scope breakdown (Phase 04/05 work).
 - **Renovation Phase 02 (parties and catalog)** — `App\Models\Product`
   now models any sellable catalog item, not just physical goods:
   `type` (`App\Enums\CatalogItemType`: product/service/labor/other),
@@ -316,6 +364,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 174 tests as of Phase 02 (parties and catalog) — see docs/testing-coverage.md
+php artisan test      # 193 tests as of Phase 03 (sales and job) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

@@ -15,8 +15,10 @@ use App\Filament\Resources\Projects\ProjectResource;
 use App\Filament\Resources\Proposals\ProposalResource;
 use App\Filament\Resources\ProposalSnippets\ProposalSnippetResource;
 use App\Filament\Resources\ProposalTemplates\ProposalTemplateResource;
+use App\Filament\Resources\Quotations\QuotationResource;
 use App\Filament\Resources\Quotes\QuoteResource;
 use App\Filament\Resources\RecurringInvoices\RecurringInvoiceResource;
+use App\Filament\Resources\SalesOrders\SalesOrderResource;
 use App\Filament\Resources\TaskStatuses\TaskStatusResource;
 use App\Filament\Resources\TaxRates\TaxRateResource;
 use App\Filament\Resources\Users\Pages\EditUser;
@@ -39,6 +41,8 @@ use App\Models\Project;
 use App\Models\Proposal;
 use App\Models\ProposalSnippet;
 use App\Models\ProposalTemplate;
+use App\Models\Quotation;
+use App\Models\SalesOrder;
 use App\Models\TaskStatus;
 use App\Models\TaxRate;
 use App\Models\User;
@@ -113,6 +117,15 @@ class FullResourceCoverageTest extends TestCase
         $proposalSnippet = ProposalSnippet::create(['company_id' => $this->company->id, 'name' => 'Terms block']);
         $proposal = Proposal::create(['company_id' => $this->company->id, 'client_id' => $client->id, 'title' => 'Website redesign', 'amount' => 500]);
         $priceListItem = PriceListItem::create(['company_id' => $this->company->id, 'brand' => 'Hikvision', 'sku' => 'DS-TEST-1']);
+        $quotation = Quotation::create(['company_id' => $this->company->id, 'client_id' => $client->id, 'number' => 'KA-QUO-P3-0001', 'status' => 'draft']);
+        $salesOrder = SalesOrder::create([
+            'company_id' => $this->company->id,
+            'client_id' => $client->id,
+            'quotation_id' => $quotation->id,
+            'number' => 'KA-SO-P3-0001',
+            'status' => 'draft',
+            'approved_value' => 0,
+        ]);
         $otherUser = User::factory()->create();
         $this->company->users()->attach($otherUser, ['role' => 'member']);
 
@@ -135,6 +148,8 @@ class FullResourceCoverageTest extends TestCase
             [ProposalSnippetResource::class, $proposalSnippet],
             [ProposalResource::class, $proposal],
             [PriceListItemResource::class, $priceListItem],
+            [QuotationResource::class, $quotation],
+            [SalesOrderResource::class, $salesOrder],
             [UserResource::class, $otherUser],
         ];
 

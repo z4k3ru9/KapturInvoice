@@ -27,6 +27,12 @@ class TaskStatusResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /** See App\Filament\Resources\Projects\ProjectResource's matching override. */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     // company_id is set automatically from the active Filament tenant
     // (TaskStatus::company()) — no field needed here.
     public static function form(Schema $schema): Schema

@@ -28,6 +28,18 @@ class ProjectResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * "Keep generic legacy projects/tasks out of the launch navigation" —
+     * docs/rebuild/specs/03-sales-and-job/Specs.md, once the SalesOrder/
+     * Job aggregate lands. The resource/routes/data stay fully intact for
+     * any already-imported legacy project (see Project's docblock) — only
+     * the sidebar entry is hidden.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ProjectForm::configure($schema);
