@@ -41,7 +41,14 @@ class ItemsRelationManager extends RelationManager
             ->components([
                 Select::make('product_id')
                     ->label('Product')
-                    ->options(fn () => Product::query()->pluck('name', 'id'))
+                    // Server-searched and result-bounded (Filament's
+                    // relationship-mode Select, not an eagerly-loaded
+                    // options() array) — see
+                    // docs/rebuild/specs/02-parties-and-catalog/Specs.md's
+                    // "search does not load unbounded records" requirement.
+                    // A company's catalog can grow well past what's safe to
+                    // ship to the browser on every form render.
+                    ->relationship('product', 'name')
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function (?string $state, callable $set) {

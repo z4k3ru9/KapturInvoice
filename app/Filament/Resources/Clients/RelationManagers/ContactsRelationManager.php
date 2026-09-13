@@ -29,8 +29,10 @@ class ContactsRelationManager extends RelationManager
                 TextInput::make('email')->email()->maxLength(255),
                 TextInput::make('phone')->tel()->maxLength(255),
                 Toggle::make('is_primary')
-                    ->label('Primary contact')
-                    ->columnSpanFull(),
+                    ->label('Primary contact'),
+                Toggle::make('is_billing_contact')
+                    ->label('Billing contact')
+                    ->helperText('Sees this client\'s full billing history in the portal — an undesignated contact only sees documents explicitly shared with them.'),
             ]);
     }
 
@@ -44,6 +46,9 @@ class ContactsRelationManager extends RelationManager
                 TextColumn::make('email')->searchable(),
                 TextColumn::make('phone'),
                 IconColumn::make('is_primary')->boolean(),
+                IconColumn::make('is_billing_contact')
+                    ->label('Billing contact')
+                    ->boolean(),
             ])
             ->headerActions([
                 CreateAction::make(),

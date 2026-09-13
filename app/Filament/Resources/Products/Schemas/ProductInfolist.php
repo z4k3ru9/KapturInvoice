@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Product;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -19,14 +20,24 @@ class ProductInfolist
                     ->label('SKU')
                     ->placeholder('-'),
                 TextEntry::make('name'),
+                TextEntry::make('type')
+                    ->badge(),
+                TextEntry::make('unit')
+                    ->placeholder('-'),
                 TextEntry::make('description')
                     ->placeholder('-')
                     ->columnSpanFull(),
                 TextEntry::make('unit_cost')
+                    ->label('Default price')
                     ->money(),
+                TextEntry::make('tax_category')
+                    ->badge(),
                 TextEntry::make('defaultTaxRate.name')
                     ->label('Default tax rate')
                     ->placeholder('-'),
+                IconEntry::make('stock_flag')
+                    ->label('Normally stocked')
+                    ->boolean(),
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-#[Fillable(['client_id', 'legacy_contact_id', 'first_name', 'last_name', 'email', 'phone', 'is_primary'])]
+#[Fillable(['client_id', 'legacy_contact_id', 'first_name', 'last_name', 'email', 'phone', 'is_primary', 'is_billing_contact'])]
 #[Hidden(['portal_token'])]
 class Contact extends Model
 {
@@ -20,6 +20,13 @@ class Contact extends Model
     {
         return [
             'is_primary' => 'boolean',
+            // Per docs/rebuild/specs/FINALIZED-DECISIONS.md §5: only a
+            // designated billing contact sees a client's full billing
+            // history in the portal; an ordinary contact sees only
+            // explicitly shared documents. Scoped through this contact's
+            // own client/company — never checked in isolation from that
+            // relationship (see ContactBillingEligibilityTest).
+            'is_billing_contact' => 'boolean',
         ];
     }
 

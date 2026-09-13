@@ -2,13 +2,35 @@
 
 namespace App\Models;
 
+use App\Enums\CatalogItemType;
+use App\Enums\TaxCategory;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['company_id', 'legacy_product_id', 'sku', 'name', 'description', 'unit_cost', 'default_tax_rate_id', 'price_list_item_id'])]
+/**
+ * A company's sellable catalog item — despite the class name, `type` (see
+ * `App\Enums\CatalogItemType`) means this models any quotation/invoice
+ * line source: a physical product, a service, labor, or a miscellaneous
+ * "other" line, not only physical goods. Kept as `Product`/`products`
+ * (not renamed to `CatalogItem`) per docs/REFACTOR_PLAN.md §1.1 — the
+ * class already had the right shape (a sellable line distinct from the
+ * vendor reference catalog, `PriceListItem`), so Phase 02
+ * (docs/rebuild/specs/02-parties-and-catalog/Specs.md) only needed to add
+ * the type/unit/tax-category/stock fields, not restructure the table.
+ * `unit_cost` is this item's default *selling* price (an inherited naming
+ * quirk from the legacy schema, same as InvoiceNinja's own `products.cost`
+ * — it is copied straight onto `invoice_items.unit_cost`, never treated as
+ * a vendor cost), and `stock_flag` is a label only — it must never drive
+ * an "in stock"/availability computation; full inventory is deferred
+ * launch scope.
+ */
+#[Fillable([
+    'company_id', 'legacy_product_id', 'sku', 'name', 'type', 'unit', 'description',
+    'unit_cost', 'default_tax_rate_id', 'tax_category', 'stock_flag', 'price_list_item_id',
+])]
 class Product extends Model
 {
     use BelongsToCompany, SoftDeletes;
@@ -16,7 +38,10 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'type' => CatalogItemType::class,
             'unit_cost' => 'decimal:4',
+            'tax_category' => TaxCategory::class,
+            'stock_flag' => 'boolean',
         ];
     }
 
