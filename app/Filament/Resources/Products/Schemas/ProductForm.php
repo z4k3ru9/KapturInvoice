@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Enums\CatalogItemType;
+use App\Enums\TaxCategory;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class ProductForm
@@ -18,15 +21,29 @@ class ProductForm
                 TextInput::make('name')
                     ->required()
                     ->columnSpanFull(),
+                Select::make('type')
+                    ->options(CatalogItemType::class)
+                    ->default(CatalogItemType::Product)
+                    ->required(),
                 TextInput::make('sku')
                     ->label('SKU'),
+                TextInput::make('unit')
+                    ->helperText('e.g. pcs, hour, package — not required for a service/labor line.'),
                 TextInput::make('unit_cost')
+                    ->label('Default price')
                     ->required()
                     ->numeric()
                     ->default(0),
+                Select::make('tax_category')
+                    ->options(TaxCategory::class)
+                    ->default(TaxCategory::StandardTaxable)
+                    ->required(),
                 Select::make('default_tax_rate_id')
                     ->label('Default tax rate')
                     ->relationship('defaultTaxRate', 'name'),
+                Toggle::make('stock_flag')
+                    ->label('Normally stocked')
+                    ->helperText('A label only — this company does not track real inventory/availability.'),
                 TextInput::make('legacy_product_id')
                     ->numeric()
                     ->helperText('Legacy InvoiceNinja product id, for import traceability.'),

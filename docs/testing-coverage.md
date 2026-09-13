@@ -36,7 +36,10 @@ current count) and `vendor/bin/pint --test` before every push.
 | Domain | What's tested | Test file(s) |
 |---|---|---|
 | Core resources (Clients, Products, Tax Rates, Invoices, Credits, Payments) | Page renders, tenant scoping hides other companies' rows, Invoice totals recalculation from items/taxes, Contacts relation manager | `AdminPanelResourcesTest`, `FullResourceCoverageTest` |
-| Invoice/Quote/Credit numbering | Per-sequence independent counters, blank-vs-manual number handling, Quote→Invoice and recurring-template→Invoice number assignment | `DocumentNumberingTest` |
+| Invoice/Quote/Credit numbering | `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ` format (docs/rebuild/specs/FINALIZED-DECISIONS.md §2), independent per-company/type/year sequences, annual (not monthly) reset, atomic repeated allocation without duplicates, code-locking on first issuance, missing-code error | `DocumentNumberingTest` |
+| Company/tenancy isolation (Phase 01 — docs/rebuild/specs/01-company-foundation) | Same client identity stays separate across companies, a disabled company/membership blocks tenant access and is excluded from `getTenants()` (incl. for a super admin), a disabled company's domain 404s and is excluded from the local-env fallback | `CompanyIsolationTest`, `DomainResolutionTest` |
+| Role/permission matrix (Phase 01) | Every `CompanyRole` × every protected action (create/update/delete/forceDelete/viewSettings), Auditor read-only, super-admin bypass, via the `Gate::before` hook covering every `BelongsToCompany` model | `RolePermissionMatrixTest` |
+| Company membership & period lock (Phase 01) | Invite/accept/expire/reuse-block/disable/reenable internal-user flow (each audited where required), period close/reopen role restriction | `CompanyMembershipTest`, `PeriodLockTest` |
 | Quotes & Recurring Invoices | Filtered-view scoping (`type`/`is_recurring`), Convert-to-invoice / Generate-now actions and their cloned items | `QuotesAndRecurringInvoicesTest`, `FullResourceCoverageTest` |
 | Expenses (Expenses, Vendors, Expense Categories) | Page renders, tax sync + totals recalculation, Vendor Contacts relation manager | `ExpensesTest`, `FullResourceCoverageTest` |
 | Projects & Tasks | Page renders, start/stop timer table actions | `ProjectsTest` |
@@ -60,6 +63,11 @@ current count) and `vendor/bin/pint --test` before every push.
 | Relation manager Create action on View pages | The Create action is actually visible (not silently hidden by Filament's read-only-View-pages default — see `AdminPanelProvider`) for Client/Vendor contacts, Project tasks, Invoice items | `RelationManagerViewPageActionsTest` |
 | Client billing defaults | Creating a client with a default discount, selecting that client prefilling `InvoiceForm`'s discount fields, the condensed View page showing tax ID/discount | `ClientBillingDefaultsTest` |
 | Dashboard (`DashboardPeriod`, `RevenueOverview`, `RevenueTrendChart`, `ExpiringQuotesWidget`) | Period resolution for every option (unit-tested in isolation) + page render + stats computed correctly for known fixture data + expiring-quotes filtering (window, excludes already-converted) | `DashboardPeriodTest` (unit), `DashboardWidgetsTest` |
+| Catalog items (Phase 02 — docs/rebuild/specs/02-parties-and-catalog): `Product` now models product/service/labor/other lines, not just physical goods | All four `CatalogItemType` cases creatable/cast correctly, `TaxCategory` default + non-taxable override, `stock_flag` stores as a plain boolean with no inventory/availability computation wired to it, unit/default-price stored for a service line | `CatalogItemTest` |
+| Party & catalog company scoping (Phase 02) | Client/Vendor/catalog-item records with the same name in two companies stay two separate records and never leak across a tenant-scoped query | `PartyScopingTest` |
+| Contact billing-portal eligibility (Phase 02) | `contacts.is_billing_contact` designation scoped to its own client, never leaks across clients or companies even with matching contact names | `ContactBillingEligibilityTest` |
+| Soft deletion preserves history (Phase 02) | Soft-deleting a Client/catalog item never removes its invoices/line items; an invoice item keeps its own snapshotted title/unit_cost independent of the (possibly now-deleted) product row | `SoftDeletionPreservesHistoryTest` |
+| Bounded party/catalog search (Phase 02) | Regression for a real unbounded-query bug: the invoice Items relation manager's product picker used to eagerly `pluck()` every company product on every form render; now relationship-mode/server-searched — asserted via query-log inspection with 60 seeded products | `ItemsRelationManagerProductPickerTest` |
 
 ## What's out of scope (and why)
 

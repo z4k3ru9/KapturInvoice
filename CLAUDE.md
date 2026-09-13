@@ -266,6 +266,20 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 02 (parties and catalog)** — `App\Models\Product`
+  now models any sellable catalog item, not just physical goods:
+  `type` (`App\Enums\CatalogItemType`: product/service/labor/other),
+  `unit`, `tax_category` (`App\Enums\TaxCategory`: standard_taxable/
+  non_taxable, consumed by the Phase 04 billing engine — separate from
+  the existing free-form `TaxRate`/`default_tax_rate_id` link, which
+  stays for backward compatibility), and `stock_flag` (a display label
+  only — never wire real inventory/availability to it; full inventory is
+  deferred launch scope). `Contact::is_billing_contact` designates which
+  of a client's contacts sees full billing history in the future portal
+  (`FINALIZED-DECISIONS.md` §5) — everyone else sees only explicitly
+  shared documents. See `docs/rebuild/outputs/16-phase-02-checkpoint-report.md`
+  for the full slice report, including a real unbounded-query bug found
+  and fixed in the invoice Items relation manager's product picker.
 - **Public homepage content** (`App\Support\Homepage\PortfolioContent`) —
   the dark "Kinetic Obsidian" portfolio-style design
   (`resources/views/livewire/home-page.blade.php`), per the Google Stitch
@@ -302,6 +316,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 118 tests as of the Ruijie/Reyee price list format support — see docs/testing-coverage.md
+php artisan test      # 174 tests as of Phase 02 (parties and catalog) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
