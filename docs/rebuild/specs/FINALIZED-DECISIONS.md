@@ -93,3 +93,10 @@ Owner-requested addition after the Phase 03 checkpoint: service/repair jobs need
 - Handover on a service job is available only when at least one approved report is `Resolved` and no approved report remains `Follow-up required`. Admin/Owner may override with a reason and audit event.
 - Parts on a Service Report are operational evidence only; they never change job value, create invoices, or imply inventory. Billable scope changes still require an approved variation.
 - The Service Report is a launch document with Bahasa default and English override, A4 layout, and portal sharing like a Delivery Order. It is built in Phase 05 and covered by Phase 06B document tests.
+
+Clarifications grilled and accepted by the Owner on 2026-09-14:
+
+- A Service Report always belongs to a job. Warranty, goodwill, or after-sales visits with no new commercial scope use a zero-value service job created from a zero-value quotation, so evidence, cost, and handover still track per job. There are no client-level or jobless reports.
+- Parts recorded on a report that were not in the accepted quotation are evidence only. Sales or Admin raises a job variation by hand, with Owner/Admin approval, before anything extra is billed. The report never creates a draft variation or invoice line.
+- The technician is a Staff-or-higher user of the company for audit purposes. An optional free-text external technician name records an outsourced or vendor technician when the visit was subcontracted.
+- Installation jobs may also carry Service Reports as optional evidence (commissioning, snag fixes). Only service-type jobs use them as the handover gate; installation jobs keep the delivery gate. Goods jobs do not carry Service Reports.

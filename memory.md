@@ -40,7 +40,10 @@ re-run completed audits unless new evidence contradicts them.
   job types are goods/installation/service; a service job records each visit
   as a numbered report (problem, diagnosis, action, parts, result) following
   the Delivery Order pattern, and needs an approved `Resolved` report before
-  handover. Phase 05 scope, Phase 06B document coverage.
+  handover. Always job-bound (warranty visits use a zero-value service job);
+  parts are evidence only, billed via manual variation; technician is a
+  Staff-or-higher user plus optional external name; installation jobs may
+  carry optional non-gating reports. Phase 05 scope, Phase 06B coverage.
 - Deferred: payment gateway, new credit-note workflow, refunds, write-offs,
   full journal, full inventory, recurring billing, generic project/task
   tracking, formal proposals, vendor login, client uploads, SSO, e-signing,
