@@ -98,7 +98,7 @@ return [
     'tax_recap_taxable_base' => 'Dasar Pengenaan Pajak',
     'tax_recap_attachment_reference' => 'Referensi Lampiran',
 
-    'soa_title' => 'Rekening Koran Pelanggan',
+    'soa_title' => 'Laporan Piutang Pelanggan',
     'soa_period' => 'Periode',
     'soa_client' => 'Klien',
     'soa_opening_balance' => 'Saldo Awal',

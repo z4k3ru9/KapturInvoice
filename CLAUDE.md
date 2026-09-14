@@ -322,7 +322,13 @@ Or just `composer setup` (runs the same steps via the composer script).
     mirroring `Invoice`'s. New translation keys live in
     `resources/lang/{id,en}/documents.php` alongside the existing set —
     see `docs/rebuild/outputs/22-phase-06b-terminology-sources.md` for
-    the (partial) source-backed terminology review.
+    the now-complete source-backed terminology review (every `id` key
+    covered; one real error caught and fixed — `soa_title` was
+    `Rekening Koran`, which specifically means a *bank* statement, not a
+    client AR statement; corrected to `Laporan Piutang Pelanggan`).
+    Still needs an Indonesian tax/accounting professional's sign-off
+    before production, per `FINALIZED-DECISIONS.md` §6 — that release
+    gate is unaffected by this review being complete.
   - **Slice 4 (Playwright foundation)** — `playwright.config.ts` +
     `tests/browser/`, wired into `.github/workflows/tests.yml` as a
     separate `browser-tests` job. Simulates both seeded company domains
@@ -332,9 +338,9 @@ Or just `composer setup` (runs the same steps via the composer script).
     installs its own via `npx playwright install --with-deps chromium`.
     `scripts/browser-test-server.sh` runs the suite against a dedicated
     `database/testing-browser.sqlite`, never the developer's own dev DB.
-  - Still open: Slice 2's full terminology source pass, Slice 3 (draft
-    autosave + dynamic rows), and Slice 5 (the full browser journey/
-    accessibility coverage beyond the Slice 4 smoke tests).
+  - Still open: Slice 3 (draft autosave + dynamic rows) and Slice 5 (the
+    full browser journey/accessibility coverage beyond the Slice 4 smoke
+    tests). Slice 2's terminology source pass is done (see above).
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
