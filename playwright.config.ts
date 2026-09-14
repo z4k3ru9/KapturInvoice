@@ -50,7 +50,17 @@ export default defineConfig({
     testDir: './tests/browser',
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 1 : 0,
+    // scripts/browser-test-server.sh's dev server still crashes
+    // intermittently on this CI runner despite the restart-on-exit loop
+    // it now has (which recovers fast, ~300-700ms, but the one in-flight
+    // request when it happens still fails outright). One run hit 3-4
+    // independent crashes across different tests; retries: 1 gives each
+    // affected test exactly one more chance, occasionally not enough
+    // when a retry's own attempt has the bad luck of landing during
+    // another crash. Two retries gives real transient crashes more room
+    // without masking a genuine, reproducible failure (which would keep
+    // failing across all 3 attempts regardless).
+    retries: process.env.CI ? 2 : 0,
     // Forcing multiple PHP_CLI_SERVER_WORKERS in scripts/browser-test-server.sh
     // (so the single-threaded php artisan serve dev server could genuinely
     // handle concurrent requests instead of queuing them, which was the
