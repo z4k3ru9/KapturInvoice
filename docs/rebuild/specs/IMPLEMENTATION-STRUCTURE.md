@@ -139,6 +139,7 @@ Use explicit application actions for state-changing operations. Recommended name
 | `IssuePaymentReceipt` | Create one receipt for one verified payment event. |
 | `AllocateJobCost` | Allocate vendor cost by quantity or amount. |
 | `CompleteDelivery` | Record delivery evidence and state change. |
+| `ApproveServiceReport` | Snapshot and approve one service visit report (diagnosis, action, result). |
 | `CompleteHandover` | Record conditional service/installation handover. |
 | `RunMigrationBatch` | Execute one version-specific, restartable import batch. |
 | `ReconcileMigrationBatch` | Compare source and canonical counts/totals. |
@@ -155,7 +156,7 @@ Create migrations in dependency order:
 4. Invoices, immutable lines, tax snapshots, tax recaps.
 5. Payments, allocations, verification events, receipts, reversals.
 6. Vendor POs, bills, vendor payments, job cost allocations.
-7. Delivery orders, handover reports, document revisions/files.
+7. Delivery orders, service reports, handover reports, document revisions/files.
 8. Migration batches, exceptions, reconciliation runs/lines.
 
 Every migration must be safe to run on a clean database and must not assume imported legacy data already exists. Add foreign keys and company-aware indexes before trial imports.

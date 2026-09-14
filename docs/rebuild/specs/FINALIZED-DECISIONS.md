@@ -19,7 +19,7 @@ This decision record closes the requirements-grilling session. It is binding on 
 - Financial audit history is retained indefinitely at launch, subject to backup capacity. Export/archive tooling is a future enhancement, not deletion.
 - Every issued document stores an official `document_date` used for PDF output, reporting, and `YEARMONTH` numbering, plus immutable system `issued_at` for audit evidence. Backdating is allowed only while the period is open; reopening a soft-locked period requires Owner/Accountant authority, reason, and audit event.
 - New document format is `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ`, for example `KJA-INV-2026090001`. The annual sequence is independent per company and document type, does not reset monthly, has four-digit minimum width, and expands beyond `9999` if necessary.
-- Launch document codes: `QUO`, `COC`, `SO`, `INV`, `RCT`, `VPO`, `VBL`, `VPR`, `DO`, `HOR`, `SOA`, and `TAX`. Amendments use the original code plus `-A` and their own annual sequence, for example `KJA-INV-A-2026090001`.
+- Launch document codes: `QUO`, `COC`, `SO`, `INV`, `RCT`, `VPO`, `VBL`, `VPR`, `DO`, `SVR`, `HOR`, `SOA`, and `TAX`. (`SVR` Service Report added 2026-09-14, section 10.) Amendments use the original code plus `-A` and their own annual sequence, for example `KJA-INV-A-2026090001`.
 - A system-created replacement for a missing customer PO is an internal **Customer Order Confirmation** (`COC`), never a document that falsely claims the customer issued a PO.
 - A document amendment links to its original document and preserves the original document number, PDF, snapshot, reason, actor, and timestamps.
 
@@ -47,6 +47,7 @@ This decision record closes the requirements-grilling session. It is binding on 
 ## 5. Delivery, documents, portal, and communications
 
 - A job may have multiple partial Delivery Orders. Where delivery is required, Handover becomes available only when required delivery items are complete; Admin/Owner may override with a reason for valid service-only or exceptional work.
+- A service/repair job records each visit as a numbered Service Report (problem reported, diagnosis, action taken, parts used, result). A job may have multiple; Handover requires at least one approved `Resolved` report and no open `Follow-up required` report, with the same Admin/Owner override-with-reason rule as delivery. See section 10.
 - No electronic signatures launch now. PDFs render configurable signatory name/title and optional signature/stamp image. Customer signatures and portal signing are deferred.
 - Attachments use private company-scoped storage. Accept PDF, JPG, JPEG, and PNG only, capped at 10 MB per file (Owner/Admin may lower the cap). Record uploader and timestamp; never expose public URLs or automatically delete financial evidence.
 - Only designated billing contacts see full client billing history in the portal. Ordinary contacts see explicitly shared documents only. Links are emailed to designated contacts, revocable, replaceable, expiry-configured (30-day default), and read-only; forwarding is outside launch controls.
@@ -74,3 +75,28 @@ Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09
 - The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and replaces the status enum with the Phase 04 states. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
 - A new invoice may exist without a job. A job link is required whenever the client has an open job; a jobless invoice is exempt from the milestone-equals-approved-value guard, and the SOA must handle jobless invoices.
 - Imported historical payments receive no retroactive receipt. They are marked verified-by-import, appear on the Statement of Account, and never consume an `RCT` sequence number. The one-verified-payment-one-receipt rule applies only to payments verified after cutover.
+
+## 9. Project goal and compliance posture (ratified 2026-09-14)
+
+- The main goal of the project is basic billing and invoicing for Karunia Abadi and Axen Technology Indonesia. Every phase serves that goal; features are justified by it, not by a compliance programme.
+- The product is ISO-compatible in practice (immutable issued records, audit events, controlled numbering, role separation, backup and restore evidence) but is not ISO-certified, is not audited against any ISO standard, and must not describe itself as ISO-compliant in UI, documents, or marketing copy.
+- The product is not a certified tax-compliance system. Tax calculations and tax recaps are bookkeeping aids that the company's tax professional validates (section 6). The software does not file, sign, or certify tax documents and is not a substitute for the official tax authority system.
+- Do not add certification, attestation, or regulatory-reporting work without a change request that reopens this decision.
+
+## 10. Service Report for service jobs (change request ratified 2026-09-14)
+
+Owner-requested addition after the Phase 03 checkpoint: service/repair jobs need repair-to-report tracking alongside delivery and handover.
+
+- Job types at launch are `goods`, `installation`, and `service`. Goods jobs close operationally after delivery; installation jobs require delivery then handover; service jobs require Service Reports then handover.
+- A **Service Report** (`SVR`, Bahasa `Laporan Servis`) documents one service visit: service date, technician (Staff or higher), customer-reported problem, diagnosis, action taken, parts/items used, result (`Resolved`, `Partially resolved`, `Follow-up required`, `Unresolved`), follow-up notes, customer acknowledgement name, and evidence attachments.
+- It follows the Delivery Order pattern: multiple per job, `Draft -> Submitted -> Approved` with `Cancelled` from any non-approved state, Staff and higher may submit/approve, approval snapshots the report, and approved reports are immutable and never physically deleted.
+- Handover on a service job is available only when at least one approved report is `Resolved` and no approved report remains `Follow-up required`. Admin/Owner may override with a reason and audit event.
+- Parts on a Service Report are operational evidence only; they never change job value, create invoices, or imply inventory. Billable scope changes still require an approved variation.
+- The Service Report is a launch document with Bahasa default and English override, A4 layout, and portal sharing like a Delivery Order. It is built in Phase 05 and covered by Phase 06B document tests.
+
+Clarifications grilled and accepted by the Owner on 2026-09-14:
+
+- A Service Report always belongs to a job. Warranty, goodwill, or after-sales visits with no new commercial scope use a zero-value service job created from a zero-value quotation, so evidence, cost, and handover still track per job. There are no client-level or jobless reports.
+- Parts recorded on a report that were not in the accepted quotation are evidence only. Sales or Admin raises a job variation by hand, with Owner/Admin approval, before anything extra is billed. The report never creates a draft variation or invoice line.
+- The technician is a Staff-or-higher user of the company for audit purposes. An optional free-text external technician name records an outsourced or vendor technician when the visit was subcontracted.
+- Installation jobs may also carry Service Reports as optional evidence (commissioning, snag fixes). Only service-type jobs use them as the handover gate; installation jobs keep the delivery gate. Goods jobs do not carry Service Reports.

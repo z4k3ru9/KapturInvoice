@@ -19,6 +19,7 @@ This glossary is the canonical language for the renovation. It describes busines
 | Vendor bill | A payable record received from a vendor, which may be settled in parts. |
 | Job cost | Gross vendor or expense cost explicitly allocated to a job. |
 | Delivery Order | Evidence that goods were delivered. It may satisfy operational closure for goods-only work. |
+| Service Report | Evidence of one service or repair visit on a job: the problem reported, the diagnosis, the action taken, the parts used, and the result. A job may have several; a `Resolved` one is required before handover on service jobs. |
 | Handover Report | Evidence that installation or service work was completed. It is required only when the job requires it. |
 | Tax snapshot | The immutable tax values captured when a document is issued. |
 | Tax recap | A separate reporting record for an issued taxable invoice or its amendment, prefilled from the tax snapshot and manually confirmable with an audit trail. |
@@ -34,4 +35,5 @@ This glossary is the canonical language for the renovation. It describes busines
 - “Tax snapshot” and “tax recap” are not synonyms: the snapshot protects issued-document truth; the recap supports manual reporting.
 - “Customer PO” and “Customer Order Confirmation” are not synonyms: one comes from the client; the other is the business's internal acceptance record.
 - A client may exist in both companies as two separate records; matching names do not establish identity.
+- “Service Report” and “Handover Report” are not synonyms: the service report documents what was diagnosed and done on one visit; the handover report confirms the customer accepted the completed work.
 - A job can be operationally closed before financial closure only when the applicable delivery/handover rule is satisfied and the remaining financial work is tracked.
