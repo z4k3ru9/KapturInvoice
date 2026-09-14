@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -58,6 +59,11 @@ class ItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('title')
             ->columns([
+                ImageColumn::make('product.image_path')
+                    ->label('')
+                    ->circular(false)
+                    ->size(32)
+                    ->visibleFrom('md'),
                 TextColumn::make('title'),
                 TextColumn::make('quantity')->numeric(),
                 TextColumn::make('unit_cost')->numeric(),

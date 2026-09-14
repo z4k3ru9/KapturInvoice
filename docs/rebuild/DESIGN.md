@@ -181,3 +181,26 @@ Block issuance for missing legal identity, required tax data, customer, lines, v
 Before accepting a UI slice, review desktop/tablet/phone, both companies, system light/dark mode, reduced motion, keyboard navigation, long translated labels, populated/empty/loading/saving/failure/error/restricted states, responsive tables, portal expiry, A4 single/multi-page output, English/Bahasa documents, grayscale output, contrast, and color-vision behavior.
 
 Shared design-system changes require visual regression review across both companies. Owner/Admin may change identity branding; shared status colors, spacing, typography rules, accessibility standards, and document layout are governed centrally.
+
+## 14. Micro-interactions and motion
+
+Standardize small, functional motion rather than decorating individual screens ad hoc. Filament's own shell already provides the baseline (Alpine-driven modal open/close, dropdown/panel transitions, `wire:loading` states) — do not reimplement these; extend them consistently.
+
+- **Modals** (Create/Edit, confirmation, review-summary per §7 Approval): use Filament's default open/close transition. Never skip `requiresConfirmation()`/a review step for a consequential action to save a click.
+- **Conditional fields** (a field that appears only when a toggle/select changes, e.g. a percentage input revealed by an "amount is a percentage" toggle): reveal with Filament's native `visible()`/live-reactivity transition — a simple height/opacity change, not a custom animation. Keep the reveal driven by real state (`Get`/`Set` — see the Job milestones percentage-to-amount computation) so the motion communicates an actual computed value, not decoration.
+- **Async actions** (PDF generation, an Action with a server round-trip, form submission): show Filament's built-in loading/disabled state on the triggering control (spinner + disabled, per §9 "disable only the active command while processing"). Do not add a custom spinner component where the native one already covers it.
+- **Row/table changes** (a row appearing after Create, disappearing after Delete): rely on Livewire's default DOM diffing/transition; do not hand-roll slide/fade effects per resource.
+- **Toasts**: timing is fixed by §9's table (success 4s, information 5s, warning 8s, error persistent) — motion is Filament's default slide-in, not a per-screen choice.
+- Respect `prefers-reduced-motion`: every transition above must degrade to an instant state change, not just a shorter duration — this is a §13 QA gate item, not optional polish.
+
+The standard is consistency, not novelty: a new screen should feel identical in its motion to an existing one doing the same kind of thing (another modal, another conditional field, another async action), never a bespoke animation invented for that one screen.
+
+## 15. Catalog item pictures
+
+`Product` (the sellable catalog item) may carry one optional picture — a plain image upload, no cropping/gallery tooling. Render it consistently wherever a product is shown as a row:
+
+- **Table/list contexts** (Products list, a Quotation's Items relation manager): a small square thumbnail (~32-40px), left of the primary text column, never its own labeled column header — an image reads as identity, not data.
+- **Detail contexts** (Product view page): a larger preview, still modest — this is an operational catalog, not a product-photography showcase.
+- **Print/PDF contexts** (Quotation PDF, a Proposal Snippet generated from a product): embed the picture as a self-contained base64 data URI rather than a storage URL, same reasoning as the company logo (§10) — dompdf cannot fetch a `local`-disk `Storage::url()`, and a self-contained snippet survives being copy/pasted into unrelated content.
+- Absence is the expected common case: every picture placement needs a graceful no-image state (omit the thumbnail slot rather than showing a broken-image icon or a gray placeholder box).
+- Invoices deliberately exclude the picture — by the time work is billed it has already been quoted or proposed; keep the final billing document compact.

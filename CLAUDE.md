@@ -211,8 +211,12 @@ Or just `composer setup` (runs the same steps via the composer script).
   SOW), kept separate from Invoices/Quotes. `App\Services\ProposalConverter`
   turns an accepted one into a real Invoice (one line item from its title/
   amount), recorded on `proposals.invoice_id`. ⚠️ Admin-side only so far —
-  no send/portal flow, and Proposal Snippets aren't insertable into the
-  rich editor from a picker yet (copy/paste by hand).
+  no send/portal flow, and Proposal Snippets still aren't insertable into
+  the rich editor from a live picker (copy/paste the snippet's HTML by
+  hand) — Products' "Create proposal snippet" action
+  (`App\Services\ProposalSnippetSync`) generates/refreshes one with the
+  product's picture pre-embedded as a base64 data URI, but placing it into
+  a proposal is still a manual paste.
 - **PDF export** (`barryvdh/laravel-dompdf`) — `resources/views/pdf/{invoice,credit}.blade.php`,
   served by `InvoicePdfController`/`CreditPdfController` (admin, auth +
   `canAccessTenant()` check, same pattern as `DocumentDownloadController`)
@@ -228,6 +232,22 @@ Or just `composer setup` (runs the same steps via the composer script).
   `EditCompanyProfile` (the tenant-profile page) **or** the dedicated
   `App\Filament\Pages\Settings\EditBrandingSettings` page (Settings nav
   group) — same `Company` row, both forms save to it.
+- **Optional product picture** — `products.image_path` (a plain
+  `FileUpload::image()` field, `directory('products')`) resolves via
+  `Product::getImageDataUri()` (same base64-data-URI pattern as
+  `Company::getLogoDataUri()`) so it renders without depending on a
+  public `Storage::url()`. Shown as a thumbnail column on the Products
+  table/infolist and on a Quotation's Items relation manager; embedded in
+  the new **Quotation PDF** (`QuotationPdfController`,
+  `resources/views/pdf/quotation.blade.php`) and reusable in a
+  **Proposal PDF** (`ProposalPdfController`,
+  `resources/views/pdf/proposal.blade.php` — wraps the proposal's
+  free-form `html`/`css`) via a Proposal Snippet (see above). Both PDFs
+  and their "Download PDF" table actions (`App\Filament\Support\DownloadPdfAction::quotation()/proposal()`)
+  follow the same admin-side, auth + `canAccessTenant()` pattern as
+  Invoice/Credit PDFs. Invoices deliberately do **not** get a product
+  picture — by the time a job is billed it's already been quoted or
+  proposed, so the invoice stays compact.
 - **Modal-based Create/Edit** — 14 resources (Clients, Vendors, Projects,
   Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
   Expense Categories, Task Statuses, Proposal Templates, Proposal
@@ -396,7 +416,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 197 tests as of Phase 03 (sales and job) + quotation-expiry gap-close — see docs/testing-coverage.md
+php artisan test      # 208 tests as of the milestone-percentage fix + product picture/Quotation+Proposal PDF slice — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 
