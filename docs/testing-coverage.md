@@ -124,11 +124,17 @@ current count) and `vendor/bin/pint --test` before every push.
   row" behavior DESIGN.md §5 describes — this project's line editing is
   RelationManager-plus-modal, which has no such concept; the two
   corresponding tests are `test.fixme()`, not silently passing. One
-  known flake, not a product defect: the two-tab autosave stale-conflict
-  test occasionally exceeds even a 25s wait only under the full four-
-  project suite's combined load on this app's single-threaded
-  `php artisan serve` dev server (passes reliably standalone); CI's own
-  `retries: 1` absorbs it there.
+  known flake, not a product defect: `documents/autosave.spec.ts`'s
+  two-tab stale-conflict test (and, more rarely, its single-tab sibling)
+  occasionally exceeds even a 25s wait only when multiple Playwright
+  projects are running concurrently against this app's single-threaded
+  `php artisan serve` dev server, which queues their requests behind
+  each other — confirmed by re-running the file under every combination
+  of concurrently-running projects: any project can be the one that
+  times out (not always the same one — it depends on which project's
+  request happens to be queued behind another's at the 25s mark), and
+  every project passes reliably when run alone against its own server
+  instance. CI's own `retries: 1` absorbs it there.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.
