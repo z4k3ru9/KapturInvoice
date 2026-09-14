@@ -59,7 +59,14 @@ export default defineConfig({
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         launchOptions: {
-            args: [`--host-resolver-rules=${HOST_RESOLVER_RULES}`],
+            // `--no-sandbox` is required unconditionally in this
+            // environment (both the sandbox and CI run as root, and a
+            // root Chromium refuses to start at all without it). Also
+            // set explicitly rather than relying on Playwright's own
+            // per-engine default arg list, which does NOT always include
+            // it — see the `browserName` override on the tablet/mobile
+            // projects below for why that distinction matters here.
+            args: [`--host-resolver-rules=${HOST_RESOLVER_RULES}`, '--no-sandbox'],
             ...(executablePath ? { executablePath } : {}),
         },
     },
@@ -88,12 +95,35 @@ export default defineConfig({
         },
         {
             name: 'tablet-light',
-            use: { ...devices['iPad (gen 7)'], colorScheme: 'light', storageState: 'playwright/.auth/owner.json' },
+            use: {
+                ...devices['iPad (gen 7)'],
+                // Playwright's real iPad/iPhone device presets set
+                // `defaultBrowserType: 'webkit'` (matching real Safari) —
+                // Playwright Test reads that as this project's own
+                // `browserName`. Combined with this config's
+                // `executablePath` override (a Chromium binary, always),
+                // that silently launched the Chromium binary using
+                // WEBKIT's default launch args instead of Chromium's —
+                // args that don't include `--no-sandbox`, which a root
+                // Chromium requires — so the browser crashed on launch
+                // for every single test in this project. Force Chromium
+                // explicitly; only the viewport/UA/touch emulation from
+                // the device preset is actually wanted here.
+                browserName: 'chromium',
+                colorScheme: 'light',
+                storageState: 'playwright/.auth/owner.json',
+            },
             dependencies: ['setup'],
         },
         {
             name: 'mobile-light',
-            use: { ...devices['iPhone 14'], colorScheme: 'light', storageState: 'playwright/.auth/owner.json' },
+            use: {
+                ...devices['iPhone 14'],
+                // Same fix as `tablet-light` above, same root cause.
+                browserName: 'chromium',
+                colorScheme: 'light',
+                storageState: 'playwright/.auth/owner.json',
+            },
             dependencies: ['setup'],
         },
     ],

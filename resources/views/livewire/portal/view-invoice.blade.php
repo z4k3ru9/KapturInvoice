@@ -45,7 +45,10 @@
         </div>
 
         <x-card>
-            <div class="overflow-x-auto">
+            {{-- See client-portal-home.blade.php for why this needs
+                 tabindex/role/aria-label (axe: scrollable-region-focusable,
+                 found on mobile viewports). --}}
+            <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Invoice items table">
                 <table class="w-full text-left text-sm">
                     <thead>
                         <tr class="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
