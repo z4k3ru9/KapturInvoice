@@ -13,6 +13,16 @@ export DB_CONNECTION=sqlite
 export DB_DATABASE="$(pwd)/database/testing-browser.sqlite"
 export PORT="${PLAYWRIGHT_APP_PORT:-8123}"
 
+# WAL allows concurrent readers alongside the one writer SQLite always
+# limits itself to; busy_timeout makes a connection that loses a brief
+# write race wait and retry instead of immediately throwing "database is
+# locked" (SQLite's own default busy_timeout is 0 — instant failure).
+# Only matters once something other than a single serial PHP process can
+# genuinely open concurrent connections to this file — see
+# PHP_CLI_SERVER_WORKERS below.
+export DB_JOURNAL_MODE=WAL
+export DB_BUSY_TIMEOUT=5000
+
 touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
@@ -51,10 +61,19 @@ php artisan view:cache
 # handled in parallel rather than queuing behind a single process. This
 # targets the trigger condition directly, rather than trying to pre-warm
 # every place a corrupted cache could show up (tried and insufficient —
-# see this branch's commit history). Not independently proven the same
-# way (never reproduced locally to prove causation either way), but a
-# real, intended, supported concurrency mechanism regardless of whether
-# this specific theory is exactly right.
-export PHP_CLI_SERVER_WORKERS=4
+# see this branch's commit history).
+#
+# First attempt used 4 workers and confirmed the theory — CI went from
+# widespread "Internal Server Error" failures to only the pre-existing
+# documented autosave flake, and the job ran 5-6x faster (real parallelism,
+# not queuing). But the very next CI run crashed outright partway through
+# (cascading ERR_CONNECTION_REFUSED / ERR_EMPTY_RESPONSE across dozens of
+# unrelated tests) — 4 full PHP worker processes is real additional memory
+# pressure, and CI's runner has far fewer resources than a typical
+# development machine. Matching Playwright's own `workers: 2` in CI
+# (playwright.config.ts) keeps just enough real concurrency to avoid the
+# single-process request-queuing bottleneck without asking for more
+# processes than the suite itself ever has concurrent requests in flight.
+export PHP_CLI_SERVER_WORKERS=2
 
 exec php artisan serve --port="$PORT" --no-reload
