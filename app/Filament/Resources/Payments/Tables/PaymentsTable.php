@@ -248,7 +248,13 @@ class PaymentsTable
         $result = [];
 
         foreach ($allocations as $allocation) {
-            $result[$allocation['invoice_id']] = (float) $allocation['amount'];
+            // Codex review finding on PR #4: the repeater doesn't stop a
+            // user picking the same invoice twice — assigning (not
+            // summing) here silently dropped every row but the last for
+            // a repeated invoice_id, so the action validated and
+            // persisted a smaller total than what was actually entered
+            // while still reporting success.
+            $result[$allocation['invoice_id']] = ($result[$allocation['invoice_id']] ?? 0.0) + (float) $allocation['amount'];
         }
 
         return $result;
