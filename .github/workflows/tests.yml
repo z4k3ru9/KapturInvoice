@@ -63,7 +63,28 @@ jobs:
   browser-tests:
     runs-on: ubuntu-latest
 
-    name: Browser tests (Playwright)
+    name: Browser tests (Playwright) — ${{ matrix.project }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # One job per Playwright project instead of one `npx playwright
+        # test` invocation covering all of them: each project still runs
+        # with `workers: 1` (playwright.config.ts) — necessary because
+        # scripts/browser-test-server.sh's `php artisan serve` handles
+        # one request at a time and concurrent requests against it
+        # corrupt Filament's shared reflection cache, see that config's
+        # own comment — but forcing the ENTIRE ~185-test suite through
+        # one unbroken serial process took 90+ minutes on this CI runner
+        # and degraded partway through into every remaining test timing
+        # out (individual page loads stayed fast — the runner itself
+        # went idle for 60-90s between requests, not the app or the dev
+        # server), a resource-exhaustion pattern that a ~9 minute local
+        # run never runs long enough to hit. Splitting by project gives
+        # each its own fresh runner/browser/dev-server lifecycle, so any
+        # such degradation is bounded to one project's ~45 tests instead
+        # of accumulating across all four.
+        project: [desktop-light, desktop-dark, tablet-light, mobile-light]
 
     steps:
       - name: Checkout code
@@ -103,12 +124,12 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run browser tests against a fresh seeded build
-        run: npx playwright test
+        run: npx playwright test --project="${{ matrix.project }}"
 
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 14
