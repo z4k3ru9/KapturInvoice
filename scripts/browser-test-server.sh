@@ -17,26 +17,44 @@ touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
 
-# Pre-compile every Blade view (including vendor/Filament ones) before the
-# concurrent Playwright suite starts hitting this single-threaded dev
-# server. CI's "Browser tests" job failed twice, deterministically and
-# identically (56 failures, mostly "Internal Server Error: Undefined
-# variable $getColumnManagerApplyAction" — a Filament vendor view — on
-# essentially any page rendering a Filament table), on PR #4 commit
-# 422fe56. Extensive local reproduction (matching PHP 8.3.33 exactly, a
-# from-scratch `composer install`, fresh DB/Blade cache, CI's own
-# workers:2/retries:1) never reproduced it even once — only CI's own
-# 2-core runner did, both times. The leading theory: the very first
-# concurrent requests across several browser projects can race to
-# compile-and-cache the same never-before-rendered view (e.g. any
-# Filament table's index.blade.php) under real load on a more
-# resource-constrained runner than this sandbox's, corrupting that one
-# compiled-view cache entry for the rest of the run. Not independently
-# proven (the corruption itself was never directly observed), but
-# `view:cache` compiling every discoverable view once, sequentially, up
-# front is a standard, harmless Laravel practice regardless — it removes
-# the theorized race window entirely by construction. If CI is still red
-# after this, the theory above is wrong and needs revisiting.
+# Pre-compile every Blade view once, up front — harmless, standard
+# Laravel practice. (Does NOT by itself prevent the issue below: Blade
+# caching only transforms template syntax to PHP, it doesn't execute
+# views with real data, so it can't touch a runtime error.)
 php artisan view:cache
 
-exec php artisan serve --port="$PORT"
+# CI's "Browser tests" job failed three times running (56, then 56, then
+# 54 failures — "Internal Server Error: Undefined variable" on a Filament
+# vendor view, on essentially any page rendering a Filament table), never
+# once locally even after exhaustively matching CI's PHP version,
+# extensions, a from-scratch `composer install`, fresh DB/Blade cache, and
+# CI's own workers:2/retries:1. The specific missing variable differed
+# between runs ($getColumnManagerApplyAction, then $getFiltersFormWidth)
+# — both are plain public methods on the same `Filament\Tables\Table`
+# class, enumerated together by one `ReflectionClass::getMethods()` loop
+# in vendor/filament/support/src/Components/ComponentManager.php's
+# extractPublicMethods(), cached per-class for the lifetime of the PHP
+# process. A different missing variable each time means that loop itself
+# is getting cut off at a different point each run — consistent with a
+# request being interrupted mid-loop under real concurrent load, which
+# `php artisan serve`'s single request-at-a-time built-in server (this
+# app's own existing comments already document that limitation elsewhere)
+# is exactly the kind of bottleneck that produces: many browser projects'
+# concurrent requests queue up behind it, and a queued request that times
+# out server-side mid-render can plausibly abort PHP execution partway
+# through that same reflection loop, leaving its class-level cache
+# permanently, silently incomplete for every later request in the run.
+#
+# `PHP_CLI_SERVER_WORKERS` (needs `--no-reload`, Laravel's own supported
+# combination — see ServeCommand::initialize()) forks that many actual
+# worker processes instead of one, so concurrent requests are genuinely
+# handled in parallel rather than queuing behind a single process. This
+# targets the trigger condition directly, rather than trying to pre-warm
+# every place a corrupted cache could show up (tried and insufficient —
+# see this branch's commit history). Not independently proven the same
+# way (never reproduced locally to prove causation either way), but a
+# real, intended, supported concurrency mechanism regardless of whether
+# this specific theory is exactly right.
+export PHP_CLI_SERVER_WORKERS=4
+
+exec php artisan serve --port="$PORT" --no-reload
