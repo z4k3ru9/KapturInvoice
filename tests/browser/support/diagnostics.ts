@@ -32,7 +32,7 @@ function laravelLogSize(): number {
     }
 }
 
-function laravelLogSince(startSize: number, maxChars = 8_000): string {
+function laravelLogSince(startSize: number, maxChars = 30_000): string {
     try {
         const buffer = readFileSync(LARAVEL_LOG_PATH);
         const appended = buffer.subarray(Math.min(startSize, buffer.length)).toString('utf-8');
@@ -41,7 +41,18 @@ function laravelLogSince(startSize: number, maxChars = 8_000): string {
             return '(no new laravel.log content since navigation — the failure never reached Laravel\'s own exception handler)';
         }
 
-        return appended.length > maxChars ? `…(truncated)…\n${appended.slice(-maxChars)}` : appended;
+        if (appended.length <= maxChars) {
+            return appended;
+        }
+
+        // Laravel logs "ExceptionClass: message" followed by the stack
+        // trace deepest-frame-first (the code that actually threw comes
+        // first, framework/router plumbing last) — keep the HEAD, not the
+        // tail. A first attempt here kept the tail instead and captured
+        // 130+ frames of pure Illuminate\Routing/Pipeline bootstrap with
+        // the exception message and the actually-useful frames already
+        // cut away before they were ever written to the CI log.
+        return `${appended.slice(0, maxChars)}\n…(truncated — ${appended.length - maxChars} more chars omitted)…`;
     } catch (error) {
         return `[could not read laravel.log: ${String(error)}]`;
     }
