@@ -86,6 +86,7 @@ current count) and `vendor/bin/pint --test` before every push.
 | Statement of Account (Phase 06B Slice 1 — docs/rebuild/specs/06b-ux-browser-soa) | Opening balance combines a prior-period paid invoice and a prior-period verified payment; an invoice/credit/receipt/payment each land correctly in-period; a Void invoice stays visible but contributes 0 to the balance; an amended original never double-counts against its replacement; aging buckets correct for invoices at 10/45/75/120 days overdue; company/client scoping excludes other records; `GenerateStatementOfAccount` persists a numbered, immutable snapshot; the PDF route/view render in Bahasa and English and are forbidden for a user outside the owning company; a preview is never persisted | `StatementOfAccountTest` |
 | Remaining launch document A4 PDF coverage (Phase 06B Slice 1): Quotation (also the printed Customer Order Confirmation), Sales Order, Receipt, Vendor PO, Vendor Bill, Vendor Payment Receipt, Delivery Order, Handover Report, Tax Recap | Each renders in Bahasa (default) and English (explicit override); `IssueInvoice` assigns a `TAX`-coded number to a new `TaxRecap` on a taxable invoice, never on a non-taxable one | `SalesDocumentPdfTest`, `VendorDocumentPdfTest`, `TaxRecapPdfTest` |
 | Browser suite foundation (Phase 06B Slice 4) | Both seeded company domains resolve correctly under Playwright's simulated hosts, in both system color schemes; an unmatched host falls back rather than erroring; the seeded owner can log in and reach each company's tenant-scoped admin path | `tests/browser/smoke/*.spec.ts` (`npm run test:browser`), run in CI as a separate `browser-tests` job |
+| Full browser journeys and accessibility (Phase 06B Slice 5) — portal, documents, SOA, autosave, dynamic rows, dashboard scoping, states, WCAG 2.2 AA | A billing contact's portal link shows full invoice history and never another client's invoice by numeric id (never asserted by display text — both companies share literal fixture strings); an ordinary contact's link shows only explicitly-invited invoices; expired/revoked/replaced/cross-company/nonexistent portal links all 404 identically; Bahasa-default and English-override invoice PDFs download as real `%PDF` documents; generating and previewing a Statement of Account produce a real, downloadable PDF (generate) or a never-persisted preview URL, reconciled against the client's actual fixture data; a stale autosave from a second browser tab surfaces an explicit conflict (Discard/Keep-mine) rather than a silent overwrite; the Items table exposes a reorder entry point and a populated-row delete requires confirmation; the dashboard never links to another company's client/invoice by id and the Invoices list paginates; an empty search, a 404 record, and an unauthenticated visitor all show correct real states; a success toast auto-dismisses around its configured duration; axe-core WCAG 2.2 AA scans of the dashboard, invoice edit form, and public portal page report zero violations (one known, documented exception — see below) | `tests/browser/{portal,documents,dashboard,ux}/*.spec.ts`, run across `desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light` projects |
 | Draft autosave (Phase 06B Slice 3) — `App\Filament\Concerns\AutosavesDraft`, reference-implemented on `EditInvoice` | A field change persists via the real debounced Livewire wiring and advances `draft_version`; a stale save (server version moved) is rejected as an explicit conflict rather than silently merged, with the conflicting field values surfaced; discarding a conflict adopts the server's values, overwriting one forces the local edit through; a failed save (schema-level failure simulated) preserves the typed values and Retry re-attempts it; autosave is a no-op once the invoice leaves Draft status; a successful autosave never touches `status` or the derived `total`/`balance` columns | `InvoiceAutosaveTest` |
 | Dynamic row reordering (Phase 06B Slice 3) — `->reorderable('sort_order')` on the Invoice/Quotation/VendorBill/VendorPurchaseOrder Items relation managers | Dragging rows into a new order persists in one batched write and is reflected by the model's own `items()` ordering (and therefore its PDF) | `DynamicRowReorderTest` |
 
@@ -96,12 +97,24 @@ current count) and `vendor/bin/pint --test` before every push.
   `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`. A repository-owned
   Playwright suite now exists (`tests/browser/`, `playwright.config.ts`,
   `npm run test:browser`, wired into CI as a separate `browser-tests`
-  job) — see the coverage row above. It currently covers only Slice 4's
-  foundation smoke tests (both company domains, both color schemes,
-  admin login); Slice 5's full journey/accessibility coverage (portal,
-  documents, SOA, autosave, dynamic rows, dashboard, notifications, WCAG
-  2.2 AA, responsive viewports) is still open — don't read the smoke
-  coverage as satisfying that requirement.
+  job) — see the coverage rows above. Both Slice 4 (foundation smoke
+  tests) and Slice 5 (full journey/accessibility coverage: portal,
+  documents, SOA, autosave, dynamic rows, dashboard, states, WCAG 2.2 AA)
+  are now built and green across all four projects (`desktop-light`/
+  `desktop-dark`/`tablet-light`/`mobile-light`). Two things Slice 5 found
+  and deliberately did NOT build a fix for this pass, flagged rather than
+  silently dropped: toast deduplication (DESIGN.md §9 — Filament has no
+  built-in mechanism, and every call site would need a stable `id()`
+  scheme); Filament's stock `.fi-select-input-value-remove-btn`
+  (16x16px, under the WCAG 2.2 24x24 minimum target size) — fixing it
+  needs a custom Filament panel theme, filtered explicitly (with a
+  comment) in `tests/browser/ux/accessibility.spec.ts`'s invoice-edit-
+  form scan rather than silently passed. Also still open, per
+  `docs/filament-admin-layout-design.md` §7.05: the embedded-Repeater
+  "add a blank row after meaningful content / remove an untouched blank
+  row" behavior DESIGN.md §5 describes — this project's line editing is
+  RelationManager-plus-modal, which has no such concept; the two
+  corresponding tests are `test.fixme()`, not silently passing.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.
