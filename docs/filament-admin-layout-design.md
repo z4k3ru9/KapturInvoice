@@ -777,6 +777,17 @@ was always the point — see §5, item 10.
   attribute-bag bug, not something in this app's control). None of these
   three run expensive queries, so disabling lazy-loading has no real
   performance cost here — flagged in case a future widget does need it.
+  **Every `RelationManager` in the app gets the same `$isLazy = false`
+  treatment now too** (found via Phase 06B Slice 5 browser testing): the
+  SAME lazy-loading mechanism (`Filament\Support\Concerns\CanBeLazy`)
+  never actually initializes a relation manager tab on a genuine full
+  page load/refresh — only on Livewire's own `wire:navigate` soft
+  navigation — leaving the tab stuck on its "Loading..." placeholder
+  forever, with no Livewire request ever firing to mount it. This was a
+  real, previously-undiscovered production bug (any user bookmarking or
+  refreshing a resource's Edit/View page hit it), not just a Playwright
+  quirk — confirmed live via a bare `page.goto()` outside the test suite
+  before the fix, and again after.
 - **`JobMarginReport`** (`TableWidget`, Phase 06 —
   06-documents-portal-reporting) — the job-cost/margin report deferred
   from Phase 05's acceptance criteria. Lists every job with its sales

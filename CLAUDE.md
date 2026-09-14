@@ -367,9 +367,35 @@ Or just `composer setup` (runs the same steps via the composer script).
     a genuine UI-pattern replacement across several resources, not a
     slice-sized addition. Flagged here rather than silently built or
     silently dropped; needs an explicit decision before undertaking it.
-  - Still open: Slice 5 (the full browser journey/accessibility coverage
-    beyond the Slice 4 smoke tests). Slices 1, 2, and 3 (mostly — see the
-    flagged gap above) are done.
+  - **Slice 5 (full browser journeys and accessibility)** — the
+    remaining `tests/browser/` coverage beyond Slice 4's smoke tests:
+    portal journeys (billing/ordinary contact, cross-company/client,
+    expired/revoked/replaced links), A4 PDF preview/download in
+    Bahasa+English, SOA preview/generate/reconcile, autosave success/
+    stale-conflict, dynamic row reorder/delete-confirmation, dashboard/
+    report pagination+scoping, loading/empty/restricted/404 states,
+    toast timing, and axe-core WCAG 2.2 AA scans (dashboard, invoice
+    edit form, public portal) — green across all four projects
+    (`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`).
+    Building it surfaced three real, previously-unknown app bugs, now
+    fixed: every Filament `RelationManager`'s lazy loading never actually
+    initializes on a genuine full page load (only on `wire:navigate` soft
+    navigation), leaving a tab stuck on "Loading..." forever — same root
+    cause already documented above for the three dashboard widgets, same
+    fix (`$isLazy = false`) applied to all 17 relation managers; the
+    public portal's invoice status badges (TallStackUI's `<x-badge>`,
+    "solid" style) fail WCAG contrast for every named color at that
+    weight, fixed with a dedicated
+    `resources/views/components/portal/status-badge.blade.php`
+    (bg-100/text-800); the Invoice Items table's empty "Taxes" column
+    wrapped a clickable-row button with zero accessible text, fixed via
+    `getStateUsing()` rendering a real "No tax" `.fi-badge` pill (not
+    `->placeholder()`, which surfaced its own contrast failure via
+    Filament's `.fi-ta-placeholder` default). Flagged, not fixed (see
+    `docs/testing-coverage.md`): toast deduplication, and Filament's
+    stock 16x16px `.fi-select-input-value-remove-btn` (needs a custom
+    panel theme to fix, out of scope this pass). Slices 1-4 are done —
+    Phase 06B is now complete per its own hard completion gate.
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -685,6 +711,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 355 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B Slices 1-4 (in progress) — see docs/testing-coverage.md
+php artisan test      # 355 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
