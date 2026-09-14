@@ -436,11 +436,15 @@ Or just `composer setup` (runs the same steps via the composer script).
     tablet/mobile width) — all three need a custom Filament panel theme/
     template override, out of scope this pass. The full four-project
     suite (`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`)
-    has one remaining known flake: the two-tab autosave stale-conflict
-    test occasionally exceeds even a 25s wait under the full suite's
-    combined load on this app's single-threaded `php artisan serve` dev
-    server — reproduces only under that specific heaviest-possible
-    concurrency, passes reliably standalone, and CI's own
+    has one remaining known flake: `documents/autosave.spec.ts`'s
+    two-tab stale-conflict test occasionally exceeds even a 25s wait
+    when multiple Playwright projects run concurrently against this
+    app's single-threaded `php artisan serve` dev server, which queues
+    their requests behind each other — verified by re-running the file
+    under every combination of concurrently-running projects: any
+    project can be the one that times out (whichever one's request
+    happens to be queued behind another's), and every project passes
+    reliably when run alone against its own server instance. CI's own
     `retries: 1` (already configured, unrelated to this finding) absorbs
     it there. Slices 1-4 are done — Phase 06B is now complete per its
     own hard completion gate.
