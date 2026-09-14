@@ -67,7 +67,16 @@ export default defineConfig({
     // has been reliably stable throughout this branch's whole history.
     workers: process.env.CI ? 1 : undefined,
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
-    timeout: 30_000,
+    // Wider in CI: under workers:1 above, every test's wall-clock time is
+    // directly exposed to raw CPU speed (nothing else is running
+    // concurrently to blame for slowness) — a small development sandbox
+    // and a shared GitHub Actions runner are not equally fast per core,
+    // and 30s occasionally wasn't enough even for otherwise-ordinary
+    // tests once concurrency stopped masking that gap. `retries: 1`
+    // still exists for genuine flakes; this is about giving a real,
+    // consistently slower environment enough room to finish a test that
+    // was never actually hung.
+    timeout: process.env.CI ? 60_000 : 30_000,
     use: {
         baseURL: BASE_URL,
         trace: 'retain-on-failure',

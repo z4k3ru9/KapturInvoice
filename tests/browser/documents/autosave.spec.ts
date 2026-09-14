@@ -52,21 +52,29 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         await gotoAdminPage(pageA, editUrl);
         await gotoAdminPage(pageB, editUrl);
 
-        // Tab A saves first, advancing the server's draft_version.
+        // Tab A saves first, advancing the server's draft_version. The
+        // value must be unique per run: this fixture invoice is shared
+        // across every project in the suite (never reset in between —
+        // only one `migrate:fresh --seed` for the whole run), and
+        // Livewire's `->live()` binding only sends an update when the
+        // field's value actually differs from what the server already
+        // has. A literal, unchanging string here meant every project
+        // after the first saw no real change, so `afterStateUpdated`
+        // (and therefore `autosaveDraft()`) never fired at all — not a
+        // slow request, but one that was never sent, confirmed via a
+        // request-level trace showing zero server-side calls for this
+        // record on every failing retry.
         const termsA = pageA.getByLabel('Terms').first();
-        await termsA.fill('Saved from tab A first');
+        await termsA.fill(`Saved from tab A first — ${testInfo.project.name} ${Date.now()}`);
         await termsA.blur();
-        // Widened further under the full four-project suite's combined
-        // load (this app's single-threaded dev server queues requests
-        // from every concurrently-running project) — see the timeout
-        // note above.
         await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 25_000 });
+        const termsAValue = await termsA.inputValue();
 
         // Tab B still thinks it has the original version — its own
         // autosave must now detect the conflict rather than clobber A's
         // save.
         const termsB = pageB.getByLabel('Terms').first();
-        await termsB.fill('Tab B never saw tab A\'s change');
+        await termsB.fill(`Tab B never saw tab A's change — ${Date.now()}`);
         await termsB.blur();
 
         await expect(pageB.getByText('This draft was changed elsewhere while you were editing.')).toBeVisible({ timeout: 15_000 });
@@ -74,7 +82,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         await expect(pageB.getByRole('button', { name: 'Keep my changes anyway' })).toBeVisible();
 
         await pageB.getByRole('button', { name: 'Discard my changes' }).click();
-        await expect(termsB).toHaveValue('Saved from tab A first');
+        await expect(termsB).toHaveValue(termsAValue);
     } finally {
         await contextA.close();
         await contextB.close();
