@@ -4,8 +4,10 @@ namespace App\Actions\Sales;
 
 use App\Enums\CompanyRole;
 use App\Enums\InvoiceStatus;
+use App\Models\JobCostAllocation;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Models\VendorBillItem;
 use App\Services\AuditLogger;
 use RuntimeException;
 
@@ -22,6 +24,15 @@ use RuntimeException;
  * receivable. Independent of operational closure — see
  * App\Actions\Sales\CloseJobOperationally and
  * App\Models\SalesOrder::isFullyClosed().
+ *
+ * "Unknown vendor cost" also gates the override — a Codex review finding
+ * on PR #4: a job with zero outstanding customer balance but genuinely
+ * unresolved purchasing cost still closed cleanly, so its margin
+ * (App\Filament\Widgets\JobMarginReport) could be finalized on an
+ * unreliable number. Reuses that same widget's own "unallocated
+ * purchasing cost" definition: the remainder of every VendorBillItem
+ * touching this job (via at least one JobCostAllocation) that isn't yet
+ * allocated anywhere, across every job that item touches.
  */
 class CloseJobFinancially
 {
@@ -42,10 +53,17 @@ class CloseJobFinancially
             ->whereNotIn('status', [InvoiceStatus::Void, InvoiceStatus::Amended, InvoiceStatus::Cancelled])
             ->sum('balance'), 2);
 
-        if ($outstandingBalance > 0.01) {
+        $unresolvedVendorCost = $this->unresolvedVendorCost($salesOrder);
+
+        if ($outstandingBalance > 0.01 || $unresolvedVendorCost > 0.01) {
             if (! $override) {
+                $reasons = array_filter([
+                    $outstandingBalance > 0.01 ? "an outstanding customer balance of {$outstandingBalance}" : null,
+                    $unresolvedVendorCost > 0.01 ? "unresolved vendor cost of {$unresolvedVendorCost}" : null,
+                ]);
+
                 throw new RuntimeException(
-                    "Financial closure is blocked by an outstanding customer balance of {$outstandingBalance}; use the override with Owner authorization and a reason."
+                    'Financial closure is blocked by '.implode(' and ', $reasons).'; use the override with Owner authorization and a reason.'
                 );
             }
 
@@ -64,6 +82,7 @@ class CloseJobFinancially
 
         if ($override) {
             $after['outstanding_balance'] = (string) $outstandingBalance;
+            $after['unresolved_vendor_cost'] = (string) $unresolvedVendorCost;
             $after['summary'] = $outstandingBalanceSummary;
         }
 
@@ -77,5 +96,25 @@ class CloseJobFinancially
         );
 
         return $salesOrder->fresh();
+    }
+
+    private function unresolvedVendorCost(SalesOrder $salesOrder): float
+    {
+        $itemIds = JobCostAllocation::query()
+            ->where('sales_order_id', $salesOrder->id)
+            ->pluck('vendor_bill_item_id')
+            ->unique();
+
+        if ($itemIds->isEmpty()) {
+            return 0.0;
+        }
+
+        return round(
+            VendorBillItem::query()
+                ->whereIn('id', $itemIds)
+                ->get()
+                ->sum(fn (VendorBillItem $item) => $item->unallocatedAmount()),
+            2
+        );
     }
 }

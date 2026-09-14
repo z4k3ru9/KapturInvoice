@@ -67,25 +67,51 @@ trait AutosavesDraft
 
         $this->autosaveStatus = 'saving';
 
-        $freshVersion = (int) $record->newQuery()
-            ->whereKey($record->getKey())
-            ->value('draft_version');
-
-        if ($freshVersion !== $this->autosaveKnownVersion) {
-            $this->flagAutosaveConflict($record, $freshVersion);
-
-            return;
-        }
-
         try {
+            // A Codex review finding on PR #4: reading `draft_version`
+            // and then, in a separate step, unconditionally writing
+            // `draft_version + 1` left a window in which two concurrent
+            // autosaves could both read the same version, both pass the
+            // comparison, and then both save — the later write silently
+            // clobbering the earlier one while both tabs report
+            // "saved". The version check and the write must be one
+            // atomic operation: a single conditional UPDATE whose WHERE
+            // clause repeats the known version, so the database itself
+            // (not two round trips from this process) decides whether
+            // the guard still held at write time. An affected-row count
+            // of zero means someone else's write already moved the
+            // version out from under us — even a MySQL/Postgres row
+            // lock from a separate read-then-write couldn't close that
+            // window the way conditioning the UPDATE itself does; only
+            // genuine concurrent database connections can actually
+            // exercise this race, which a single-threaded PHPUnit
+            // process cannot reproduce — the guarantee is verified here
+            // by exercising the same code path, and end-to-end by
+            // tests/browser/documents/autosave.spec.ts's two-tab test.
             $fields = $this->collectAutosaveFieldValues();
+            $knownVersion = $this->autosaveKnownVersion;
 
-            $record->forceFill([
-                ...$fields,
-                'draft_version' => $freshVersion + 1,
-            ])->saveQuietly();
+            $affected = $record->newQuery()
+                ->whereKey($record->getKey())
+                ->where('draft_version', $knownVersion)
+                ->update([
+                    ...$fields,
+                    'draft_version' => $knownVersion + 1,
+                ]);
 
-            $this->autosaveKnownVersion = $freshVersion + 1;
+            if ($affected === 0) {
+                $freshVersion = (int) $record->newQuery()
+                    ->whereKey($record->getKey())
+                    ->value('draft_version');
+
+                $this->flagAutosaveConflict($record, $freshVersion);
+
+                return;
+            }
+
+            $record->forceFill([...$fields, 'draft_version' => $knownVersion + 1]);
+
+            $this->autosaveKnownVersion = $knownVersion + 1;
             $this->autosaveStatus = 'saved';
             $this->autosaveError = null;
         } catch (Throwable $e) {

@@ -86,10 +86,20 @@ class ClientsTable
                     'period_end' => Carbon::parse($data['period_end'])->toDateString(),
                 ]);
 
+                // Codex review finding on PR #4: a raw URL in a
+                // 4-second-then-gone notification body made the user
+                // manually copy it before it vanished. A persistent
+                // notification carrying a real clickable "Open preview"
+                // action opens the PDF directly instead.
                 Notification::make()
-                    ->success()->seconds(4)
+                    ->success()->persistent()
                     ->title('Statement of Account preview ready')
-                    ->body($url)
+                    ->actions([
+                        Action::make('open')
+                            ->label('Open preview')
+                            ->url($url)
+                            ->openUrlInNewTab(),
+                    ])
                     ->send();
             });
     }
@@ -114,10 +124,22 @@ class ClientsTable
                     Auth::user(),
                 );
 
+                // Same fix as the preview action above — a clickable,
+                // persistent "Open PDF" action instead of a raw URL that
+                // vanishes with the notification. The generated statement
+                // is also always reopenable later from the client's own
+                // Statements of Account relation manager (it's a real
+                // persisted row, unlike a preview).
                 Notification::make()
-                    ->success()->seconds(4)
+                    ->success()->persistent()
                     ->title('Statement of Account generated')
-                    ->body(route('statement-of-accounts.pdf', $statementOfAccount))
+                    ->body("Number: {$statementOfAccount->number}")
+                    ->actions([
+                        Action::make('open')
+                            ->label('Open PDF')
+                            ->url(route('statement-of-accounts.pdf', $statementOfAccount))
+                            ->openUrlInNewTab(),
+                    ])
                     ->send();
             });
     }

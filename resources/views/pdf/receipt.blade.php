@@ -7,6 +7,23 @@
 
     $payment = $receipt->payment;
     $client = $payment->client;
+
+    // Render from the frozen `snapshot` captured at issuance
+    // (App\Actions\Receivables\IssuePaymentReceipt) — never the payment's
+    // live, potentially-since-amended allocations. A receipt issued
+    // before this snapshot existed falls back to the live data it always
+    // rendered from, rather than showing blank amounts.
+    $snapshot = $receipt->snapshot;
+    $amount = $snapshot['amount'] ?? $payment->amount;
+    $currencyCode = $snapshot['currency_code'] ?? $payment->currency_code;
+    $method = $snapshot['method'] ?? $payment->method;
+    $reference = $snapshot['reference'] ?? $payment->reference;
+    $allocationRows = $snapshot['allocations']
+        ?? $payment->allocations->map(fn ($allocation) => [
+            'invoice_number' => $allocation->invoice?->number,
+            'amount' => $allocation->amount,
+            'is_active' => $allocation->is_active,
+        ])->all();
 @endphp
 <!DOCTYPE html>
 <html>
@@ -80,17 +97,17 @@
     <table class="totals">
         <tr>
             <td>{{ __('documents.receipt_method') }}</td>
-            <td class="text-right">{{ $payment->method }}</td>
+            <td class="text-right">{{ $method }}</td>
         </tr>
-        @if ($payment->reference)
+        @if ($reference)
             <tr>
                 <td>{{ __('documents.receipt_reference') }}</td>
-                <td class="text-right">{{ $payment->reference }}</td>
+                <td class="text-right">{{ $reference }}</td>
             </tr>
         @endif
         <tr class="total">
             <td>{{ __('documents.receipt_amount') }}</td>
-            <td class="text-right">{{ $payment->currency_code }} {{ number_format($payment->amount, 2) }}</td>
+            <td class="text-right">{{ $currencyCode }} {{ number_format($amount, 2) }}</td>
         </tr>
     </table>
 
@@ -104,15 +121,15 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($payment->allocations as $allocation)
+                @forelse ($allocationRows as $row)
                     <tr>
                         <td>
-                            {{ $allocation->invoice?->number }}
-                            @if (! $allocation->is_active)
+                            {{ $row['invoice_number'] }}
+                            @if (! $row['is_active'])
                                 <span class="muted">({{ __('documents.receipt_allocation_superseded') }})</span>
                             @endif
                         </td>
-                        <td class="text-right">{{ $payment->currency_code }} {{ number_format($allocation->amount, 2) }}</td>
+                        <td class="text-right">{{ $currencyCode }} {{ number_format($row['amount'], 2) }}</td>
                     </tr>
                 @empty
                     <tr>

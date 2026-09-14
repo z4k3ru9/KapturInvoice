@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Proposal;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\StatementOfAccount;
 use App\Models\TaxRecap;
 use App\Models\VendorBill;
 use App\Models\VendorPaymentReceipt;
@@ -43,6 +44,20 @@ class DownloadPdfAction
             ->openUrlInNewTab();
     }
 
+    /**
+     * ⚠️ For a Table row whose own record genuinely IS a TaxRecap (this
+     * app has no such resource/table today — TaxRecap is only ever shown
+     * on an Invoice's Infolist). NEVER pair this with `->record(fn
+     * (Invoice $record): ?TaxRecap => $record->taxRecap)` to reuse it on
+     * an Invoice-bound schema — overriding an Infolist Section header
+     * action's own bound record that way hangs the whole page in
+     * infinite recursion (a real bug found and fixed on
+     * App\Filament\Resources\Invoices\Schemas\InvoiceInfolist's own Tax
+     * Recap section, which now builds its download action directly
+     * instead). Confirmed via a direct HTTP request to an issued taxable
+     * invoice's View page — reproduces independent of any Codex-review
+     * fix in this same PR.
+     */
     public static function taxRecap(): Action
     {
         return Action::make('downloadPdf')
@@ -132,6 +147,15 @@ class DownloadPdfAction
             ->label('Download PDF')
             ->icon(Heroicon::OutlinedDocumentArrowDown)
             ->url(fn (HandoverReport $record) => route('handover-reports.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function statementOfAccount(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (StatementOfAccount $record) => route('statement-of-accounts.pdf', $record))
             ->openUrlInNewTab();
     }
 }

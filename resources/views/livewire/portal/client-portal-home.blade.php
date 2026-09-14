@@ -65,20 +65,21 @@
                                         @endif
                                     </td>
                                 </tr>
-                                @if ($invoice->payments->isNotEmpty())
+                                @php $paymentEvents = $this->paymentEventsFor($invoice); @endphp
+                                @if (! empty($paymentEvents))
                                     <tr class="border-b border-gray-100 dark:border-gray-800/60">
                                         <td colspan="6" class="pb-3 pl-4 text-xs text-gray-500 dark:text-gray-400">
                                             <div class="space-y-1">
-                                                @foreach ($invoice->payments as $payment)
+                                                @foreach ($paymentEvents as $event)
                                                     <div class="flex justify-between">
                                                         <span>
-                                                            {{ $payment->payment_date?->toFormattedDateString() ?? $payment->created_at->toFormattedDateString() }}
-                                                            — {{ $payment->method ?: 'Payment' }}
-                                                            @if ($payment->receipt)
-                                                                (Receipt {{ $payment->receipt->number }})
+                                                            {{ $event['date']?->toFormattedDateString() ?? '-' }}
+                                                            — {{ $event['method'] ?: 'Payment' }}
+                                                            @if ($event['receipt_number'])
+                                                                (Receipt {{ $event['receipt_number'] }})
                                                             @endif
                                                         </span>
-                                                        <span class="font-medium">{{ $invoice->currency_code }} {{ number_format($payment->amount, 2) }}</span>
+                                                        <span class="font-medium">{{ $invoice->currency_code }} {{ number_format($event['amount'], 2) }}</span>
                                                     </div>
                                                 @endforeach
                                             </div>

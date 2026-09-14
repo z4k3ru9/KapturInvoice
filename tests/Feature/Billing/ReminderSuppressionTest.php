@@ -80,6 +80,38 @@ class ReminderSuppressionTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_a_suppression_recorded_well_before_its_target_date_still_holds(): void
+    {
+        // Codex review finding on PR #4: the command used to match a
+        // suppression only if `suppressed_at >= now()->subDay()`, so one
+        // recorded more than 24h before its actual target send date would
+        // already be "too old" by the time that date arrived and the
+        // reminder would be sent anyway.
+        Mail::fake();
+
+        $owner = $this->userWithRole('owner');
+        $suppression = app(SuppressReminder::class)->suppress($this->invoice, 1, 'Suppressed well in advance', $owner);
+        $suppression->forceFill(['suppressed_at' => now()->subDays(5)])->save();
+
+        Artisan::call('invoices:send-reminders');
+
+        Mail::assertNothingSent();
+        $this->assertNotNull($suppression->fresh()->consumed_at);
+    }
+
+    public function test_a_consumed_suppression_does_not_block_a_later_occurrence(): void
+    {
+        Mail::fake();
+
+        $owner = $this->userWithRole('owner');
+        $suppression = app(SuppressReminder::class)->suppress($this->invoice, 1, 'Suppressed once', $owner);
+        $suppression->forceFill(['consumed_at' => now()->subDay()])->save();
+
+        Artisan::call('invoices:send-reminders');
+
+        Mail::assertSent(CompanyTemplatedMail::class, 1);
+    }
+
     public function test_an_unsuppressed_tier_still_sends_normally(): void
     {
         Mail::fake();

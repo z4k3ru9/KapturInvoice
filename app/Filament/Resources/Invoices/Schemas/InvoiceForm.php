@@ -66,6 +66,20 @@ class InvoiceForm
                             ->options(InvoiceStatus::class)
                             ->default(InvoiceStatus::Draft)
                             ->required()
+                            // Codex review finding on PR #4: the helper
+                            // text alone didn't stop a direct save from
+                            // setting one of these action-owned states —
+                            // saving Issued this way would bypass
+                            // App\Actions\Billing\IssueInvoice entirely
+                            // (no number, no tax snapshot, no audit
+                            // event). Disabled, not removed, so an
+                            // already-Issued/Void/Amended record still
+                            // displays its real status correctly.
+                            ->disableOptionWhen(fn (string $value): bool => in_array($value, [
+                                InvoiceStatus::Issued->value,
+                                InvoiceStatus::Void->value,
+                                InvoiceStatus::Amended->value,
+                            ], true))
                             ->helperText('Issued/Void/Amended states are reached only through the Issue/Amend/Void & reissue table actions, never here.'),
                         Select::make('pricing_mode')
                             ->label('Pricing mode')

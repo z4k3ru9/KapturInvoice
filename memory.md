@@ -12,13 +12,23 @@ re-run completed audits unless new evidence contradicts them.
 - The application is being rebuilt progressively; do not begin broad rewrites
   or deferred features without an approved change request.
 - Working branch `claude/invoiceninja-schema-reference-6s9aqc` has
-  implemented and verified Phases 01-06B (370 PHP tests, migrations clean,
+  implemented and verified Phases 01-06B (409 PHP tests, migrations clean,
   Pint clean, `npm run build` clean, Playwright browser suite green across
   all four projects — desktop-light/desktop-dark/tablet-light/mobile-light).
   Phase 06B (`docs/rebuild/specs/06b-ux-browser-soa/Specs.md`) is complete
   per its own hard completion gate — see
   `docs/rebuild/outputs/23-phase-06b-checkpoint-report.md` for the full
-  slice-by-slice report and every real bug found/fixed.
+  slice-by-slice report and every real bug found/fixed there, and CLAUDE.md's
+  own Phase 06B section for the later Codex-review round (20 findings, all
+  fixed — role/lifecycle-state lockdowns, numbering-period, SOA
+  balance/aging, receipt/vendor-payment-receipt issuance snapshots,
+  autosave atomicity, portal payment history, TaxRecap filing/adjustment —
+  plus one further real bug found independently while wiring the last of
+  those: an Infolist Section header action's `->record()` override hanging
+  the Invoice View page in infinite recursion for any issued taxable
+  invoice).
+- PR #4 (`claude/invoiceninja-schema-reference-6s9aqc` → `main`) is open,
+  covering all of Phase 06B plus the Codex-review round above.
 - `main` independently gained two more merged PRs after this branch's
   original PR #1 (a dependabot bump, and "Quotation auto-expiry, KJA company
   code ratification, Laravel Boost") while this branch was mid-flight on
@@ -27,8 +37,6 @@ re-run completed audits unless new evidence contradicts them.
   this branch's own commit history for detail) rather than rebasing, so as
   not to rewrite shared history. This branch is a strict superset of `main`
   as of that merge (`git merge-base --is-ancestor origin/main HEAD` holds).
-  A pull request from this branch back into `main` is the next step to make
-  that superset the new authoritative `main`.
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior

@@ -108,6 +108,31 @@ class PaymentWorkflowTest extends TestCase
         $this->assertSame(InvoiceStatus::Paid, $invoiceB->fresh()->status);
     }
 
+    public function test_allocating_before_verification_still_recalculates_the_invoice_once_verified(): void
+    {
+        // Codex review finding on PR #4: the "Allocate" table action is
+        // visible for any payment with no receipt yet — including a
+        // still-Pending one — but AllocateCustomerPayment's own
+        // recalculation naturally sums to 0 for a Pending payment
+        // (RecalculateInvoiceReceivables only counts Verified payments).
+        // VerifyCustomerPayment used to never re-trigger that
+        // recalculation, so the invoice stayed stale forever.
+        $invoice = $this->makeInvoice(500);
+        $payment = $this->recordPayment(500);
+
+        app(AllocateCustomerPayment::class)->allocate($payment->fresh(), [$invoice->id => 500]);
+
+        // Still Pending — recalculation counted nothing yet.
+        $this->assertSame('0.00', $invoice->fresh()->amount_paid);
+
+        $owner = $this->userWithRole('owner');
+        app(VerifyCustomerPayment::class)->verify($payment->fresh(), $owner);
+
+        $this->assertSame('500.00', $invoice->fresh()->amount_paid);
+        $this->assertSame('0.00', $invoice->fresh()->balance);
+        $this->assertSame(InvoiceStatus::Paid, $invoice->fresh()->status);
+    }
+
     public function test_partial_allocation_leaves_invoice_partially_paid(): void
     {
         $invoice = $this->makeInvoice(1000);
@@ -273,6 +298,14 @@ class PaymentWorkflowTest extends TestCase
         $receipt->refresh();
         $this->assertSame($originalNumber, $receipt->number);
         $this->assertSame($originalIssuedAt, $receipt->issued_at->toDateTimeString());
+
+        // Codex review finding on PR #4: downloading the receipt PDF
+        // used to re-render the payment's *live* allocations, so it
+        // would have shown the post-amendment two-invoice split rather
+        // than what was true when the receipt was actually issued.
+        $this->assertCount(1, $receipt->snapshot['allocations']);
+        $this->assertSame($invoiceA->number, $receipt->snapshot['allocations'][0]['invoice_number']);
+        $this->assertSame('1000.00', $receipt->snapshot['allocations'][0]['amount']);
 
         $this->assertSame('600.00', $invoiceA->fresh()->amount_paid);
         $this->assertSame('400.00', $invoiceB->fresh()->amount_paid);

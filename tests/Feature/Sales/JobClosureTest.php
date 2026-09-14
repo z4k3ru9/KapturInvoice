@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Sales;
 
+use App\Actions\Procurement\AllocateJobCost;
 use App\Actions\Sales\CloseJobFinancially;
 use App\Actions\Sales\CloseJobOperationally;
 use App\Enums\InvoiceStatus;
@@ -13,6 +14,10 @@ use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorBill;
+use App\Models\VendorBillItem;
+use App\Models\VendorPurchaseOrder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\TestCase;
@@ -144,6 +149,65 @@ class JobClosureTest extends TestCase
         $this->makeInvoice($job, 1000, 0);
         $voided = $this->makeInvoice($job, 500, 500);
         $voided->forceFill(['status' => InvoiceStatus::Void])->save();
+
+        $closed = app(CloseJobFinancially::class)->close($job, $owner);
+
+        $this->assertNotNull($closed->financial_closed_at);
+    }
+
+    public function test_financial_closure_is_blocked_by_unresolved_vendor_cost_even_with_zero_customer_balance(): void
+    {
+        // Codex review finding on PR #4: "unknown vendor cost" is part of
+        // the same override gate as an outstanding customer balance
+        // (FINALIZED-DECISIONS.md §4), but the code only ever checked the
+        // customer side — a job with zero AR but a partially-allocated
+        // vendor bill item still closed cleanly.
+        $job = $this->makeJob();
+        $owner = $this->userWithRole('owner');
+        $this->makeInvoice($job, 1000, 0);
+
+        $vendor = Vendor::create(['company_id' => $this->company->id, 'name' => 'Test Vendor']);
+        $po = VendorPurchaseOrder::create(['company_id' => $this->company->id, 'vendor_id' => $vendor->id, 'number' => 'ACM-VPO-0001', 'total' => 1000]);
+        $bill = VendorBill::create(['company_id' => $this->company->id, 'vendor_id' => $vendor->id, 'vendor_purchase_order_id' => $po->id, 'number' => 'ACM-VBL-0001', 'total' => 1000]);
+        $item = VendorBillItem::create([
+            'vendor_bill_id' => $bill->id,
+            'title' => 'Cabling materials',
+            'quantity' => 1,
+            'unit_cost' => 1000,
+            'net_amount' => 1000,
+            'tax_amount' => 0,
+            'line_total' => 1000,
+        ]);
+
+        // Only 600 of the item's 1000 is allocated to this job — 400
+        // remains genuinely unresolved.
+        app(AllocateJobCost::class)->allocate($item, $job, 600);
+
+        $this->expectException(RuntimeException::class);
+
+        app(CloseJobFinancially::class)->close($job, $owner);
+    }
+
+    public function test_financial_closure_succeeds_once_vendor_cost_is_fully_allocated(): void
+    {
+        $job = $this->makeJob();
+        $owner = $this->userWithRole('owner');
+        $this->makeInvoice($job, 1000, 0);
+
+        $vendor = Vendor::create(['company_id' => $this->company->id, 'name' => 'Test Vendor']);
+        $po = VendorPurchaseOrder::create(['company_id' => $this->company->id, 'vendor_id' => $vendor->id, 'number' => 'ACM-VPO-0002', 'total' => 1000]);
+        $bill = VendorBill::create(['company_id' => $this->company->id, 'vendor_id' => $vendor->id, 'vendor_purchase_order_id' => $po->id, 'number' => 'ACM-VBL-0002', 'total' => 1000]);
+        $item = VendorBillItem::create([
+            'vendor_bill_id' => $bill->id,
+            'title' => 'Cabling materials',
+            'quantity' => 1,
+            'unit_cost' => 1000,
+            'net_amount' => 1000,
+            'tax_amount' => 0,
+            'line_total' => 1000,
+        ]);
+
+        app(AllocateJobCost::class)->allocate($item, $job, 1000);
 
         $closed = app(CloseJobFinancially::class)->close($job, $owner);
 

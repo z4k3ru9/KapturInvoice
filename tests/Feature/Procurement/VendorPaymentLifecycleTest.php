@@ -232,6 +232,35 @@ class VendorPaymentLifecycleTest extends TestCase
         $this->assertSame(['amount' => '900000.00'], $amendment->changes_after);
         $this->assertSame($originalNumber, $receipt->fresh()->number);
         $this->assertSame('900000.00', $bill->fresh()->amount_paid);
+
+        // Codex review finding on PR #4: downloading the receipt PDF
+        // used to re-render `vendor_payments.amount` live, so it would
+        // have shown 900000 (the amended amount) rather than what was
+        // true when the receipt was actually issued.
+        $this->assertSame('1000000.00', $receipt->fresh()->snapshot['amount']);
+    }
+
+    public function test_amending_a_payment_above_the_po_payment_ceiling_is_rejected(): void
+    {
+        // Codex review finding on PR #4: AmendVendorPayment used to save
+        // any amount unconditionally, bypassing the same PO-wide payment
+        // ceiling RecordVendorPayment enforces at record time.
+        $bill = $this->makeApprovedBill(1000000);
+        $owner = $this->company->users()->wherePivot('role', 'owner')->first();
+
+        $payment = app(RecordVendorPayment::class)->record($bill, [
+            'amount' => 1000000,
+            'payment_date' => now(),
+            'proof_path' => 'vendor-payment-proofs/proof.pdf',
+        ]);
+        app(VerifyVendorPayment::class)->verify($payment, $owner);
+        app(IssueVendorPaymentReceipt::class)->issue($payment->fresh());
+
+        $this->expectException(RuntimeException::class);
+
+        // The PO's total (and so its ceiling, absent any variance) is
+        // exactly 1,000,000 — raising this payment to 1,200,000 exceeds it.
+        app(AmendVendorPayment::class)->amend($payment->fresh(), 1200000.0, 'Should be rejected', $owner);
     }
 
     public function test_amending_an_unreceipted_payment_is_rejected(): void

@@ -2,11 +2,13 @@
 
 namespace App\Actions\Billing;
 
+use App\Enums\CompanyRole;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\DocumentNumberGenerator;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +16,16 @@ use RuntimeException;
 
 /**
  * "Corrections use amendment or void-and-reissue with reason and new
- * number." — docs/rebuild/specs/FINALIZED-DECISIONS.md §2. Unlike
- * App\Actions\Billing\AmendIssuedInvoice, the replacement invoice gets a
- * brand-new number from the plain `invoice` sequence (not `invoice_amendment`
- * / `INV-A`) — a void-and-reissue is a fresh document, not a numbered
- * amendment of the original. The original is preserved untouched except for
- * its status flipping to Void, with `void_reason` recorded.
+ * number." — docs/rebuild/specs/FINALIZED-DECISIONS.md §2. "Amend issued
+ * document: Admin/Owner for document edits; preserve original." —
+ * docs/rebuild/Specs.md §10, same role tier as
+ * App\Actions\Billing\AmendIssuedInvoice, enforced via
+ * App\Enums\CompanyRole::documentAmendmentRoles(). Unlike that action, the
+ * replacement invoice gets a brand-new number from the plain `invoice`
+ * sequence (not `invoice_amendment` / `INV-A`) — a void-and-reissue is a
+ * fresh document, not a numbered amendment of the original. The original
+ * is preserved untouched except for its status flipping to Void, with
+ * `void_reason` recorded.
  */
 class VoidAndReissueInvoice
 {
@@ -32,8 +38,12 @@ class VoidAndReissueInvoice
     /**
      * @param  array<int, array{title: string, description?: ?string, quantity: float|string, unit_cost: float|string, discount?: float|string, discount_is_percentage?: bool, product_id?: ?int, tax_category?: mixed}>  $newItems
      */
-    public function voidAndReissue(Invoice $original, string $reason, array $newItems): Invoice
+    public function voidAndReissue(Invoice $original, string $reason, array $newItems, User $actor): Invoice
     {
+        if (! $actor->hasCompanyRole($original->company, ...CompanyRole::documentAmendmentRoles())) {
+            throw new RuntimeException('Only Admin or Owner may void and reissue an invoice.');
+        }
+
         if (! $original->status->canTransitionTo(InvoiceStatus::Void)) {
             throw new RuntimeException(
                 "Invoice cannot be voided from status [{$original->status->value}]."
@@ -44,7 +54,7 @@ class VoidAndReissueInvoice
             throw new RuntimeException('This invoice has already been corrected.');
         }
 
-        return DB::transaction(function () use ($original, $reason, $newItems) {
+        return DB::transaction(function () use ($original, $reason, $newItems, $actor) {
             $newInvoice = Invoice::create([
                 'company_id' => $original->company_id,
                 'client_id' => $original->client_id,
@@ -54,6 +64,8 @@ class VoidAndReissueInvoice
                 'currency_code' => $original->currency_code,
                 'invoice_date' => now()->toDateString(),
                 'due_date' => $original->due_date,
+                'discount' => $original->discount,
+                'discount_is_percentage' => $original->discount_is_percentage,
                 'terms' => $original->terms,
                 'public_notes' => $original->public_notes,
                 'status' => InvoiceStatus::Draft,
@@ -66,7 +78,7 @@ class VoidAndReissueInvoice
             $number = $this->numberGenerator->next($original->company, 'invoice');
             $newInvoice->forceFill(['number' => $number])->save();
 
-            $newInvoice = $this->issueInvoice->issue($newInvoice->fresh(['items']));
+            $newInvoice = $this->issueInvoice->issue($newInvoice->fresh(['items']), $actor);
 
             $original->forceFill([
                 'status' => InvoiceStatus::Void,

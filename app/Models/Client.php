@@ -68,4 +68,16 @@ class Client extends Model
     {
         return $this->hasMany(PortalLink::class);
     }
+
+    /**
+     * Every persisted (generated, never a preview) Statement of Account —
+     * see App\Models\StatementOfAccount's own docblock and
+     * App\Filament\Resources\Clients\RelationManagers\
+     * StatementOfAccountsRelationManager, the only place a previously
+     * generated one can be reopened from the UI.
+     */
+    public function statementOfAccounts(): HasMany
+    {
+        return $this->hasMany(StatementOfAccount::class);
+    }
 }

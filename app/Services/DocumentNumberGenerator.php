@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\NumberingSequence;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -68,7 +69,17 @@ class DocumentNumberGenerator
         'statement_of_account' => 'SOA',
     ];
 
-    public function next(Company $company, string $sequence): string
+    /**
+     * @param  \DateTimeInterface|null  $documentDate  The document's own
+     *                                                 official date (e.g. Invoice::invoice_date) — the year embedded in
+     *                                                 the number and the annual sequence it consumes are both derived
+     *                                                 from this, not from wall-clock "now", so a backdated document
+     *                                                 issued into an open prior month/year gets a number consistent
+     *                                                 with its own date rather than the day it happened to be issued.
+     *                                                 Falls back to `now()` only when the caller has no better date
+     *                                                 (e.g. a document type with no user-facing date field of its own).
+     */
+    public function next(Company $company, string $sequence, ?\DateTimeInterface $documentDate = null): string
     {
         if (! array_key_exists($sequence, self::DOCUMENT_TYPES)) {
             throw new InvalidArgumentException("Unknown numbering sequence [{$sequence}].");
@@ -81,7 +92,7 @@ class DocumentNumberGenerator
         }
 
         $documentType = self::DOCUMENT_TYPES[$sequence];
-        $now = now();
+        $now = $documentDate ? Carbon::instance($documentDate) : now();
         $year = $now->year;
 
         return DB::transaction(function () use ($company, $documentType, $year, $now) {

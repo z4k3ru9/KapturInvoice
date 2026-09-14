@@ -24,6 +24,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
@@ -109,9 +110,46 @@ class VendorBillsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * Codex review finding on PR #4: Filament's stock ForceDeleteBulkAction
+     * only hides itself while the Trashed filter isn't set — once
+     * switched to "With Trashed"/"Only Trashed", any selected row
+     * (regardless of its own status) gets `forceDelete()`'d directly, and
+     * the new foreign keys cascade through this bill's vendor payments,
+     * their receipts, and reversal/amendment evidence — physically
+     * erasing the payable audit trail FINALIZED-DECISIONS.md §1 requires
+     * never be deleted once issued. Restricted here to Draft, never-paid
+     * rows only.
+     */
+    private static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if ($record->status !== VendorBillStatus::Draft || $record->payments()->exists()) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some vendor bills were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft bill with no recorded payments can be permanently deleted.")
+                        ->send();
+                }
+            });
     }
 }

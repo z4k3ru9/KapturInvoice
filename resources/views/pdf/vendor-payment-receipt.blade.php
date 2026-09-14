@@ -10,6 +10,20 @@
     $vendorPayment = $vendorPaymentReceipt->vendorPayment;
     $vendorBill = $vendorPayment->vendorBill;
     $vendor = $vendorBill->vendor;
+
+    // Render from the frozen `snapshot` captured at issuance
+    // (App\Actions\Procurement\IssueVendorPaymentReceipt) — never the
+    // vendor payment's own live `amount`, which
+    // App\Actions\Procurement\AmendVendorPayment mutates directly. A
+    // receipt issued before this snapshot existed falls back to the live
+    // data it always rendered from, rather than showing blank values.
+    $snapshot = $vendorPaymentReceipt->snapshot;
+    $amount = $snapshot['amount'] ?? $vendorPayment->amount;
+    $method = $snapshot['method'] ?? $vendorPayment->method;
+    $reference = $snapshot['reference'] ?? $vendorPayment->reference;
+    $notes = $snapshot['notes'] ?? $vendorPayment->notes;
+    $vendorBillNumber = $snapshot['vendor_bill_number'] ?? $vendorBill->number;
+    $vendorBillTotal = $snapshot['vendor_bill_total'] ?? $vendorBill->total;
 @endphp
 <!DOCTYPE html>
 <html>
@@ -66,26 +80,26 @@
     <table class="totals">
         <tr class="total">
             <td>{{ __('documents.amount') }}</td>
-            <td class="text-right">{{ $vendorPaymentReceipt->company->currency_code }} {{ number_format($vendorPayment->amount, 2) }}</td>
+            <td class="text-right">{{ $vendorPaymentReceipt->company->currency_code }} {{ number_format($amount, 2) }}</td>
         </tr>
         <tr>
             <td>{{ __('documents.vendor_payment_receipt_method') }}</td>
-            <td class="text-right">{{ $vendorPayment->method ?? '-' }}</td>
+            <td class="text-right">{{ $method ?? '-' }}</td>
         </tr>
         <tr>
             <td>{{ __('documents.vendor_payment_receipt_reference') }}</td>
-            <td class="text-right">{{ $vendorPayment->reference ?? '-' }}</td>
+            <td class="text-right">{{ $reference ?? '-' }}</td>
         </tr>
         <tr>
             <td>{{ __('documents.vendor_payment_receipt_applied_to') }}</td>
-            <td class="text-right">{{ $vendorBill->number }} ({{ $vendorPaymentReceipt->company->currency_code }} {{ number_format($vendorBill->total, 2) }})</td>
+            <td class="text-right">{{ $vendorBillNumber }} ({{ $vendorPaymentReceipt->company->currency_code }} {{ number_format($vendorBillTotal, 2) }})</td>
         </tr>
     </table>
 
-    @if ($vendorPayment->notes)
+    @if ($notes)
         <div class="notes">
             <h4>{{ __('documents.notes') }}</h4>
-            <div>{{ $vendorPayment->notes }}</div>
+            <div>{{ $notes }}</div>
         </div>
     @endif
 </body>

@@ -13,7 +13,10 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Invitation;
 use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\PaymentAllocation;
 use App\Models\PortalLink;
+use App\Models\Receipt;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -156,6 +159,75 @@ class ClientPortalHomeTest extends TestCase
         ]);
 
         $this->get("http://{$company->domain}/portal/link/{$link->key}")->assertNotFound();
+    }
+
+    public function test_a_payment_recorded_through_the_allocation_based_workflow_shows_on_the_portal(): void
+    {
+        // Codex review finding on PR #4: App\Actions\Receivables\
+        // RecordCustomerPayment leaves `payments.invoice_id` null and
+        // links invoices only through `payment_allocations` — the portal
+        // used to eager-load only the legacy `Invoice::payments()`
+        // relation, so this payment (and its receipt) never appeared.
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $contact = Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'email' => 'jane@example.com', 'is_billing_contact' => true]);
+        $invoice = $this->makeInvoice($company, $client, ['number' => 'INV-ALLOC']);
+
+        $payment = Payment::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'method' => 'bank_transfer',
+            'amount' => 150,
+            'status' => 'verified',
+        ]);
+        PaymentAllocation::create(['payment_id' => $payment->id, 'invoice_id' => $invoice->id, 'amount' => 150, 'is_active' => true]);
+        $receipt = Receipt::create(['company_id' => $company->id, 'payment_id' => $payment->id, 'number' => 'ACM-RCT-0001', 'issued_at' => now()]);
+
+        $link = PortalLink::create(['company_id' => $company->id, 'client_id' => $client->id, 'contact_id' => $contact->id]);
+
+        $this->get("http://{$company->domain}/portal/link/{$link->key}")
+            ->assertOk()
+            ->assertSee('150.00')
+            ->assertSee($receipt->number);
+    }
+
+    public function test_payment_events_for_excludes_a_reversed_allocations_payment_but_keeps_a_legacy_direct_one(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $contact = Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'email' => 'jane@example.com', 'is_billing_contact' => true]);
+        $invoice = $this->makeInvoice($company, $client, ['number' => 'INV-MIX']);
+
+        // Legacy-imported: direct FK, no allocation row.
+        $legacy = Payment::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'invoice_id' => $invoice->id,
+            'method' => 'cash',
+            'amount' => 50,
+            'status' => 'completed',
+        ]);
+
+        // New workflow: allocation-based, but reversed — inactive.
+        $reversed = Payment::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'method' => 'bank_transfer',
+            'amount' => 75,
+            'status' => 'reversed',
+        ]);
+        PaymentAllocation::create(['payment_id' => $reversed->id, 'invoice_id' => $invoice->id, 'amount' => 75, 'is_active' => false]);
+
+        $link = PortalLink::create(['company_id' => $company->id, 'client_id' => $client->id, 'contact_id' => $contact->id]);
+        $this->app->instance('currentCompany', $company);
+
+        $component = Livewire::test(ClientPortalHome::class, ['portalLink' => $link]);
+        $loadedInvoice = $component->get('invoices')->firstWhere('number', 'INV-MIX');
+
+        $events = $component->instance()->paymentEventsFor($loadedInvoice);
+
+        $this->assertCount(1, $events);
+        $this->assertSame(50.0, $events[0]['amount']);
     }
 
     public function test_an_active_portal_link_works_under_its_own_companys_domain(): void

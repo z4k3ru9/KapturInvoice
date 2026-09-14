@@ -2,10 +2,13 @@
 
 namespace App\Actions\Billing;
 
+use App\Enums\CompanyRole;
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use App\Models\Invoice;
 use App\Models\InvoiceTaxSnapshot;
 use App\Models\TaxRecap;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\DocumentNumberGenerator;
 use App\Services\Tax\TaxCalculationService;
@@ -19,6 +22,17 @@ use RuntimeException;
  * only allows Draft -> Approved, not Draft -> Issued directly) before the
  * Approved -> Issued transition that actually calculates and freezes
  * totals via App\Services\Tax\TaxCalculationService.
+ *
+ * "Issue invoice: Accountant and higher after approval requirements." —
+ * docs/rebuild/Specs.md §10. Checked here, inside the service, rather
+ * than only at the Filament table-action layer (a Codex review finding on
+ * PR #4) — a direct call from anywhere (a console command, another
+ * action, a future API) gets the same enforcement. Also scoped to a
+ * plain, non-recurring Invoice row here — the `invoices` table also holds
+ * type=Quote rows (App\Filament\Resources\Quotes) and `is_recurring`
+ * template rows (App\Filament\Resources\RecurringInvoices), neither of
+ * which should ever receive a number/tax snapshot/recap through this path
+ * (another Codex finding on the same PR).
  */
 class IssueInvoice
 {
@@ -28,8 +42,16 @@ class IssueInvoice
         private AuditLogger $auditLogger,
     ) {}
 
-    public function issue(Invoice $invoice): Invoice
+    public function issue(Invoice $invoice, User $actor): Invoice
     {
+        if (! $actor->hasCompanyRole($invoice->company, ...CompanyRole::invoiceIssuanceRoles())) {
+            throw new RuntimeException('Only Accountant, Admin, or Owner may issue an invoice.');
+        }
+
+        if ($invoice->type !== InvoiceType::Invoice || $invoice->is_recurring) {
+            throw new RuntimeException('Only a plain, non-recurring invoice can be issued this way.');
+        }
+
         if (! in_array($invoice->status, [InvoiceStatus::Draft, InvoiceStatus::Approved], true)) {
             throw new RuntimeException(
                 "Invoice cannot be issued from status [{$invoice->status->value}]."
@@ -57,7 +79,12 @@ class IssueInvoice
         $number = $invoice->number;
 
         if (blank($number)) {
-            $number = $this->numberGenerator->next($invoice->company, 'invoice');
+            // Derive the numbering year/sequence from the invoice's own
+            // official date, not wall-clock "now" — a backdated invoice
+            // issued into an open prior month/year must consume that
+            // period's sequence and carry a matching YYYYMM in its number
+            // (Codex review finding on PR #4).
+            $number = $this->numberGenerator->next($invoice->company, 'invoice', $invoice->invoice_date);
         }
 
         return DB::transaction(function () use ($invoice, $result, $number) {
@@ -123,7 +150,7 @@ class IssueInvoice
             if (($invoice->company->taxSetting?->tax_enabled ?? false) && $result['tax_total'] > 0) {
                 TaxRecap::create([
                     'invoice_id' => $invoice->id,
-                    'number' => $this->numberGenerator->next($invoice->company, 'tax_recap'),
+                    'number' => $this->numberGenerator->next($invoice->company, 'tax_recap', $invoice->invoice_date),
                     'reporting_period' => $invoice->invoice_date?->format('Y-m') ?? now()->format('Y-m'),
                     'manual_entry_status' => 'pending',
                 ]);

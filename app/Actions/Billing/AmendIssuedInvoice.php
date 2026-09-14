@@ -2,11 +2,13 @@
 
 namespace App\Actions\Billing;
 
+use App\Enums\CompanyRole;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\DocumentNumberGenerator;
 use Illuminate\Support\Facades\DB;
@@ -14,12 +16,17 @@ use RuntimeException;
 
 /**
  * "Corrections use amendment or void-and-reissue with reason and new
- * number." — docs/rebuild/specs/FINALIZED-DECISIONS.md §2. The original
- * invoice is never edited beyond its status flipping to Amended — its own
- * number, totals, and tax snapshot stay exactly as issued. The correction
- * is a brand-new Invoice row, numbered from the separate `invoice_amendment`
- * (`INV-A`) sequence, issued through App\Actions\Billing\IssueInvoice so it
- * gets its own tax snapshot/recap like any other issued invoice.
+ * number." — docs/rebuild/specs/FINALIZED-DECISIONS.md §2. "Amend issued
+ * document: Admin/Owner for document edits; preserve original." —
+ * docs/rebuild/Specs.md §10, enforced here via
+ * App\Enums\CompanyRole::documentAmendmentRoles() rather than only at the
+ * Filament table-action layer. The original invoice is never edited
+ * beyond its status flipping to Amended — its own number, totals, and tax
+ * snapshot stay exactly as issued. The correction is a brand-new Invoice
+ * row, numbered from the separate `invoice_amendment` (`INV-A`) sequence,
+ * issued through App\Actions\Billing\IssueInvoice so it gets its own tax
+ * snapshot/recap like any other issued invoice (Admin/Owner already
+ * satisfies IssueInvoice's own broader Accountant-and-higher check).
  */
 class AmendIssuedInvoice
 {
@@ -32,8 +39,12 @@ class AmendIssuedInvoice
     /**
      * @param  array<int, array{title: string, description?: ?string, quantity: float|string, unit_cost: float|string, discount?: float|string, discount_is_percentage?: bool, product_id?: ?int, tax_category?: mixed}>  $newItems
      */
-    public function amend(Invoice $original, string $reason, array $newItems): Invoice
+    public function amend(Invoice $original, string $reason, array $newItems, User $actor): Invoice
     {
+        if (! $actor->hasCompanyRole($original->company, ...CompanyRole::documentAmendmentRoles())) {
+            throw new RuntimeException('Only Admin or Owner may amend an issued invoice.');
+        }
+
         if (! $original->status->canTransitionTo(InvoiceStatus::Amended)) {
             throw new RuntimeException(
                 "Invoice cannot be amended from status [{$original->status->value}]."
@@ -44,7 +55,7 @@ class AmendIssuedInvoice
             throw new RuntimeException('This invoice has already been corrected.');
         }
 
-        return DB::transaction(function () use ($original, $reason, $newItems) {
+        return DB::transaction(function () use ($original, $reason, $newItems, $actor) {
             $newInvoice = Invoice::create([
                 'company_id' => $original->company_id,
                 'client_id' => $original->client_id,
@@ -54,6 +65,8 @@ class AmendIssuedInvoice
                 'currency_code' => $original->currency_code,
                 'invoice_date' => now()->toDateString(),
                 'due_date' => $original->due_date,
+                'discount' => $original->discount,
+                'discount_is_percentage' => $original->discount_is_percentage,
                 'terms' => $original->terms,
                 'public_notes' => $original->public_notes,
                 'status' => InvoiceStatus::Draft,
@@ -66,7 +79,7 @@ class AmendIssuedInvoice
             $number = $this->numberGenerator->next($original->company, 'invoice_amendment');
             $newInvoice->forceFill(['number' => $number])->save();
 
-            $newInvoice = $this->issueInvoice->issue($newInvoice->fresh(['items']));
+            $newInvoice = $this->issueInvoice->issue($newInvoice->fresh(['items']), $actor);
 
             $original->forceFill(['status' => InvoiceStatus::Amended])->save();
 

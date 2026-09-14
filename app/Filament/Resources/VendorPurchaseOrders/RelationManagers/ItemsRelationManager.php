@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VendorPurchaseOrders\RelationManagers;
 
+use App\Enums\VendorPurchaseOrderStatus;
 use App\Models\Product;
 use App\Services\Procurement\VendorPurchaseOrderTotalsCalculator;
 use Filament\Actions\BulkActionGroup;
@@ -73,7 +74,12 @@ class ItemsRelationManager extends RelationManager
             // Phase 06B Slice 3 (docs/rebuild/specs/06b-ux-browser-soa):
             // drag/keyboard reorder, persisted in one batched write;
             // preserves deliberate row order in the printed Vendor PO.
-            ->reorderable('sort_order')
+            // Restricted to Draft owners — the PO's own `total` is
+            // immutable once approved (this class's own docblock), so
+            // mutating its lines afterward would silently desync that
+            // frozen total from what the printed document actually lists
+            // (a Codex review finding on PR #4).
+            ->reorderable('sort_order', fn (): bool => $this->getOwnerRecord()->status === VendorPurchaseOrderStatus::Draft)
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('title'),
@@ -82,15 +88,23 @@ class ItemsRelationManager extends RelationManager
                 TextColumn::make('line_total')->numeric(),
             ])
             ->headerActions([
-                CreateAction::make()->after(fn () => $this->recalculate()),
+                CreateAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorPurchaseOrderStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
             ])
             ->recordActions([
-                EditAction::make()->after(fn () => $this->recalculate()),
-                DeleteAction::make()->after(fn () => $this->recalculate()),
+                EditAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorPurchaseOrderStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
+                DeleteAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorPurchaseOrderStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->after(fn () => $this->recalculate()),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => $this->getOwnerRecord()->status === VendorPurchaseOrderStatus::Draft)
+                        ->after(fn () => $this->recalculate()),
                 ]),
             ]);
     }
