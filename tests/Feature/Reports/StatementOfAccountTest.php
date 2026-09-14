@@ -3,6 +3,8 @@
 namespace Tests\Feature\Reports;
 
 use App\Actions\Reports\GenerateStatementOfAccount;
+use App\Filament\Resources\Clients\Pages\ViewClient;
+use App\Filament\Resources\Clients\RelationManagers\StatementOfAccountsRelationManager;
 use App\Http\Controllers\StatementOfAccountPdfController;
 use App\Models\Client;
 use App\Models\Company;
@@ -15,8 +17,10 @@ use App\Models\Receipt;
 use App\Models\StatementOfAccount;
 use App\Models\User;
 use App\Services\Reports\BuildStatementOfAccount;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -201,6 +205,82 @@ class StatementOfAccountTest extends TestCase
         // Only the replacement's 450,000 counts — the amended original's
         // 400,000 must not also land in the total.
         $this->assertSame(450_000.0, $snapshot['closing_balance']);
+    }
+
+    public function test_draft_approved_and_cancelled_invoices_never_inflate_the_closing_balance(): void
+    {
+        // Codex review finding on PR #4: invoiceRows() used to exclude
+        // only Void/Amended, so a same-period Draft, Approved, or
+        // Cancelled invoice inflated the closing balance even though none
+        // of them are a real receivable.
+        $company = $this->company();
+        $client = $this->client($company);
+
+        $draft = $this->invoice($company, $client, [
+            'status' => 'draft', 'invoice_date' => '2026-06-05', 'due_date' => '2026-07-05', 'number' => 'ACM-INV-DRAFT',
+        ], 111_111, 111_111);
+        $approved = $this->invoice($company, $client, [
+            'status' => 'approved', 'invoice_date' => '2026-06-06', 'due_date' => '2026-07-06', 'number' => 'ACM-INV-APPROVED',
+        ], 222_222, 222_222);
+        $cancelled = $this->invoice($company, $client, [
+            'status' => 'cancelled', 'invoice_date' => '2026-06-07', 'due_date' => '2026-07-07', 'number' => 'ACM-INV-CANCELLED',
+        ], 333_333, 333_333);
+
+        $snapshot = app(BuildStatementOfAccount::class)->build($client, '2026-06-01', '2026-06-30');
+
+        $this->assertCount(3, $snapshot['invoices']);
+        $rows = collect($snapshot['invoices'])->keyBy('number');
+        $this->assertSame(0.0, $rows['ACM-INV-DRAFT']['balance_contribution']);
+        $this->assertSame(0.0, $rows['ACM-INV-APPROVED']['balance_contribution']);
+        $this->assertSame(0.0, $rows['ACM-INV-CANCELLED']['balance_contribution']);
+        $this->assertSame(0.0, $snapshot['opening_balance']);
+        $this->assertSame(0.0, $snapshot['closing_balance']);
+    }
+
+    public function test_aging_reflects_the_balance_as_of_period_end_not_todays_live_balance(): void
+    {
+        // Codex review finding on PR #4: aging() used to read each
+        // invoice's live `balance` column, so a payment verified AFTER
+        // the reporting period silently removed that invoice from a
+        // historical SOA's aging even though it was genuinely overdue as
+        // of that period's end.
+        $company = $this->company();
+        $client = $this->client($company);
+        $periodEnd = '2026-06-30';
+
+        // Invoice was still fully outstanding as of period end...
+        $invoice = $this->invoice($company, $client, [
+            'status' => 'overdue', 'invoice_date' => '2026-05-01', 'due_date' => '2026-06-01',
+        ], 500_000, 500_000);
+
+        // ...but later (today) a payment was verified against it, which
+        // would zero its *live* balance column via
+        // RecalculateInvoiceReceivables in the real flow. Simulate that
+        // by force-filling balance to 0 directly (this fixture only
+        // exercises BuildStatementOfAccount, not the recalculator) while
+        // recording the payment as verified well after periodEnd.
+        $invoice->forceFill(['balance' => 0])->save();
+        $this->verifiedPayment($company, $client, 500_000, '2026-08-01 10:00:00', $invoice);
+
+        $snapshot = app(BuildStatementOfAccount::class)->build($client, '2026-06-01', $periodEnd);
+
+        // 29 days overdue (due 2026-06-01, period end 2026-06-30) -> the 1-30 bucket.
+        $this->assertSame(500_000.0, $snapshot['aging']['1_30']);
+        $this->assertSame(0.0, $snapshot['aging']['current']);
+    }
+
+    public function test_aging_excludes_an_invoice_dated_after_the_period_end(): void
+    {
+        $company = $this->company();
+        $client = $this->client($company);
+
+        $this->invoice($company, $client, [
+            'status' => 'issued', 'invoice_date' => '2026-07-05', 'due_date' => '2026-07-20',
+        ], 250_000, 250_000);
+
+        $snapshot = app(BuildStatementOfAccount::class)->build($client, '2026-06-01', '2026-06-30');
+
+        $this->assertSame(0.0, array_sum($snapshot['aging']));
     }
 
     public function test_aging_buckets_for_invoices_at_10_45_75_and_120_days_overdue(): void
@@ -388,6 +468,37 @@ class StatementOfAccountTest extends TestCase
 
         $this->assertStringContainsString(strtoupper(__('documents.soa_title', [], 'en')), $html);
         $this->assertStringNotContainsString(strtoupper(__('documents.soa_title', [], 'id')), $html);
+    }
+
+    public function test_a_generated_statement_of_account_is_listed_on_the_client_and_reopenable(): void
+    {
+        // Codex review finding on PR #4: "Open the generated SOA instead
+        // of exposing a transient URL" — a repo-wide search found no
+        // resource/relation manager/listing anywhere a previously
+        // generated statement could be reopened from. Fixed via
+        // App\Models\Client::statementOfAccounts() +
+        // App\Filament\Resources\Clients\RelationManagers\
+        // StatementOfAccountsRelationManager.
+        $company = $this->company();
+        $client = $this->client($company);
+        $user = User::factory()->create();
+        $company->users()->attach($user, ['role' => 'owner']);
+
+        $this->invoice($company, $client, [
+            'status' => 'issued', 'invoice_date' => '2026-06-10', 'due_date' => '2026-07-10',
+        ], 800_000, 800_000);
+
+        $statementOfAccount = app(GenerateStatementOfAccount::class)->generate($client, '2026-06-01', '2026-06-30', $user);
+
+        $this->assertTrue($client->statementOfAccounts()->whereKey($statementOfAccount->id)->exists());
+
+        $this->actingAs($user);
+        Filament::setTenant($company);
+
+        Livewire::test(StatementOfAccountsRelationManager::class, [
+            'ownerRecord' => $client,
+            'pageClass' => ViewClient::class,
+        ])->assertCanSeeTableRecords([$statementOfAccount]);
     }
 
     public function test_preview_is_never_persisted(): void

@@ -70,4 +70,42 @@ class DynamicRowReorderTest extends TestCase
             $invoice->fresh()->items->pluck('id')->all(),
         );
     }
+
+    public function test_reordering_an_issued_invoices_items_is_rejected(): void
+    {
+        // Codex review finding on PR #4: reordering an issued invoice's
+        // items silently mutates an already-printed document and breaks
+        // the positional correspondence with its frozen tax snapshot's
+        // line-by-line breakdown.
+        $user = User::factory()->create();
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'code' => 'ACM', 'currency_code' => 'USD']);
+        $company->users()->attach($user, ['role' => 'owner']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Test Client']);
+
+        $this->actingAs($user);
+        Filament::setTenant($company);
+
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => InvoiceStatus::Issued,
+            'number' => 'ACM-INV-ISSUED-REORDER',
+            'currency_code' => 'USD',
+        ]);
+
+        $first = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'First typed', 'quantity' => 1, 'unit_cost' => 100, 'sort_order' => 0]);
+        $second = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Second typed', 'quantity' => 1, 'unit_cost' => 200, 'sort_order' => 1]);
+
+        Livewire::test(ItemsRelationManager::class, [
+            'ownerRecord' => $invoice,
+            'pageClass' => ViewInvoice::class,
+        ])->call('reorderTable', [$second->id, $first->id]);
+
+        $this->assertSame(
+            [$first->id, $second->id],
+            $invoice->fresh()->items->pluck('id')->all(),
+            'reorder must be a no-op once the invoice is Issued',
+        );
+    }
 }

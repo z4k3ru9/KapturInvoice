@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Invoices\RelationManagers;
 
+use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
@@ -96,7 +97,12 @@ class ItemsRelationManager extends RelationManager
             // reorder handle persists the new `sort_order` values in one
             // batched write (never per keystroke); items()/PDF views
             // already order by this column (App\Models\Invoice::items()).
-            ->reorderable('sort_order')
+            // Restricted to Draft owners — reordering an issued invoice's
+            // items would silently change an already-printed document and
+            // break the positional correspondence with its frozen tax
+            // snapshot's line-by-line breakdown (a Codex review finding on
+            // PR #4).
+            ->reorderable('sort_order', fn (): bool => $this->getOwnerRecord()->status === InvoiceStatus::Draft)
             ->defaultSort('sort_order')
             // The "Taxes" column's `getStateUsing()` below reads
             // `$record->taxes` directly rather than through the dot-path

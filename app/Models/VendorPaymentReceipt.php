@@ -8,13 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** One per verified VendorPayment — see App\Enums\VendorPaymentStatus. */
-#[Fillable(['company_id', 'vendor_payment_id', 'number', 'issued_at', 'document_language'])]
+#[Fillable(['company_id', 'vendor_payment_id', 'number', 'issued_at', 'document_language', 'snapshot'])]
 class VendorPaymentReceipt extends Model
 {
     protected function casts(): array
     {
         return [
             'issued_at' => 'datetime',
+            // Frozen at issuance by App\Actions\Procurement\
+            // IssueVendorPaymentReceipt, never touched again — the PDF
+            // view renders from this, not the vendor payment's own
+            // mutable `amount`, so a later App\Actions\Procurement\
+            // AmendVendorPayment can never silently change what this
+            // receipt shows.
+            'snapshot' => 'array',
         ];
     }
 

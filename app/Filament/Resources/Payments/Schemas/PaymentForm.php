@@ -49,6 +49,19 @@ class PaymentForm
                     ->options(PaymentStatus::class)
                     ->default(PaymentStatus::Pending)
                     ->required()
+                    // Codex review finding on PR #4: saving `Verified`
+                    // directly here bypasses App\Actions\Receivables\
+                    // VerifyCustomerPayment entirely — no role check, no
+                    // proof/cheque-cleared requirement, no
+                    // verified_at/verified_by_user_id, no verification
+                    // event, no audit record, no receivables
+                    // recalculation. Disabled, not removed, so an
+                    // already-Verified/Reversed payment still displays its
+                    // real status correctly.
+                    ->disableOptionWhen(fn (string $value): bool => in_array($value, [
+                        PaymentStatus::Verified->value,
+                        PaymentStatus::Reversed->value,
+                    ], true))
                     ->helperText('New payments start Pending — verify via the table\'s Verify action before a receipt can be issued.'),
                 TextInput::make('method')
                     ->live()

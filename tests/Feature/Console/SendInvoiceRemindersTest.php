@@ -51,6 +51,42 @@ class SendInvoiceRemindersTest extends TestCase
         Mail::assertSent(CompanyTemplatedMail::class, 1);
     }
 
+    public function test_command_sends_a_reminder_for_an_issued_invoice(): void
+    {
+        // Codex review finding on PR #4: invoices produced by
+        // App\Actions\Billing\IssueInvoice stay in InvoiceStatus::Issued
+        // (including after being emailed) rather than moving to the
+        // legacy Sent/Viewed states this query used to require, so a
+        // newly issued, unpaid invoice matching a reminder date was
+        // silently skipped.
+        Mail::fake();
+
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        CompanySetting::create([
+            'company_id' => $company->id,
+            'reminder1_enabled' => true,
+            'reminder1_days' => 3,
+            'reminder1_direction' => 'after',
+            'reminder1_field' => 'due_date',
+        ]);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'email' => 'jane@example.com', 'is_primary' => true]);
+
+        $issued = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'issued',
+            'number' => 'INV-0004',
+            'due_date' => now()->subDays(3)->toDateString(),
+        ]);
+        $issued->forceFill(['balance' => 100])->save();
+
+        Artisan::call('invoices:send-reminders');
+
+        Mail::assertSent(CompanyTemplatedMail::class, 1);
+    }
+
     public function test_command_skips_invoices_whose_due_date_does_not_match_the_schedule(): void
     {
         Mail::fake();

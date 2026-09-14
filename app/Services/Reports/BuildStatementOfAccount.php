@@ -138,13 +138,25 @@ class BuildStatementOfAccount
             ->orderBy('invoice_date')
             ->get()
             ->map(function (Invoice $invoice) {
-                // Voided and amended-original rows stay visible with their
-                // status label, but never inflate the running balance —
-                // Specs.md: "excluded amounts must not inflate the current
-                // outstanding balance". An amendment/reissue is itself a
-                // brand-new Invoice row with its own status/total, so it is
-                // counted on its own line rather than double-counted here.
-                $excluded = in_array($invoice->status, [InvoiceStatus::Void, InvoiceStatus::Amended], true);
+                // Void/Amended rows stay visible with their status label
+                // but never inflate the balance — Specs.md: "excluded
+                // amounts must not inflate the current outstanding
+                // balance". An amendment/reissue is itself a brand-new
+                // Invoice row with its own status/total, so it is counted
+                // on its own line rather than double-counted here.
+                // Draft/Approved/Cancelled are also excluded — they are
+                // not yet (or never will be) a real receivable, matching
+                // the stricter status list openingBalance() already uses
+                // (a Codex review finding on PR #4: this method used to
+                // only exclude Void/Amended, so a same-period Draft or
+                // Approved invoice inflated the closing balance).
+                $excluded = in_array($invoice->status, [
+                    InvoiceStatus::Void,
+                    InvoiceStatus::Amended,
+                    InvoiceStatus::Draft,
+                    InvoiceStatus::Approved,
+                    InvoiceStatus::Cancelled,
+                ], true);
 
                 return [
                     'id' => $invoice->id,
@@ -240,11 +252,15 @@ class BuildStatementOfAccount
     }
 
     /**
-     * Sums every currently-open (unpaid) invoice balance as of
-     * `$periodEnd`, bucketed by days overdue from `due_date`. Uses each
-     * invoice's authoritative `balance` column (only ever written by
-     * App\Services\Receivables\RecalculateInvoiceReceivables) rather than
-     * re-deriving it from allocations here.
+     * Sums every invoice's outstanding balance *as of `$periodEnd`*,
+     * bucketed by days overdue from `due_date` — reconstructed from
+     * PaymentAllocation history rather than read off each invoice's
+     * live `balance` column (a Codex review finding on PR #4: the live
+     * column reflects payments verified *after* `$periodEnd` too, so a
+     * historical SOA's aging silently changed with later activity and
+     * stopped reconciling with that same historical `closing_balance`).
+     * Only invoices dated on/before `$periodEnd` are considered — one
+     * dated after it hasn't happened yet as of that reporting instant.
      *
      * @return array{current: float, "1_30": float, "31_60": float, "61_90": float, over_90: float}
      */
@@ -262,10 +278,28 @@ class BuildStatementOfAccount
             ->where('company_id', $companyId)
             ->where('client_id', $clientId)
             ->whereNotIn('status', [InvoiceStatus::Void, InvoiceStatus::Amended, InvoiceStatus::Cancelled, InvoiceStatus::Draft, InvoiceStatus::Approved])
-            ->where('balance', '>', 0)
+            ->whereNotNull('invoice_date')
+            ->where('invoice_date', '<=', $periodEnd->toDateString())
             ->get()
-            ->each(function (Invoice $invoice) use (&$buckets, $periodEnd) {
-                $balance = (float) $invoice->balance;
+            ->each(function (Invoice $invoice) use (&$buckets, $periodEnd, $companyId, $clientId) {
+                $paidAsOfPeriodEnd = (float) PaymentAllocation::query()
+                    ->where('invoice_id', $invoice->id)
+                    ->where('is_active', true)
+                    ->whereHas('payment', function ($query) use ($companyId, $clientId, $periodEnd) {
+                        $query->where('company_id', $companyId)
+                            ->where('client_id', $clientId)
+                            ->where('status', PaymentStatus::Verified)
+                            ->whereNotNull('verified_at')
+                            ->where('verified_at', '<=', $periodEnd);
+                    })
+                    ->sum('amount');
+
+                $balance = round((float) $invoice->total - $paidAsOfPeriodEnd, 2);
+
+                if ($balance <= 0.0) {
+                    return;
+                }
+
                 $dueDate = $invoice->due_date;
 
                 // Compare at day granularity (not $periodEnd's end-of-day

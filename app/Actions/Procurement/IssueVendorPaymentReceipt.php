@@ -17,6 +17,13 @@ use RuntimeException;
  * the existence check here just gives a cleaner error message. This is
  * where the launch-code 'VPR' number (FINALIZED-DECISIONS.md §2) is now
  * assigned, not at VendorPayment record time.
+ *
+ * Freezes a `snapshot` of the payment's amount/method/reference/applied
+ * bill — a Codex review finding on PR #4: without this, downloading the
+ * receipt PDF re-rendered `vendor_payments.amount` live, so a later
+ * App\Actions\Procurement\AmendVendorPayment silently changed what an
+ * already-issued receipt showed. See
+ * App\Models\VendorPaymentReceipt::$casts.
  */
 class IssueVendorPaymentReceipt
 {
@@ -34,11 +41,21 @@ class IssueVendorPaymentReceipt
 
         $number = app(DocumentNumberGenerator::class)->next($payment->company, 'vendor_payment');
 
+        $payment->loadMissing('vendorBill');
+
         $receipt = VendorPaymentReceipt::create([
             'company_id' => $payment->company_id,
             'vendor_payment_id' => $payment->id,
             'number' => $number,
             'issued_at' => now(),
+            'snapshot' => [
+                'amount' => (string) $payment->amount,
+                'method' => $payment->method,
+                'reference' => $payment->reference,
+                'notes' => $payment->notes,
+                'vendor_bill_number' => $payment->vendorBill?->number,
+                'vendor_bill_total' => $payment->vendorBill ? (string) $payment->vendorBill->total : null,
+            ],
         ]);
 
         $this->auditLogger->record(

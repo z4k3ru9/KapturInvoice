@@ -2,13 +2,21 @@
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
-use App\Filament\Support\DownloadPdfAction;
+use App\Actions\Billing\FileOrAdjustTaxRecap;
 use App\Models\Invoice;
 use App\Models\TaxRecap;
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
+use RuntimeException;
 
 class InvoiceInfolist
 {
@@ -143,8 +151,20 @@ class InvoiceInfolist
                 Section::make('Tax recap')
                     ->visible(fn (Invoice $record) => $record->taxRecap !== null)
                     ->headerActions([
-                        DownloadPdfAction::taxRecap()
-                            ->record(fn (Invoice $record): ?TaxRecap => $record->taxRecap),
+                        // Deliberately not DownloadPdfAction::taxRecap()
+                        // + ->record() here — see that method's own
+                        // docblock for the real infinite-recursion bug
+                        // that combination causes on an Infolist Section
+                        // header action. Deriving the TaxRecap through
+                        // this closure instead, leaving the action's own
+                        // record as the Invoice (matching the Section's
+                        // own record), avoids it entirely.
+                        Action::make('downloadTaxRecapPdf')
+                            ->label('Download PDF')
+                            ->icon('heroicon-o-document-arrow-down')
+                            ->url(fn (Invoice $record) => route('tax-recaps.pdf', $record->taxRecap))
+                            ->openUrlInNewTab(),
+                        static::fileOrAdjustTaxRecapAction(),
                     ])
                     ->columns(3)
                     ->schema([
@@ -165,5 +185,58 @@ class InvoiceInfolist
                     ->dateTime()
                     ->visible(fn (Invoice $record): bool => $record->trashed()),
             ]);
+    }
+
+    /**
+     * "Recaps contain configurable fields for reporting period, external
+     * tax-system reference/serial, manual-entry status, filing/entry
+     * date, notes, and attachment/reference; adjustments require reason
+     * and audit data." — FINALIZED-DECISIONS.md §33. See
+     * App\Actions\Billing\FileOrAdjustTaxRecap's own docblock for why
+     * this exists (a Codex review finding on PR #4).
+     */
+    private static function fileOrAdjustTaxRecapAction(): Action
+    {
+        return Action::make('fileOrAdjustTaxRecap')
+            ->label(fn (Invoice $record) => $record->taxRecap?->filing_date || $record->taxRecap?->manual_entry_status === 'filed'
+                ? 'Adjust filing'
+                : 'File')
+            ->icon('heroicon-o-document-check')
+            ->schema(fn (Invoice $record) => [
+                TextInput::make('external_reference')
+                    ->label('External tax-system reference')
+                    ->default(fn () => $record->taxRecap?->external_reference),
+                Select::make('manual_entry_status')
+                    ->label('Status')
+                    ->options(['pending' => 'Pending', 'filed' => 'Filed'])
+                    ->default(fn () => $record->taxRecap?->manual_entry_status ?? 'pending')
+                    ->required(),
+                DatePicker::make('filing_date')
+                    ->default(fn () => $record->taxRecap?->filing_date),
+                TextInput::make('attachment_reference')
+                    ->label('Attachment reference')
+                    ->default(fn () => $record->taxRecap?->attachment_reference),
+                Textarea::make('notes')
+                    ->default(fn () => $record->taxRecap?->notes)
+                    ->columnSpanFull(),
+                Textarea::make('adjustment_reason')
+                    ->label('Reason for this adjustment')
+                    ->visible(fn () => filled($record->taxRecap?->filing_date) || $record->taxRecap?->manual_entry_status === 'filed')
+                    ->columnSpanFull(),
+            ])
+            ->action(function (Invoice $record, array $data) {
+                try {
+                    app(FileOrAdjustTaxRecap::class)->file(
+                        $record->taxRecap,
+                        $data,
+                        Auth::user(),
+                        $data['adjustment_reason'] ?? null,
+                    );
+
+                    Notification::make()->success()->seconds(4)->title('Tax recap updated')->send();
+                } catch (RuntimeException $e) {
+                    Notification::make()->danger()->persistent()->title('Could not update tax recap')->body($e->getMessage())->send();
+                }
+            });
     }
 }

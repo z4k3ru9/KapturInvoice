@@ -79,6 +79,35 @@ enum CompanyRole: string
     }
 
     /**
+     * "Issue invoice: Accountant and higher after approval requirements." —
+     * docs/rebuild/Specs.md §10 (the same "Accountant and higher" tier as
+     * {@see paymentVerificationRoles()}). Enforced inside
+     * App\Actions\Billing\IssueInvoice itself, not only at the Filament
+     * table-action layer, so a direct call can't bypass it either.
+     *
+     * @return array<int, self>
+     */
+    public static function invoiceIssuanceRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
+
+    /**
+     * "Amend issued document: Admin/Owner for document edits; preserve
+     * original." — docs/rebuild/Specs.md §10. A strict subset of
+     * {@see invoiceIssuanceRoles()}, so an actor authorized to amend or
+     * void-and-reissue also satisfies the issuance check that
+     * App\Actions\Billing\IssueInvoice runs internally when it issues the
+     * replacement document.
+     *
+     * @return array<int, self>
+     */
+    public static function documentAmendmentRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
+
+    /**
      * "Accountant and higher may self-approve" a vendor bill —
      * docs/rebuild/specs/05-procurement-and-delivery/Specs.md.
      *

@@ -23,10 +23,12 @@ use Throwable;
  * tracking column exists yet to dedupe within a day. Fine for a daily
  * cron; flagged here rather than silently assumed.
  *
- * A App\Models\ReminderSuppression recorded within the last day covers
- * "today's" send for its exact invoice+tier — the same one-send-per-day
- * granularity as the limitation above, not a more elaborate recurring
- * suppression model. See App\Actions\Billing\SuppressReminder.
+ * An unconsumed App\Models\ReminderSuppression covers the *next* matching
+ * send for its exact invoice+tier, however far ahead that date is — it is
+ * marked `consumed_at` the first time it actually causes a skip, so a
+ * suppression recorded well before its target date still holds when that
+ * date arrives (a fixed "within the last day" window would silently
+ * expire before then). See App\Actions\Billing\SuppressReminder.
  */
 class SendInvoiceReminders extends Command
 {
@@ -70,7 +72,7 @@ class SendInvoiceReminders extends Command
                 $invoices = $company->invoices()
                     ->where('type', InvoiceType::Invoice)
                     ->whereIn('status', [
-                        InvoiceStatus::Sent, InvoiceStatus::Viewed,
+                        InvoiceStatus::Issued, InvoiceStatus::Sent, InvoiceStatus::Viewed,
                         InvoiceStatus::Partial, InvoiceStatus::Overdue,
                     ])
                     ->where('balance', '>', 0)
@@ -78,13 +80,24 @@ class SendInvoiceReminders extends Command
                     ->get();
 
                 foreach ($invoices as $invoice) {
-                    $isSuppressed = ReminderSuppression::query()
+                    // A suppression covers this invoice/tier's *next
+                    // occurrence*, however far in the future that is (see
+                    // App\Actions\Billing\SuppressReminder) — not merely
+                    // "within the last day", which would silently expire a
+                    // suppression recorded more than 24h before its target
+                    // send date. `consumed_at` marks it used the first time
+                    // this command actually skips a send because of it, so
+                    // the row's own age never matters, only whether it has
+                    // already done its one job.
+                    $suppression = ReminderSuppression::query()
                         ->where('invoice_id', $invoice->id)
                         ->where('tier', $tier)
-                        ->where('suppressed_at', '>=', now()->subDay())
-                        ->exists();
+                        ->whereNull('consumed_at')
+                        ->first();
 
-                    if ($isSuppressed) {
+                    if ($suppression) {
+                        $suppression->forceFill(['consumed_at' => now()])->save();
+
                         continue;
                     }
 

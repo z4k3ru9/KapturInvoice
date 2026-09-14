@@ -96,6 +96,14 @@ class TaxRecapPdfTest extends TestCase
         return $company;
     }
 
+    private function owner(Company $company): User
+    {
+        $user = User::factory()->create();
+        $company->users()->attach($user, ['role' => 'owner']);
+
+        return $user;
+    }
+
     private function issuedTaxableInvoice(Company $company): Invoice
     {
         $client = Client::create(['company_id' => $company->id, 'name' => 'Test Client']);
@@ -119,7 +127,7 @@ class TaxRecapPdfTest extends TestCase
             'tax_category' => TaxCategory::StandardTaxable,
         ]);
 
-        return app(IssueInvoice::class)->issue($invoice);
+        return app(IssueInvoice::class)->issue($invoice, $this->owner($company));
     }
 
     public function test_issuing_a_taxable_invoice_assigns_a_tax_coded_number_to_its_tax_recap(): void
@@ -225,7 +233,7 @@ class TaxRecapPdfTest extends TestCase
 
         InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Service', 'quantity' => 1, 'unit_cost' => 500000]);
 
-        $issued = app(IssueInvoice::class)->issue($invoice);
+        $issued = app(IssueInvoice::class)->issue($invoice, $this->owner($company));
 
         $this->assertNull($issued->taxRecap);
         $this->assertSame(0, TaxRecap::count());

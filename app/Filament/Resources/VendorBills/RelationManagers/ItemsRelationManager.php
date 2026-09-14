@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\VendorBills\RelationManagers;
 
 use App\Actions\Procurement\AllocateJobCost;
+use App\Enums\VendorBillStatus;
 use App\Models\Product;
 use App\Models\SalesOrder;
 use App\Models\VendorBill;
@@ -97,7 +98,12 @@ class ItemsRelationManager extends RelationManager
             // Phase 06B Slice 3 (docs/rebuild/specs/06b-ux-browser-soa):
             // drag/keyboard reorder, persisted in one batched write;
             // preserves deliberate row order in the printed Vendor Bill.
-            ->reorderable('sort_order')
+            // Restricted to Draft owners — mutating a Submitted/Approved/
+            // PartiallyPaid/Paid bill's lines after the fact would
+            // silently change already-approved payable evidence and can
+            // invalidate its payment ceiling/job-cost allocations (a
+            // Codex review finding on PR #4).
+            ->reorderable('sort_order', fn (): bool => $this->getOwnerRecord()->status === VendorBillStatus::Draft)
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('title'),
@@ -112,11 +118,17 @@ class ItemsRelationManager extends RelationManager
                     ->numeric(),
             ])
             ->headerActions([
-                CreateAction::make()->after(fn () => $this->recalculate()),
+                CreateAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorBillStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
             ])
             ->recordActions([
-                EditAction::make()->after(fn () => $this->recalculate()),
-                DeleteAction::make()->after(fn () => $this->recalculate()),
+                EditAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorBillStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
+                DeleteAction::make()
+                    ->visible(fn () => $this->getOwnerRecord()->status === VendorBillStatus::Draft)
+                    ->after(fn () => $this->recalculate()),
                 Action::make('allocateToJob')
                     ->label('Allocate to job')
                     ->icon(Heroicon::OutlinedArrowsRightLeft)
@@ -153,7 +165,9 @@ class ItemsRelationManager extends RelationManager
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->after(fn () => $this->recalculate()),
+                    DeleteBulkAction::make()
+                        ->visible(fn () => $this->getOwnerRecord()->status === VendorBillStatus::Draft)
+                        ->after(fn () => $this->recalculate()),
                 ]),
             ]);
     }

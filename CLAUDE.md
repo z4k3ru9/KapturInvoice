@@ -448,6 +448,60 @@ Or just `composer setup` (runs the same steps via the composer script).
     `retries: 1` (already configured, unrelated to this finding) absorbs
     it there. Slices 1-4 are done — Phase 06B is now complete per its
     own hard completion gate.
+  - **Post-PR Codex review round** — an automated Codex review on the
+    branch's pull request raised 20 findings (mostly P1) across the
+    Phase 03-06B financial core; all confirmed real and fixed (409 tests,
+    up from 370): action-owned invoice/payment lifecycle states could be
+    set directly from the Filament forms, bypassing Issue/Verify entirely
+    (`InvoiceForm`/`PaymentForm` now `->disableOptionWhen()` those
+    options); `IssueInvoice` had no server-side role check and no
+    type/`is_recurring` scoping (now enforced inside the action itself,
+    not just table visibility — `CompanyRole::invoiceIssuanceRoles()`);
+    `AmendIssuedInvoice`/`VoidAndReissueInvoice` now require
+    `CompanyRole::documentAmendmentRoles()` and carry over the original's
+    document-level discount; invoice item reorder and Vendor Bill/PO item
+    edit/delete/reorder are now Draft-only; `ForceDeleteBulkAction` on
+    Vendor Bills/POs now skips any non-Draft or referenced row rather
+    than physically deleting it; `SendInvoiceReminders` now includes
+    `Issued` invoices and a suppression now lasts until its one covered
+    occurrence is actually consumed (`ReminderSuppression.consumed_at`)
+    rather than expiring on a fixed 24h window;
+    `DocumentNumberGenerator::next()` now takes the document's own date
+    so a backdated invoice's number/tax-recap period match its
+    `invoice_date`, not wall-clock "now"; `BuildStatementOfAccount` now
+    excludes Draft/Approved/Cancelled from the closing balance and
+    computes aging from `PaymentAllocation` history as of the period end
+    rather than each invoice's live `balance`; `CloseJobFinancially`'s
+    override gate now also covers unresolved/unallocated vendor cost, not
+    only customer AR; `VerifyCustomerPayment` now recalculates every
+    active-allocated invoice (closing the gap where a payment allocated
+    while still Pending never got recalculated once verified);
+    `AmendVendorPayment` now re-validates the PO-wide payment ceiling;
+    `ClientPortalHome` now merges legacy direct-linked payments with
+    allocation-based ones (`paymentEventsFor()`) instead of only the
+    former; `AutosavesDraft` now performs one atomic conditional UPDATE
+    (WHERE `draft_version` = known) instead of a separate read-then-write,
+    closing a lost-update race between concurrent autosaves; `Receipt`/
+    `VendorPaymentReceipt` now freeze a `snapshot` at issuance and render
+    from it, so a later allocation amendment or vendor-payment amendment
+    can no longer silently change an already-issued receipt's printed
+    content; the "Generate/Preview Statement of Account" actions now
+    surface a persistent, clickable notification action instead of a
+    4-second raw URL, and every generated one is listed and reopenable
+    from a new read-only `StatementOfAccountsRelationManager` on the
+    Client resource; `App\Actions\Billing\FileOrAdjustTaxRecap` (new) is
+    the first action that actually writes a `TaxRecap`'s filing/
+    adjustment fields (FINALIZED-DECISIONS.md §33's "adjustments require
+    reason and audit data" was previously unimplemented — the Infolist
+    was read-only). One further real bug was found (not from the Codex
+    review) while wiring that last action: reusing
+    `DownloadPdfAction::taxRecap()` with a `->record()` override on an
+    Infolist Section header action hangs the entire page in infinite
+    recursion for any issued taxable invoice — confirmed via a direct
+    HTTP request, independent of the new action. Fixed by building that
+    download action inline instead (deriving the TaxRecap through the
+    URL closure, never overriding the header action's own bound record);
+    see `DownloadPdfAction::taxRecap()`'s docblock for the warning.
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -763,7 +817,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 370 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
+php artisan test      # 409 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 

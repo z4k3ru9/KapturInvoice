@@ -24,6 +24,12 @@ class ReminderSuppression extends Model
         return [
             'tier' => 'integer',
             'suppressed_at' => 'datetime',
+            // Never in #[Fillable] — written only by
+            // App\Console\Commands\SendInvoiceReminders the first time this
+            // row actually causes a skip, so it stays effective until its
+            // one covered occurrence is consumed rather than expiring on a
+            // fixed clock window.
+            'consumed_at' => 'datetime',
         ];
     }
 

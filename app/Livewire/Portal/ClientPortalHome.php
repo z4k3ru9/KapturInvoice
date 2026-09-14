@@ -5,6 +5,7 @@ namespace App\Livewire\Portal;
 use App\Enums\InvoiceType;
 use App\Models\Invoice;
 use App\Models\PortalLink;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
@@ -67,9 +68,72 @@ class ClientPortalHome extends Component
             // `is_recurring = true` rows are templates, not real invoices).
             ->where('type', InvoiceType::Invoice)
             ->where('is_recurring', false)
-            ->with(['payments.receipt', 'invitations' => fn ($q) => $q->where('contact_id', $portalLink->contact_id)])
+            // Payments recorded through the current receivables workflow
+            // (App\Actions\Receivables\RecordCustomerPayment) deliberately
+            // leave `payments.invoice_id` null and associate invoices only
+            // through `payment_allocations` — eager-loading only the
+            // legacy `Invoice::payments()` relation omitted every such
+            // payment (and its receipt) from this billing-history view
+            // even though the invoice's own balance already reflects it (a
+            // Codex review finding on PR #4). Legacy InvoiceNinja-imported
+            // payments (App\Console\Commands\ImportInvoiceNinjaV4/V5) go
+            // the other way — a direct `payments.invoice_id` FK and no
+            // allocation row at all — so both must be loaded; see
+            // `paymentEvents()` on the view, which merges them without
+            // double-counting.
+            ->with([
+                'payments.receipt',
+                'allocations' => fn ($q) => $q->where('is_active', true)->with('payment.receipt'),
+                'invitations' => fn ($q) => $q->where('contact_id', $portalLink->contact_id),
+            ])
             ->orderByDesc('invoice_date')
             ->get();
+    }
+
+    /**
+     * Merges this invoice's legacy direct-linked payments
+     * (`payments.invoice_id`, from the InvoiceNinja importers) with its
+     * active allocation-based payments (the current receivables
+     * workflow) into one normalized, chronological list — a payment can
+     * appear via only one of the two paths in practice (see the
+     * `loadInvoices()` docblock), so no de-duplication is needed beyond
+     * keying by payment id.
+     *
+     * @return list<array{date: ?CarbonInterface, method: ?string, amount: float, receipt_number: ?string}>
+     */
+    public function paymentEventsFor(Invoice $invoice): array
+    {
+        $events = [];
+
+        foreach ($invoice->payments as $payment) {
+            $events[$payment->id] = [
+                'date' => $payment->payment_date ?? $payment->created_at,
+                'method' => $payment->method,
+                'amount' => (float) $payment->amount,
+                'receipt_number' => $payment->receipt?->number,
+            ];
+        }
+
+        foreach ($invoice->allocations as $allocation) {
+            $payment = $allocation->payment;
+
+            if (! $payment || isset($events[$payment->id])) {
+                continue;
+            }
+
+            $events[$payment->id] = [
+                'date' => $payment->payment_date ?? $payment->created_at,
+                'method' => $payment->method,
+                'amount' => (float) $allocation->amount,
+                'receipt_number' => $payment->receipt?->number,
+            ];
+        }
+
+        $events = array_values($events);
+
+        usort($events, fn ($a, $b) => ($a['date'] ?? now()) <=> ($b['date'] ?? now()));
+
+        return $events;
     }
 
     public function render(): View

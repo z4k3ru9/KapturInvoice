@@ -108,11 +108,20 @@ class InvoicesTable
                     ->label('Issue')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('success')
-                    ->visible(fn (Invoice $record) => in_array($record->status, [InvoiceStatus::Draft, InvoiceStatus::Approved], true))
+                    // Scoped to a plain, non-recurring Invoice row — the
+                    // `invoices` table also holds type=Quote rows
+                    // (App\Filament\Resources\Quotes) and `is_recurring`
+                    // template rows (App\Filament\Resources\
+                    // RecurringInvoices), which must never be issued this
+                    // way (a Codex review finding on PR #4 — also enforced
+                    // inside IssueInvoice itself, not just here).
+                    ->visible(fn (Invoice $record) => $record->type === InvoiceType::Invoice
+                        && ! $record->is_recurring
+                        && in_array($record->status, [InvoiceStatus::Draft, InvoiceStatus::Approved], true))
                     ->requiresConfirmation()
                     ->action(function (Invoice $record) {
                         try {
-                            app(IssueInvoice::class)->issue($record);
+                            app(IssueInvoice::class)->issue($record, auth()->user());
 
                             Notification::make()->success()->seconds(4)->title('Invoice issued')->send();
                         } catch (RuntimeException $e) {
@@ -130,7 +139,7 @@ class InvoicesTable
                     ->schema(self::correctionSchema())
                     ->action(function (Invoice $record, array $data) {
                         try {
-                            $new = app(AmendIssuedInvoice::class)->amend($record, $data['reason'], self::mapItems($data['items']));
+                            $new = app(AmendIssuedInvoice::class)->amend($record, $data['reason'], self::mapItems($data['items']), auth()->user());
 
                             Notification::make()->success()->seconds(4)->title('Invoice amended')->body("Created amendment #{$new->number}.")->send();
                         } catch (RuntimeException $e) {
@@ -145,7 +154,7 @@ class InvoicesTable
                     ->schema(self::correctionSchema())
                     ->action(function (Invoice $record, array $data) {
                         try {
-                            $new = app(VoidAndReissueInvoice::class)->voidAndReissue($record, $data['reason'], self::mapItems($data['items']));
+                            $new = app(VoidAndReissueInvoice::class)->voidAndReissue($record, $data['reason'], self::mapItems($data['items']), auth()->user());
 
                             Notification::make()->success()->seconds(4)->title('Invoice voided and reissued')->body("Created #{$new->number}.")->send();
                         } catch (RuntimeException $e) {
