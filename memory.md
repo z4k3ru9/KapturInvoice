@@ -7,11 +7,23 @@ re-run completed audits unless new evidence contradicts them.
 
 - Repository: `z4k3ru9/KapturInvoice`
 - Authoritative branch: `main`
-- Last documentation commit: `eaf1e9f`
+- Last documentation commit: `61a6501` (milestone percentage-to-amount fix,
+  optional product picture + Quotation/Proposal PDF export, the
+  `frontend-design` skill, DESIGN.md §14-16).
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - The application is being rebuilt progressively; do not begin broad rewrites
   or deferred features without an approved change request.
+- **PR #4** (`claude/invoiceninja-schema-reference-6s9aqc` → `main`) is open,
+  carrying Phases 04-06B (billing, procurement/delivery, documents/portal/
+  SOA, browser-QA) — effectively all post-Phase-03 scope, already confirmed
+  to include everything currently on `main` with no expected conflict. PHP
+  CI is green; the Playwright job is red (7 failures + 1 flake, all
+  notification-timing under parallel CI load). Do not duplicate anything
+  that PR already builds, and re-read
+  `docs/rebuild/outputs/24-pending-post-merge-tasks.md` for the current
+  status and the checklist to run once it merges, before starting new
+  Phase 04+ work.
 
 ## Binding product decisions
 
