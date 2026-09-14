@@ -153,6 +153,29 @@ Everything else in the area files is [NEW-PHASE] and belongs to Phase 04
 job cost, delivery orders, service reports, handover), Phase 06/06B
 (documents, portal scoping, SOA, reports, language override, autosave).
 
+## Settled before execution (Owner-confirmed 2026-09-14)
+
+1. **Sequencing against Phase 04.** Execute the shell, portal, dashboard,
+   quotations, and job workspace slices first. Hold the invoices and
+   payments slice (`04-invoices-payments.md`) until Phase 04 lands, because
+   Phase 04 evolves the same files.
+2. **Quotation line editor.** Use the full-width inline Repeater on the
+   quotation form per DESIGN.md §5. Keep the Items relation manager
+   read-only on the View page or remove it; update the two tests that touch
+   it.
+3. **Job workspace tabs.** Use Filament's combined content and
+   relation-manager tabs (Overview, Items, Milestones, Variations, Activity)
+   with Commercial as a collapsible Overview section. This is a recorded
+   temporary deviation from the seven-tab bar in DESIGN.md §4 until Phase 05
+   adds the remaining tabs.
+4. **Small additive migrations ahead of their phase are allowed.** Nullable
+   signatory and bank fields on `companies`, `vendors.tax_number`,
+   `documents.uploaded_by_user_id`, and `quotation_items.unit`. Add each to
+   `#[Fillable]` and to the relevant form and snapshot.
+5. **Placeholder assets.** Do not commit the Stitch-generated logos or adopt
+   the Inter webfont. Use the real uploaded company logos and keep the
+   system font stack.
+
 ## Docs to touch when a slice lands
 
 `docs/filament-admin-layout-design.md` (§1, §8, §9), `docs/testing-coverage.md`,
