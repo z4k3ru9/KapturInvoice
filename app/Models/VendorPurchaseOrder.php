@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'company_id', 'vendor_id', 'number', 'status',
     'po_date', 'due_date', 'delivery_date', 'terms', 'notes', 'total',
+    'document_language',
 ])]
 class VendorPurchaseOrder extends Model
 {
@@ -60,5 +61,17 @@ class VendorPurchaseOrder extends Model
     public function paymentCeiling(): float
     {
         return round((float) $this->total + (float) $this->variances()->sum('amount'), 2);
+    }
+
+    /**
+     * Printed-document language: this PO's own override when set, otherwise
+     * the owning company's `default_document_language`, otherwise Bahasa
+     * Indonesia — mirrors App\Models\Invoice::resolveDocumentLanguage(). See
+     * docs/rebuild/specs/06b-ux-browser-soa/Specs.md "Required launch
+     * document coverage."
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }

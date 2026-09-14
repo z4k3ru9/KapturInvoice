@@ -6,6 +6,7 @@ use App\Actions\Procurement\ApproveVendorBill;
 use App\Actions\Procurement\RecordVendorPayment;
 use App\Actions\Procurement\SubmitVendorBill;
 use App\Enums\VendorBillStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\VendorBill;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -49,6 +50,7 @@ class VendorBillsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::vendorBill(),
                 Action::make('submit')
                     ->label('Submit')
                     ->icon(Heroicon::OutlinedPaperAirplane)

@@ -1,10 +1,21 @@
 <?php
 
 use App\Http\Controllers\CreditPdfController;
+use App\Http\Controllers\DeliveryOrderPdfController;
 use App\Http\Controllers\DocumentDownloadController;
+use App\Http\Controllers\HandoverReportPdfController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
+use App\Http\Controllers\QuotationPdfController;
+use App\Http\Controllers\ReceiptPdfController;
+use App\Http\Controllers\SalesOrderPdfController;
+use App\Http\Controllers\StatementOfAccountPdfController;
+use App\Http\Controllers\StatementOfAccountPreviewController;
+use App\Http\Controllers\TaxRecapPdfController;
+use App\Http\Controllers\VendorBillPdfController;
+use App\Http\Controllers\VendorPaymentReceiptPdfController;
+use App\Http\Controllers\VendorPurchaseOrderPdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
@@ -62,6 +73,47 @@ Route::get('/invoices/{invoice}/pdf', InvoicePdfController::class)
 Route::get('/credits/{credit}/pdf', CreditPdfController::class)
     ->middleware('auth')
     ->name('credits.pdf');
+
+// Phase 06B (docs/rebuild/specs/06b-ux-browser-soa) — the remaining launch
+// document types' "Download PDF" routes, same auth+in-controller-tenant-
+// check pattern as invoices.pdf/credits.pdf above.
+Route::get('/quotations/{quotation}/pdf', QuotationPdfController::class)
+    ->middleware('auth')
+    ->name('quotations.pdf');
+Route::get('/sales-orders/{salesOrder}/pdf', SalesOrderPdfController::class)
+    ->middleware('auth')
+    ->name('sales-orders.pdf');
+Route::get('/receipts/{receipt}/pdf', ReceiptPdfController::class)
+    ->middleware('auth')
+    ->name('receipts.pdf');
+Route::get('/vendor-purchase-orders/{vendorPurchaseOrder}/pdf', VendorPurchaseOrderPdfController::class)
+    ->middleware('auth')
+    ->name('vendor-purchase-orders.pdf');
+Route::get('/vendor-bills/{vendorBill}/pdf', VendorBillPdfController::class)
+    ->middleware('auth')
+    ->name('vendor-bills.pdf');
+Route::get('/vendor-payment-receipts/{vendorPaymentReceipt}/pdf', VendorPaymentReceiptPdfController::class)
+    ->middleware('auth')
+    ->name('vendor-payment-receipts.pdf');
+Route::get('/delivery-orders/{deliveryOrder}/pdf', DeliveryOrderPdfController::class)
+    ->middleware('auth')
+    ->name('delivery-orders.pdf');
+Route::get('/handover-reports/{handoverReport}/pdf', HandoverReportPdfController::class)
+    ->middleware('auth')
+    ->name('handover-reports.pdf');
+Route::get('/tax-recaps/{taxRecap}/pdf', TaxRecapPdfController::class)
+    ->middleware('auth')
+    ->name('tax-recaps.pdf');
+
+// Statement of Account — a generated one replays its frozen snapshot; a
+// preview computes ad hoc for a client/period and is never persisted
+// (Specs.md: "A preview may be regenerated before generation").
+Route::get('/statement-of-accounts/{statementOfAccount}/pdf', StatementOfAccountPdfController::class)
+    ->middleware('auth')
+    ->name('statement-of-accounts.pdf');
+Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountPreviewController::class)
+    ->middleware('auth')
+    ->name('statement-of-accounts.preview');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF

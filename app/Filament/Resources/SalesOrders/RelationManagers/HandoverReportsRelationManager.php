@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SalesOrders\RelationManagers;
 
 use App\Actions\Delivery\CompleteHandover;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\SalesOrder;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
@@ -43,6 +44,9 @@ class HandoverReportsRelationManager extends RelationManager
                 IconColumn::make('is_override')->label('Override')->boolean(),
                 TextColumn::make('override_reason')->placeholder('-')->limit(60),
                 TextColumn::make('createdBy.name')->label('Recorded by')->placeholder('-'),
+            ])
+            ->recordActions([
+                DownloadPdfAction::handoverReport(),
             ])
             ->headerActions([
                 Action::make('recordHandover')

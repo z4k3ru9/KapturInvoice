@@ -7,6 +7,7 @@ use App\Actions\Sales\CloseJobFinancially;
 use App\Actions\Sales\CloseJobOperationally;
 use App\Actions\Sales\TransitionSalesOrderStatus;
 use App\Enums\SalesOrderStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\SalesOrder;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -47,6 +48,7 @@ class SalesOrdersTable
             ])
             ->recordActions([
                 ViewAction::make(),
+                DownloadPdfAction::salesOrder(),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon(Heroicon::OutlinedCheckCircle)

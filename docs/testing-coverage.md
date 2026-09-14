@@ -83,22 +83,23 @@ current count) and `vendor/bin/pint --test` before every push.
 | Client portal links (Phase 06): `App\Models\PortalLink`, a broader contact-scoped read-only history view beside the existing per-invoice `Invitation` | A designated billing contact's link shows every one of the client's invoices (never quotes/recurring templates); an ordinary contact's link shows only invoices they have an explicit `Invitation` for; a link opened under a different company's resolved domain 404s; a link never leaks a different client's invoices within the same company; a revoked or expired link 404s exactly like a nonexistent one ("cannot expose disabled actions through stale links"); the Filament "Generate portal link"/"Revoke" actions actually create/revoke a row | `ClientPortalHomeTest` |
 | Reminder suppression with reason and audit (Phase 06) | Suppressing a tier blocks that invoice's next matching reminder send; an unsuppressed tier still sends; suppression without a reason is rejected; suppression is denied for an unauthorized role (Sales) and allowed for Owner/Admin/Accountant; an audit event is recorded | `ReminderSuppressionTest` |
 | Job margin report (Phase 06 — the item deferred from Phase 05's acceptance criteria) | Sales value (invoice totals excluding tax, void/amended/cancelled invoices excluded), allocated gross cost, margin, and unallocated purchasing cost are computed correctly and kept as visibly separate columns for a known fixture; a different company's jobs never appear (company-scoped) | `JobMarginReportTest` |
+| Statement of Account (Phase 06B Slice 1 — docs/rebuild/specs/06b-ux-browser-soa) | Opening balance combines a prior-period paid invoice and a prior-period verified payment; an invoice/credit/receipt/payment each land correctly in-period; a Void invoice stays visible but contributes 0 to the balance; an amended original never double-counts against its replacement; aging buckets correct for invoices at 10/45/75/120 days overdue; company/client scoping excludes other records; `GenerateStatementOfAccount` persists a numbered, immutable snapshot; the PDF route/view render in Bahasa and English and are forbidden for a user outside the owning company; a preview is never persisted | `StatementOfAccountTest` |
+| Remaining launch document A4 PDF coverage (Phase 06B Slice 1): Quotation (also the printed Customer Order Confirmation), Sales Order, Receipt, Vendor PO, Vendor Bill, Vendor Payment Receipt, Delivery Order, Handover Report, Tax Recap | Each renders in Bahasa (default) and English (explicit override); `IssueInvoice` assigns a `TAX`-coded number to a new `TaxRecap` on a taxable invoice, never on a non-taxable one | `SalesDocumentPdfTest`, `VendorDocumentPdfTest`, `TaxRecapPdfTest` |
+| Browser suite foundation (Phase 06B Slice 4) | Both seeded company domains resolve correctly under Playwright's simulated hosts, in both system color schemes; an unmatched host falls back rather than erroring; the seeded owner can log in and reach each company's tenant-scoped admin path | `tests/browser/smoke/*.spec.ts` (`npm run test:browser`), run in CI as a separate `browser-tests` job |
 
 ## What's out of scope (and why)
 
-- **No browser/E2E tests** (Dusk/Playwright) — the Feature-test layer above
-  (HTTP + Livewire component tests against a real SQLite database) is
-  the project's whole automated safety net; visual/JS-interaction bugs
-  (Alpine behavior, drag-and-drop, real form submission via a rendered
-  DOM) aren't caught by it. A one-off Playwright pass was used earlier in
-  this project only to eyeball the two public-homepage domains, not kept
-  as a repeatable suite. **This decision is superseded by
-  `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`**, added to `main`
-  after this document was written: Phase 06B is a hard, mandatory gate
-  requiring a repository-owned Playwright suite in CI before Phase 07 can
-  start. Do not cite this bullet as a reason to skip or narrow that
-  phase's browser-test requirement — update this section once Phase 06B
-  actually lands the suite.
+- **Browser/E2E tests are no longer categorically out of scope** — this
+  bullet's original "no Dusk/Playwright" stance is superseded by
+  `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`. A repository-owned
+  Playwright suite now exists (`tests/browser/`, `playwright.config.ts`,
+  `npm run test:browser`, wired into CI as a separate `browser-tests`
+  job) — see the coverage row above. It currently covers only Slice 4's
+  foundation smoke tests (both company domains, both color schemes,
+  admin login); Slice 5's full journey/accessibility coverage (portal,
+  documents, SOA, autosave, dynamic rows, dashboard, notifications, WCAG
+  2.2 AA, responsive viewports) is still open — don't read the smoke
+  coverage as satisfying that requirement.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.
