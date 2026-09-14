@@ -17,20 +17,41 @@ touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
 
-# `php artisan serve` has no way to pass a `-d` flag through to the
-# built-in server it shells out to (Illuminate\Foundation\Console\
-# ServeCommand::serverCommand() hardcodes the command). This matters
-# here specifically: a CI run against PR #4 crashed the dev server
-# entirely partway through — one dompdf PDF-render request
-# (/statement-of-accounts/{id}/pdf) got no response at all
-# (ERR_EMPTY_RESPONSE), and every request after that got
-# ERR_CONNECTION_REFUSED for the rest of the run, because this suite's
-# single PHP process has no supervisor to restart it after a crash.
-# `php -i` on this CI runner's PHP showed a finite CLI memory_limit
-# (unlike this sandbox's own unconfigured `-1`/unlimited) — dompdf is a
-# known memory hog, and a PDF-render request appears to have exceeded
-# it and taken the whole server down with it. Bypass `artisan serve` and
-# invoke the built-in server directly so `-d memory_limit=-1` can be
-# passed through; browser-test-router.php duplicates the same trivial
-# static-file-or-index.php routing `artisan serve` itself uses.
-exec php -d memory_limit=-1 -S "127.0.0.1:${PORT}" -t public scripts/browser-test-router.php
+# `php artisan serve`'s built-in PHP dev server (explicitly documented
+# as development-only, not hardened for real concurrent load) crashed
+# outright twice against this CI runner, taking the whole suite down
+# with it for the rest of the run since nothing restarts it: once with
+# no diagnostic at all right after a dompdf PDF-render request
+# (ERR_EMPTY_RESPONSE, then ERR_CONNECTION_REFUSED for everything after
+# — plausibly that request's memory use exceeding the runner's default
+# finite memory_limit), and once with an explicit "Segmentation fault
+# (core dumped)" mid a completely unrelated relation-manager render —
+# a genuine PHP process crash unrelated to memory_limit, confirmed by
+# still happening even after raising memory_limit to unlimited. Rather
+# than keep chasing individual crash causes in a server that isn't
+# meant to be this durable, wrap it in a restart loop: `php artisan
+# serve` has no way to pass a `-d` flag through to the process it shells
+# out to (ServeCommand::serverCommand() hardcodes the command), so this
+# bypasses it and invokes the built-in server directly —
+# browser-test-router.php duplicates the same trivial
+# static-file-or-index.php routing `artisan serve` itself uses. A
+# generous but finite memory_limit (defense-in-depth against the first
+# crash cause) plus the restart loop (covers the second, and any other,
+# cause) means one crash costs only the in-flight request(s) — Playwright's
+# own retry then recovers that one test — instead of every remaining
+# test in the run.
+# `set -e` would otherwise abort this whole script the moment `php`
+# exits non-zero (a crash), which is exactly the one thing this loop
+# exists to survive — `|| true` keeps the loop running instead.
+# Forward a real shutdown signal (Playwright tearing the webServer down
+# between runs) to the child and stop looping, rather than restarting
+# forever against a closed test run.
+trap 'kill -TERM "${child_pid:-}" 2>/dev/null; exit 0' TERM INT
+
+while true; do
+    php -d memory_limit=512M -S "127.0.0.1:${PORT}" -t public scripts/browser-test-router.php &
+    child_pid=$!
+    wait "$child_pid" || true
+    echo "browser-test-server.sh: dev server exited (code $?) — restarting" >&2
+    sleep 0.5
+done
