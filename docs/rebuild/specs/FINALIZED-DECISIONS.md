@@ -66,3 +66,11 @@ This decision record closes the requirements-grilling session. It is binding on 
 - Each company deployment receives an independent release checkpoint. It records commit/version, domain and SSL, migrations, company settings, tax behavior, numbering, portal isolation, Bahasa and English PDF samples, queue/scheduler, backup/restore, browser/accessibility results, open exceptions, and approval status.
 - Shared automated tests may run once against the common codebase, but company-specific evidence is separate. The Owner signs both company checkpoints; Accountant and Admin may provide supporting reconciliation and operational evidence but cannot replace Owner approval for tax, balances, migration, backup restore, or release.
 - Claude-generated checkpoint reports are historical implementation evidence only. They do not approve the current `main` branch or release readiness. Current progressive specifications, current-branch verification, current test results, current migration/reconciliation evidence, and the Owner-approved release checkpoint are authoritative.
+
+## 8. Phase 04 billing decisions (ratified 2026-09-14)
+
+Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09-14 before Phase 04 coding began.
+
+- The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and replaces the status enum with the Phase 04 states. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
+- A new invoice may exist without a job. A job link is required whenever the client has an open job; a jobless invoice is exempt from the milestone-equals-approved-value guard, and the SOA must handle jobless invoices.
+- Imported historical payments receive no retroactive receipt. They are marked verified-by-import, appear on the Statement of Account, and never consume an `RCT` sequence number. The one-verified-payment-one-receipt rule applies only to payments verified after cutover.

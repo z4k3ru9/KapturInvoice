@@ -34,6 +34,14 @@ re-run completed audits unless new evidence contradicts them.
   full journal, full inventory, recurring billing, generic project/task
   tracking, formal proposals, vendor login, client uploads, SSO, e-signing,
   and central cross-server financial synchronization.
+- Phase 04 (ratified 2026-09-14, `FINALIZED-DECISIONS.md` §8): the legacy
+  `invoices` table is evolved in place into the canonical invoice, not
+  rebuilt beside itself; new invoices may exist without a job, but a job link
+  is required whenever the client has an open job; imported historical
+  payments get no retroactive receipt and never consume an `RCT` number.
+- Routine Phase 04 judgments, no re-ask needed: deferred resources (Payment
+  Gateways, Recurring Invoices, Credits, Proposals) are hidden from launch
+  navigation; overdue is a derived flag, not a stored status.
 
 ## Financial rules
 
@@ -63,48 +71,6 @@ re-run completed audits unless new evidence contradicts them.
   per-document English override.
 - Every launch document must be A4-safe and terminology-reviewed before
   production.
-
-## Open decisions before Phase 04 (pending Owner answer)
-
-Recorded 2026-09-14 after a gap review of the code against the PRD and phase
-specs at the Phase 03 checkpoint. These three questions are not answered in
-any approved document. Do not guess them during coding; do not re-derive them.
-Once the Owner answers, ratify the answer in
-`docs/rebuild/specs/FINALIZED-DECISIONS.md` through change control and move
-the entry to "Binding product decisions" above.
-
-1. **Invoice table strategy.** Phase 03 built `quotations` beside the legacy
-   quote rows. Invoices differ: the legacy `invoices` table will also hold
-   every imported InvoiceNinja invoice, and the SOA, portal, payments, and
-   reminders each need one invoice list. Two tables would force every
-   downstream feature to union them.
-   Recommendation: evolve the existing `invoices` table in place. Add the
-   issuance snapshot, `document_date`, `issued_at`, pricing mode, and
-   rounding columns, replace the status enum with the Phase 04 states, and
-   keep imported rows as read-only historical documents. This departs from
-   the "build beside" precedent and needs an explicit decision.
-
-2. **Invoices without a job.** The PRD lifecycle is job-centric and calls
-   invoices "staged invoices" from milestones, but the payment spec allows an
-   "optional job", and both companies make small ad-hoc sales that would
-   never justify a quotation and job. If jobless invoices are allowed, the
-   milestone-equals-approved-value guard cannot apply to them and the SOA
-   needs a job-less path.
-   Recommendation: allow jobless invoices, and require a job link whenever
-   the client has an open job.
-
-3. **Receipts for imported historical payments.** The finalized decisions
-   cover historical credits and historical numbers but not whether each
-   imported InvoiceNinja payment receives a retroactive `RCT` receipt. This
-   shapes the Phase 04 receipt model, because "one verified payment produces
-   one receipt" would otherwise leave migrated payments as an exception.
-   Recommendation: no retroactive receipts. Imported payments are marked
-   verified-by-import, appear on the SOA, and never consume a receipt number.
-
-Routine judgments not requiring an answer: hiding deferred resources
-(Payment Gateways, Recurring Invoices, Credits, Proposals) from launch
-navigation, and treating overdue as a derived flag rather than a stored
-status. Record each in the Phase 04 checkpoint report.
 
 ## Anti-loop execution rules
 
