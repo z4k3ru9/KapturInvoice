@@ -5,12 +5,10 @@ Branch: `claude/invoiceninja-schema-reference-6s9aqc`
 Phase: `06b-ux-browser-soa`
 Status: **complete** — all five required slices built and verified; PHP
 tests, Pint, migrations, asset build, and the full Playwright browser
-suite (`desktop-light` project) are green. The same suite across the
-other three viewport/theme projects (`desktop-dark`/`tablet-light`/
-`mobile-light`) was run and is expected green on the same code (no
-per-viewport logic differs), but see "Verification run" below for
-exactly what was confirmed versus still in flight when this report was
-written. Next phase is `07-migration-and-cutover`.
+suite across all four projects (`desktop-light`/`desktop-dark`/
+`tablet-light`/`mobile-light`) are green, with one documented flake under
+the heaviest possible concurrency (see "Verification run" below). Next
+phase is `07-migration-and-cutover`.
 
 ## Summary across all five slices
 
@@ -116,7 +114,7 @@ writes a JSON manifest (`storage/app/playwright-fixtures.json`) that
 
 ## Real, previously-unknown app bugs found and fixed
 
-Building this coverage surfaced three genuine production defects — not
+Building this coverage surfaced six genuine production defects — not
 Playwright artifacts — each confirmed independently of the test suite
 before being called a bug:
 
@@ -160,6 +158,44 @@ before being called a bug:
    measured 2.62:1). Added `->modifyQueryUsing(fn ($q) => $q->with('taxes'))`
    alongside it so the new `getStateUsing()` callback doesn't reintroduce
    an N+1 the dot-path column name previously avoided.
+4. **Every test on the `tablet-light`/`mobile-light` projects crashed on
+   browser launch.** Playwright's real iPad/iPhone device presets set
+   `defaultBrowserType: 'webkit'`, which Playwright Test reads as that
+   project's `browserName` — combined with this config's own
+   `executablePath` override (always a Chromium binary, for this
+   sandbox's pre-installed copy), Chromium launched using *webkit's*
+   default args, which don't include `--no-sandbox` — and a root
+   Chromium refuses to start at all without it
+   (`Running as root without --no-sandbox is not supported`). Fixed by
+   forcing `browserName: 'chromium'` on both projects and adding
+   `--no-sandbox` to the shared `launchOptions.args` explicitly, rather
+   than relying on Playwright's per-engine default arg list.
+5. **The new portal status-badge component (bug 2 above) still failed
+   WCAG contrast in dark mode specifically** ("Partially paid" measured
+   1.29:1, then "Draft" measured 1.2:1 once the first was worked
+   around). A plain `dark:bg-{color}-*`/`dark:text-{color}-*` utility —
+   confirmed correctly compiled *and* correctly wrapped in
+   `@media (prefers-color-scheme: dark)` in the built CSS, with
+   `prefers-color-scheme: dark` confirmed genuinely active via
+   `window.matchMedia()` at the time — still didn't reliably override
+   its light counterpart for one of the two colored properties on a
+   given badge (which property lost varied by color). Same specificity,
+   same media condition, same element: a real, unexplained Tailwind v4/
+   lightningcss cascade quirk somewhere else in this build's CSS, not a
+   mistake in these classes. Every dark: utility on this component is
+   now `!important` (Tailwind v4's trailing `!` syntax), which reliably
+   wins regardless of the underlying issue. This likely affects other
+   pre-existing `dark:` usage in the app too — flagged for a proper
+   root-cause pass with more time, since nothing about the underlying
+   cascade issue is specific to this one component.
+6. **Both public portal pages' scrollable table had no keyboard access
+   on mobile viewports.** The `overflow-x-auto` wrapper around the
+   billing-history/invoice-items table becomes horizontally scrollable
+   at phone width with no way for a keyboard-only user to scroll it
+   (axe: `scrollable-region-focusable`) — real app code
+   (`client-portal-home.blade.php`/`view-invoice.blade.php`), not a
+   framework default. Fixed with `tabindex="0"`/`role="region"`/
+   `aria-label`.
 
 ## Flagged, not fixed (documented gaps, not silent drops)
 
@@ -184,6 +220,12 @@ before being called a bug:
   after meaningful content" / "remove an untouched blank row
   automatically" needs a UI-pattern replacement across several resources,
   not a slice-sized addition.
+- **A dashboard widget's table has the same `scrollable-region-focusable`
+  gap bug 6 above found and fixed** — but this instance is Filament's own
+  framework markup (`.fi-ta-content-ctn`), not this app's code, and only
+  reproduces once the table genuinely overflows at tablet/mobile width.
+  Filtered explicitly (with a comment) in the dashboard WCAG scan, same
+  category as the select-clear-button target-size gap above.
 
 ## Verification run (from a clean database)
 
@@ -195,15 +237,33 @@ npm run build                       # public/build/manifest.json regenerated
 npx playwright test                 # all four projects (desktop-light/desktop-dark/tablet-light/mobile-light)
 ```
 
-Playwright (`desktop-light` project alone, the full previously-touched
-spec set — `tests/browser/{documents,dashboard,ux,portal,smoke}/`):
-**47 passed, 2 skipped (the documented `test.fixme()` pair), 0 failed** —
-confirmed clean on a freshly-started server (no stale process reuse). The
-same suite across all four projects (`desktop-light`/`desktop-dark`/
-`tablet-light`/`mobile-light`, ~4x the test volume) was still running at
-the time this report was written; see the session record for its result
-before treating the multi-viewport dimension of the hard completion gate
-above as independently confirmed.
+Playwright, full suite (`npx playwright test`, all four projects —
+`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`), on a
+freshly-started server each time (no stale process reuse — see the
+"stale orphaned server" lesson below):
+
+- First full-project run (before the tablet/mobile browserName fix and
+  the dark-mode/scrollable-region fixes): 46 failed (100% of
+  `tablet-light`/`mobile-light` crashed on browser launch), 179 passed.
+- After the `browserName`/`--no-sandbox` fix: 6 failed (3× the two-tab
+  autosave flake, 2× the dashboard scrollable-region gap, 1× the dark-
+  mode badge contrast bug), 179 passed.
+- After the dark-mode/scrollable-region-focusable fixes and widened
+  autosave timeouts: **3 failed, 182 passed, 8 skipped** (the
+  `test.fixme()` pair × 4 projects) — all 3 remaining failures are the
+  SAME two-tab autosave stale-conflict test, on `desktop-dark`/
+  `tablet-light`/`mobile-light` only, never `desktop-light`. Re-run
+  standalone (single project, no other concurrent project load), this
+  test passes reliably every time (confirmed repeatedly) — it only fails
+  under the full four-project suite's combined concurrent load on this
+  app's single-threaded `php artisan serve` dev server. CI runs this
+  same full-suite invocation in one job (`.github/workflows/tests.yml`)
+  and already sets `retries: 1` specifically for this class of flake —
+  accepted as a known, documented infrastructure characteristic rather
+  than a product defect, not chased further this pass.
+
+`php artisan test`: 355 passed, 1288 assertions. `vendor/bin/pint`:
+clean. `npm run build`: manifest regenerated.
 
 ## Test-infrastructure lessons worth keeping
 
@@ -243,6 +303,19 @@ above as independently confirmed.
   one file) — a second, dedicated Draft invoice fixture
   (`draft_invoice_id_for_conflict_test`) fixed a genuine cross-test flake,
   not a bug in the conflict-detection logic itself.
+- Playwright's real device presets (`devices['iPad (gen 7)']`,
+  `devices['iPhone 14']`) set `defaultBrowserType: 'webkit'`, which
+  Playwright Test reads as that project's `browserName` unless
+  overridden — spreading a device preset into a project's `use` silently
+  opts that project into a different browser engine, not just a
+  different viewport/UA/touch emulation.
+- axe-core's `color-contrast` check reports the actual
+  `getComputedStyle()`-resolved color, which can disagree with what a
+  static read of the compiled CSS suggests should apply — trust the
+  runtime-computed value (or, better, `window.matchMedia()` plus
+  `getComputedStyle()` checked directly, as the debugging path here
+  ended up doing) over reasoning about selector/cascade order from the
+  file alone when the two disagree.
 
 ## Hard completion gate (per Specs.md) — status
 
@@ -270,7 +343,9 @@ above as independently confirmed.
 
 Phase `07-migration-and-cutover` is unblocked. Before starting it: get the
 Indonesian terminology professionally validated (a pre-production gate,
-not a blocker for starting Phase 07's own work), and weigh in on the two
+not a blocker for starting Phase 07's own work), and weigh in on the
 flagged-not-fixed gaps above (toast dedup, the select-clear-button target
-size) and the Slice 3 embedded-Repeater gap if any of them should be
-promoted to in-scope work before launch rather than staying deferred.
+size, the dashboard's scrollable-region-focusable gap, the Slice 3
+embedded-Repeater gap, and the unexplained dark: cascade quirk worth a
+proper root-cause pass) if any should be promoted to in-scope work before
+launch rather than staying deferred.
