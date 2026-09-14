@@ -57,6 +57,17 @@ re-run completed audits unless new evidence contradicts them.
   Gateways, Recurring Invoices, Credits, Proposals) are hidden from launch
   navigation; overdue is a derived flag, not a stored status.
 
+- Stitch UI layout work (ratified 2026-09-14, `docs/rebuild/outputs/18-stitch-ui-gap-analysis/`):
+  the Stitch renders are layout references only; the pack's [STRIP] table
+  overrides them. Settled: shell/portal/dashboard/quotations/job-workspace
+  slices run before Phase 04, invoices/payments slice waits for Phase 04;
+  quotation lines use a full-width inline Repeater; the job workspace uses
+  Filament combined content + relation-manager tabs with Commercial as an
+  Overview section (temporary deviation from DESIGN.md §4); small nullable
+  additive migrations (company signatory/bank, vendor tax number, document
+  uploader, quotation item unit) may land ahead of their phase; Stitch
+  placeholder logos and the Inter webfont are not adopted.
+
 ## Financial rules
 
 - One actual verified customer payment creates one customer receipt.
