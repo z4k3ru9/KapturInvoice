@@ -25,7 +25,14 @@
             @if ($invoices->isEmpty())
                 <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">No documents to show yet.</p>
             @else
-                <div class="overflow-x-auto">
+                {{-- A real WCAG 2.2 AA gap found via the axe-core browser
+                     scan (Phase 06B Slice 5, mobile viewport): a
+                     horizontally-scrollable container with no way for a
+                     keyboard user to actually scroll it (axe:
+                     scrollable-region-focusable). `tabindex="0"` plus a
+                     real accessible name makes it a focusable, keyboard-
+                     scrollable region. --}}
+                <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Billing history table">
                     <table class="w-full text-left text-sm">
                         <thead>
                             <tr class="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">

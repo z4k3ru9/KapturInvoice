@@ -35,7 +35,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
     // of the same relation-manager-heavy edit page, one per tab, queue
     // behind each other rather than running concurrently. The default
     // 30s test timeout is occasionally too tight for that alone.
-    testInfo.setTimeout(60_000);
+    testInfo.setTimeout(90_000);
 
     const contextA = await browser.newContext({ storageState: 'playwright/.auth/owner.json' });
     const contextB = await browser.newContext({ storageState: 'playwright/.auth/owner.json' });
@@ -56,7 +56,11 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         const termsA = pageA.getByLabel('Terms').first();
         await termsA.fill('Saved from tab A first');
         await termsA.blur();
-        await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 10_000 });
+        // Widened further under the full four-project suite's combined
+        // load (this app's single-threaded dev server queues requests
+        // from every concurrently-running project) — see the timeout
+        // note above.
+        await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 25_000 });
 
         // Tab B still thinks it has the original version — its own
         // autosave must now detect the conflict rather than clobber A's
@@ -65,7 +69,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         await termsB.fill('Tab B never saw tab A\'s change');
         await termsB.blur();
 
-        await expect(pageB.getByText('This draft was changed elsewhere while you were editing.')).toBeVisible({ timeout: 5_000 });
+        await expect(pageB.getByText('This draft was changed elsewhere while you were editing.')).toBeVisible({ timeout: 15_000 });
         await expect(pageB.getByRole('button', { name: 'Discard my changes' })).toBeVisible();
         await expect(pageB.getByRole('button', { name: 'Keep my changes anyway' })).toBeVisible();
 
