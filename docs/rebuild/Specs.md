@@ -33,7 +33,7 @@ KapturInvoice is a job-centric billing and procurement workspace for two legally
 Client -> Quotation -> optional Customer PO or Customer Order Confirmation -> Sales Order / Job
        -> Vendor purchasing -> staged Customer invoices -> Payment event
        -> verification -> one Receipt per payment event
-       -> Delivery Order -> conditional Handover Report -> closure
+       -> Delivery Order and/or Service Report -> conditional Handover Report -> closure
 ```
 
 The application must preserve financial history, make each job the operational center, support manual customer and vendor payments, produce A4 documents, and keep each company completely isolated.
@@ -90,6 +90,7 @@ The same person may use the same email on both deployments, but accounts, passwo
 - Shared purchasing across multiple jobs
 - Job cost and margin reporting
 - Delivery Orders
+- Service Reports (repair-to-report tracking for service jobs)
 - Conditional Handover Reports
 - Statements of Account
 - Customer billing status and history
@@ -136,6 +137,7 @@ Legacy modules may remain available for migration or archive compatibility but m
 | Vendor bill | Vendor payable that may be paid in parts. |
 | Job cost | Gross vendor/expense cost explicitly allocated to a job. |
 | Delivery Order | Evidence that goods were delivered. |
+| Service Report | Evidence of one service visit on a service/repair job: problem reported, diagnosis, action taken, parts used, and result. |
 | Handover Report | Evidence that installation/service work was completed. |
 | Tax snapshot | Immutable tax values captured at document issuance. |
 | Tax recap | Separate per-transaction report prefilled from the tax snapshot and manually confirmable. |
@@ -222,6 +224,8 @@ Every root business table is company-scoped. Child records inherit company scope
 - `job_cost_allocations`
 - `delivery_orders`
 - `delivery_order_items`
+- `service_reports`
+- `service_report_items`
 - `handover_reports`
 
 ### Documents and migration
@@ -284,6 +288,7 @@ Requirements:
 - Distinguish operational closure from financial closure.
 - Goods-only jobs may close operationally after delivery.
 - Installation/service jobs require handover evidence.
+- Service/repair jobs additionally require at least one Service Report whose result is `Resolved` before Handover, unless Admin/Owner overrides with a reason and audit event.
 - Financial closure requires paid customer invoices and recorded/reconciled vendor costs unless an Owner records an authorized override with an outstanding-balance summary, reason, and audit event. Admin may prepare but cannot finalize the override.
 
 ### Customer invoice
@@ -348,6 +353,15 @@ Requirements:
 - Handover can be prepared only after delivery is complete where the job requires delivery.
 - Admin/Owner may override a delivery dependency only with a reason and audit event for valid service-only or exceptional work.
 - Staff and higher may approve delivery/handover.
+
+### Service report (repair to report)
+
+- A Service Report tracks one service visit on a service/repair job, aligned with the Delivery Order pattern: a job may have multiple Service Reports, each numbered, immutable once approved, and attached to the job.
+- Each report records service date, technician (Staff or higher), customer-reported problem, diagnosis (problem found), action taken, parts/items used (catalog or custom lines, optionally linked to job items), result (`Resolved`, `Partially resolved`, `Follow-up required`, `Unresolved`), follow-up notes, customer acknowledgement name, and evidence attachments.
+- Service Report states mirror Delivery Orders: `Draft -> Submitted -> Approved`, `Cancelled` from any non-approved state. Staff and higher may submit and approve; approval snapshots the report.
+- Handover on a service/repair job becomes available only when at least one approved Service Report has result `Resolved` and no approved report is still `Follow-up required`; Admin/Owner may override with a reason and audit event.
+- Parts recorded on a Service Report are operational evidence only. They do not create invoices, adjust job value, or imply inventory; billable changes still go through an approved variation.
+- The Service Report PDF is a launch document (Bahasa default, English override) and is shareable with the client through the portal like a Delivery Order.
 
 ## 8. Tax and discount specification
 
@@ -558,6 +572,7 @@ Required Indonesian labels include:
 | Payment Receipt | Kwitansi Pembayaran |
 | Purchase Order | Pesanan Pembelian |
 | Delivery Order | Surat Jalan |
+| Service Report | Laporan Servis |
 | Handover Report | Berita Acara Serah Terima |
 | Tax Recap Report | Laporan Rekap Pajak |
 | Statement of Account | Laporan Rekening |
@@ -571,6 +586,7 @@ Required document types at launch:
 - Customer Payment Receipt
 - Customer PO or internal Customer Order Confirmation
 - Delivery Order
+- Service Report
 - Statement of Account
 - Vendor PO
 - Vendor Payment Receipt
@@ -694,7 +710,7 @@ Implement vendor POs, vendor bills, partial payments, shared purchasing, allocat
 
 ### Slice 8: delivery and handover
 
-Implement delivery orders, conditional handover, evidence, status flow, and closure rules.
+Implement delivery orders, service reports (problem, diagnosis, action, parts, result), conditional handover, evidence, status flow, and closure rules.
 
 ### Slice 9: portal, reports, reminders, migration
 
@@ -721,6 +737,7 @@ Minimum scenarios:
 - Vendor purchase serves two jobs and allocation remainder is visible.
 - Delivery-only job closes operationally after delivery.
 - Installation job requires handover.
+- Service job requires an approved `Resolved` Service Report before handover; a `Follow-up required` report blocks it.
 - Invoice amendment preserves original PDF and number.
 - Numbering is company/type/year scoped, atomic, annual, and non-reusable.
 - Portal cannot cross company or client boundaries.

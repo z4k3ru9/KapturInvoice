@@ -12,11 +12,15 @@ re-run completed audits unless new evidence contradicts them.
 - The application is being rebuilt progressively; do not begin broad rewrites
   or deferred features without an approved change request.
 - Working branch `claude/invoiceninja-schema-reference-6s9aqc` has
-  implemented and verified Phases 01-06B (409 PHP tests, migrations clean,
+  implemented and verified Phases 01-06B (412 PHP tests, migrations clean,
   Pint clean, `npm run build` clean, Playwright browser suite green across
-  all four projects — desktop-light/desktop-dark/tablet-light/mobile-light).
-  Phase 06B (`docs/rebuild/specs/06b-ux-browser-soa/Specs.md`) is complete
-  per its own hard completion gate — see
+  all four projects — desktop-light/desktop-dark/tablet-light/mobile-light,
+  182 passed/8 skipped, the only failures being the pre-existing documented
+  `documents/autosave.spec.ts` two-tab stale-conflict flake under
+  full-suite concurrent load against `php artisan serve`'s single-threaded
+  dev server — reconfirmed 2026-09-14 to pass reliably whenever it runs
+  alone). Phase 06B (`docs/rebuild/specs/06b-ux-browser-soa/Specs.md`) is
+  complete per its own hard completion gate — see
   `docs/rebuild/outputs/23-phase-06b-checkpoint-report.md` for the full
   slice-by-slice report and every real bug found/fixed there, and CLAUDE.md's
   own Phase 06B section for the later Codex-review round (20 findings, all
@@ -27,16 +31,34 @@ re-run completed audits unless new evidence contradicts them.
   those: an Infolist Section header action's `->record()` override hanging
   the Invoice View page in infinite recursion for any issued taxable
   invoice).
-- PR #4 (`claude/invoiceninja-schema-reference-6s9aqc` → `main`) is open,
-  covering all of Phase 06B plus the Codex-review round above.
-- `main` independently gained two more merged PRs after this branch's
-  original PR #1 (a dependabot bump, and "Quotation auto-expiry, KJA company
-  code ratification, Laravel Boost") while this branch was mid-flight on
-  Phase 06B. Reconciled via `git merge origin/main` (6 conflicts, all
+- **PR #4** (`claude/invoiceninja-schema-reference-6s9aqc` → `main`) carries
+  Phases 04-06B (billing, procurement/delivery, documents/portal/SOA,
+  browser-QA) — effectively all post-Phase-03 scope. A post-PR-open Codex
+  review round found 23 more findings across the financial core, all fixed
+  (see CLAUDE.md's "Post-PR Codex review round"). The Playwright CI job's
+  initial red run (7 failures + 1 flake, all notification-timing under
+  parallel CI load) traced to a deliberate, correct UX change in this same
+  PR (SOA generate/preview notifications became persistent with a
+  clickable action link instead of a 4-second raw-URL toast) breaking two
+  browser test files' own assumptions — both fixed and reverified locally
+  2026-09-14 (`documents/soa.spec.ts`, `ux/accessibility.spec.ts` — the
+  latter's fix needed a second pass: its confirmation-modal locator used
+  `role="dialog"` where Filament's plain confirmation-only modals render
+  `role="alertdialog"`). `docs/rebuild/outputs/24-pending-post-merge-tasks.md`
+  is now superseded by this entry — its "do not duplicate" file list is
+  still accurate context if picking up unrelated work while this PR is
+  open, but its CI-status and mergeable-state snapshot are stale.
+- `main` independently gained further merged PRs (a dependabot bump,
+  "Quotation auto-expiry, KJA company code ratification, Laravel Boost",
+  and a Stitch UI layout gap-analysis docs PR) while this branch was
+  mid-flight on Phase 06B and its Codex-review round. Reconciled via two
+  separate `git merge origin/main` passes (the first: 6 conflicts, all
   hand-resolved to keep both lines of work — see the checkpoint report and
-  this branch's own commit history for detail) rather than rebasing, so as
-  not to rewrite shared history. This branch is a strict superset of `main`
-  as of that merge (`git merge-base --is-ancestor origin/main HEAD` holds).
+  this branch's own commit history for detail; the second, 2026-09-14: one
+  conflict, in this file's own "Current state" section, resolved the same
+  way) rather than rebasing, so as not to rewrite shared history. This
+  branch is a strict superset of `main` as of each merge
+  (`git merge-base --is-ancestor origin/main HEAD` holds).
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior
@@ -55,6 +77,11 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Binding product decisions
 
+- Main goal: basic billing and invoicing for the two companies. The project
+  is ISO-compatible in practice but not ISO-certified, and it is not a
+  certified tax-compliance system; tax output is a bookkeeping aid validated
+  by a tax professional (`FINALIZED-DECISIONS.md` §9). Do not add
+  certification or regulatory-reporting scope without a change request.
 - Company A is Karunia Abadi: InvoiceNinja 4 source, non-tax new customer
   transactions.
 - Company B is Axen Technology Indonesia: InvoiceNinja 5 source, Indonesian
@@ -64,12 +91,21 @@ re-run completed audits unless new evidence contradicts them.
   isolation.
 - The system is job-centric: quotation -> customer PO or internal COC -> Sales
   Order/Job -> vendor purchasing -> staged invoices -> payments/receipts ->
-  delivery -> conditional handover -> closure.
+  delivery and/or service reports -> conditional handover -> closure.
 - Launch roles: Owner, Admin, Accountant, Sales, Staff, Auditor, Vendor entity,
   and Client portal contact.
 - Launch includes clients, catalog, quotations, jobs, invoices, payments,
   customer receipts, vendors, vendor POs/bills/payments, reports, portal,
-  documents, delivery orders, handover reports, SOA, and tax recap.
+  documents, delivery orders, service reports, handover reports, SOA, and tax
+  recap.
+- Service Report (`SVR`, ratified 2026-09-14, `FINALIZED-DECISIONS.md` §10):
+  job types are goods/installation/service; a service job records each visit
+  as a numbered report (problem, diagnosis, action, parts, result) following
+  the Delivery Order pattern, and needs an approved `Resolved` report before
+  handover. Always job-bound (warranty visits use a zero-value service job);
+  parts are evidence only, billed via manual variation; technician is a
+  Staff-or-higher user plus optional external name; installation jobs may
+  carry optional non-gating reports. Phase 05 scope, Phase 06B coverage.
 - Deferred: payment gateway, new credit-note workflow, refunds, write-offs,
   full journal, full inventory, recurring billing, generic project/task
   tracking, formal proposals, vendor login, client uploads, SSO, e-signing,
@@ -82,6 +118,17 @@ re-run completed audits unless new evidence contradicts them.
 - Routine Phase 04 judgments, no re-ask needed: deferred resources (Payment
   Gateways, Recurring Invoices, Credits, Proposals) are hidden from launch
   navigation; overdue is a derived flag, not a stored status.
+
+- Stitch UI layout work (ratified 2026-09-14, `docs/rebuild/outputs/18-stitch-ui-gap-analysis/`):
+  the Stitch renders are layout references only; the pack's [STRIP] table
+  overrides them. Settled: shell/portal/dashboard/quotations/job-workspace
+  slices run before Phase 04, invoices/payments slice waits for Phase 04;
+  quotation lines use a full-width inline Repeater; the job workspace uses
+  Filament combined content + relation-manager tabs with Commercial as an
+  Overview section (temporary deviation from DESIGN.md §4); small nullable
+  additive migrations (company signatory/bank, vendor tax number, document
+  uploader, quotation item unit) may land ahead of their phase; Stitch
+  placeholder logos and the Inter webfont are not adopted.
 
 ## Financial rules
 

@@ -38,6 +38,7 @@ Navigation drawer
     Vendor Bills
   Delivery
     Delivery Orders
+    Service Reports
     Handover Reports
   Catalog
   Reports
@@ -73,7 +74,7 @@ The header shows client/job identity, current status, quoted/invoiced value, pai
 Quote -> Accepted -> Procurement -> In Progress -> Delivered -> Handover -> Paid -> Closed
 ```
 
-Conditional stages show `Not required` or are omitted. Goods-only work must not appear blocked by Handover. Deep links from invoices, vendor bills, and delivery records open the relevant Job tab and preserve a link back to the source record. Heavy relationship sections load when opened.
+Conditional stages show `Not required` or are omitted. Goods-only work must not appear blocked by Handover. On a service/repair job the `Delivered` stage reads `Serviced` and is satisfied by an approved `Resolved` Service Report; the Job page lists Service Reports beside Delivery Orders with the same row layout (date, number, technician, result, status). Deep links from invoices, vendor bills, and delivery records open the relevant Job tab and preserve a link back to the source record. Heavy relationship sections load when opened.
 
 ## 5. Creation and editing flows
 

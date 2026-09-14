@@ -29,6 +29,10 @@ This directory is the handoff pack for the next UI-design and programming sessio
 12. [Migration execution runbook](12-migration-execution-runbook.md)
 13. [Recoding guidance and quality gates](13-recoding-guidance-and-quality-gates.md)
 14. [Gate 0 baseline report](14-gate-0-baseline-report.md)
+15. [Phase 01 checkpoint report](15-phase-01-checkpoint-report.md)
+16. [Phase 02 checkpoint report](16-phase-02-checkpoint-report.md)
+17. [Phase 03 checkpoint report](17-phase-03-checkpoint-report.md)
+18. [Stitch UI layout gap analysis](18-stitch-ui-gap-analysis/README.md) — execution notes for bringing the Filament admin, PDFs, and portal toward the Google Stitch layout drafts without breaching approved specs
 
 ## Handoff rules
 
