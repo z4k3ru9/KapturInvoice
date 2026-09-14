@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['company_id', 'payment_id', 'number', 'issued_at'])]
+#[Fillable(['company_id', 'payment_id', 'number', 'issued_at', 'document_language'])]
 class Receipt extends Model
 {
     protected function casts(): array
@@ -31,5 +31,16 @@ class Receipt extends Model
     public function amendments(): HasMany
     {
         return $this->hasMany(ReceiptAmendment::class);
+    }
+
+    /**
+     * Printed-document language: same resolution as
+     * `Invoice::resolveDocumentLanguage()` — this receipt's own override
+     * when set, otherwise the owning company's `default_document_language`,
+     * otherwise Bahasa Indonesia.
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }

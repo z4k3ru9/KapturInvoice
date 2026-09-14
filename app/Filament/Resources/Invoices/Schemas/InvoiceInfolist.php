@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Invoices\Schemas;
 
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
+use App\Models\TaxRecap;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -140,8 +142,13 @@ class InvoiceInfolist
 
                 Section::make('Tax recap')
                     ->visible(fn (Invoice $record) => $record->taxRecap !== null)
+                    ->headerActions([
+                        DownloadPdfAction::taxRecap()
+                            ->record(fn (Invoice $record): ?TaxRecap => $record->taxRecap),
+                    ])
                     ->columns(3)
                     ->schema([
+                        TextEntry::make('taxRecap.number')->label('Number')->placeholder('-'),
                         TextEntry::make('taxRecap.reporting_period')->label('Reporting period'),
                         TextEntry::make('taxRecap.manual_entry_status')->label('Status')->badge(),
                         TextEntry::make('taxRecap.external_reference')->label('External reference')->placeholder('-'),

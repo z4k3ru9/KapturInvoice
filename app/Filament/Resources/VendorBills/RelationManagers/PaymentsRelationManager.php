@@ -7,6 +7,7 @@ use App\Actions\Procurement\IssueVendorPaymentReceipt;
 use App\Actions\Procurement\ReverseVendorPayment;
 use App\Actions\Procurement\VerifyVendorPayment;
 use App\Enums\VendorPaymentStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\VendorPayment;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DateTimePicker;
@@ -54,6 +55,9 @@ class PaymentsRelationManager extends RelationManager
                 TextColumn::make('receipt.number')->label('Receipt #')->placeholder('—'),
             ])
             ->recordActions([
+                DownloadPdfAction::vendorPaymentReceipt()
+                    ->visible(fn (VendorPayment $record) => $record->receipt()->exists())
+                    ->url(fn (VendorPayment $record) => route('vendor-payment-receipts.pdf', $record->receipt)),
                 Action::make('verify')
                     ->label('Verify')
                     ->icon(Heroicon::OutlinedCheckBadge)

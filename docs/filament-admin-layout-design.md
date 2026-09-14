@@ -602,6 +602,19 @@ Blade views, not a CRUD screen" (§2.9) — via
   approved glossary — flagged in that file's own docblock; needs sign-off
   from an Indonesian tax/accounting professional before production, per
   `FINALIZED-DECISIONS.md` §6.
+- ✅ **Every remaining launch document type (Phase 06B Slice 1 —
+  06b-ux-browser-soa, in progress)** — the same localized-PDF pattern now
+  covers `Quotation` (`quotation.blade.php` — doubles as the printed
+  Customer Order Confirmation when `customer_po_is_system_generated`),
+  `SalesOrder`, `Receipt`, `VendorPurchaseOrder`, `VendorBill`,
+  `VendorPaymentReceipt`, `DeliveryOrder`, `HandoverReport`, `TaxRecap`,
+  and the new `StatementOfAccount`. Each gets its own "Download PDF" row
+  action on its table/relation manager (`App\Filament\Support\
+  DownloadPdfAction` grew one static method per type) and its own
+  auth-guarded controller/route, same pattern as Invoice/Credit above.
+  `ClientsTable` gains "Preview Statement of Account" (ad hoc, never
+  persisted) and "Generate Statement of Account" (numbered, immutable
+  snapshot) row actions.
 
 ---
 

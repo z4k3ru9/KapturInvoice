@@ -298,6 +298,43 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 06B (UX, browser QA, and SOA completion — in
+  progress)** — per `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`,
+  added to `main` after Phase 06 shipped and making mandatory (not
+  optional) exactly what that phase scoped out: this **supersedes**
+  Phase 06's own "no browser suite" framing below. Required before Phase
+  07. Progress so far:
+  - **Slice 1 (every remaining launch document type + SOA)** — all 12
+    launch document types now render a localized A4 PDF: `Invoice`/
+    `Credit` (already Phase 06), plus new `Quotation` (also serves as the
+    printed Customer Order Confirmation when
+    `customer_po_is_system_generated`), `SalesOrder`, `Receipt`,
+    `VendorPurchaseOrder`, `VendorBill`, `VendorPaymentReceipt`,
+    `DeliveryOrder`, `HandoverReport`, `TaxRecap` (gains its own `number`/
+    `document_language` columns and a `TAX`-coded number assigned by
+    `IssueInvoice`), and the new **`App\Models\StatementOfAccount`**
+    (`App\Services\Reports\BuildStatementOfAccount` — pure computation,
+    no persistence; `App\Actions\Reports\GenerateStatementOfAccount` is
+    the only writer of a real numbered `SOA`-coded row with a frozen
+    `snapshot`; a preview calls the service directly and is never
+    persisted, via `Client` row actions on `ClientsTable`). Every new
+    model gets `document_language` + `resolveDocumentLanguage()`
+    mirroring `Invoice`'s. New translation keys live in
+    `resources/lang/{id,en}/documents.php` alongside the existing set —
+    see `docs/rebuild/outputs/22-phase-06b-terminology-sources.md` for
+    the (partial) source-backed terminology review.
+  - **Slice 4 (Playwright foundation)** — `playwright.config.ts` +
+    `tests/browser/`, wired into `.github/workflows/tests.yml` as a
+    separate `browser-tests` job. Simulates both seeded company domains
+    via `--host-resolver-rules` (no real DNS needed) and runs both system
+    color schemes. This sandbox's pre-installed Chromium
+    (`/opt/pw-browsers/chromium`) is used directly when present; CI
+    installs its own via `npx playwright install --with-deps chromium`.
+    `scripts/browser-test-server.sh` runs the suite against a dedicated
+    `database/testing-browser.sqlite`, never the developer's own dev DB.
+  - Still open: Slice 2's full terminology source pass, Slice 3 (draft
+    autosave + dynamic rows), and Slice 5 (the full browser journey/
+    accessibility coverage beyond the Slice 4 smoke tests).
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -613,6 +650,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 303 tests as of the FINALIZED-DECISIONS.md §7 vendor-payment-model fix — see docs/testing-coverage.md
+php artisan test      # 347 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B Slices 1 & 4 (in progress) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

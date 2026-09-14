@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SalesOrders\RelationManagers;
 
 use App\Actions\Delivery\CompleteDelivery;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\SalesOrder;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
@@ -42,6 +43,9 @@ class DeliveryOrdersRelationManager extends RelationManager
                 TextColumn::make('delivery_date')->date(),
                 TextColumn::make('notes')->placeholder('-')->limit(60),
                 TextColumn::make('createdBy.name')->label('Recorded by')->placeholder('-'),
+            ])
+            ->recordActions([
+                DownloadPdfAction::deliveryOrder(),
             ])
             ->headerActions([
                 Action::make('recordDelivery')

@@ -123,6 +123,7 @@ class IssueInvoice
             if (($invoice->company->taxSetting?->tax_enabled ?? false) && $result['tax_total'] > 0) {
                 TaxRecap::create([
                     'invoice_id' => $invoice->id,
+                    'number' => $this->numberGenerator->next($invoice->company, 'tax_recap'),
                     'reporting_period' => $invoice->invoice_date?->format('Y-m') ?? now()->format('Y-m'),
                     'manual_entry_status' => 'pending',
                 ]);

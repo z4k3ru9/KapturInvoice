@@ -6,6 +6,7 @@ use App\Actions\Sales\AcceptQuotation;
 use App\Actions\Sales\CreateSalesOrderFromQuotation;
 use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\QuotationStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Quotation;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -46,6 +47,7 @@ class QuotationsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::quotation(),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon(Heroicon::OutlinedCheckCircle)

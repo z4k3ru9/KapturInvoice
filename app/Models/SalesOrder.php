@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable([
     'company_id', 'client_id', 'quotation_id', 'number', 'status',
-    'approved_value', 'source_snapshot', 'requires_handover',
+    'approved_value', 'source_snapshot', 'requires_handover', 'document_language',
 ])]
 class SalesOrder extends Model
 {
@@ -127,5 +127,16 @@ class SalesOrder extends Model
         }
 
         return true;
+    }
+
+    /**
+     * Printed-document language: same resolution as
+     * `Invoice::resolveDocumentLanguage()` — this job's own override when
+     * set, otherwise the owning company's `default_document_language`,
+     * otherwise Bahasa Indonesia.
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }

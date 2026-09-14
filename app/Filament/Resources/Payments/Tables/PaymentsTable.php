@@ -8,6 +8,7 @@ use App\Actions\Receivables\IssuePaymentReceipt;
 use App\Actions\Receivables\ReverseCustomerPayment;
 use App\Actions\Receivables\VerifyCustomerPayment;
 use App\Enums\PaymentMethod;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\BillingMailer;
@@ -77,6 +78,7 @@ class PaymentsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::receipt(),
                 Action::make('sendReceipt')
                     ->label('Send receipt')
                     ->icon(Heroicon::OutlinedPaperAirplane)

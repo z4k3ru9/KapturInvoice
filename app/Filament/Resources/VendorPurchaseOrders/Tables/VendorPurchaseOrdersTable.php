@@ -4,6 +4,7 @@ namespace App\Filament\Resources\VendorPurchaseOrders\Tables;
 
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
 use App\Enums\VendorPurchaseOrderStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\VendorPurchaseOrder;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -41,6 +42,7 @@ class VendorPurchaseOrdersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::vendorPurchaseOrder(),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon(Heroicon::OutlinedCheckCircle)

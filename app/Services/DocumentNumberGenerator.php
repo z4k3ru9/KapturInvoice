@@ -62,6 +62,10 @@ class DocumentNumberGenerator
         'vendor_payment' => 'VPR',
         'delivery_order' => 'DO',
         'handover_report' => 'HOR',
+        'tax_recap' => 'TAX',
+        // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa): the read-only
+        // Statement of Account document.
+        'statement_of_account' => 'SOA',
     ];
 
     public function next(Company $company, string $sequence): string
