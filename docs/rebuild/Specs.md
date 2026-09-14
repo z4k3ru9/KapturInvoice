@@ -59,7 +59,7 @@ The existing stack is already the target stack:
 - Tax: non-tax company
 - Brand identity: supplied Karunia logo, red/near-black identity
 - Own domain, database, files, local users, settings, numbering, queue, scheduler, and backups
-- Initial document code: `KA`
+- Initial document code: `KJA` (ratified 2026-09-14 in `specs/FINALIZED-DECISIONS.md` §1 to match the real legacy InvoiceNinja v4 invoice prefix; superseded this document's original `KA`)
 
 ### Company B
 
