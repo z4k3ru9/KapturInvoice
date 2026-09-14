@@ -16,9 +16,28 @@ const company = COMPANIES.karunia;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('typing in a draft field shows the inline Saving -> Saved sequence, never a toast', async ({ page }) => {
+    // TEMPORARY diagnostics: this exact test has hung on `.fill()`
+    // waiting for `getByLabel('Terms')` in CI — identically across all 3
+    // attempts (original + 2 retries), on both desktop-light and
+    // mobile-light, on fresh runner VMs each time — but has never once
+    // reproduced locally across many full-suite runs with identical
+    // code. That rules out a flaky/random cause; something concrete is
+    // different about this CI environment. Surface any browser-side JS
+    // error or console output directly in the CI log so the next
+    // occurrence gives real evidence instead of another guess.
+    page.on('pageerror', (error) => console.log(`[DIAGNOSTIC pageerror] ${error.message}\n${error.stack}`));
+    page.on('console', (msg) => {
+        if (msg.type() === 'error' || msg.type() === 'warning') {
+            console.log(`[DIAGNOSTIC console.${msg.type()}] ${msg.text()}`);
+        }
+    });
+
     await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
 
     const terms = page.getByLabel('Terms').first();
+    const termsCount = await page.getByLabel('Terms').count();
+    console.log(`[DIAGNOSTIC] getByLabel('Terms') matched ${termsCount} element(s); document.readyState=${await page.evaluate(() => document.readyState)}; body text length=${(await page.locator('body').innerText().catch(() => '')).length}`);
+
     await terms.fill(`Net 30 — ${Date.now()}`);
     await terms.blur();
 
