@@ -72,6 +72,7 @@ current count) and `vendor/bin/pint --test` before every push.
 | Job creation and state matrix (Phase 03) | A job can only be created from an Accepted quotation (denied from Draft/Rejected), the created job snapshots the quotation's total/items into `source_snapshot`/`sales_order_items`, direct full-payment and multiple custom milestones both approve when their total matches the job value, milestone approval rejects both an under- and an over-funded set, an invalid job state transition (e.g. Draft→Procurement) throws, cancellation and its terminal-state lock | `SalesOrderWorkflowTest` |
 | Job variations (Phase 03) | Owner/Admin can approve an overrun/out-of-scope/substitution variation (advancing the job's approved value and recording before/after), Staff/Sales approval attempts are denied, the source quotation's own total is unchanged after an approved variation, repeated variations accumulate rather than overwrite prior history | `JobVariationTest` |
 | Legacy project/task navigation hidden (Phase 03) | `ProjectResource`/`TaskStatusResource::shouldRegisterNavigation()` both return `false` now that the Sales group's Job resource is the launch "job" concept — the resources/data themselves are untouched | `ProjectsTest` |
+| Automatic quotation expiry | Scheduled `quotations:expire` command expires a `Sent` quotation past its `valid_until` date via `TransitionQuotationStatus`; skips a still-valid `Sent` quotation, a `Draft` quotation past its date, and a quotation with no `valid_until` set | `ExpireQuotationsTest` |
 
 ## What's out of scope (and why)
 

@@ -396,6 +396,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 193 tests as of Phase 03 (sales and job) — see docs/testing-coverage.md
+php artisan test      # 197 tests as of Phase 03 (sales and job) + quotation-expiry gap-close — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
