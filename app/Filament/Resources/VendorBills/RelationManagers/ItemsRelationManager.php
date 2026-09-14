@@ -80,6 +80,11 @@ class ItemsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
+            // Phase 06B Slice 3 (docs/rebuild/specs/06b-ux-browser-soa):
+            // drag/keyboard reorder, persisted in one batched write;
+            // preserves deliberate row order in the printed Vendor Bill.
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('quantity')->numeric(),

@@ -76,6 +76,14 @@ class ItemsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
+            // Phase 06B Slice 3 (docs/rebuild/specs/06b-ux-browser-soa):
+            // "Provide drag handles and keyboard reorder controls;
+            // preserve deliberate row order in PDFs." Filament's own
+            // reorder handle persists the new `sort_order` values in one
+            // batched write (never per keystroke); items()/PDF views
+            // already order by this column (App\Models\Invoice::items()).
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('quantity')->numeric(),

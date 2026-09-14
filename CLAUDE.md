@@ -338,9 +338,38 @@ Or just `composer setup` (runs the same steps via the composer script).
     installs its own via `npx playwright install --with-deps chromium`.
     `scripts/browser-test-server.sh` runs the suite against a dedicated
     `database/testing-browser.sqlite`, never the developer's own dev DB.
-  - Still open: Slice 3 (draft autosave + dynamic rows) and Slice 5 (the
-    full browser journey/accessibility coverage beyond the Slice 4 smoke
-    tests). Slice 2's terminology source pass is done (see above).
+  - **Slice 3 (draft autosave + dynamic rows)** — `App\Filament\Concerns\
+    AutosavesDraft` (a reusable trait for a Filament `EditRecord` page):
+    debounced (`->live(debounce: '1750ms')`, which Livewire also commits
+    on blur) autosave of an explicit field whitelist, guarded to
+    Draft-only and never touching `status`/`number`/derived totals — an
+    Issue/Amend/Void/Verify action stays entirely outside this trait's
+    reach structurally, not just by convention. Optimistic concurrency
+    via a new `draft_version` column (never `#[Fillable]` — written only
+    by this trait): a stale save is surfaced as an explicit conflict
+    (`resources/views/filament/components/autosave-status.blade.php` —
+    inline, never a toast, with Discard-mine/Keep-mine-anyway choices),
+    never silently merged or overwritten. A failed save preserves the
+    typed values and exposes Retry. Wired onto `EditInvoice` as the
+    reference implementation (`InvoiceAutosaveTest`) — Quotation/
+    VendorBill Edit pages can adopt the same trait later the same way.
+    Dynamic rows: `->reorderable('sort_order')` added to the Invoice/
+    Quotation/VendorBill/VendorPurchaseOrder Items relation managers —
+    Filament's native drag-reorder persists in one batched write (never
+    per keystroke), and every one of those models' `items()` relation
+    (and PDF view) already orders by this same column
+    (`DynamicRowReorderTest`). ⚠️ **Not built**: the "add the next blank
+    row after meaningful content / remove an untouched blank row
+    automatically / confirm before removing a populated row" behavior
+    DESIGN.md §5 describes literally requires an embedded, Alpine-driven
+    Repeater UI in place of this project's established RelationManager-
+    plus-modal line-editing pattern (used consistently since Phase 02) —
+    a genuine UI-pattern replacement across several resources, not a
+    slice-sized addition. Flagged here rather than silently built or
+    silently dropped; needs an explicit decision before undertaking it.
+  - Still open: Slice 5 (the full browser journey/accessibility coverage
+    beyond the Slice 4 smoke tests). Slices 1, 2, and 3 (mostly — see the
+    flagged gap above) are done.
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -656,6 +685,6 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 347 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B Slices 1 & 4 (in progress) — see docs/testing-coverage.md
+php artisan test      # 355 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B Slices 1-4 (in progress) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```

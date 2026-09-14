@@ -618,6 +618,38 @@ Blade views, not a CRUD screen" (§2.9) — via
 
 ---
 
+## 7.05 Draft autosave and row reordering (Phase 06B Slice 3)
+
+- **Autosave** — `App\Filament\Concerns\AutosavesDraft`, wired onto
+  `EditInvoice` as the reference implementation. Every whitelisted field
+  (`po_number`, `invoice_date`, `due_date`, `currency_code`, `discount`,
+  `discount_is_percentage`, `terms`, `public_notes`, `private_notes`,
+  `footer`) gets `->live(debounce: '1750ms')` plus a shared
+  `afterStateUpdated` hook; a new `draft_version` column (never
+  `#[Fillable]`) is the optimistic-concurrency guard. Inline status
+  (Saving/Saved/Save failed+Retry/Conflict) renders via
+  `resources/views/filament/components/autosave-status.blade.php` — never
+  a toast. A conflict shows both sides' values with "Discard my
+  changes"/"Keep my changes anyway" choices; nothing is ever silently
+  merged or overwritten. Guarded to Draft status only — an Issued/Void/
+  Amended invoice's autosave hook becomes a structural no-op, so it can
+  never race an Issue/Amend/Void/Verify action.
+- **Row reordering** — `->reorderable('sort_order')` on the Invoice/
+  Quotation/VendorBill/VendorPurchaseOrder Items relation managers.
+  Filament's native drag handle persists the new order in one batched
+  write; every one of those models' `items()` relation (and its PDF view)
+  already orders by the same `sort_order` column, so a reorder changes
+  both the admin table and the printed document identically.
+- ⚠️ **Not built**: DESIGN.md §5's "add the next blank row after
+  meaningful content / remove an untouched blank row automatically /
+  confirm before removing a populated row" behavior. That's a live,
+  embedded Repeater UI — a different pattern from this project's
+  established RelationManager-plus-modal line editing (every resource
+  since Phase 02), not a drop-in addition. Flagged as an explicit,
+  undecided scope boundary rather than silently built or dropped.
+
+---
+
 ## 7.1 Client portal — beyond one invoice (Phase 06)
 
 The per-invoice `Invitation`/`ViewInvoice` page (§2.2) stays exactly as
