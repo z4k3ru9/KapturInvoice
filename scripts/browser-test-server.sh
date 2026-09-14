@@ -18,73 +18,50 @@ php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
 
 # `php artisan serve`'s built-in PHP dev server (explicitly documented
-# as development-only, not hardened for real concurrent load) has failed
-# against this CI runner in two different ways, each taking the whole
-# suite down with it for the rest of the run: (1) outright crashes —
-# once silently right after a dompdf PDF-render request, once with an
-# explicit "Segmentation fault (core dumped)" mid a completely unrelated
-# relation-manager render, neither reproducing locally, the latter
-# persisting even with memory_limit raised to unlimited — and (2), even
-# after adding a restart-on-exit loop for (1) below, a genuine HANG: the
-# process stays alive and keeps accepting new TCP connections, but never
-# responds to any of them — confirmed by a `.fill()` action waiting the
-# entire 90s test timeout for a locator that a normal page load resolves
-# in well under a second, with zero server log activity for that whole
-# window on both the original attempt and its retry. A hang produces no
-# exit event, so the restart-on-exit loop alone never fires for it.
+# as development-only) has crashed outright against this CI runner more
+# than once — once silently right after a dompdf PDF-render request,
+# once with an explicit "Segmentation fault (core dumped)" mid a
+# completely unrelated relation-manager render, neither reproducing
+# locally. Wrap it in a restart-on-exit loop so one crash costs only the
+# in-flight request(s) — Playwright's own retry recovers that one test —
+# instead of every remaining test in the run, since nothing else
+# restarts a crashed `php artisan serve` process.
 #
+# A background health-check watchdog (an earlier version of this
+# script) was tried too, to also catch a genuine HANG (the process
+# alive but never responding) rather than only an outright exit — but
+# it was reverted: this app's single-threaded dev server is exactly
+# what `playwright.config.ts`'s `workers: 1` exists to keep free of
+# concurrent requests, because a concurrent request here can interrupt
+# Filament's reflection-cache build mid-population and permanently
+# corrupt it for that component for the rest of the process's life (see
+# that config's own comment for the original, much larger incident this
+# caused). The watchdog's own periodic health-check request is exactly
+# such a concurrent request — and a run with it enabled reproduced a
+# hang with the exact signature of that corruption (a specific form
+# field permanently unresponsive, identically on both the original
+# attempt and its retry, `/up` itself still answering fine throughout
+# since the corruption is component-specific, not a real server crash).
+# Chasing a hang this way risks causing worse hangs than it fixes;
 # `php artisan serve` has no way to pass a `-d` flag through to the
 # process it shells out to (ServeCommand::serverCommand() hardcodes the
 # command), so this bypasses it and invokes the built-in server directly
 # — browser-test-router.php duplicates the same trivial
-# static-file-or-index.php routing `artisan serve` itself uses. Two
-# layers cover both failure modes: a restart-on-exit loop (covers any
-# crash, whatever its cause) plus a background health-check watchdog
-# that force-kills the server if it stops answering `/up` for ~15s
-# (covers a hang, which looks alive to the exit-loop but isn't actually
-# serving anything) — the kill itself then feeds the exit loop, which
-# brings up a fresh instance. A generous but finite memory_limit stays
-# as defense-in-depth against the original PDF-render crash cause. One
-# incident now costs only the in-flight request(s) — Playwright's own
-# retry recovers that one test — instead of every remaining test in the
-# run.
-main_loop() {
-    # `set -e` would otherwise abort this whole script the moment `php`
-    # exits non-zero (a crash), which is exactly the one thing this loop
-    # exists to survive — `|| true` keeps it running instead.
-    while true; do
-        php -d memory_limit=512M -S "127.0.0.1:${PORT}" -t public scripts/browser-test-router.php &
-        child_pid=$!
-        echo "$child_pid" > "$PID_FILE"
-        wait "$child_pid" || true
-        echo "browser-test-server.sh: dev server exited (code $?) — restarting" >&2
-        sleep 0.5
-    done
-}
+# static-file-or-index.php routing `artisan serve` itself uses — purely
+# so `-d memory_limit` can be set, with no other request traffic added.
+#
+# `set -e` would otherwise abort this whole script the moment `php`
+# exits non-zero (a crash), which is exactly the one thing this loop
+# exists to survive — `|| true` keeps it running instead. Forward a real
+# shutdown signal (Playwright tearing the webServer down between runs)
+# to the child and stop looping, rather than restarting forever against
+# a closed test run.
+trap 'kill -TERM "${child_pid:-}" 2>/dev/null; exit 0' TERM INT
 
-watchdog() {
-    local consecutive_failures=0
-    while true; do
-        sleep 5
-        if curl -fsS --max-time 3 "http://127.0.0.1:${PORT}/up" > /dev/null 2>&1; then
-            consecutive_failures=0
-            continue
-        fi
-        consecutive_failures=$((consecutive_failures + 1))
-        if [ "$consecutive_failures" -ge 3 ]; then
-            echo "browser-test-server.sh: health check failed ${consecutive_failures}x — server appears hung, killing it" >&2
-            kill -KILL "$(cat "$PID_FILE" 2>/dev/null)" 2>/dev/null || true
-            consecutive_failures=0
-        fi
-    done
-}
-
-PID_FILE="$(mktemp)"
-trap 'kill -TERM "${main_loop_pid:-}" "${watchdog_pid:-}" 2>/dev/null; rm -f "$PID_FILE"; exit 0' TERM INT
-
-main_loop &
-main_loop_pid=$!
-watchdog &
-watchdog_pid=$!
-
-wait "$main_loop_pid"
+while true; do
+    php -d memory_limit=512M -S "127.0.0.1:${PORT}" -t public scripts/browser-test-router.php &
+    child_pid=$!
+    wait "$child_pid" || true
+    echo "browser-test-server.sh: dev server exited (code $?) — restarting" >&2
+    sleep 0.5
+done
