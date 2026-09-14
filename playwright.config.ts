@@ -61,10 +61,21 @@ export default defineConfig({
     // near-total connection-refused collapse after only 10 tests — despite
     // every local reproduction attempt passing cleanly. Reverted that script
     // entirely; fixing the same root cause from this side instead by keeping
-    // Playwright itself to one worker in CI, so it never sends the single
-    // PHP process concurrent requests in the first place. Slower (no
-    // parallel projects), but every local and CI run under a single worker
-    // has been reliably stable throughout this branch's whole history.
+    // Playwright itself to one worker, so it never sends the single PHP
+    // process concurrent requests in the first place — no more Filament
+    // reflection-cache corruption. Running every project's tests through
+    // one unbroken serial `workers: 1` process for the WHOLE suite then
+    // surfaced a second, different CI-only problem: on this runner, that
+    // took 90+ minutes and degraded partway through (individual page
+    // loads stayed fast; the runner just went idle for 60-90s between
+    // requests, not the app or dev server) into every remaining test
+    // timing out — resource exhaustion a ~9 minute local run never runs
+    // long enough to hit. `.github/workflows/tests.yml` now shards
+    // browser-tests into one CI job per Playwright project, so each gets
+    // a fresh runner/browser/dev-server lifecycle and any such
+    // degradation is bounded to one project's tests. `workers: 1` here
+    // still matters within each shard — every project keeps its own
+    // single-threaded dev server free of concurrent requests.
     workers: process.env.CI ? 1 : undefined,
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
     // Wider in CI: under workers:1 above, every test's wall-clock time is
