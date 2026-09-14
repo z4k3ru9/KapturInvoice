@@ -30,10 +30,13 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // override anywhere, not just for this action.
         await modal.getByRole('button', { name: 'Submit' }).click();
 
-        // The success notification's body carries the download URL as
-        // plain text (see App\Filament\Resources\Clients\Tables\
-        // ClientsTable::generateStatementOfAccountAction()).
-        const notification = page.locator('[role="alert"], .fi-no-notification').filter({ hasText: '/statement-of-accounts/' });
+        // The success notification is persistent (a Codex review finding
+        // on PR #4: a raw URL in a 4-second-then-gone notification body
+        // made the user manually copy it before it vanished) and carries
+        // a real clickable "Open PDF" action instead — see
+        // App\Filament\Resources\Clients\Tables\
+        // ClientsTable::generateStatementOfAccountAction().
+        const notification = page.locator('[role="alert"], .fi-no-notification').filter({ hasText: 'Statement of Account generated' });
         // `php artisan serve` (this suite's dev server) handles one
         // request at a time, and under the full suite's parallel load
         // this specific request (generating and rendering a PDF) can
@@ -41,11 +44,12 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // failure from that queuing rather than a real defect.
         await expect(notification).toBeVisible({ timeout: 15_000 });
 
-        const notificationText = await notification.innerText();
-        const match = notificationText.match(/https?:\/\/\S+\/statement-of-accounts\/\d+\/pdf/);
-        expect(match).not.toBeNull();
+        const openPdfLink = notification.getByRole('link', { name: 'Open PDF' });
+        const href = await openPdfLink.getAttribute('href');
+        expect(href).not.toBeNull();
+        expect(href).toMatch(/\/statement-of-accounts\/\d+\/pdf$/);
 
-        const pdfResponse = await context.request.get(match![0]);
+        const pdfResponse = await context.request.get(href!);
         expect(pdfResponse.ok()).toBeTruthy();
         expect(pdfResponse.headers()['content-type']).toContain('application/pdf');
     });
@@ -65,8 +69,14 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // See the same note above — a generous window under full-suite
         // load, not a real defect.
         await expect(notification).toBeVisible({ timeout: 15_000 });
-        // Preview URL is the ad-hoc, never-persisted controller — see
+
+        // Same persistent-notification-with-action-link format as the
+        // "generating" test above — see the note there. Preview URL is the
+        // ad-hoc, never-persisted controller — see
         // App\Http\Controllers\StatementOfAccountPreviewController.
-        await expect(notification).toContainText('/statement-of-account/preview');
+        const openPreviewLink = notification.getByRole('link', { name: 'Open preview' });
+        const href = await openPreviewLink.getAttribute('href');
+        expect(href).not.toBeNull();
+        expect(href).toContain('/statement-of-account/preview');
     });
 }
