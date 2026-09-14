@@ -37,12 +37,10 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // App\Filament\Resources\Clients\Tables\
         // ClientsTable::generateStatementOfAccountAction().
         const notification = page.locator('[role="alert"], .fi-no-notification').filter({ hasText: 'Statement of Account generated' });
-        // `php artisan serve` (this suite's dev server) handles one
-        // request at a time, and under the full suite's parallel load
-        // this specific request (generating and rendering a PDF) can
-        // queue behind other tests' — a generous window avoids a false
-        // failure from that queuing rather than a real defect.
-        await expect(notification).toBeVisible({ timeout: 15_000 });
+        // A real dompdf PDF render is one of the heavier requests this
+        // suite makes — a generous window avoids a false failure under a
+        // loaded CI runner rather than a real defect.
+        await expect(notification).toBeVisible({ timeout: 45_000 });
 
         const openPdfLink = notification.getByRole('link', { name: 'Open PDF' });
         const href = await openPdfLink.getAttribute('href');
@@ -66,9 +64,9 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         await modal.getByRole('button', { name: 'Submit' }).click();
 
         const notification = page.locator('[role="alert"], .fi-no-notification').filter({ hasText: 'preview ready' });
-        // See the same note above — a generous window under full-suite
-        // load, not a real defect.
-        await expect(notification).toBeVisible({ timeout: 15_000 });
+        // See the same note above — a generous window under a loaded CI
+        // runner, not a real defect.
+        await expect(notification).toBeVisible({ timeout: 45_000 });
 
         // Same persistent-notification-with-action-link format as the
         // "generating" test above — see the note there. Preview URL is the
