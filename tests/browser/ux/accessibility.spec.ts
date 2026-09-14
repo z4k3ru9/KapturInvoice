@@ -28,9 +28,12 @@ test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async
     const invoiceRow = page.locator('tr', { hasText: fixture.invoice_number_indonesian }).first();
     await invoiceRow.getByRole('button', { name: 'Resend' }).click();
 
-    // This action requires confirmation (no form fields) — Filament's
-    // generic default confirmation button label ("Confirm").
-    const modal = page.getByRole('dialog');
+    // This action requires confirmation (no form fields) — Filament
+    // renders a plain confirmation modal as role="alertdialog" (not
+    // "dialog", which is reserved for modals carrying a form — see
+    // documents/soa.spec.ts) with its generic default confirmation
+    // button label ("Confirm"). Same pattern as documents/dynamic-rows.spec.ts.
+    const modal = page.getByRole('alertdialog');
     await modal.getByRole('button', { name: 'Confirm' }).click();
 
     const toast = page.getByText('Invoice sent');
