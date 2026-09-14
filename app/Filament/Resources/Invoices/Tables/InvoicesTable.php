@@ -87,12 +87,12 @@ class InvoicesTable
                             app(BillingMailer::class)->sendInvoice($record);
 
                             Notification::make()
-                                ->success()
+                                ->success()->seconds(4)
                                 ->title('Invoice sent')
                                 ->send();
                         } catch (RuntimeException $e) {
                             Notification::make()
-                                ->danger()
+                                ->danger()->persistent()
                                 ->title('Could not send invoice')
                                 ->body($e->getMessage())
                                 ->send();
@@ -114,9 +114,9 @@ class InvoicesTable
                         try {
                             app(IssueInvoice::class)->issue($record);
 
-                            Notification::make()->success()->title('Invoice issued')->send();
+                            Notification::make()->success()->seconds(4)->title('Invoice issued')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not issue invoice')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not issue invoice')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -132,9 +132,9 @@ class InvoicesTable
                         try {
                             $new = app(AmendIssuedInvoice::class)->amend($record, $data['reason'], self::mapItems($data['items']));
 
-                            Notification::make()->success()->title('Invoice amended')->body("Created amendment #{$new->number}.")->send();
+                            Notification::make()->success()->seconds(4)->title('Invoice amended')->body("Created amendment #{$new->number}.")->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not amend invoice')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not amend invoice')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('voidAndReissue')
@@ -147,9 +147,9 @@ class InvoicesTable
                         try {
                             $new = app(VoidAndReissueInvoice::class)->voidAndReissue($record, $data['reason'], self::mapItems($data['items']));
 
-                            Notification::make()->success()->title('Invoice voided and reissued')->body("Created #{$new->number}.")->send();
+                            Notification::make()->success()->seconds(4)->title('Invoice voided and reissued')->body("Created #{$new->number}.")->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not void and reissue invoice')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not void and reissue invoice')->body($e->getMessage())->send();
                         }
                     }),
             ])

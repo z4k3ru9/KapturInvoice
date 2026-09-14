@@ -45,14 +45,14 @@ class PaymentGatewaysTable
                             $ok = app(PaymentGatewayManager::class)->driverFor($record)->testConnection();
 
                             $ok
-                                ? Notification::make()->success()->title('Connected')->send()
-                                : Notification::make()->danger()->title('Gateway responded, but the check failed')->send();
+                                ? Notification::make()->success()->seconds(4)->title('Connected')->send()
+                                : Notification::make()->danger()->persistent()->title('Gateway responded, but the check failed')->send();
                         } catch (GatewayNotConfiguredException $e) {
-                            Notification::make()->danger()->title('Not configured')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Not configured')->body($e->getMessage())->send();
                         } catch (ConnectionException $e) {
-                            Notification::make()->danger()->title('Could not reach the gateway')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not reach the gateway')->body($e->getMessage())->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('No driver for this gateway type')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('No driver for this gateway type')->body($e->getMessage())->send();
                         }
                     }),
                 DeleteAction::make(),

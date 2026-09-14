@@ -58,9 +58,9 @@ class SalesOrdersTable
                         try {
                             app(ApproveSalesOrder::class)->approve($record);
 
-                            Notification::make()->success()->title('Job approved')->send();
+                            Notification::make()->success()->seconds(4)->title('Job approved')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not approve job')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not approve job')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('advance')
@@ -81,9 +81,9 @@ class SalesOrdersTable
                         try {
                             app(TransitionSalesOrderStatus::class)->transition($record, SalesOrderStatus::from($data['to']));
 
-                            Notification::make()->success()->title('Job updated')->send();
+                            Notification::make()->success()->seconds(4)->title('Job updated')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not update job')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not update job')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('cancel')
@@ -96,9 +96,9 @@ class SalesOrdersTable
                         try {
                             app(TransitionSalesOrderStatus::class)->transition($record, SalesOrderStatus::Cancelled);
 
-                            Notification::make()->success()->title('Job cancelled')->send();
+                            Notification::make()->success()->seconds(4)->title('Job cancelled')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not cancel job')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not cancel job')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -115,9 +115,9 @@ class SalesOrdersTable
                         try {
                             app(CloseJobOperationally::class)->close($record);
 
-                            Notification::make()->success()->title('Job closed operationally')->send();
+                            Notification::make()->success()->seconds(4)->title('Job closed operationally')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not close job operationally')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not close job operationally')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('closeFinancially')
@@ -150,9 +150,9 @@ class SalesOrdersTable
                                 $data['outstanding_balance_summary'] ?? null,
                             );
 
-                            Notification::make()->success()->title('Job closed financially')->send();
+                            Notification::make()->success()->seconds(4)->title('Job closed financially')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not close job financially')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not close job financially')->body($e->getMessage())->send();
                         }
                     }),
             ])

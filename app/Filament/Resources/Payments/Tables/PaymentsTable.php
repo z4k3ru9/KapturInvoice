@@ -88,12 +88,12 @@ class PaymentsTable
                             app(BillingMailer::class)->sendPaymentReceipt($record);
 
                             Notification::make()
-                                ->success()
+                                ->success()->seconds(4)
                                 ->title('Receipt sent')
                                 ->send();
                         } catch (RuntimeException $e) {
                             Notification::make()
-                                ->danger()
+                                ->danger()->persistent()
                                 ->title('Could not send receipt')
                                 ->body($e->getMessage())
                                 ->send();
@@ -121,9 +121,9 @@ class PaymentsTable
                                 filled($data['cheque_cleared_at'] ?? null) ? Carbon::parse($data['cheque_cleared_at']) : null,
                             );
 
-                            Notification::make()->success()->title('Payment verified')->send();
+                            Notification::make()->success()->seconds(4)->title('Payment verified')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not verify payment')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not verify payment')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -138,9 +138,9 @@ class PaymentsTable
                         try {
                             app(AllocateCustomerPayment::class)->allocate($record, self::mapAllocations($data['allocations']));
 
-                            Notification::make()->success()->title('Payment allocated')->send();
+                            Notification::make()->success()->seconds(4)->title('Payment allocated')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not allocate payment')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not allocate payment')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -154,9 +154,9 @@ class PaymentsTable
                         try {
                             $receipt = app(IssuePaymentReceipt::class)->issue($record);
 
-                            Notification::make()->success()->title('Receipt issued')->body("Receipt #{$receipt->number}.")->send();
+                            Notification::make()->success()->seconds(4)->title('Receipt issued')->body("Receipt #{$receipt->number}.")->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not issue receipt')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not issue receipt')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -177,9 +177,9 @@ class PaymentsTable
                                 Auth::user(),
                             );
 
-                            Notification::make()->success()->title('Allocation amended')->send();
+                            Notification::make()->success()->seconds(4)->title('Allocation amended')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not amend allocation')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not amend allocation')->body($e->getMessage())->send();
                         }
                     }),
 
@@ -195,9 +195,9 @@ class PaymentsTable
                         try {
                             app(ReverseCustomerPayment::class)->reverse($record, $data['reason'], Auth::user());
 
-                            Notification::make()->success()->title('Payment reversed')->send();
+                            Notification::make()->success()->seconds(4)->title('Payment reversed')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not reverse payment')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not reverse payment')->body($e->getMessage())->send();
                         }
                     }),
             ])

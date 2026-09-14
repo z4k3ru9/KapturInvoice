@@ -48,7 +48,7 @@
                                     <td class="py-2 text-right">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</td>
                                     <td class="py-2 text-right">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</td>
                                     <td class="py-2">
-                                        <x-badge text="{{ $invoice->status->getLabel() }}" color="{{ $invoice->status->getColor() }}" />
+                                        <x-portal.status-badge :label="$invoice->status->getLabel()" :color="$invoice->status->getColor()" />
                                     </td>
                                     <td class="py-2 text-right">
                                         @if ($invitation)

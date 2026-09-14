@@ -15,4 +15,5 @@ export PORT="${PLAYWRIGHT_APP_PORT:-8123}"
 
 touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
+php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
 exec php artisan serve --port="$PORT"

@@ -32,6 +32,20 @@ use Illuminate\Support\Arr;
  */
 class ItemsRelationManager extends RelationManager
 {
+    /**
+     * Phase 06B Slice 5 (docs/rebuild/specs/06b-ux-browser-soa/Specs.md) —
+     * a real bug found via browser testing: Filament's relation-manager
+     * lazy loading (Filament\Support\Concerns\CanBeLazy, `$isLazy = true`
+     * by default) never actually initializes on a genuine full page load
+     * (only on Livewire's own `wire:navigate` soft navigation) — the tab
+     * gets stuck showing its "Loading..." placeholder forever, with no
+     * Livewire request ever firing to mount it. Same root cause already
+     * documented for the three dashboard widgets in CLAUDE.md/
+     * docs/filament-admin-layout-design.md §9 (a Filament/Livewire lazy-
+     * loading bug, not this app's) — same fix: turn lazy loading off.
+     */
+    protected static bool $isLazy = false;
+
     protected static string $relationship = 'items';
 
     public function form(Schema $schema): Schema
@@ -84,11 +98,39 @@ class ItemsRelationManager extends RelationManager
             // already order by this column (App\Models\Invoice::items()).
             ->reorderable('sort_order')
             ->defaultSort('sort_order')
+            // The "Taxes" column's `getStateUsing()` below reads
+            // `$record->taxes` directly rather than through the dot-path
+            // column-name resolution Filament otherwise auto-eager-loads
+            // — eager load it explicitly instead of falling back to one
+            // lazy query per row.
+            ->modifyQueryUsing(fn ($query) => $query->with('taxes'))
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('quantity')->numeric(),
                 TextColumn::make('unit_cost')->numeric(),
-                TextColumn::make('taxes.name')->badge()->label('Taxes'),
+                // Two real WCAG 2.2 AA gaps found via the axe-core browser
+                // scan (Phase 06B Slice 5), both from the same root cause:
+                // a row with no tax applied renders this column completely
+                // empty, but the whole cell is still wrapped in a
+                // clickable `fi-ta-col` button for the row's edit action —
+                // with nothing to render, that button has zero accessible
+                // text at all (axe: button-name, critical). Filament's own
+                // `->placeholder()` fixes that but goes through
+                // `.fi-ta-placeholder`, whose default muted-gray text
+                // fails contrast on its own (axe: color-contrast, 2.62 vs
+                // 4.5 required) — a second, framework-default gap. Feeding
+                // an explicit "No tax" state through `getStateUsing()`
+                // instead renders it as a real `.fi-badge` pill (the same
+                // component every status badge elsewhere in this admin
+                // panel already uses safely), sidestepping both.
+                TextColumn::make('taxes.name')
+                    ->badge()
+                    ->label('Taxes')
+                    ->getStateUsing(function (InvoiceItem $record): array {
+                        $names = $record->taxes->pluck('name')->filter()->values()->all();
+
+                        return $names ?: ['No tax'];
+                    }),
                 TextColumn::make('line_total')->numeric(),
             ])
             ->headerActions([

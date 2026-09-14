@@ -52,7 +52,7 @@ trait InteractsWithSettingsRecord
         $this->record->update($data);
 
         Notification::make()
-            ->success()
+            ->success()->seconds(4)
             ->title('Saved')
             ->send();
     }

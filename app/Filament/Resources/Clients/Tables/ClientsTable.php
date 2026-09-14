@@ -87,7 +87,7 @@ class ClientsTable
                 ]);
 
                 Notification::make()
-                    ->success()
+                    ->success()->seconds(4)
                     ->title('Statement of Account preview ready')
                     ->body($url)
                     ->send();
@@ -115,7 +115,7 @@ class ClientsTable
                 );
 
                 Notification::make()
-                    ->success()
+                    ->success()->seconds(4)
                     ->title('Statement of Account generated')
                     ->body(route('statement-of-accounts.pdf', $statementOfAccount))
                     ->send();
