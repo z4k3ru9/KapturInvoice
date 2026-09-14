@@ -16,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -44,11 +45,23 @@ class MilestonesRelationManager extends RelationManager
                     ->required()
                     ->live(),
                 TextInput::make('description')->columnSpanFull(),
-                TextInput::make('amount')->numeric()->required()->default(0),
-                Toggle::make('is_percentage')->label('Amount is a percentage of job value')->live(),
+                Toggle::make('is_percentage')
+                    ->label('Amount is a percentage of job value')
+                    ->live()
+                    ->afterStateUpdated(fn (Get $get, Set $set) => $this->recalculateAmountFromPercentage($get, $set)),
                 TextInput::make('percentage')
                     ->numeric()
-                    ->visible(fn (Get $get) => (bool) $get('is_percentage')),
+                    ->suffix('%')
+                    ->visible(fn (Get $get) => (bool) $get('is_percentage'))
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Get $get, Set $set) => $this->recalculateAmountFromPercentage($get, $set)),
+                TextInput::make('amount')
+                    ->numeric()
+                    ->required()
+                    ->default(0)
+                    ->helperText(fn (Get $get) => (bool) $get('is_percentage') ? 'Computed automatically from the percentage above.' : null)
+                    ->disabled(fn (Get $get) => (bool) $get('is_percentage'))
+                    ->dehydrated(),
                 DatePicker::make('due_date'),
             ]);
     }
@@ -62,6 +75,7 @@ class MilestonesRelationManager extends RelationManager
                 TextColumn::make('description')->placeholder('-'),
                 TextColumn::make('amount')->numeric(),
                 IconColumn::make('is_percentage')->boolean(),
+                TextColumn::make('percentage')->suffix('%')->placeholder('-'),
                 TextColumn::make('due_date')->date()->placeholder('-'),
             ])
             ->headerActions([
@@ -84,5 +98,19 @@ class MilestonesRelationManager extends RelationManager
         $salesOrder = $this->getOwnerRecord();
 
         return $salesOrder->status === SalesOrderStatus::Draft;
+    }
+
+    private function recalculateAmountFromPercentage(Get $get, Set $set): void
+    {
+        if (! $get('is_percentage')) {
+            return;
+        }
+
+        /** @var SalesOrder $salesOrder */
+        $salesOrder = $this->getOwnerRecord();
+
+        $percentage = (float) ($get('percentage') ?? 0);
+
+        $set('amount', round(($percentage / 100) * (float) $salesOrder->approved_value, 2));
     }
 }
