@@ -109,6 +109,8 @@ internal record when the customer accepts without supplying a PO.
 ### Slice 4: Browser test foundation
 
 - Add Playwright configuration and CI execution.
+- Follow [`../../PLAYWRIGHT.md`](../../PLAYWRIGHT.md) for shared fixtures,
+  storage state, projects, tags, artifacts, and failure protocol.
 - Run against a built application with a fresh database and seeded companies.
 - Simulate both company domains and test both system color schemes.
 - Keep credentials and test data local to the test environment.

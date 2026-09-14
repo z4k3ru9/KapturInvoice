@@ -38,6 +38,8 @@ this order before changing code:
    for phase order and architecture.
 8. Only the active phase file under `docs/rebuild/specs/`.
 
+For browser-test work, also read [`docs/rebuild/PLAYWRIGHT.md`](docs/rebuild/PLAYWRIGHT.md).
+
 ## Token-efficient sessions
 
 - Use Caveman full style for internal progress and status messages when the
@@ -49,6 +51,8 @@ this order before changing code:
   comments, commit messages, checkpoint reports, and handoff records.
 - Do not re-read unchanged files, repeat settled decisions, restart completed
   audits, or ask again for decisions recorded in `memory.md`.
+- Reuse Playwright fixtures, storage state, helpers, tags, and focused commands;
+  do not repeat browser setup steps in each test or prompt.
 - If compression could make a security warning, destructive action, financial
   rule, or implementation order ambiguous, use normal prose for that part.
 - `/caveman off` returns session communication to normal style.
