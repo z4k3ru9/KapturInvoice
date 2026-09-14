@@ -101,20 +101,31 @@ current count) and `vendor/bin/pint --test` before every push.
   tests) and Slice 5 (full journey/accessibility coverage: portal,
   documents, SOA, autosave, dynamic rows, dashboard, states, WCAG 2.2 AA)
   are now built and green across all four projects (`desktop-light`/
-  `desktop-dark`/`tablet-light`/`mobile-light`). Two things Slice 5 found
-  and deliberately did NOT build a fix for this pass, flagged rather than
-  silently dropped: toast deduplication (DESIGN.md §9 — Filament has no
-  built-in mechanism, and every call site would need a stable `id()`
-  scheme); Filament's stock `.fi-select-input-value-remove-btn`
-  (16x16px, under the WCAG 2.2 24x24 minimum target size) — fixing it
-  needs a custom Filament panel theme, filtered explicitly (with a
-  comment) in `tests/browser/ux/accessibility.spec.ts`'s invoice-edit-
-  form scan rather than silently passed. Also still open, per
+  `desktop-dark`/`tablet-light`/`mobile-light`). Three things Slice 5
+  found and deliberately did NOT build a fix for this pass, flagged
+  rather than silently dropped: toast deduplication (DESIGN.md §9 —
+  Filament has no built-in mechanism, and every call site would need a
+  stable `id()` scheme); Filament's stock
+  `.fi-select-input-value-remove-btn` (16x16px, under the WCAG 2.2 24x24
+  minimum target size); a dashboard widget's table
+  (`.fi-ta-content-ctn`, Filament's own framework markup) becomes
+  horizontally scrollable with no keyboard access at tablet/mobile
+  widths (axe: scrollable-region-focusable — the SAME issue on both
+  public portal pages' own table wrapper WAS fixed, since that one is
+  this app's own code, not Filament's) — all three need a custom
+  Filament panel theme/template override, filtered explicitly (with a
+  comment) in `tests/browser/ux/accessibility.spec.ts` rather than
+  silently passed. Also still open, per
   `docs/filament-admin-layout-design.md` §7.05: the embedded-Repeater
   "add a blank row after meaningful content / remove an untouched blank
   row" behavior DESIGN.md §5 describes — this project's line editing is
   RelationManager-plus-modal, which has no such concept; the two
-  corresponding tests are `test.fixme()`, not silently passing.
+  corresponding tests are `test.fixme()`, not silently passing. One
+  known flake, not a product defect: the two-tab autosave stale-conflict
+  test occasionally exceeds even a 25s wait only under the full four-
+  project suite's combined load on this app's single-threaded
+  `php artisan serve` dev server (passes reliably standalone); CI's own
+  `retries: 1` absorbs it there.
 - **No real external services** — no live payment gateway, no real SMTP
   server, no real InvoiceNinja import run. All faked at the Laravel
   client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.

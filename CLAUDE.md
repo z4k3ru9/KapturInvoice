@@ -391,11 +391,39 @@ Or just `composer setup` (runs the same steps via the composer script).
     wrapped a clickable-row button with zero accessible text, fixed via
     `getStateUsing()` rendering a real "No tax" `.fi-badge` pill (not
     `->placeholder()`, which surfaced its own contrast failure via
-    Filament's `.fi-ta-placeholder` default). Flagged, not fixed (see
-    `docs/testing-coverage.md`): toast deduplication, and Filament's
-    stock 16x16px `.fi-select-input-value-remove-btn` (needs a custom
-    panel theme to fix, out of scope this pass). Slices 1-4 are done —
-    Phase 06B is now complete per its own hard completion gate.
+    Filament's `.fi-ta-placeholder` default); Playwright's real iPad/
+    iPhone device presets set `defaultBrowserType: 'webkit'`, which
+    combined with `playwright.config.ts`'s own `executablePath` override
+    (always a Chromium binary) to silently launch Chromium with webkit's
+    default args — missing `--no-sandbox`, crashing every single test on
+    the `tablet-light`/`mobile-light` projects — fixed by forcing
+    `browserName: 'chromium'` on both and adding `--no-sandbox`
+    explicitly; a plain `dark:bg-*`/`dark:text-*` Tailwind utility,
+    confirmed correctly compiled and correctly wrapped in
+    `@media (prefers-color-scheme: dark)`, still didn't reliably
+    override its light counterpart for one of two colored properties on
+    the same badge (an unexplained Tailwind v4/lightningcss cascade
+    quirk elsewhere in this build) — worked around with `!important` on
+    every dark: utility on the new status-badge component; both public
+    portal pages' horizontally-scrollable table wrapper had no keyboard
+    access on mobile viewports (axe: scrollable-region-focusable, real
+    app code) — fixed with `tabindex="0"`/`role="region"`/`aria-label`.
+    Flagged, not fixed (see `docs/testing-coverage.md`): toast
+    deduplication; Filament's stock 16x16px
+    `.fi-select-input-value-remove-btn`; the SAME scrollable-region-
+    focusable gap on a dashboard widget's table specifically (Filament's
+    own framework markup, only reproduces once genuinely overflowing at
+    tablet/mobile width) — all three need a custom Filament panel theme/
+    template override, out of scope this pass. The full four-project
+    suite (`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`)
+    has one remaining known flake: the two-tab autosave stale-conflict
+    test occasionally exceeds even a 25s wait under the full suite's
+    combined load on this app's single-threaded `php artisan serve` dev
+    server — reproduces only under that specific heaviest-possible
+    concurrency, passes reliably standalone, and CI's own
+    `retries: 1` (already configured, unrelated to this finding) absorbs
+    it there. Slices 1-4 are done — Phase 06B is now complete per its
+    own hard completion gate.
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
