@@ -26,7 +26,8 @@ Connect vendor purchasing and physical fulfillment to each job without pretendin
 - Job type is `goods`, `installation`, or `service`, set on the job before approval.
 - Service Report (`SVR`) tracks one service visit on a service job: service date, technician, reported problem, diagnosis, action taken, parts/items used, result (`Resolved`, `Partially resolved`, `Follow-up required`, `Unresolved`), follow-up notes, customer acknowledgement name, and evidence. Multiple per job; `Draft -> Submitted -> Approved`, `Cancelled` from any non-approved state; approval snapshots the report.
 - Service jobs require at least one approved `Resolved` Service Report and no open `Follow-up required` report before Handover; Admin/Owner override requires a reason and audit event.
-- Service Report parts are evidence only and never change job value, invoices, or inventory.
+- Service Report parts are evidence only and never change job value, invoices, or inventory; extra parts are billed only through a manually raised, Owner/Admin-approved variation.
+- A Service Report always belongs to a job; warranty or goodwill visits use a zero-value service job. Technician is a Staff-or-higher user with an optional external technician name. Installation jobs may carry optional, non-gating Service Reports; goods jobs may not.
 - Staff and higher can record/approve delivery, service reports, and handover.
 - Goods-only jobs may close operationally after delivery.
 - Installation/service jobs require handover before operational closure.
@@ -44,6 +45,8 @@ Connect vendor purchasing and physical fulfillment to each job without pretendin
 - Service job handover blocked while an approved `Follow-up required` report is open; a later `Resolved` report unblocks it.
 - Approved Service Report is immutable; a correction is a new report.
 - Service Report parts do not alter job approved value.
+- Service Report cannot be created without a job, or on a goods job.
+- Service Report on an installation job does not block handover.
 - Financial closure blocked by unpaid customer invoice unless authorized override.
 
 ## Acceptance criteria
