@@ -17,6 +17,25 @@ touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
 
+# Root cause of the long-investigated intermittent "hang" (actually a real
+# 500): Laravel lazily compiles .blade.php templates into
+# storage/framework/views/*.php on first request, via a non-atomic write
+# (Illuminate\Filesystem\Filesystem::put(), no temp file + rename). This
+# CI runner's dev server crashes intermittently (segfault, confirmed in
+# this script's own restart-loop log) — if a crash lands mid-write of a
+# compiled view, the cached file is left truncated on disk. It's keyed by
+# a stable content hash, so every later request that resolves to that
+# same view hits the same corrupted file and fails identically for the
+# rest of the job — confirmed via a CI-only diagnostic
+# (tests/browser/support/diagnostics.ts) that caught the real exception:
+# "Undefined variable $getFiltersTriggerAction (View: vendor/filament/
+# tables/resources/views/index.blade.php)". Precompiling every reachable
+# view (app + package/vendor namespaces) here, once, before any test
+# traffic starts, collapses that whole request-time compile race into a
+# single low-risk startup step instead of exposure on every one of
+# hundreds of requests across the run.
+php artisan view:cache
+
 # `php artisan serve`'s built-in PHP dev server (explicitly documented
 # as development-only) has crashed outright against this CI runner more
 # than once — once silently right after a dompdf PDF-render request,
