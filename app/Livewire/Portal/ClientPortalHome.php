@@ -52,6 +52,20 @@ class ClientPortalHome extends Component
     }
 
     /**
+     * The invoice's own lifecycle states that a client should ever see on
+     * their billing history — Draft/Approved are purely internal
+     * workflow states never issued to the customer, and Cancelled/Void/
+     * Amended are stale/superseded rows that should not linger as
+     * apparently-actionable invoices in a customer-facing list (a Codex
+     * review finding on PR #4 — the portal used to show every status).
+     *
+     * @var list<string>
+     */
+    private const CLIENT_VISIBLE_STATUSES = [
+        'sent', 'viewed', 'partial', 'paid', 'overdue', 'issued',
+    ];
+
+    /**
      * @return Collection<int, Invoice>
      */
     private function loadInvoices(PortalLink $portalLink): Collection
@@ -68,6 +82,7 @@ class ClientPortalHome extends Component
             // `is_recurring = true` rows are templates, not real invoices).
             ->where('type', InvoiceType::Invoice)
             ->where('is_recurring', false)
+            ->whereIn('status', self::CLIENT_VISIBLE_STATUSES)
             // Payments recorded through the current receivables workflow
             // (App\Actions\Receivables\RecordCustomerPayment) deliberately
             // leave `payments.invoice_id` null and associate invoices only

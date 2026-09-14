@@ -110,6 +110,34 @@ class StatementOfAccountTest extends TestCase
         $this->assertSame(500_000.0, $snapshot['opening_balance']);
     }
 
+    public function test_opening_balance_uses_the_full_payment_amount_not_only_its_allocated_portion(): void
+    {
+        // Codex review finding on PR #4: openingBalance() used to sum
+        // only active PaymentAllocation amounts, while paymentRows()
+        // (the in-period bucket) subtracts each payment's full amount —
+        // so the same 1,000 payment allocated only 300 to an invoice
+        // reduced the account by 300 if verified before the period, or
+        // by the full 1,000 if verified inside it. The unapplied 700
+        // must reduce the balance either way.
+        $company = $this->company();
+        $client = $this->client($company);
+
+        $invoice = $this->invoice($company, $client, [
+            'status' => 'partial', 'invoice_date' => '2026-05-10', 'due_date' => '2026-05-25',
+        ], 1_000, 700);
+        // A 1,000 payment, only 300 of it allocated to the invoice — 700
+        // remains an unapplied client credit.
+        $this->verifiedPayment($company, $client, 1_000, '2026-05-15 10:00:00');
+        $unallocated = Payment::where('client_id', $client->id)->first();
+        PaymentAllocation::create(['payment_id' => $unallocated->id, 'invoice_id' => $invoice->id, 'amount' => 300, 'is_active' => true]);
+
+        $snapshot = app(BuildStatementOfAccount::class)->build($client, '2026-06-01', '2026-06-30');
+
+        // 1,000 invoiced - 1,000 paid (full payment amount, not just the
+        // 300 allocated) = 0, not 700.
+        $this->assertSame(0.0, $snapshot['opening_balance']);
+    }
+
     public function test_invoice_credit_receipt_and_payment_each_appear_in_period_and_closing_balance_reconciles(): void
     {
         $company = $this->company();

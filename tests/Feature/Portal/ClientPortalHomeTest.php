@@ -74,6 +74,39 @@ class ClientPortalHomeTest extends TestCase
         $this->assertFalse($invoiceNumbers->contains('INV-TPL'));
     }
 
+    public function test_a_billing_contacts_portal_link_never_shows_internal_workflow_or_stale_statuses(): void
+    {
+        // Codex review finding on PR #4: the portal's base query had no
+        // status filter at all, so Draft/Approved (never issued to the
+        // customer) and Cancelled/Void/Amended (stale/superseded) rows
+        // appeared as apparently-actionable invoices in a customer-facing
+        // list.
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $contact = Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'email' => 'jane@example.com', 'is_billing_contact' => true]);
+
+        $visible = $this->makeInvoice($company, $client, ['number' => 'INV-VISIBLE', 'status' => 'issued']);
+        $draft = $this->makeInvoice($company, $client, ['number' => 'INV-DRAFT', 'status' => 'draft']);
+        $approved = $this->makeInvoice($company, $client, ['number' => 'INV-APPROVED', 'status' => 'approved']);
+        $cancelled = $this->makeInvoice($company, $client, ['number' => 'INV-CANCELLED', 'status' => 'cancelled']);
+        $void = $this->makeInvoice($company, $client, ['number' => 'INV-VOID', 'status' => 'void']);
+        $amended = $this->makeInvoice($company, $client, ['number' => 'INV-AMENDED', 'status' => 'amended']);
+
+        $link = PortalLink::create(['company_id' => $company->id, 'client_id' => $client->id, 'contact_id' => $contact->id]);
+
+        $this->app->instance('currentCompany', $company);
+
+        $component = Livewire::test(ClientPortalHome::class, ['portalLink' => $link]);
+        $invoiceNumbers = $component->get('invoices')->pluck('number');
+
+        $this->assertTrue($invoiceNumbers->contains('INV-VISIBLE'));
+        $this->assertFalse($invoiceNumbers->contains('INV-DRAFT'));
+        $this->assertFalse($invoiceNumbers->contains('INV-APPROVED'));
+        $this->assertFalse($invoiceNumbers->contains('INV-CANCELLED'));
+        $this->assertFalse($invoiceNumbers->contains('INV-VOID'));
+        $this->assertFalse($invoiceNumbers->contains('INV-AMENDED'));
+    }
+
     public function test_an_ordinary_contacts_portal_link_shows_only_invoices_explicitly_shared_via_an_invitation(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

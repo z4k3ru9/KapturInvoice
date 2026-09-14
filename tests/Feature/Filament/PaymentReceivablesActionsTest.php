@@ -114,6 +114,28 @@ class PaymentReceivablesActionsTest extends TestCase
         $this->assertSame(2, $payment->fresh()->allocations()->count());
     }
 
+    public function test_the_allocate_table_action_sums_duplicate_invoice_rows_instead_of_dropping_them(): void
+    {
+        // Codex review finding on PR #4: picking the same invoice twice
+        // in the repeater (e.g. 300 then 200) used to silently keep only
+        // the last row (200) while still reporting success — the two
+        // rows must sum to 500.
+        $payment = $this->pendingPayment(500);
+        $invoice = $this->issuedInvoice(500);
+
+        Livewire::test(ListPayments::class)
+            ->callTableAction('allocate', $payment, data: [
+                'allocations' => [
+                    ['invoice_id' => $invoice->id, 'amount' => 300],
+                    ['invoice_id' => $invoice->id, 'amount' => 200],
+                ],
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertSame(1, $payment->fresh()->allocations()->count());
+        $this->assertSame('500.00', (string) $payment->fresh()->allocations()->first()->amount);
+    }
+
     public function test_the_issue_receipt_table_action_issues_a_receipt_for_a_verified_payment(): void
     {
         $payment = $this->pendingPayment(500);

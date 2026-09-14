@@ -449,8 +449,8 @@ Or just `composer setup` (runs the same steps via the composer script).
     it there. Slices 1-4 are done — Phase 06B is now complete per its
     own hard completion gate.
   - **Post-PR Codex review round** — an automated Codex review on the
-    branch's pull request raised 20 findings (mostly P1) across the
-    Phase 03-06B financial core; all confirmed real and fixed (409 tests,
+    branch's pull request raised 23 findings (mostly P1) across the
+    Phase 03-06B financial core; all confirmed real and fixed (412 tests,
     up from 370): action-owned invoice/payment lifecycle states could be
     set directly from the Filament forms, bypassing Issue/Verify entirely
     (`InvoiceForm`/`PaymentForm` now `->disableOptionWhen()` those
@@ -501,7 +501,20 @@ Or just `composer setup` (runs the same steps via the composer script).
     HTTP request, independent of the new action. Fixed by building that
     download action inline instead (deriving the TaxRecap through the
     URL closure, never overriding the header action's own bound record);
-    see `DownloadPdfAction::taxRecap()`'s docblock for the warning.
+    see `DownloadPdfAction::taxRecap()`'s docblock for the warning. Three
+    further findings surfaced in a follow-up batch of review comments:
+    the Payment allocation Repeater silently kept only the last row for
+    a duplicate invoice selection instead of summing them
+    (`PaymentsTable::mapAllocations()`); `ClientPortalHome` had no status
+    filter at all, showing Draft/Approved (never issued to the customer)
+    and Cancelled/Void/Amended (stale/superseded) rows as apparently-
+    actionable invoices — now filtered to a client-visible status set;
+    `BuildStatementOfAccount::openingBalance()` summed only each
+    payment's *allocated* amount while the in-period `paymentRows()`
+    summed its *full* amount, so the same partially-allocated payment
+    reduced the balance differently depending only on which side of the
+    period boundary its `verified_at` fell — both now use the full
+    verified-payment-amount basis.
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -817,7 +830,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 409 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
+php artisan test      # 412 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 

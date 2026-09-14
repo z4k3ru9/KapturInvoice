@@ -104,15 +104,23 @@ class BuildStatementOfAccount
             ->where('invoice_date', '<', $periodStartDate)
             ->sum('total');
 
-        $paidBeforePeriod = (float) PaymentAllocation::query()
-            ->where('is_active', true)
-            ->whereHas('payment', function ($query) use ($companyId, $clientId, $periodStart) {
-                $query->where('company_id', $companyId)
-                    ->where('client_id', $clientId)
-                    ->where('status', PaymentStatus::Verified)
-                    ->whereNotNull('verified_at')
-                    ->where('verified_at', '<', $periodStart);
-            })
+        // The full verified payment amount, not just its allocated
+        // portion — a Codex review finding on PR #4: summing only active
+        // PaymentAllocation rows here, while paymentRows() below (the
+        // in-period bucket) subtracts each payment's full amount, meant
+        // the very same account result changed depending only on which
+        // side of periodStart a payment's verified_at happened to fall —
+        // a 1,000 payment allocated just 300 reduced the opening balance
+        // by 300 but the closing balance by the full 1,000 had it been
+        // verified one day later. An unapplied/overpayment portion is
+        // still money the client has paid and must reduce what they owe
+        // either way, so both bucket use the same payment-event basis.
+        $paidBeforePeriod = (float) Payment::query()
+            ->where('company_id', $companyId)
+            ->where('client_id', $clientId)
+            ->where('status', PaymentStatus::Verified)
+            ->whereNotNull('verified_at')
+            ->where('verified_at', '<', $periodStart)
             ->sum('amount');
 
         $creditedBeforePeriod = (float) Credit::query()
