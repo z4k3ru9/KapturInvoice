@@ -7,26 +7,43 @@ re-run completed audits unless new evidence contradicts them.
 
 - Repository: `z4k3ru9/KapturInvoice`
 - Authoritative branch: `main`
-- Last documentation commit: `eaf1e9f`
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - The application is being rebuilt progressively; do not begin broad rewrites
   or deferred features without an approved change request.
 - Working branch `claude/invoiceninja-schema-reference-6s9aqc` has
-  implemented and verified Phases 01-06 (293 tests, migrations clean, Pint
-  clean, `npm run build` clean) — this is ahead of `main`, which still only
-  carries Phase 01-03 code plus this session's doc-only commits (merged into
-  the working branch, no conflicts). Phase 06's own checkpoint report scoped
-  out browser/visual-QA/SOA/autosave work as an open user decision; Phase 06B
-  (added to `main` after that report) makes it a mandatory gate instead —
-  treat Phase 06 as *backend-complete, UX-incomplete*, not phase-complete.
+  implemented and verified Phases 01-06B (370 PHP tests, migrations clean,
+  Pint clean, `npm run build` clean, Playwright browser suite green across
+  all four projects — desktop-light/desktop-dark/tablet-light/mobile-light).
+  Phase 06B (`docs/rebuild/specs/06b-ux-browser-soa/Specs.md`) is complete
+  per its own hard completion gate — see
+  `docs/rebuild/outputs/23-phase-06b-checkpoint-report.md` for the full
+  slice-by-slice report and every real bug found/fixed.
+- `main` independently gained two more merged PRs after this branch's
+  original PR #1 (a dependabot bump, and "Quotation auto-expiry, KJA company
+  code ratification, Laravel Boost") while this branch was mid-flight on
+  Phase 06B. Reconciled via `git merge origin/main` (6 conflicts, all
+  hand-resolved to keep both lines of work — see the checkpoint report and
+  this branch's own commit history for detail) rather than rebasing, so as
+  not to rewrite shared history. This branch is a strict superset of `main`
+  as of that merge (`git merge-base --is-ancestor origin/main HEAD` holds).
+  A pull request from this branch back into `main` is the next step to make
+  that superset the new authoritative `main`.
+- Flagged, not built (explicit decision needed, not silently dropped): the
+  "add next blank row after meaningful content / auto-remove an untouched
+  blank row / confirm before removing a populated row" dynamic-row behavior
+  DESIGN.md §5 describes literally requires replacing this project's
+  established RelationManager-plus-modal line-editing pattern with an
+  embedded Alpine-driven Repeater — a UI-pattern change across several
+  resources, not a slice-sized addition. Row reordering (drag + keyboard,
+  batched write) and the existing modal delete-confirmation are built.
 - Fixed: Phase 05's `VendorPayment` was a simple direct-record model (no
   verification, no `VendorPaymentReceipt`, no amendment/reversal) that did
   not meet FINALIZED-DECISIONS.md §7's parallel-immutable-event requirement
   for vendor payments. Corrected before starting Phase 06B — see
   `App\Enums\VendorPaymentStatus` and `App\Actions\Procurement\
   {VerifyVendorPayment,IssueVendorPaymentReceipt,ReverseVendorPayment,
-  AmendVendorPayment}` (303 tests, up from 293).
+  AmendVendorPayment}`.
 
 ## Binding product decisions
 
