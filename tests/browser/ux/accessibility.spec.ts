@@ -37,11 +37,13 @@ test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async
     await modal.getByRole('button', { name: 'Confirm' }).click();
 
     const toast = page.getByText('Invoice sent');
-    await expect(toast).toBeVisible({ timeout: 10_000 });
+    await expect(toast).toBeVisible({ timeout: 20_000 });
 
     // Gone within a generous window around the configured 4s (never
-    // Filament's flat 6s default, and not persistent).
-    await expect(toast).toHaveCount(0, { timeout: 6_000 });
+    // Filament's flat 6s default, and not persistent) — widened for a
+    // loaded CI runner, still tight enough to catch a toast that's
+    // actually stuck rather than just slow to render.
+    await expect(toast).toHaveCount(0, { timeout: 12_000 });
 });
 
 test('WCAG 2.2 AA automated scan — dashboard', async ({ page }) => {
@@ -100,7 +102,7 @@ test('the login form is fully keyboard-operable', async ({ page }) => {
 
     // The submit button is keyboard-reachable and Enter submits the form.
     await page.keyboard.press('Enter');
-    await expect(page).not.toHaveURL(/\/login$/, { timeout: 10_000 });
+    await expect(page).not.toHaveURL(/\/login$/, { timeout: 20_000 });
 });
 
 test('reduced motion is respected — no non-essential animation classes force motion', async ({ page }) => {

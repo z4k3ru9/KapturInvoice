@@ -22,7 +22,7 @@ test('typing in a draft field shows the inline Saving -> Saved sequence, never a
     await terms.fill(`Net 30 — ${Date.now()}`);
     await terms.blur();
 
-    await expect(page.getByText('Saved', { exact: true })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText('Saved', { exact: true })).toBeVisible();
 
     // Never a toast for normal autosave (DESIGN.md §6) — no notification
     // region should show a "saved"/"saving" message.
@@ -30,12 +30,12 @@ test('typing in a draft field shows the inline Saving -> Saved sequence, never a
 });
 
 test('a stale save from another tab surfaces an explicit conflict, never a silent overwrite', async ({ browser }: { browser: Browser }, testInfo) => {
-    // `php artisan serve` (this suite's dev server — scripts/browser-
-    // test-server.sh) handles one request at a time; two full page loads
-    // of the same relation-manager-heavy edit page, one per tab, queue
-    // behind each other rather than running concurrently. The default
-    // 30s test timeout is occasionally too tight for that alone.
-    testInfo.setTimeout(90_000);
+    // Two full page loads of the same relation-manager-heavy edit page,
+    // two autosave round trips, and several waits each individually
+    // generous enough to survive a genuinely loaded CI runner (see the
+    // per-assertion timeouts below) easily sum past the suite's global
+    // per-test timeout — this test gets its own larger budget instead.
+    testInfo.setTimeout(150_000);
 
     const contextA = await browser.newContext({ storageState: 'playwright/.auth/owner.json' });
     const contextB = await browser.newContext({ storageState: 'playwright/.auth/owner.json' });
@@ -67,7 +67,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         const termsA = pageA.getByLabel('Terms').first();
         await termsA.fill(`Saved from tab A first — ${testInfo.project.name} ${Date.now()}`);
         await termsA.blur();
-        await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 25_000 });
+        await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 60_000 });
         const termsAValue = await termsA.inputValue();
 
         // Tab B still thinks it has the original version — its own
@@ -77,7 +77,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         await termsB.fill(`Tab B never saw tab A's change — ${Date.now()}`);
         await termsB.blur();
 
-        await expect(pageB.getByText('This draft was changed elsewhere while you were editing.')).toBeVisible({ timeout: 15_000 });
+        await expect(pageB.getByText('This draft was changed elsewhere while you were editing.')).toBeVisible({ timeout: 45_000 });
         await expect(pageB.getByRole('button', { name: 'Discard my changes' })).toBeVisible();
         await expect(pageB.getByRole('button', { name: 'Keep my changes anyway' })).toBeVisible();
 

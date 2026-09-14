@@ -87,7 +87,18 @@ export default defineConfig({
     // still exists for genuine flakes; this is about giving a real,
     // consistently slower environment enough room to finish a test that
     // was never actually hung.
-    timeout: process.env.CI ? 60_000 : 30_000,
+    timeout: process.env.CI ? 90_000 : 30_000,
+    // A global default for every `expect().toBeVisible()`/etc. assertion
+    // that doesn't set its own explicit `{ timeout }` — Playwright's own
+    // default is 5_000ms unconditionally (not CI-aware at all), which
+    // this CI runner's heavier tests (a real dompdf PDF render, a large
+    // relation-manager table load, a two-tab autosave conflict) kept
+    // missing under real load. Individual assertions can still set a
+    // tighter or wider explicit override; this only changes the
+    // fallback.
+    expect: {
+        timeout: process.env.CI ? 30_000 : 5_000,
+    },
     use: {
         baseURL: BASE_URL,
         trace: 'retain-on-failure',

@@ -26,7 +26,9 @@ test('the Items table exposes a reorder entry point with a per-row drag handle',
 
     // The Items relation manager tab is populated by its own Livewire
     // mount request — wait for a real row before interacting with it.
-    await expect(page.getByText('Draft line one')).toBeVisible({ timeout: 10_000 });
+    // No explicit timeout: inherits playwright.config.ts's CI-aware
+    // `expect.timeout` default.
+    await expect(page.getByText('Draft line one')).toBeVisible();
 
     await page.getByRole('button', { name: /reorder/i }).click();
 
@@ -36,7 +38,7 @@ test('the Items table exposes a reorder entry point with a per-row drag handle',
 test('deleting a populated item row requires confirmation', async ({ page }) => {
     await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
 
-    await expect(page.getByText('Draft line one')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('Draft line one')).toBeVisible();
 
     const row = page.locator('tr', { hasText: 'Draft line one' });
     await row.getByRole('button', { name: /delete/i }).click();
