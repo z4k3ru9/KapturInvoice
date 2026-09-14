@@ -13,7 +13,7 @@
                 <span class="text-lg font-semibold">{{ $invoice->company->name }}</span>
             </div>
 
-            <x-badge text="{{ $invoice->status->getLabel() }}" color="{{ $invoice->status->getColor() }}" />
+            <x-portal.status-badge :label="$invoice->status->getLabel()" :color="$invoice->status->getColor()" />
         </div>
     </header>
 

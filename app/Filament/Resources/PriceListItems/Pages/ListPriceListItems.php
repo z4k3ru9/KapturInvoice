@@ -65,7 +65,7 @@ class ListPriceListItems extends ListRecords
                     }
 
                     Notification::make()
-                        ->success()
+                        ->success()->seconds(4)
                         ->title('Pricelist imported')
                         ->body($body)
                         ->send();

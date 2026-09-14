@@ -60,9 +60,9 @@ class VendorBillsTable
                         try {
                             app(SubmitVendorBill::class)->submit($record);
 
-                            Notification::make()->success()->title('Vendor bill submitted')->send();
+                            Notification::make()->success()->seconds(4)->title('Vendor bill submitted')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not submit vendor bill')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not submit vendor bill')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('approve')
@@ -75,9 +75,9 @@ class VendorBillsTable
                         try {
                             app(ApproveVendorBill::class)->approve($record, Auth::user());
 
-                            Notification::make()->success()->title('Vendor bill approved')->send();
+                            Notification::make()->success()->seconds(4)->title('Vendor bill approved')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not approve vendor bill')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not approve vendor bill')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('recordPayment')
@@ -100,9 +100,9 @@ class VendorBillsTable
                         try {
                             app(RecordVendorPayment::class)->record($record, $data);
 
-                            Notification::make()->success()->title('Vendor payment recorded')->send();
+                            Notification::make()->success()->seconds(4)->title('Vendor payment recorded')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not record vendor payment')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not record vendor payment')->body($e->getMessage())->send();
                         }
                     }),
             ])

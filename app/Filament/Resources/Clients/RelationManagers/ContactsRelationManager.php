@@ -25,6 +25,20 @@ use RuntimeException;
 
 class ContactsRelationManager extends RelationManager
 {
+    /**
+     * Phase 06B Slice 5 (docs/rebuild/specs/06b-ux-browser-soa/Specs.md) —
+     * a real bug found via browser testing: Filament's relation-manager
+     * lazy loading (Filament\Support\Concerns\CanBeLazy, `$isLazy = true`
+     * by default) never actually initializes on a genuine full page load
+     * (only on Livewire's own `wire:navigate` soft navigation) — the tab
+     * gets stuck showing its "Loading..." placeholder forever, with no
+     * Livewire request ever firing to mount it. Same root cause already
+     * documented for the three dashboard widgets in CLAUDE.md/
+     * docs/filament-admin-layout-design.md §9 (a Filament/Livewire lazy-
+     * loading bug, not this app's) — same fix: turn lazy loading off.
+     */
+    protected static bool $isLazy = false;
+
     protected static string $relationship = 'contacts';
 
     public function form(Schema $schema): Schema
@@ -82,13 +96,13 @@ class ContactsRelationManager extends RelationManager
                         try {
                             app(BillingMailer::class)->sendPortalLink($link);
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Portal link created, but the email could not be sent')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Portal link created, but the email could not be sent')->body($e->getMessage())->send();
 
                             return;
                         }
 
                         Notification::make()
-                            ->success()
+                            ->success()->seconds(4)
                             ->title('Portal link generated and emailed')
                             ->body(route('portal.client-home', $link))
                             ->send();

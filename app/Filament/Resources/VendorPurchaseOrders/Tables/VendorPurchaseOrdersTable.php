@@ -53,9 +53,9 @@ class VendorPurchaseOrdersTable
                         try {
                             app(ApproveVendorPurchaseOrder::class)->approve($record);
 
-                            Notification::make()->success()->title('Vendor purchase order approved')->send();
+                            Notification::make()->success()->seconds(4)->title('Vendor purchase order approved')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not approve vendor purchase order')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not approve vendor purchase order')->body($e->getMessage())->send();
                         }
                     }),
             ])

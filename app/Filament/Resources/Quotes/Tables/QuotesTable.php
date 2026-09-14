@@ -52,12 +52,12 @@ class QuotesTable
                             app(BillingMailer::class)->sendQuote($record);
 
                             Notification::make()
-                                ->success()
+                                ->success()->seconds(4)
                                 ->title('Quote sent')
                                 ->send();
                         } catch (RuntimeException $e) {
                             Notification::make()
-                                ->danger()
+                                ->danger()->persistent()
                                 ->title('Could not send quote')
                                 ->body($e->getMessage())
                                 ->send();
@@ -71,7 +71,7 @@ class QuotesTable
                         $invoice = app(InvoiceDuplicator::class)->convertQuoteToInvoice($record);
 
                         Notification::make()
-                            ->success()
+                            ->success()->seconds(4)
                             ->title('Converted to invoice')
                             ->body("Created invoice #{$invoice->id}.")
                             ->send();

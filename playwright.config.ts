@@ -64,18 +64,37 @@ export default defineConfig({
         },
     },
     projects: [
+        // Logs in once and saves the session — every other project
+        // depends on this instead of each spec calling loginAsOwner()
+        // itself, which otherwise trips Filament's own real 5-attempt
+        // login throttle (vendor/filament/filament/src/Auth/Pages/
+        // Login.php) across a suite with many admin-authenticated specs.
+        { name: 'setup', testMatch: /auth\.setup\.ts/ },
+
         // Both required system color schemes (docs/rebuild/DESIGN.md §10:
         // "System-controlled light/dark mode at launch; no manual theme
-        // toggle") on a desktop viewport — the foundation slice. Slice 5
-        // (browser journeys) adds tablet/phone viewport variants per
-        // company as its own dedicated specs land.
+        // toggle") x desktop/tablet/phone viewports (Specs.md Slice 5:
+        // "Karunia Abadi and Axen Technology Indonesia in light and dark
+        // mode on desktop, tablet, and phone viewports").
         {
             name: 'desktop-light',
-            use: { ...devices['Desktop Chrome'], colorScheme: 'light' },
+            use: { ...devices['Desktop Chrome'], colorScheme: 'light', storageState: 'playwright/.auth/owner.json' },
+            dependencies: ['setup'],
         },
         {
             name: 'desktop-dark',
-            use: { ...devices['Desktop Chrome'], colorScheme: 'dark' },
+            use: { ...devices['Desktop Chrome'], colorScheme: 'dark', storageState: 'playwright/.auth/owner.json' },
+            dependencies: ['setup'],
+        },
+        {
+            name: 'tablet-light',
+            use: { ...devices['iPad (gen 7)'], colorScheme: 'light', storageState: 'playwright/.auth/owner.json' },
+            dependencies: ['setup'],
+        },
+        {
+            name: 'mobile-light',
+            use: { ...devices['iPhone 14'], colorScheme: 'light', storageState: 'playwright/.auth/owner.json' },
+            dependencies: ['setup'],
         },
     ],
     webServer: {

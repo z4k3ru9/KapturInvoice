@@ -51,7 +51,7 @@ class RecurringInvoicesTable
                         $invoice = app(InvoiceDuplicator::class)->generateRecurringInstance($record);
 
                         Notification::make()
-                            ->success()
+                            ->success()->seconds(4)
                             ->title('Invoice generated')
                             ->body("Created invoice #{$invoice->id}.")
                             ->send();
