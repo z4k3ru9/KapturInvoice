@@ -51,7 +51,21 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 1 : 0,
-    workers: process.env.CI ? 2 : undefined,
+    // Forcing multiple PHP_CLI_SERVER_WORKERS in scripts/browser-test-server.sh
+    // (so the single-threaded php artisan serve dev server could genuinely
+    // handle concurrent requests instead of queuing them, which was the
+    // original trigger for a real bug — see that script's git history)
+    // proved unreliable on this CI runner specifically: three different runs
+    // with PHP_CLI_SERVER_WORKERS set (4, then 2, then 2 again) each failed a
+    // different way — a memory-pressure crash, a 30+ minute hang, and an
+    // near-total connection-refused collapse after only 10 tests — despite
+    // every local reproduction attempt passing cleanly. Reverted that script
+    // entirely; fixing the same root cause from this side instead by keeping
+    // Playwright itself to one worker in CI, so it never sends the single
+    // PHP process concurrent requests in the first place. Slower (no
+    // parallel projects), but every local and CI run under a single worker
+    // has been reliably stable throughout this branch's whole history.
+    workers: process.env.CI ? 1 : undefined,
     reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
     timeout: 30_000,
     use: {
