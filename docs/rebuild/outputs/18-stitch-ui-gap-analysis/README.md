@@ -17,7 +17,11 @@ Material Symbols icons; they are **layout references, not markup to copy**.
 
 ## How to use this pack
 
-1. Read this README fully, then only the area file you are implementing.
+1. Read this README fully, then [`00-scoped-backlog.md`](00-scoped-backlog.md)
+   — it re-sorts every item below against PR #4 (Phases 04–06B), which
+   did not exist when the area files were written: what is already built,
+   what is safe before the merge, what must wait, and what is a spec gap
+   rather than a UI gap. Only then open the area file you are implementing.
 2. Every gap is tagged. Work **[FIX-NOW]** items only. Do not start
    **[NEW-PHASE]** items outside their phase, and never build anything
    tagged **[STRIP]**.
