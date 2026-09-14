@@ -12,6 +12,12 @@ KapturInvoice is a job-centric invoicing, procurement, delivery, and customer-bi
 - Karunia Abadi: non-tax, migrated from InvoiceNinja 4.
 - Axen Technology Indonesia: Indonesian tax-enabled, migrated from InvoiceNinja 5.
 
+## Scope statement
+
+The main goal of KapturInvoice is basic billing and invoicing for these two companies: quotations, jobs, invoices, payments, receipts, vendor bills, and the documents that support them.
+
+The system follows ISO-style good practice where it is cheap to do so (immutable issued records, audit trails, numbered documents, role separation, backups), but it is **not** ISO-certified and makes no claim of ISO compliance. It is also **not** a certified tax-compliance system: the Indonesian PPN calculation and tax recap fields are bookkeeping aids that must be checked by the company's tax professional, and the software is not a substitute for the official tax authority system or a licensed accounting package. Any request to obtain certification or to make the product legally authoritative for tax filing is out of scope unless the approved specs change.
+
 Each company launches on a separate domain and deployment with isolated data, storage, users, documents, numbering, mail, queue, scheduler, and backups. A future shared host is allowed only when that isolation remains intact.
 
 ## Core lifecycle

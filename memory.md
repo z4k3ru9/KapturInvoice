@@ -15,6 +15,11 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Binding product decisions
 
+- Main goal: basic billing and invoicing for the two companies. The project
+  is ISO-compatible in practice but not ISO-certified, and it is not a
+  certified tax-compliance system; tax output is a bookkeeping aid validated
+  by a tax professional (`FINALIZED-DECISIONS.md` §9). Do not add
+  certification or regulatory-reporting scope without a change request.
 - Company A is Karunia Abadi: InvoiceNinja 4 source, non-tax new customer
   transactions.
 - Company B is Axen Technology Indonesia: InvoiceNinja 5 source, Indonesian

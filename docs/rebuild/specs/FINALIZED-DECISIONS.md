@@ -74,3 +74,10 @@ Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09
 - The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and replaces the status enum with the Phase 04 states. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
 - A new invoice may exist without a job. A job link is required whenever the client has an open job; a jobless invoice is exempt from the milestone-equals-approved-value guard, and the SOA must handle jobless invoices.
 - Imported historical payments receive no retroactive receipt. They are marked verified-by-import, appear on the Statement of Account, and never consume an `RCT` sequence number. The one-verified-payment-one-receipt rule applies only to payments verified after cutover.
+
+## 9. Project goal and compliance posture (ratified 2026-09-14)
+
+- The main goal of the project is basic billing and invoicing for Karunia Abadi and Axen Technology Indonesia. Every phase serves that goal; features are justified by it, not by a compliance programme.
+- The product is ISO-compatible in practice (immutable issued records, audit events, controlled numbering, role separation, backup and restore evidence) but is not ISO-certified, is not audited against any ISO standard, and must not describe itself as ISO-compliant in UI, documents, or marketing copy.
+- The product is not a certified tax-compliance system. Tax calculations and tax recaps are bookkeeping aids that the company's tax professional validates (section 6). The software does not file, sign, or certify tax documents and is not a substitute for the official tax authority system.
+- Do not add certification, attestation, or regulatory-reporting work without a change request that reopens this decision.
