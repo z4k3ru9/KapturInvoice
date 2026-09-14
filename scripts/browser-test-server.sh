@@ -13,16 +13,6 @@ export DB_CONNECTION=sqlite
 export DB_DATABASE="$(pwd)/database/testing-browser.sqlite"
 export PORT="${PLAYWRIGHT_APP_PORT:-8123}"
 
-# WAL allows concurrent readers alongside the one writer SQLite always
-# limits itself to; busy_timeout makes a connection that loses a brief
-# write race wait and retry instead of immediately throwing "database is
-# locked" (SQLite's own default busy_timeout is 0 — instant failure).
-# Only matters once something other than a single serial PHP process can
-# genuinely open concurrent connections to this file — see
-# PHP_CLI_SERVER_WORKERS below.
-export DB_JOURNAL_MODE=WAL
-export DB_BUSY_TIMEOUT=5000
-
 touch "$DB_DATABASE"
 php artisan migrate:fresh --seed --force
 php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --force
@@ -74,6 +64,16 @@ php artisan view:cache
 # (playwright.config.ts) keeps just enough real concurrency to avoid the
 # single-process request-queuing bottleneck without asking for more
 # processes than the suite itself ever has concurrent requests in flight.
+#
+# A speculative SQLite WAL/busy_timeout hardening was added alongside this
+# on the assumption that real multi-process concurrent DB access might
+# need it, but the actual observed failures were never a "database is
+# locked" error — only a memory-pressure crash (4 workers) and, once at 2
+# workers with that SQLite change added, a run that just never finished
+# (30+ minutes with no failure or completion, far past every other
+# attempt's duration, cancelled rather than diagnosed further). Removed
+# it again rather than layering an unproven, unrelated change on top of
+# the one actually-evidenced fix — change one variable at a time.
 export PHP_CLI_SERVER_WORKERS=2
 
 exec php artisan serve --port="$PORT" --no-reload
