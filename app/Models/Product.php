@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * A company's sellable catalog item — despite the class name, `type` (see
@@ -28,7 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * launch scope.
  */
 #[Fillable([
-    'company_id', 'legacy_product_id', 'sku', 'name', 'type', 'unit', 'description',
+    'company_id', 'legacy_product_id', 'sku', 'image_path', 'name', 'type', 'unit', 'description',
     'unit_cost', 'default_tax_rate_id', 'tax_category', 'stock_flag', 'price_list_item_id',
 ])]
 class Product extends Model
@@ -58,5 +60,32 @@ class Product extends Model
     public function priceListItem(): BelongsTo
     {
         return $this->belongsTo(PriceListItem::class);
+    }
+
+    /**
+     * Same reasoning as Company::getLogoDataUri() — dompdf can't fetch a
+     * Storage::url() for the `local` disk, so PDFs (and anything else that
+     * needs a self-contained image, like a Proposal Snippet generated from
+     * this product) embed the picture as a base64 data URI instead.
+     */
+    public function getImageDataUri(): ?string
+    {
+        if (blank($this->image_path)) {
+            return null;
+        }
+
+        try {
+            $disk = Storage::disk(config('filesystems.default'));
+
+            if (! $disk->exists($this->image_path)) {
+                return null;
+            }
+
+            $mimeType = $disk->mimeType($this->image_path) ?: 'image/png';
+
+            return 'data:'.$mimeType.';base64,'.base64_encode($disk->get($this->image_path));
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

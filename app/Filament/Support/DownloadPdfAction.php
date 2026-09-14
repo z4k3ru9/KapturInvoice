@@ -6,6 +6,7 @@ use App\Models\Credit;
 use App\Models\DeliveryOrder;
 use App\Models\HandoverReport;
 use App\Models\Invoice;
+use App\Models\Proposal;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\TaxRecap;
@@ -17,10 +18,10 @@ use Filament\Support\Icons\Heroicon;
 
 /**
  * Shared "Download PDF" table action for Invoices/Quotes/Recurring
- * Invoices, Credits, Quotations, Sales Orders, and Receipts (§7) — a plain
- * link to the (auth-guarded, outside the Filament panel) PDF route,
- * opened in a new tab, rather than a Filament action with its own
- * processing step.
+ * Invoices, Credits, Quotations, Proposals, Sales Orders, and Receipts
+ * (§7) — a plain link to the (auth-guarded, outside the Filament panel)
+ * PDF route, opened in a new tab, rather than a Filament action with its
+ * own processing step.
  */
 class DownloadPdfAction
 {
@@ -57,6 +58,15 @@ class DownloadPdfAction
             ->label('Download PDF')
             ->icon(Heroicon::OutlinedDocumentArrowDown)
             ->url(fn (Quotation $record) => route('quotations.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function proposal(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (Proposal $record) => route('proposals.pdf', $record))
             ->openUrlInNewTab();
     }
 

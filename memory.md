@@ -49,6 +49,14 @@ re-run completed audits unless new evidence contradicts them.
   full journal, full inventory, recurring billing, generic project/task
   tracking, formal proposals, vendor login, client uploads, SSO, e-signing,
   and central cross-server financial synchronization.
+- Phase 04 (ratified 2026-09-14, `FINALIZED-DECISIONS.md` §8): the legacy
+  `invoices` table is evolved in place into the canonical invoice, not
+  rebuilt beside itself; new invoices may exist without a job, but a job link
+  is required whenever the client has an open job; imported historical
+  payments get no retroactive receipt and never consume an `RCT` number.
+- Routine Phase 04 judgments, no re-ask needed: deferred resources (Payment
+  Gateways, Recurring Invoices, Credits, Proposals) are hidden from launch
+  navigation; overdue is a derived flag, not a stored status.
 
 ## Financial rules
 

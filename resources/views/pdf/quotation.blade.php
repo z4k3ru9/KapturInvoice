@@ -38,8 +38,9 @@
         .muted { color: #6b7280; }
         table.items { width: 100%; border-collapse: collapse; margin-top: 16px; }
         table.items th { text-align: left; border-bottom: 2px solid #1f2937; padding: 6px 4px; font-size: 11px; text-transform: uppercase; color: #6b7280; }
-        table.items td { padding: 6px 4px; border-bottom: 1px solid #e5e7eb; }
+        table.items td { padding: 6px 4px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
         .text-right { text-align: right; }
+        .item-picture { width: 40px; height: 40px; }
         table.totals { width: 260px; margin-left: auto; margin-top: 12px; }
         table.totals td { padding: 3px 4px; }
         table.totals tr.total td { font-weight: bold; font-size: 14px; border-top: 2px solid #1f2937; }
@@ -107,6 +108,7 @@
     <table class="items">
         <thead>
             <tr>
+                <th></th>
                 <th>{{ __('documents.item') }}</th>
                 <th class="text-right">{{ __('documents.qty') }}</th>
                 <th class="text-right">{{ __('documents.unit_price') }}</th>
@@ -116,6 +118,11 @@
         <tbody>
             @foreach ($quotation->items as $item)
                 <tr>
+                    <td>
+                        @if ($item->product && ($imageDataUri = $item->product->getImageDataUri()))
+                            <img class="item-picture" src="{{ $imageDataUri }}" alt="{{ $item->title }}">
+                        @endif
+                    </td>
                     <td>
                         <div style="font-weight: bold;">{{ $item->title }}</div>
                         @if ($item->description)

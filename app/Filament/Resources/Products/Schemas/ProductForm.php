@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Schemas;
 
 use App\Enums\CatalogItemType;
 use App\Enums\TaxCategory;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -27,6 +28,12 @@ class ProductForm
                     ->required(),
                 TextInput::make('sku')
                     ->label('SKU'),
+                FileUpload::make('image_path')
+                    ->label('Picture')
+                    ->image()
+                    ->directory('products')
+                    ->maxSize(5120)
+                    ->helperText('Optional. Shown as a thumbnail on quotation line items and reusable in proposal snippets.'),
                 TextInput::make('unit')
                     ->helperText('e.g. pcs, hour, package — not required for a service/labor line.'),
                 TextInput::make('unit_cost')

@@ -130,12 +130,14 @@ the replacement") rather than extending or replacing them yet:
   that doesn't exist yet. `TransitionSalesOrderStatus` allows
   `Handed Over → Closed` unconditionally for now; tightening that is
   Phase 05's job, not a Phase 03 regression.
-- **No automatic quotation expiry.** `QuotationStatus::Expired` exists
-  and is reachable from `Sent` via a manual "Mark expired" action; a
-  scheduled command that auto-expires past `valid_until` isn't built
-  (not required by this phase's Required Tests, and it would duplicate
-  the reminder-scheduling pattern that already exists for invoices —
-  worth revisiting alongside that if wanted later).
+- ~~**No automatic quotation expiry.**~~ **Closed** (2026-09-14, ahead of
+  Phase 04, independent of the billing/tax work) —
+  `App\Console\Commands\ExpireQuotations` (`quotations:expire`, scheduled
+  daily at 00:05 in `routes/console.php`, mirroring the
+  `invoices:send-reminders` pattern) marks a `Sent` quotation `Expired`
+  once its `valid_until` date has passed, via the existing
+  `TransitionQuotationStatus` action so `QuotationStatus::canTransitionTo()`
+  still governs the edge. See `tests/Feature/Console/ExpireQuotationsTest.php`.
 - **`QuoteResource` (legacy, over `invoices`/`type=quote`) is completely
   untouched.** It keeps serving already-imported/legacy quotes; every new
   quotation from this phase on goes through the new `QuotationResource`

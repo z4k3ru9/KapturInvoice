@@ -21,7 +21,9 @@ class QuotationPdfController extends Controller
         $user = auth()->user();
         abort_unless($user && $user->canAccessTenant($quotation->company), 403);
 
-        $quotation->loadMissing('client', 'company', 'items');
+        // `items.product` — the printed view shows each line item's
+        // product picture, when the linked product has one.
+        $quotation->loadMissing('client', 'company', 'items.product');
 
         return Pdf::loadView('pdf.quotation', ['quotation' => $quotation])
             ->stream("{$quotation->number}.pdf");
