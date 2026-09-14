@@ -81,9 +81,9 @@ class PlaywrightFixturesSeeder extends Seeder
             'currency_code' => $company->currency_code ?? 'IDR',
         ]);
 
-        $invoiceIndonesian = $this->issuedInvoice($company, $client, 'PW-ID-INVOICE', document_language: null);
-        $invoiceEnglish = $this->issuedInvoice($company, $client, 'PW-EN-INVOICE', document_language: 'en');
-        $this->issuedInvoice($company, $otherClient, 'PW-OTHER-CLIENT-INVOICE', document_language: null);
+        $invoiceIndonesian = $this->issuedInvoice($company, $client, 'PW-ID-INVOICE', $owner, document_language: null);
+        $invoiceEnglish = $this->issuedInvoice($company, $client, 'PW-EN-INVOICE', $owner, document_language: 'en');
+        $this->issuedInvoice($company, $otherClient, 'PW-OTHER-CLIENT-INVOICE', $owner, document_language: null);
 
         // Left in Draft, deliberately not issued — the autosave and
         // dynamic-row-reorder browser journeys (Phase 06B Slice 3/5) both
@@ -173,7 +173,7 @@ class PlaywrightFixturesSeeder extends Seeder
         ];
     }
 
-    private function issuedInvoice(Company $company, Client $client, string $number, ?string $document_language): Invoice
+    private function issuedInvoice(Company $company, Client $client, string $number, User $actor, ?string $document_language): Invoice
     {
         $invoice = Invoice::create([
             'company_id' => $company->id,
@@ -205,6 +205,6 @@ class PlaywrightFixturesSeeder extends Seeder
             'sort_order' => 1,
         ]);
 
-        return app(IssueInvoice::class)->issue($invoice->fresh());
+        return app(IssueInvoice::class)->issue($invoice->fresh(), $actor);
     }
 }
