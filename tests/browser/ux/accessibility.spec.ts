@@ -16,23 +16,24 @@ const company = COMPANIES.karunia;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async ({ page }) => {
-    // A real, deterministic success notification: generating a Statement
-    // of Account (App\Filament\Resources\Clients\Tables\ClientsTable —
-    // Notification::make()->success()->seconds(4) after this session's
-    // toast-timing fix; was Filament's flat 6s default beforehand).
-    await gotoAdminPage(page, `${company.adminUrl}/clients`);
+    // A real, deterministic success notification: resending an already-
+    // issued invoice (App\Filament\Resources\Invoices\Tables\
+    // InvoicesTable — Notification::make()->success()->seconds(4)).
+    // Not the Statement of Account notifications: a Codex review finding
+    // on this PR made both of those persistent with a clickable action
+    // link instead of auto-dismissing (see documents/soa.spec.ts), so
+    // they're no longer valid auto-dismiss examples.
+    await gotoAdminPage(page, `${company.adminUrl}/invoices`);
 
-    const clientRow = page.locator('tr', { hasText: 'Playwright Test Client' }).first();
-    await clientRow.getByRole('button', { name: 'Generate Statement of Account' }).click();
+    const invoiceRow = page.locator('tr', { hasText: fixture.invoice_number_indonesian }).first();
+    await invoiceRow.getByRole('button', { name: 'Resend' }).click();
 
+    // This action requires confirmation (no form fields) — Filament's
+    // generic default confirmation button label ("Confirm").
     const modal = page.getByRole('dialog');
-    await pickDate(modal.getByLabel(/period start/i), '2020-01-01');
-    await pickDate(modal.getByLabel(/period end/i), '2030-01-01');
-    // The modal's submit button is Filament's generic default label
-    // ("Submit") — this app sets no `modalSubmitActionLabel()` anywhere.
-    await modal.getByRole('button', { name: 'Submit' }).click();
+    await modal.getByRole('button', { name: 'Confirm' }).click();
 
-    const toast = page.getByText('Statement of Account generated');
+    const toast = page.getByText('Invoice sent');
     await expect(toast).toBeVisible({ timeout: 10_000 });
 
     // Gone within a generous window around the configured 4s (never
