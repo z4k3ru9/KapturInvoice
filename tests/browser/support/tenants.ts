@@ -67,10 +67,22 @@ export async function loginAsOwner(page: Page): Promise<void> {
  * (net::ERR_ABORTED) even though the page itself lands fine — a known
  * Playwright/Livewire interaction, not a real failure. Use this for every
  * in-admin-panel navigation instead of a bare `page.goto`.
+ *
+ * `page.goto()` can also resolve successfully while a `wire:navigate`
+ * soft navigation is still settling underneath it — CI reproduced this
+ * as a genuine client-side hang: a `.fill()` on a labeled field
+ * ("Terms") polling forever with zero further network activity (ruled
+ * out as a server-side hang — a real one would show retried/queued
+ * requests; this showed none at all), because the field it's waiting
+ * for hadn't finished rendering on an intermediate DOM the resolved
+ * `goto()` never waited past. Always settling to `networkidle` after a
+ * successful navigation too (not only the ERR_ABORTED catch branch
+ * below) closes that gap.
  */
 export async function gotoAdminPage(page: Page, url: string): Promise<void> {
     try {
         await page.goto(url);
+        await page.waitForLoadState('networkidle').catch(() => undefined);
     } catch (error) {
         if (!String(error).includes('ERR_ABORTED')) throw error;
         // Let the soft navigation actually settle before continuing.
