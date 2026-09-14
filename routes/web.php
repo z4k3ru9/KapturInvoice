@@ -5,6 +5,8 @@ use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
+use App\Http\Controllers\ProposalPdfController;
+use App\Http\Controllers\QuotationPdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
@@ -53,6 +55,15 @@ Route::get('/invoices/{invoice}/pdf', InvoicePdfController::class)
 Route::get('/credits/{credit}/pdf', CreditPdfController::class)
     ->middleware('auth')
     ->name('credits.pdf');
+
+// "Download PDF" table actions on the Phase 03 Quotation/Proposal
+// resources — same reasoning as invoices.pdf/credits.pdf above.
+Route::get('/quotations/{quotation}/pdf', QuotationPdfController::class)
+    ->middleware('auth')
+    ->name('quotations.pdf');
+Route::get('/proposals/{proposal}/pdf', ProposalPdfController::class)
+    ->middleware('auth')
+    ->name('proposals.pdf');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
