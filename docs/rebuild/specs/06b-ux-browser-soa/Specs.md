@@ -69,6 +69,7 @@ translation keys, A4 layout verification, and a rendering test:
 - Vendor Bill
 - Vendor Payment Receipt
 - Delivery Order
+- Service Report
 - Handover Report
 - Statement of Account
 - Tax recap

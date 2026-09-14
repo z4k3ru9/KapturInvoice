@@ -29,12 +29,18 @@ re-run completed audits unless new evidence contradicts them.
   isolation.
 - The system is job-centric: quotation -> customer PO or internal COC -> Sales
   Order/Job -> vendor purchasing -> staged invoices -> payments/receipts ->
-  delivery -> conditional handover -> closure.
+  delivery and/or service reports -> conditional handover -> closure.
 - Launch roles: Owner, Admin, Accountant, Sales, Staff, Auditor, Vendor entity,
   and Client portal contact.
 - Launch includes clients, catalog, quotations, jobs, invoices, payments,
   customer receipts, vendors, vendor POs/bills/payments, reports, portal,
-  documents, delivery orders, handover reports, SOA, and tax recap.
+  documents, delivery orders, service reports, handover reports, SOA, and tax
+  recap.
+- Service Report (`SVR`, ratified 2026-09-14, `FINALIZED-DECISIONS.md` §10):
+  job types are goods/installation/service; a service job records each visit
+  as a numbered report (problem, diagnosis, action, parts, result) following
+  the Delivery Order pattern, and needs an approved `Resolved` report before
+  handover. Phase 05 scope, Phase 06B document coverage.
 - Deferred: payment gateway, new credit-note workflow, refunds, write-offs,
   full journal, full inventory, recurring billing, generic project/task
   tracking, formal proposals, vendor login, client uploads, SSO, e-signing,
