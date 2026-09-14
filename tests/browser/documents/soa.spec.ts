@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { COMPANIES, gotoAdminPage, pickDate } from '../support/tenants';
+import { COMPANIES, getWithRetry, gotoAdminPage, pickDate } from '../support/tenants';
 import { loadFixtures } from '../support/fixtures';
 
 /**
@@ -47,7 +47,7 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         expect(href).not.toBeNull();
         expect(href).toMatch(/\/statement-of-accounts\/\d+\/pdf$/);
 
-        const pdfResponse = await context.request.get(href!);
+        const pdfResponse = await getWithRetry(context.request, href!);
         expect(pdfResponse.ok()).toBeTruthy();
         expect(pdfResponse.headers()['content-type']).toContain('application/pdf');
     });

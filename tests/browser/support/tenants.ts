@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import type { APIRequestContext, APIResponse, Locator, Page } from '@playwright/test';
 import { KARUNIA_HOST, AXEN_HOST, BASE_URL } from '../../../playwright.config';
 
 /**
@@ -78,15 +78,76 @@ export async function loginAsOwner(page: Page): Promise<void> {
  * `goto()` never waited past. Always settling to `networkidle` after a
  * successful navigation too (not only the ERR_ABORTED catch branch
  * below) closes that gap.
+ *
+ * scripts/browser-test-server.sh's dev server still crashes
+ * intermittently on this CI runner — a restart-on-exit loop there
+ * recovers it fast (observed ~300-700ms), but the one in-flight
+ * navigation when it happens fails outright with ERR_EMPTY_RESPONSE or
+ * ERR_CONNECTION_REFUSED. Relying only on Playwright's own test-level
+ * retry to absorb that is expensive (a fresh browser context, the whole
+ * test re-run from its first line) and, as CI has shown, not always
+ * enough on its own when a second independent crash has the bad luck of
+ * landing during the retry too. Retry the navigation itself here first,
+ * a few times with a short pause for the dev server to come back — far
+ * cheaper, and it means a transient crash costs a couple of seconds
+ * inside one test rather than failing the whole attempt. A genuinely
+ * broken page (a real app bug, not a crash) still fails every retry
+ * identically and correctly surfaces as a real failure.
  */
 export async function gotoAdminPage(page: Page, url: string): Promise<void> {
-    try {
-        await page.goto(url);
-        await page.waitForLoadState('networkidle').catch(() => undefined);
-    } catch (error) {
-        if (!String(error).includes('ERR_ABORTED')) throw error;
-        // Let the soft navigation actually settle before continuing.
-        await page.waitForLoadState('networkidle').catch(() => undefined);
+    const isTransientServerError = (error: unknown) =>
+        /ERR_EMPTY_RESPONSE|ERR_CONNECTION_REFUSED|ERR_CONNECTION_RESET/.test(String(error));
+
+    for (let attempt = 0; ; attempt++) {
+        try {
+            await page.goto(url);
+            await page.waitForLoadState('networkidle').catch(() => undefined);
+
+            return;
+        } catch (error) {
+            if (String(error).includes('ERR_ABORTED')) {
+                // Let the soft navigation actually settle before continuing.
+                await page.waitForLoadState('networkidle').catch(() => undefined);
+
+                return;
+            }
+
+            if (isTransientServerError(error) && attempt < 3) {
+                await page.waitForTimeout(1_500);
+                continue;
+            }
+
+            throw error;
+        }
+    }
+}
+
+/**
+ * A plain `request.get()` (used for PDF downloads — a dompdf render is
+ * one of this app's heaviest requests, and the most crash-prone) has no
+ * navigation of its own for `gotoAdminPage`'s retry loop to cover.
+ * Same reasoning, same transient-error set, applied directly: retry a
+ * connection-level failure a few times with a short pause for
+ * scripts/browser-test-server.sh's restart-on-exit loop to bring the
+ * dev server back, rather than failing the whole test outright on what
+ * both local and other-CI-project runs show is a real, working
+ * endpoint.
+ */
+export async function getWithRetry(
+    request: APIRequestContext,
+    url: string,
+    options?: Parameters<APIRequestContext['get']>[1],
+): Promise<APIResponse> {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            return await request.get(url, options);
+        } catch (error) {
+            if (!/ERR_EMPTY_RESPONSE|ERR_CONNECTION_REFUSED|ERR_CONNECTION_RESET|ECONNRESET/.test(String(error)) || attempt >= 3) {
+                throw error;
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 1_500));
+        }
     }
 }
 

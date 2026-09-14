@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { COMPANIES, gotoAdminPage } from '../support/tenants';
+import { COMPANIES, getWithRetry, gotoAdminPage } from '../support/tenants';
 import { loadFixtures } from '../support/fixtures';
 
 /**
@@ -17,7 +17,7 @@ for (const [key, company] of Object.entries(COMPANIES)) {
     const fixture = fixtures[company.slug as keyof typeof fixtures];
 
     test(`${key}: downloads the Bahasa-default invoice as a real PDF`, async ({ page, request, baseURL }) => {
-        const response = await request.get(`${baseURL}/invoices/${fixture.invoice_id_indonesian}/pdf`, {
+        const response = await getWithRetry(request, `${baseURL}/invoices/${fixture.invoice_id_indonesian}/pdf`, {
             headers: { Cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join('; ') },
         });
 
@@ -30,7 +30,7 @@ for (const [key, company] of Object.entries(COMPANIES)) {
     });
 
     test(`${key}: downloads the English-override invoice as a real PDF`, async ({ page, request, baseURL }) => {
-        const response = await request.get(`${baseURL}/invoices/${fixture.invoice_id_english}/pdf`, {
+        const response = await getWithRetry(request, `${baseURL}/invoices/${fixture.invoice_id_english}/pdf`, {
             headers: { Cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join('; ') },
         });
 
