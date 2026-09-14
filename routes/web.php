@@ -7,6 +7,7 @@ use App\Http\Controllers\HandoverReportPdfController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
+use App\Http\Controllers\ProposalPdfController;
 use App\Http\Controllers\QuotationPdfController;
 use App\Http\Controllers\ReceiptPdfController;
 use App\Http\Controllers\SalesOrderPdfController;
@@ -76,10 +77,14 @@ Route::get('/credits/{credit}/pdf', CreditPdfController::class)
 
 // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa) — the remaining launch
 // document types' "Download PDF" routes, same auth+in-controller-tenant-
-// check pattern as invoices.pdf/credits.pdf above.
+// check pattern as invoices.pdf/credits.pdf above. Also covers the Phase
+// 03 Proposal resource's own PDF export.
 Route::get('/quotations/{quotation}/pdf', QuotationPdfController::class)
     ->middleware('auth')
     ->name('quotations.pdf');
+Route::get('/proposals/{proposal}/pdf', ProposalPdfController::class)
+    ->middleware('auth')
+    ->name('proposals.pdf');
 Route::get('/sales-orders/{salesOrder}/pdf', SalesOrderPdfController::class)
     ->middleware('auth')
     ->name('sales-orders.pdf');

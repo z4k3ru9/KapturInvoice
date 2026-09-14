@@ -11,15 +11,15 @@ This decision record closes the requirements-grilling session. It is binding on 
 - Internal accounts are local to each deployment. The same person may use the same email on both deployments, but passwords and permissions are not synchronized at launch.
 - Owner/Admin invite internal users by expiring email link; recipients set a local password. Disabling membership blocks access immediately while preserving history. No SSO or social login launches now.
 - Company settings include legal name, display name, code, address, tax ID where applicable, bank accounts, payment instructions, signatory name/title, optional signature or stamp image, logo, email, phone, locale, timezone, branding, portal, reminder, queue, and document-number settings.
-- Initial company codes are `KA` for Karunia Abadi and `ATI` for Axen Technology Indonesia. Codes and document-type codes are configurable before first issuance, then locked for continuity. Historical documents never change if configuration later changes.
+- Initial company codes are `KJA` for Karunia Abadi and `ATI` for Axen Technology Indonesia. Codes and document-type codes are configurable before first issuance, then locked for continuity. Historical documents never change if configuration later changes. (Ratified 2026-09-14: Karunia Abadi's code is `KJA`, not this decision's original illustrative `KA`, to match the real legacy InvoiceNinja v4 invoice prefix — `KJA-INV-`/`KJA-QUO-`/`KJA-CR-` — already carried by this codebase's historical data, so new and historical numbering stay visually continuous. Implemented since Phase 01 (`docs/rebuild/outputs/15-phase-01-checkpoint-report.md`); this entry lagged the implementation until now.)
 
 ## 2. Integrity, dates, numbering, and audit
 
 - Issued invoices, quotations, receipts, verified payments, tax snapshots, PDFs, and audit events are never physically deleted, including by an Owner. Use void, reversal, amendment, or archive with a reason and audit event. Physical deletion is limited to unused drafts and unreferenced master data where legally permissible.
 - Financial audit history is retained indefinitely at launch, subject to backup capacity. Export/archive tooling is a future enhancement, not deletion.
 - Every issued document stores an official `document_date` used for PDF output, reporting, and `YEARMONTH` numbering, plus immutable system `issued_at` for audit evidence. Backdating is allowed only while the period is open; reopening a soft-locked period requires Owner/Accountant authority, reason, and audit event.
-- New document format is `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ`, for example `KA-INV-2026090001`. The annual sequence is independent per company and document type, does not reset monthly, has four-digit minimum width, and expands beyond `9999` if necessary.
-- Launch document codes: `QUO`, `COC`, `SO`, `INV`, `RCT`, `VPO`, `VBL`, `VPR`, `DO`, `HOR`, `SOA`, and `TAX`. Amendments use the original code plus `-A` and their own annual sequence, for example `KA-INV-A-2026090001`.
+- New document format is `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ`, for example `KJA-INV-2026090001`. The annual sequence is independent per company and document type, does not reset monthly, has four-digit minimum width, and expands beyond `9999` if necessary.
+- Launch document codes: `QUO`, `COC`, `SO`, `INV`, `RCT`, `VPO`, `VBL`, `VPR`, `DO`, `HOR`, `SOA`, and `TAX`. Amendments use the original code plus `-A` and their own annual sequence, for example `KJA-INV-A-2026090001`.
 - A system-created replacement for a missing customer PO is an internal **Customer Order Confirmation** (`COC`), never a document that falsely claims the customer issued a PO.
 - A document amendment links to its original document and preserves the original document number, PDF, snapshot, reason, actor, and timestamps.
 
@@ -66,3 +66,11 @@ This decision record closes the requirements-grilling session. It is binding on 
 - Each company deployment receives an independent release checkpoint. It records commit/version, domain and SSL, migrations, company settings, tax behavior, numbering, portal isolation, Bahasa and English PDF samples, queue/scheduler, backup/restore, browser/accessibility results, open exceptions, and approval status.
 - Shared automated tests may run once against the common codebase, but company-specific evidence is separate. The Owner signs both company checkpoints; Accountant and Admin may provide supporting reconciliation and operational evidence but cannot replace Owner approval for tax, balances, migration, backup restore, or release.
 - Claude-generated checkpoint reports are historical implementation evidence only. They do not approve the current `main` branch or release readiness. Current progressive specifications, current-branch verification, current test results, current migration/reconciliation evidence, and the Owner-approved release checkpoint are authoritative.
+
+## 8. Phase 04 billing decisions (ratified 2026-09-14)
+
+Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09-14 before Phase 04 coding began.
+
+- The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and replaces the status enum with the Phase 04 states. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
+- A new invoice may exist without a job. A job link is required whenever the client has an open job; a jobless invoice is exempt from the milestone-equals-approved-value guard, and the SOA must handle jobless invoices.
+- Imported historical payments receive no retroactive receipt. They are marked verified-by-import, appear on the Statement of Account, and never consume an `RCT` sequence number. The one-verified-payment-one-receipt rule applies only to payments verified after cutover.

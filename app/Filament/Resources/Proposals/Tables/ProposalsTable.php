@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Proposals\Tables;
 
 use App\Enums\ProposalStatus;
+use App\Filament\Support\DownloadPdfAction;
 use App\Models\Proposal;
 use App\Services\ProposalConverter;
 use Filament\Actions\Action;
@@ -40,6 +41,7 @@ class ProposalsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DownloadPdfAction::proposal(),
                 Action::make('markAccepted')
                     ->label('Mark accepted')
                     ->icon(Heroicon::OutlinedCheckCircle)

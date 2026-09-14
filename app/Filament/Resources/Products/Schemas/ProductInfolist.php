@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Product;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Schema;
 
@@ -19,6 +20,9 @@ class ProductInfolist
                 TextEntry::make('sku')
                     ->label('SKU')
                     ->placeholder('-'),
+                ImageEntry::make('image_path')
+                    ->label('Picture')
+                    ->visible(fn (Product $record): bool => filled($record->image_path)),
                 TextEntry::make('name'),
                 TextEntry::make('type')
                     ->badge(),
