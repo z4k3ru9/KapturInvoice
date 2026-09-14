@@ -1,5 +1,6 @@
 import { test, expect, Browser } from '@playwright/test';
 import { COMPANIES, gotoAdminPage } from '../support/tenants';
+import { attachServerErrorDiagnostics } from '../support/diagnostics';
 import { loadFixtures } from '../support/fixtures';
 
 /**
@@ -15,28 +16,27 @@ const fixtures = loadFixtures();
 const company = COMPANIES.karunia;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
-test('typing in a draft field shows the inline Saving -> Saved sequence, never a toast', async ({ page }) => {
+test('typing in a draft field shows the inline Saving -> Saved sequence, never a toast', async ({ page }, testInfo) => {
     // TEMPORARY diagnostics: this exact test has hung on `.fill()`
     // waiting for `getByLabel('Terms')` in CI — identically across all 3
     // attempts (original + 2 retries), on both desktop-light and
     // mobile-light, on fresh runner VMs each time — but has never once
     // reproduced locally across many full-suite runs with identical
-    // code. That rules out a flaky/random cause; something concrete is
-    // different about this CI environment. Surface any browser-side JS
-    // error or console output directly in the CI log so the next
-    // occurrence gives real evidence instead of another guess.
-    page.on('pageerror', (error) => console.log(`[DIAGNOSTIC pageerror] ${error.message}\n${error.stack}`));
-    page.on('console', (msg) => {
-        if (msg.type() === 'error' || msg.type() === 'warning') {
-            console.log(`[DIAGNOSTIC console.${msg.type()}] ${msg.text()}`);
-        }
-    });
+    // code. A prior CI run proved this isn't a hang at all: the page
+    // returns a genuine intermittent server-side 500 (getByLabel matched
+    // 0 elements; a console error logged the 500 response) and
+    // Playwright's locator auto-retry, polling for a field that will
+    // never appear, is what looked like a hang. That run only logged the
+    // response body's length though, not its content or the server-side
+    // exception behind it — attachServerErrorDiagnostics closes that gap
+    // in one shot: the exact storage/logs/laravel.log entry the request
+    // wrote (exception class, message, file:line, stack trace) plus the
+    // full rendered error page, both printed straight to the CI job log.
+    attachServerErrorDiagnostics(page, testInfo);
 
     await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
 
     const terms = page.getByLabel('Terms').first();
-    const termsCount = await page.getByLabel('Terms').count();
-    console.log(`[DIAGNOSTIC] getByLabel('Terms') matched ${termsCount} element(s); document.readyState=${await page.evaluate(() => document.readyState)}; body text length=${(await page.locator('body').innerText().catch(() => '')).length}`);
 
     await terms.fill(`Net 30 — ${Date.now()}`);
     await terms.blur();
@@ -60,6 +60,12 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
     const contextB = await browser.newContext({ storageState: 'playwright/.auth/owner.json' });
     const pageA = await contextA.newPage();
     const pageB = await contextB.newPage();
+
+    // Same intermittent server-side 500 this file's other test is
+    // instrumented for could just as easily hit either tab here — same
+    // one-shot capture on both, rather than re-adding it later if it does.
+    attachServerErrorDiagnostics(pageA, testInfo);
+    attachServerErrorDiagnostics(pageB, testInfo);
 
     try {
         // Its own dedicated invoice, not the shared `draft_invoice_id` —
