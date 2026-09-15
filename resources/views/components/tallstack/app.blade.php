@@ -12,7 +12,7 @@
             ['key' => 'jobs', 'label' => 'Jobs', 'route' => "{$adminBase}/sales-orders", 'icon' => 'briefcase'],
         ],
         'Billing' => [
-            ['key' => 'invoices', 'label' => 'Invoices', 'route' => "{$adminBase}/invoices", 'icon' => 'document-currency-dollar'],
+            ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
             ['key' => 'payments', 'label' => 'Payments', 'route' => "{$adminBase}/payments", 'icon' => 'credit-card'],
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
         ],
