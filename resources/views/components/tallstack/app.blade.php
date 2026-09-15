@@ -263,8 +263,14 @@
                         :current="$active === $item['key']"
                         :class="$active === $item['key'] ? '' : '!text-gray-600 dark:!text-gray-300'"
                     >
+                        {{--
+                            16px (w-4 h-4), matching this shell's other
+                            chrome icons (sidebar toggle/search/logout,
+                            below) — this app's standard "inline icon next
+                            to text" size, not an arbitrary one-off value.
+                        --}}
                         <x-slot:icon>
-                            <x-icon :name="$item['icon']" class="w-[18px] h-[18px]" />
+                            <x-icon :name="$item['icon']" class="w-4 h-4" />
                         </x-slot:icon>
                     </x-side-bar.item>
                 @endforeach

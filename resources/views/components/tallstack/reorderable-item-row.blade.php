@@ -24,7 +24,7 @@
         @if ($reorderable)
             <div class="flex items-center gap-1 text-gray-400">
                 <span class="cursor-move" title="Drag to reorder" aria-hidden="true">
-                    <x-icon name="bars-3" class="w-4 h-4" />
+                    <x-icon name="bars-3" class="w-3.5 h-3.5" />
                 </span>
                 <div class="flex flex-col">
                     <button type="button"

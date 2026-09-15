@@ -53,7 +53,7 @@
                         @php($result = $testResults[$item['id']])
                         <div class="flex items-start gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium w-56 text-right whitespace-normal break-words
                             {{ $result['success'] ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400' }}">
-                            <x-icon :name="$result['success'] ? 'check-circle' : 'x-circle'" class="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <x-icon :name="$result['success'] ? 'check-circle' : 'x-circle'" class="w-3 h-3 shrink-0 mt-0.5" />
                             <span class="text-left">{{ $result['title'] }}@if ($result['message']) — {{ $result['message'] }} @endif</span>
                         </div>
                     @endif
