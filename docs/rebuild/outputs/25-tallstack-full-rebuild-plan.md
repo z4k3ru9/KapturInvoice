@@ -397,7 +397,28 @@ status checklist.
       certificate/banking-webhook surface with no backing model anywhere
       in this codebase — only its card-grid visual language was borrowed,
       every built field maps to a real column.)
-- [ ] Phase 10 — Reports
+- [x] Phase 10 — Reports (`/tall/{company:slug}/reports` — Financial
+      Analytics & Tax Reports, a new "Reports" nav group (Catalog →
+      Reports → Settings, matching AdminPanelProvider's pinned order).
+      Introduces no new calculation: the revenue/outstanding/overdue
+      stats and trend chart reuse the exact same DashboardPeriod/
+      RevenueBuckets/Money-driven queries App\Livewire\TallStackDashboard
+      already runs; the paginated job-margin table ports
+      App\Filament\Widgets\JobMarginReport's query/columns verbatim
+      (sales value / allocated gross cost / margin / unallocated
+      purchasing cost kept as four genuinely separate values, never
+      blended); Tax Reports lists real App\Models\TaxRecap rows (status
+      derived the same pending/filed/adjusted way
+      App\Actions\Billing\FileOrAdjustTaxRecap already treats those
+      columns), each linking to the existing tax-recaps.pdf route, with
+      a tax-disabled explanatory empty state for Karunia Abadi mirroring
+      Tax Rates' own. No report-viewing role gate exists anywhere in this
+      codebase (JobMarginReport itself has none), so access matches every
+      other read-mostly TALL-stack register: any authenticated company
+      member. Only an Axen Technology Stitch variant exists for this
+      screen ("Financial Analytics & Tax Reports (Axen Technology
+      Variant)") — used directly, no Karunia variant to compare against.
+      `App\Livewire\TallStackReports`.)
 - [ ] Phase 11 — Client portal restyle
 - [x] Phase 12 — Onboarding/zero-state (a Dashboard panel, not a separate
       route/page — matches the Stitch mockup's own placement. Reuses
