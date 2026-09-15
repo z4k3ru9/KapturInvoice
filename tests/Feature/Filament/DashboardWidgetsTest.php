@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Feature\Filament;
+namespace App\Filament\Widgets;
 
+use App\Enums\QuotationStatus;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Widgets\ExpiringQuotesWidget;
-use App\Filament\Widgets\RevenueOverview;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\Quotation;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +19,7 @@ use Tests\TestCase;
 /**
  * The post-login dashboard — see docs/filament-admin-layout-design.md §9.
  * Replaces Filament's stock "framework info" dashboard with real stats, a
- * revenue trend chart, and an upcoming/expired-quotes list.
+ * revenue trend chart + accessible table, and an expiring-quotations list.
  */
 class DashboardWidgetsTest extends TestCase
 {
@@ -56,7 +56,7 @@ class DashboardWidgetsTest extends TestCase
         $this->get(Dashboard::getUrl(tenant: $this->company))->assertOk();
     }
 
-    public function test_revenue_overview_computes_this_months_revenue_and_pending_and_overdue_counts(): void
+    public function test_revenue_overview_computes_this_months_revenue_outstanding_overdue_open_quotations_and_active_jobs(): void
     {
         $invoice = Invoice::create(['company_id' => $this->company->id, 'client_id' => $this->client->id, 'type' => 'invoice', 'status' => 'paid', 'number' => 'INV-0001']);
         Payment::create([
@@ -81,41 +81,66 @@ class DashboardWidgetsTest extends TestCase
         ]);
         $overdue->forceFill(['balance' => 75])->save();
 
+        Quotation::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'status' => QuotationStatus::Sent, 'number' => 'QUO-0001',
+        ]);
+
         Livewire::test(RevenueOverview::class, ['pageFilters' => ['period' => 'this_month']])
             ->assertSee('Total revenue')
-            ->assertSee('150.00')
-            ->assertDontSee('999.00')
-            ->assertSee('Pending invoices')
-            ->assertSee('200.00')
+            ->assertSee('US$150')
+            ->assertDontSee('US$999')
+            ->assertSee('Outstanding balance')
+            ->assertSee('US$275')
             ->assertSee('Overdue invoices')
-            ->assertSee('75.00');
+            ->assertSee('US$75')
+            ->assertSee('Open quotations')
+            ->assertSee('1');
     }
 
-    public function test_expiring_quotes_widget_lists_quotes_due_within_14_days_or_already_past_and_not_yet_converted(): void
+    public function test_revenue_trend_chart_and_table_share_the_same_buckets(): void
     {
-        $expiringSoon = Invoice::create([
+        $invoiced = Invoice::create([
             'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'type' => 'quote', 'status' => 'sent', 'number' => 'QUO-0001', 'due_date' => '2026-09-20',
+            'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0010',
+            'invoice_date' => '2026-09-10',
         ]);
-        $alreadyExpired = Invoice::create([
+        $invoiced->forceFill(['total' => 500])->save();
+        Payment::create([
             'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'type' => 'quote', 'status' => 'sent', 'number' => 'QUO-0002', 'due_date' => '2026-09-01',
-        ]);
-        $farOut = Invoice::create([
-            'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'type' => 'quote', 'status' => 'sent', 'number' => 'QUO-0003', 'due_date' => '2026-12-01',
-        ]);
-        $alreadyConverted = Invoice::create([
-            'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'type' => 'quote', 'status' => 'sent', 'number' => 'QUO-0004', 'due_date' => '2026-09-18',
-        ]);
-        Invoice::create([
-            'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'type' => 'invoice', 'status' => 'draft', 'number' => 'INV-CONV', 'converted_from_quote_id' => $alreadyConverted->id,
+            'amount' => 150, 'status' => 'completed', 'payment_date' => '2026-09-10',
         ]);
 
-        Livewire::test(ExpiringQuotesWidget::class)
+        Livewire::test(RevenueTrendChart::class, ['pageFilters' => ['period' => 'this_month']])
+            ->assertOk();
+
+        Livewire::test(RevenueTrendTable::class, ['pageFilters' => ['period' => 'this_month']])
+            ->assertSee('Sep 10')
+            ->assertSee('US$500')
+            ->assertSee('US$150');
+    }
+
+    public function test_expiring_quotations_widget_lists_sent_quotations_due_within_7_days_or_already_past(): void
+    {
+        $expiringSoon = Quotation::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'status' => QuotationStatus::Sent, 'number' => 'QUO-0001', 'valid_until' => '2026-09-20',
+        ]);
+        $alreadyExpired = Quotation::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'status' => QuotationStatus::Sent, 'number' => 'QUO-0002', 'valid_until' => '2026-09-01',
+        ]);
+        $farOut = Quotation::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'status' => QuotationStatus::Sent, 'number' => 'QUO-0003', 'valid_until' => '2026-12-01',
+        ]);
+        $stillDraft = Quotation::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'status' => QuotationStatus::Draft, 'number' => 'QUO-0004', 'valid_until' => '2026-09-18',
+        ]);
+
+        Livewire::test(ExpiringQuotationsWidget::class)
             ->assertCanSeeTableRecords([$expiringSoon, $alreadyExpired])
-            ->assertCanNotSeeTableRecords([$farOut, $alreadyConverted]);
+            ->assertCanNotSeeTableRecords([$farOut, $stillDraft]);
     }
 }

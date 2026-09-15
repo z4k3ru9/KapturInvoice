@@ -78,4 +78,32 @@ class DashboardPeriodTest extends TestCase
         $this->assertSame('2026-06-01', $period['start']->toDateString());
         $this->assertSame('2026-06-30', $period['end']->toDateString());
     }
+
+    public function test_this_quarter_groups_by_month(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-15'));
+
+        $period = DashboardPeriod::resolve(['period' => 'this_quarter']);
+
+        $this->assertSame('2026-07-01', $period['start']->toDateString());
+        $this->assertSame('2026-09-30', $period['end']->toDateString());
+        $this->assertSame('month', $period['group_by']);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_previous_returns_a_same_length_window_immediately_before(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-15'));
+
+        // "this_month" for September 2026 is 2026-09-01..2026-09-30 (30 days).
+        $period = DashboardPeriod::resolve(['period' => 'this_month']);
+
+        $previous = DashboardPeriod::previous($period);
+
+        $this->assertSame('2026-08-01', $previous['start']->toDateString());
+        $this->assertSame('2026-08-31', $previous['end']->toDateString());
+
+        Carbon::setTestNow();
+    }
 }

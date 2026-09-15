@@ -2,23 +2,25 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\PaymentStatus;
 use App\Filament\Support\DashboardPeriod;
-use App\Models\Payment;
+use App\Filament\Support\RevenueBuckets;
+use Filament\Facades\Filament;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 
 /**
- * The revenue trend line — see docs/filament-admin-layout-design.md §9.
- * Bucketed by day for a week/month-sized window, by month for a
- * year-sized one (`DashboardPeriod` decides which), summing completed
- * payments per bucket.
+ * The revenue trend chart — see
+ * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md D5.
+ * Two series (invoiced vs. collected), bucketed by day for a week/month-
+ * sized window or by month for a year/quarter-sized one
+ * (`DashboardPeriod` decides which). See RevenueBuckets for the shared
+ * query logic and why "Invoiced" is labeled "(legacy)".
  */
 class RevenueTrendChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected ?string $heading = 'Revenue trend';
+    protected ?string $heading = 'Revenue & cash inflow trend';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -33,49 +35,29 @@ class RevenueTrendChart extends ChartWidget
     protected function getData(): array
     {
         $period = DashboardPeriod::resolve($this->pageFilters);
-
-        $labels = [];
-        $values = [];
-
-        if ($period['group_by'] === 'month') {
-            $cursor = $period['start']->copy()->startOfMonth();
-
-            while ($cursor->lte($period['end'])) {
-                $labels[] = $cursor->format('M Y');
-                $values[] = (float) Payment::query()
-                    ->where('status', PaymentStatus::Completed)
-                    ->whereYear('payment_date', $cursor->year)
-                    ->whereMonth('payment_date', $cursor->month)
-                    ->sum('amount');
-
-                $cursor->addMonth();
-            }
-        } else {
-            $cursor = $period['start']->copy()->startOfDay();
-
-            while ($cursor->lte($period['end'])) {
-                $labels[] = $cursor->format('M j');
-                $values[] = (float) Payment::query()
-                    ->where('status', PaymentStatus::Completed)
-                    ->whereDate('payment_date', $cursor->toDateString())
-                    ->sum('amount');
-
-                $cursor->addDay();
-            }
-        }
+        $buckets = RevenueBuckets::forPeriod($period);
+        $accent = Filament::getTenant()?->primary_color ?: '#E63934';
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Revenue',
-                    'data' => $values,
-                    'borderColor' => '#f59e0b',
-                    'backgroundColor' => 'rgba(245, 158, 11, 0.15)',
+                    'label' => 'Invoiced (legacy)',
+                    'data' => $buckets['invoiced'],
+                    'borderColor' => $accent,
+                    'backgroundColor' => $accent.'26',
+                    'fill' => true,
+                    'tension' => 0.3,
+                ],
+                [
+                    'label' => 'Cash collected',
+                    'data' => $buckets['collected'],
+                    'borderColor' => '#465b9d',
+                    'backgroundColor' => 'rgba(70, 91, 157, 0.15)',
                     'fill' => true,
                     'tension' => 0.3,
                 ],
             ],
-            'labels' => $labels,
+            'labels' => $buckets['labels'],
         ];
     }
 }

@@ -5,21 +5,30 @@ namespace App\Filament\Widgets;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PaymentStatus;
+use App\Enums\QuotationStatus;
+use App\Enums\SalesOrderStatus;
 use App\Filament\Support\DashboardPeriod;
+use App\Filament\Support\Money;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\Quotation;
+use App\Models\SalesOrder;
 use Filament\Facades\Filament;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * The welcome-page stats row — see docs/filament-admin-layout-design.md
- * §9. "Total revenue" respects the Dashboard's period filter (payments
- * received in that window); "Pending"/"Overdue" are deliberately *not*
- * period-filtered — they're a live snapshot of what needs attention right
- * now, same as InvoiceNinja's own dashboard.
+ * The welcome-page stats row — see
+ * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md D2/
+ * D4/D17. "Total revenue" respects the Dashboard's period filter (payments
+ * received in that window) and carries a period-over-period delta;
+ * "Outstanding balance"/"Overdue invoices"/"Open quotations"/"Active jobs"
+ * are deliberately *not* period-filtered — they're a live snapshot of what
+ * needs attention right now, same as InvoiceNinja's own dashboard, so a
+ * delta against a "previous period" would be meaningless for them.
  */
 class RevenueOverview extends StatsOverviewWidget
 {
@@ -35,29 +44,54 @@ class RevenueOverview extends StatsOverviewWidget
     protected function getStats(): array
     {
         $company = Filament::getTenant();
-        $currency = $company?->currency_code ?: '';
+        $currency = $company?->currency_code;
         $period = DashboardPeriod::resolve($this->pageFilters);
+        $previous = DashboardPeriod::previous($period);
 
-        $revenue = Payment::query()
+        $revenue = (float) Payment::query()
             ->where('status', PaymentStatus::Completed)
             ->whereBetween('payment_date', [$period['start']->toDateString(), $period['end']->toDateString()])
             ->sum('amount');
 
-        $pending = $this->openInvoicesQuery()->where(function (Builder $query) {
-            $query->whereNull('due_date')->orWhere('due_date', '>=', today());
-        });
+        $previousRevenue = (float) Payment::query()
+            ->where('status', PaymentStatus::Completed)
+            ->whereBetween('payment_date', [$previous['start']->toDateString(), $previous['end']->toDateString()])
+            ->sum('amount');
+
+        $outstanding = $this->openInvoicesQuery();
         $overdue = $this->openInvoicesQuery()->where('due_date', '<', today());
 
+        $openQuotations = Quotation::query()
+            ->whereIn('status', [QuotationStatus::Approved, QuotationStatus::Sent])
+            ->count();
+
+        $activeJobs = SalesOrder::query()
+            ->whereIn('status', [
+                SalesOrderStatus::Approved,
+                SalesOrderStatus::Procurement,
+                SalesOrderStatus::InProgress,
+                SalesOrderStatus::Delivered,
+                SalesOrderStatus::HandedOver,
+            ])
+            ->count();
+
         return [
-            Stat::make('Total revenue', trim("{$currency} ".number_format((float) $revenue, 2)))
+            Stat::make('Total revenue', Money::format($revenue, $currency))
                 ->description($period['label'])
-                ->color('success'),
-            Stat::make('Pending invoices', (clone $pending)->count())
-                ->description(trim("{$currency} ".number_format((float) (clone $pending)->sum('balance'), 2)).' outstanding')
+                ->descriptionIcon($this->trendIcon($revenue, $previousRevenue))
+                ->color($this->trendColor($revenue, $previousRevenue)),
+            Stat::make('Outstanding balance', Money::format((clone $outstanding)->sum('balance'), $currency))
+                ->description((clone $outstanding)->count().' invoices')
                 ->color('warning'),
             Stat::make('Overdue invoices', (clone $overdue)->count())
-                ->description(trim("{$currency} ".number_format((float) (clone $overdue)->sum('balance'), 2)).' overdue')
+                ->description(Money::format((clone $overdue)->sum('balance'), $currency).' overdue')
                 ->color('danger'),
+            Stat::make('Open quotations', $openQuotations)
+                ->description('Approved or sent, awaiting a decision')
+                ->color('info'),
+            Stat::make('Active jobs', $activeJobs)
+                ->description('In progress toward delivery')
+                ->color('info'),
         ];
     }
 
@@ -66,5 +100,27 @@ class RevenueOverview extends StatsOverviewWidget
         return Invoice::query()
             ->where('type', InvoiceType::Invoice)
             ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Viewed, InvoiceStatus::Partial]);
+    }
+
+    /**
+     * No meaningful "previous period" when both are zero — omit the trend
+     * rather than fabricate a direction (see D4).
+     */
+    protected function trendIcon(float $current, float $previous): ?Heroicon
+    {
+        if ($current === 0.0 && $previous === 0.0) {
+            return null;
+        }
+
+        return $current >= $previous ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown;
+    }
+
+    protected function trendColor(float $current, float $previous): string
+    {
+        if ($current === 0.0 && $previous === 0.0) {
+            return 'gray';
+        }
+
+        return $current >= $previous ? 'success' : 'danger';
     }
 }
