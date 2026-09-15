@@ -493,16 +493,25 @@ status checklist.
       register instead shows a real Active/Ended status derived only
       from `recurring_end_date`, with a manual "Generate now" action and
       an on-page note that generation is manual-only for now.)
-- [ ] Statement of Accounts — **no longer blocked on a Stitch mockup**: a
-      mockup ("Statement of Account — Document Preview & Issuance Ledger" /
+- [x] Statement of Accounts (`/tall/{company:slug}/clients/{client}/statement-of-account/{statementOfAccount?}`
+      — a Preview mode (live-computed against an editable period,
+      unmistakable top-corner banner ribbon) and an Issued mode (renders
+      the frozen `snapshot`). `App\Livewire\TallStackStatementOfAccount`.
+      Wired into `TallStackClientDetail`'s existing Generate/Preview
+      actions and Statement of Accounts relation manager, which
+      previously had no in-app document view at all. Adds
+      `BillingMailer::sendStatementOfAccount()` for "Email to client",
+      following the existing `sendPortalLink()` pattern. Built primarily
+      from prompt 17's detailed spec rather than pixel-matching the
+      fetched Stitch screenshot — a deliberate scope trade-off, noted for
+      anyone who wants a closer visual pass later. Mockup: ("Statement of
+      Account — Document Preview & Issuance Ledger" /
       "Statement of Accounts — Master Register (Karunia Abadi Variant)" /
       "Statement of Account — Preview & Issuance Ledger" + Axen Technology
-      Variant) is confirmed present in the Stitch project as of 2026-09-15,
+      Variant) confirmed present in the Stitch project as of 2026-09-15,
       after three earlier `generate_screen_from_text` attempts timed out
       client-side with no completion confirmed at the time — at least one
-      evidently finished server-side later. This entry only reflects the
-      mockup now existing — TallStackUI has not built this screen yet;
-      schedule it into a future phase against the mockup the same way the
+      evidently finished server-side later. This was the last item in the
       phases above did.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
       **not started, not scheduled** until every phase above is verified;
