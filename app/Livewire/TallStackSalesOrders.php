@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Sales\ForceDeleteSalesOrder;
 use App\Enums\SalesOrderStatus;
 use App\Models\Company;
 use App\Models\SalesOrder;
@@ -12,6 +13,8 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use RuntimeException;
+use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack-native Job (SalesOrder) register — see
@@ -26,7 +29,7 @@ use Livewire\WithPagination;
 #[Layout('components.tallstack.app')]
 class TallStackSalesOrders extends Component
 {
-    use WithPagination;
+    use Interactions, WithPagination;
 
     public Company $company;
 
@@ -54,6 +57,22 @@ class TallStackSalesOrders extends Component
     {
         $this->status = $status;
         $this->resetPage();
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $job = SalesOrder::query()->where('company_id', $this->company->id)->find($id);
+
+        if (! $job) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteSalesOrder::class)->forceDelete($job, auth()->user());
+            $this->toast()->success('Job permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete job', $e->getMessage())->send();
+        }
     }
 
     public function render(): View

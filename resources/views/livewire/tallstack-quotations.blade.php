@@ -109,6 +109,13 @@
                         @if (! \App\Enums\QuotationStatus::from($row['status']->value)->isTerminal())
                             <x-dropdown.items text="Cancel" icon="no-symbol" wire:click="cancel({{ $row['id'] }})" wire:confirm="Cancel this quotation?" />
                         @endif
+                        {{-- Only ever shown for a Draft row — the guard's
+                             full predicate (no job created from it) is
+                             still re-checked server-side by
+                             App\Actions\Sales\ForceDeleteQuotation. --}}
+                        @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this quotation? This cannot be undone." />
+                        @endif
                     </x-dropdown>
                 </div>
             @endinteract

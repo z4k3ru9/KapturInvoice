@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Actions\Sales\AcceptQuotation;
 use App\Actions\Sales\CreateSalesOrderFromQuotation;
+use App\Actions\Sales\ForceDeleteQuotation;
 use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\QuotationStatus;
 use App\Models\Company;
@@ -180,6 +181,22 @@ class TallStackQuotations extends Component
             $this->toast()->success('Job created', "Created job #{$salesOrder->number}.")->send();
         } catch (RuntimeException $e) {
             $this->toast()->error('Could not create job', $e->getMessage())->send();
+        }
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $quotation = $this->findScoped($id);
+
+        if (! $quotation) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteQuotation::class)->forceDelete($quotation, auth()->user());
+            $this->toast()->success('Quotation permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete quotation', $e->getMessage())->send();
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Billing\ForceDeleteCredit;
 use App\Models\Company;
 use App\Models\Credit;
 use App\Support\Dashboard\Money;
@@ -10,20 +11,26 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use RuntimeException;
+use TallStackUi\Traits\Interactions;
 
 /**
- * The TALL-stack-native Credits register — read-only, matching
+ * The TALL-stack-native Credits register — otherwise read-only, matching
  * App\Filament\Resources\Credits (see that resource's docblock:
  * "Credits/refunds are deferred launch scope"; and
  * docs/rebuild/specs/FINALIZED-DECISIONS.md §7: "New credit-note creation,
  * editing, refunds, and write-offs remain deferred"). Every imported
  * Credit row is a historical record from InvoiceNinja data migration only
- * — this page deliberately has no create/edit/delete action anywhere,
- * mirroring the Filament resource's own missing 'create'/'edit' pages
- * (there `EditAction`/`CreateAction` still exist only because Filament's
- * generic fallback-to-modal behavior kicks in when no page is registered;
- * this TALL-stack page does not reproduce that quirk — it is View-only by
- * design, not by omission).
+ * — this page deliberately has no create/edit action anywhere, mirroring
+ * the Filament resource's own missing 'create'/'edit' pages (there
+ * `EditAction`/`CreateAction` still exist only because Filament's generic
+ * fallback-to-modal behavior kicks in when no page is registered; this
+ * TALL-stack page does not reproduce that quirk).
+ *
+ * The one exception is the row-level "Force delete" action (never-applied
+ * credits only) — it delegates its guard/authorization entirely to
+ * App\Actions\Billing\ForceDeleteCredit, so it stays consistent with
+ * "view-only by design" rather than reintroducing a general edit surface.
  *
  * See App\Livewire\TallStackDeliveryOrders' docblock for the established
  * read/browse-only list pattern this follows.
@@ -31,7 +38,7 @@ use Livewire\WithPagination;
 #[Layout('components.tallstack.app')]
 class TallStackCredits extends Component
 {
-    use WithPagination;
+    use Interactions, WithPagination;
 
     public Company $company;
 
@@ -54,6 +61,22 @@ class TallStackCredits extends Component
     public function updatingSearch(): void
     {
         $this->resetPage();
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $credit = Credit::query()->where('company_id', $this->company->id)->find($id);
+
+        if (! $credit) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteCredit::class)->forceDelete($credit, auth()->user());
+            $this->toast()->success('Credit permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete credit', $e->getMessage())->send();
+        }
     }
 
     public function render(): View
@@ -79,6 +102,7 @@ class TallStackCredits extends Component
                 'invoice_number' => $credit->invoice?->number,
                 'amount' => Money::format((float) $credit->amount, $currency),
                 'credit_date' => $credit->credit_date?->format('d M Y') ?? '—',
+                'unapplied' => (float) $credit->balance === (float) $credit->amount,
             ]);
 
         $totalAmount = (float) (clone $base)->sum('amount');
