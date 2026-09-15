@@ -94,7 +94,9 @@ class VendorBillsTable
                         TextInput::make('reference'),
                         FileUpload::make('proof_path')
                             ->label('Proof of payment')
-                            ->directory('vendor-payment-proofs'),
+                            ->directory('vendor-payment-proofs')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->maxSize(10240),
                         Textarea::make('notes')->columnSpanFull(),
                     ])
                     ->action(function (VendorBill $record, array $data) {
