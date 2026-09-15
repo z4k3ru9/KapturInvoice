@@ -17,6 +17,26 @@ Read [implementation structure](IMPLEMENTATION-STRUCTURE.md), [finalized decisio
 9. [Migration and cutover](07-migration-and-cutover/Specs.md)
 10. [Release readiness](08-release-readiness/Specs.md)
 
+## Phase status (verified 2026-09-15)
+
+This table is the single source of truth for "what phase are we on" — each
+row is a summary; the full status/evidence lives as a status marker at the
+top of that phase's own `Specs.md`. Re-verify against `memory.md`'s
+"Current state" and real git evidence before trusting a stale row here.
+
+| Phase | Status |
+| --- | --- |
+| [00 Gate 0](00-gate-0/Specs.md) | ✅ Complete, merged into `main` |
+| [01 Company foundation](01-company-foundation/Specs.md) | ✅ Complete, merged into `main` |
+| [02 Parties and catalog](02-parties-and-catalog/Specs.md) | ✅ Complete, merged into `main` |
+| [03 Sales and job](03-sales-and-job/Specs.md) | ✅ Complete, merged into `main` |
+| [04 Billing and receivables](04-billing-and-receivables/Specs.md) | ✅ Complete, merged into `main` |
+| [05 Procurement and delivery](05-procurement-and-delivery/Specs.md) | ✅ Complete, merged into `main` |
+| [06 Documents, portal, and reporting](06-documents-portal-reporting/Specs.md) | ✅ Complete, merged into `main` |
+| [06B UX, browser QA, and SOA completion](06b-ux-browser-soa/Specs.md) | ✅ Complete, merged into `main` |
+| [07 Migration and cutover](07-migration-and-cutover/Specs.md) | 🚧 In progress — on unmerged branch `claude/phase-07-migration-cutover` |
+| [08 Release readiness](08-release-readiness/Specs.md) | ⛔ Not started |
+
 ## Pause protocol
 
 At the end of each session, update the handoff message with:

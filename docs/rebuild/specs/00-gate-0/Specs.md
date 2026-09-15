@@ -1,5 +1,7 @@
 # Phase 00: Gate 0 Environment and Baseline
 
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" and `docs/rebuild/outputs/14-gate-0-baseline-report.md`.
+
 ## Goal
 
 Make the repository reproducible and record the pre-renovation behavior before changing application code.
