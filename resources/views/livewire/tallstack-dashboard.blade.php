@@ -20,7 +20,14 @@
                 @endforeach
             </x-dropdown>
             <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" />
-            <x-button icon="arrow-path" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="$refresh" />
+            {{--
+                Calls loadDashboardData() directly (not $refresh) — since
+                the heavy stats/chart query is no longer run from render(),
+                a bare $refresh would just re-render the page with
+                whatever was already loaded, not actually pull fresh
+                numbers.
+            --}}
+            <x-button icon="arrow-path" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="loadDashboardData" tooltip="Refresh" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -96,58 +103,113 @@
         </x-card>
     @endif
 
-    {{-- Stat row --}}
     {{--
-        The `!` (important) modifiers on the wider breakpoints work around
-        the same cross-stylesheet cascade quirk noted in
-        components/tallstack/app.blade.php: TallStackUI's own compiled CSS
-        (loaded after app.css) redeclares an unconditional `.grid-cols-2`
-        that otherwise outranks these responsive classes at any width.
+        Stat row + trend chart — both wrapped in one lazy-loading section.
+        `wire:init="loadDashboardData"` fires a SEPARATE Livewire
+        round-trip right after the first paint (see
+        App\Livewire\TallStackDashboard's own docblock): the initial HTTP
+        response never waits on RevenueBuckets::forPeriod()'s per-bucket
+        query loop, it just paints the skeleton pair below immediately.
+
+        Each section below renders as an ADJACENT PAIR of blocks — one
+        `wire:loading`-shown skeleton, one `wire:loading.remove`-shown real
+        block — rather than a single block toggling its own `skeleton`
+        prop from PHP. TallStackUI's `skeleton` prop is baked into the
+        server-rendered HTML, so it cannot react to an in-flight request by
+        itself; pairing it with `wire:loading`/`wire:loading.remove` is
+        what makes the skeleton genuinely reappear on every subsequent
+        round-trip this component makes (a period change, the header's
+        refresh button), not just the very first load. Before the
+        component has loaded at all (`$statsLoaded` false, `wire:loading`
+        not yet active), the "real" block itself falls back to skeleton
+        cards too, so there is never a gap with neither block visible.
     --}}
-    <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 min-[1180px]:!grid-cols-5 gap-2.5">
+    <div wire:init="loadDashboardData">
         {{--
-            The trend arrow used to sit via the stats component's own
-            increase/decrease slot, in the same tight flex row as the
-            Rupiah amount — that row's fixed content (icon square + a
-            ~13-character amount + the arrow) is wider than the card at
-            this density, and nothing in it shrinks, so the arrow spilled
-            out past the card's right edge instead of clipping to it.
-            Building the title line by hand instead — no `title` prop, no
-            increase/decrease — puts the arrow next to the much shorter
-            "Total revenue" label, where the row has real room to spare.
+            The `!` (important) modifiers on the wider breakpoints work
+            around the same cross-stylesheet cascade quirk noted in
+            components/tallstack/app.blade.php: TallStackUI's own compiled
+            CSS (loaded after app.css) redeclares an unconditional
+            `.grid-cols-2` that otherwise outranks these responsive
+            classes at any width.
         --}}
-        <x-stats scope="compact" icon="banknotes">
-            <div class="flex items-center gap-1">
-                <span class="dark:text-dark-300 text-xs text-gray-600">Total revenue</span>
-                @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
-                    <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
-                @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
-                    <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
-                @endif
-            </div>
-            <span class="text-lg font-bold tabular-nums">{{ $stats['revenue'] }}</span>
-            <x-slot:footer>{{ $periodLabel }}</x-slot:footer>
-        </x-stats>
+        <div wire:loading.grid class="hidden grid-cols-2 min-[820px]:!grid-cols-3 min-[1180px]:!grid-cols-5 gap-2.5">
+            @include('livewire.partials.tallstack-dashboard-stats-skeleton')
+        </div>
+        <div wire:loading.remove.grid class="grid grid-cols-2 min-[820px]:!grid-cols-3 min-[1180px]:!grid-cols-5 gap-2.5">
+            @if ($statsLoaded)
+                {{--
+                    The trend arrow used to sit via the stats component's
+                    own increase/decrease slot, in the same tight flex row
+                    as the Rupiah amount — that row's fixed content (icon
+                    square + a ~13-character amount + the arrow) is wider
+                    than the card at this density, and nothing in it
+                    shrinks, so the arrow spilled out past the card's right
+                    edge instead of clipping to it. Building the title
+                    line by hand instead — no `title` prop, no
+                    increase/decrease — puts the arrow next to the much
+                    shorter "Total revenue" label, where the row has real
+                    room to spare. Re-verified against TallStackUI 4.1's
+                    real `increase`/`decrease` markup (vendor/tallstackui/
+                    tallstackui/src/resources/views/components/stats/main.blade.php):
+                    that slot is still a plain, un-shrinkable div sitting
+                    after the `grow` title/number column, so it still
+                    overflows this card's width today — the hand-rolled
+                    arrow stays.
 
-        <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
-            <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
-        </x-stats>
+                    The revenue card also gets a subtle sparkline (the
+                    period's cash-collected trend) via TallStackUI's own
+                    `chart` slot — the same series the trend chart below
+                    plots, just behind the headline number at low opacity
+                    (the package's own default `chart.wrapper` styling).
+                --}}
+                <x-stats scope="compact" icon="banknotes">
+                    <x-slot:chart>
+                        <x-chart :series="$chartCollected" color="{{ $stats['revenueUp'] && ! $stats['revenueFlat'] ? 'green' : 'red' }}" curve="smooth" :height="64" />
+                    </x-slot:chart>
+                    <div class="flex items-center gap-1">
+                        <span class="dark:text-dark-300 text-xs text-gray-600">Total revenue</span>
+                        @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
+                            <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
+                        @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
+                            <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
+                        @endif
+                    </div>
+                    <span class="text-lg font-bold tabular-nums">{{ $stats['revenue'] }}</span>
+                    <x-slot:footer>{{ $periodLabel }}</x-slot:footer>
+                </x-stats>
 
-        <x-stats scope="compact" title="Overdue invoices" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['overdueCount'] }}</span>
-            <x-slot:footer><span class="text-red-600 dark:text-red-400">{{ $stats['overdueTotal'] }} overdue</span></x-slot:footer>
-        </x-stats>
+                <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
+                    <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
+                    <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
+                </x-stats>
 
-        <x-stats scope="compact" title="Open quotations" icon="document-text" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['openQuotations'] }}</span>
-            <x-slot:footer>Approved or sent</x-slot:footer>
-        </x-stats>
+                {{--
+                    :number/animated (not a slot) on these three count
+                    cards — short 1s count-up, tasteful rather than
+                    gimmicky for a billing admin. The two currency cards
+                    above stay pre-formatted Rupiah strings in a slot
+                    (animate only works against a raw number — mid-count a
+                    plain digit string like "45231000" has no thousands
+                    separator, which read worse than the existing static
+                    Money::format() convention for the app's headline
+                    amounts).
+                --}}
+                <x-stats scope="compact" title="Overdue invoices" icon="exclamation-triangle" color="red" :number="$stats['overdueCount']" animated :duration="1">
+                    <x-slot:footer><span class="text-red-600 dark:text-red-400">{{ $stats['overdueTotal'] }} overdue</span></x-slot:footer>
+                </x-stats>
 
-        <x-stats scope="compact" title="Active jobs" icon="briefcase" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['activeJobs'] }}</span>
-            <x-slot:footer>In progress</x-slot:footer>
-        </x-stats>
+                <x-stats scope="compact" title="Open quotations" icon="document-text" color="blue" :number="$stats['openQuotations']" animated :duration="1">
+                    <x-slot:footer>Approved or sent</x-slot:footer>
+                </x-stats>
+
+                <x-stats scope="compact" title="Active jobs" icon="briefcase" color="blue" :number="$stats['activeJobs']" animated :duration="1">
+                    <x-slot:footer>In progress</x-slot:footer>
+                </x-stats>
+            @else
+                @include('livewire.partials.tallstack-dashboard-stats-skeleton')
+            @endif
+        </div>
     </div>
 
     {{--
@@ -182,7 +244,10 @@
             </div>
         </x-card>
     @else
-        {{-- Trend chart --}}
+        {{--
+            Trend chart — same lazy-loading pair as the stat row above,
+            sharing the parent's `wire:init="loadDashboardData"`.
+        --}}
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
@@ -190,17 +255,49 @@
                 </div>
             </x-slot:header>
 
-            <x-chart
-                type="area"
-                :labels="$chartLabels"
-                :series="[
-                    ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
-                    ['name' => 'Cash collected', 'data' => $chartCollected],
-                ]"
-                :colors="['red', 'primary']"
-                legend
-                height="280"
-            />
+            <div wire:loading.block class="hidden">
+                <x-chart skeleton height="280" />
+            </div>
+            <div wire:loading.remove.block>
+                @if ($statsLoaded)
+                    {{--
+                        `grid`/`tooltip`/`markers` turned on (previously
+                        only `legend`) so the two overlapping area series
+                        are actually readable at a glance instead of
+                        needing a hover-only tooltip with no gridlines to
+                        judge magnitude against. `curve="smooth"` reads
+                        better than the default straight-segment join for
+                        a monthly/daily revenue trend (real day-to-day
+                        invoicing/collection swings, not a precise
+                        instrument reading — smoothing doesn't misrepresent
+                        it the way it would on e.g. a stock chart).
+                        `:formatter` reuses the exact same
+                        `App\Support\Dashboard\Money::format()` the stat
+                        cards already use, so the axis/tooltip Rupiah
+                        formatting (thousands separator, no decimals)
+                        matches the rest of the page instead of the
+                        component's own generic `number_format()` default.
+                    --}}
+                    <x-chart
+                        type="area"
+                        :labels="$chartLabels"
+                        :series="[
+                            ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
+                            ['name' => 'Cash collected', 'data' => $chartCollected],
+                        ]"
+                        :colors="['red', 'primary']"
+                        grid
+                        legend
+                        tooltip
+                        markers
+                        curve="smooth"
+                        :formatter="fn (float $value) => \App\Support\Dashboard\Money::format($value, $currency)"
+                        height="280"
+                    />
+                @else
+                    <x-chart skeleton height="280" />
+                @endif
+            </div>
 
             <x-slot:footer>
                 <button type="button" class="text-xs font-semibold text-[color:var(--ts-primary)]">View as accessible table</button>

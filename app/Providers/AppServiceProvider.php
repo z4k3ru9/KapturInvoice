@@ -87,9 +87,19 @@ class AppServiceProvider extends ServiceProvider
             'wrapper.third' => 'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
             'icon' => 'h-5 w-5 shrink-0',
             'title' => 'dark:text-dark-300 text-xs text-gray-600',
-            'number' => 'dark:text-dark-300 text-lg font-bold leading-none *:m-0',
+            // tabular-nums added on top of the package's own default
+            // 'number' block — without it, the count-up `animated` stat
+            // cards (Overdue invoices/Open quotations/Active jobs) visibly
+            // jitter in width as each digit's proportional glyph changes
+            // during the animation, not just at rest.
+            'number' => 'dark:text-dark-300 text-lg font-bold leading-none tabular-nums *:m-0',
             'slots.footer.wrapper' => 'mx-3',
             'slots.footer.text' => 'dark:text-dark-300 p-1 text-[11px] text-gray-600',
+            // Matches the real card's own 36px (h-9 w-9) icon square set
+            // above ('wrapper.third') — the package's own skeleton default
+            // is a 48px (size-12) bar, which read as a visible size jump
+            // once the real card swaps in after loading.
+            'skeleton.icon' => 'size-9 rounded-lg',
         ]);
 
         TallStackUi::customize()->dropdown(scope: 'toolbar')->block([
