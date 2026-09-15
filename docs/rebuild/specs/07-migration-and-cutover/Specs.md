@@ -1,5 +1,7 @@
 # Phase 07: InvoiceNinja Migration and Cutover
 
+> **Status (verified 2026-09-15):** 🚧 In progress — see branch `claude/phase-07-migration-cutover` (not yet merged into `main`). Recent work there: migration-tracking foundation (batches, exceptions, reconciliation runs), batch tracking/checkpoint/restart and credit quarantine wired into both legacy importers, and persisted (not console-only) reconciliation output.
+
 ## Goal
 
 Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, repeatedly, and with business reconciliation.

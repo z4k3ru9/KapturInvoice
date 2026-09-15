@@ -1,5 +1,7 @@
 # Phase 06: Documents, Portal, Reporting, and UX Completion
 
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main` (superseded/completed by Phase 06B for the browser-QA/SOA items this phase deliberately deferred). See `memory.md` "Current state" and `docs/rebuild/outputs/21-phase-06-checkpoint-report.md`.
+
 Read the root [DESIGN.md](../../DESIGN.md) before implementing this phase. It is the binding UI flow, interaction, appearance, accessibility, responsive, and visual QA handoff.
 
 ## Goal
