@@ -197,6 +197,20 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
 - **Icon-only square buttons**: use the `icon-action` button scope (20px
   icon in a 36px box) rather than the package's default `sm` icon size
   (12px, looks adrift in a square box with no text beside it).
+- **`<x-input>`/`<x-textarea>`/`<x-select.styled>` have zero left padding
+  by default**: the package's own `FormDefaultInputClasses::input()`
+  (`'base' => '... border-0 bg-transparent py-1.5 ring-0 ...'`) carries
+  vertical padding but no `px-*` at all — a plain field with no
+  icon/prefix/suffix (the overwhelming majority of fields across every
+  TALL-stack page: ~225 call sites as of this session) renders its
+  text flush against the field's own ring border. `input.paddings.left/
+  right` only apply when an `icon` prop is set, so they don't help here.
+  Fixed globally in `AppServiceProvider::registerTallStackUiCustomizations()`
+  via `TallStackUi::customize()->form('input')->block('input.base')->append('px-3')`
+  (+ the same for `form('textarea')` and, since `<x-select.styled>` keeps
+  a separate customization array under `'input.wrapper.base'`,
+  `TallStackUi::customize()->select('styled')->block('input.wrapper.base')->append('px-3')`)
+  — never add a per-call-site `class="px-3"` workaround instead.
 - **Verification discipline**: after every visual change, `npm run build`
   (Tailwind won't pick up new Blade files/classes otherwise — verified by
   compiled CSS byte-size actually changing), `php artisan view:clear` +
