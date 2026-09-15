@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'company_id',
     'invoice_email_subject', 'invoice_email_body',
     'quote_email_subject', 'quote_email_body',
+    'quotation_email_subject', 'quotation_email_body',
     'payment_email_subject', 'payment_email_body',
     'reminder1_enabled', 'reminder1_days', 'reminder1_direction', 'reminder1_field',
     'reminder2_enabled', 'reminder2_days', 'reminder2_direction', 'reminder2_field',

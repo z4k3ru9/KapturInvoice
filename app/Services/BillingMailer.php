@@ -5,14 +5,14 @@ namespace App\Services;
 use App\Enums\InvoiceStatus;
 use App\Mail\CompanyTemplatedMail;
 use App\Models\CompanySetting;
-use App\Models\Contact;
 use App\Models\Invitation;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PortalLink;
-use Illuminate\Support\Collection;
+use App\Services\Concerns\ResolvesBillingContact;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Mail;
-use RuntimeException;
 
 /**
  * Closes the gap flagged in docs/filament-admin-layout-design.md §3.3 —
@@ -26,6 +26,8 @@ use RuntimeException;
  */
 class BillingMailer
 {
+    use ResolvesBillingContact;
+
     public function __construct(private EmailTemplateRenderer $renderer) {}
 
     /**
@@ -107,7 +109,7 @@ class BillingMailer
      */
     protected function sendForInvoice(Invoice $invoice, string $templateKind, ?int $reminderTier = null, array $cc = []): Invitation
     {
-        $invoice->loadMissing('client.contacts', 'company.settings');
+        $invoice->loadMissing('client.contacts', 'company.settings', 'items');
 
         $contact = $this->resolveContact(null, $invoice->client->contacts);
 
@@ -133,9 +135,17 @@ class BillingMailer
             '{{portal_link}}' => url('/portal/'.$invitation->key),
         ];
 
+        // Reuses InvoicePdfController's exact rendering — same view, same
+        // loaded relations — rather than a second copy of the Blade
+        // template. The same `pdf.invoice` view already prints either
+        // document type correctly (InvoiceType::Invoice/Quote), since
+        // both live on the same `invoices` table.
+        $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $invoice])->output();
+
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->render($bodyTemplate, $tokens),
+            [Attachment::fromData(fn () => $pdf, "{$invoice->number}.pdf")->withMime('application/pdf')],
         ));
 
         $invitation->forceFill(['sent_at' => now()])->save();
@@ -145,20 +155,6 @@ class BillingMailer
         }
 
         return $invitation;
-    }
-
-    /**
-     * @param  Collection<int, Contact>  $contacts
-     */
-    protected function resolveContact(?Contact $preferred, $contacts): Contact
-    {
-        $contact = $preferred ?? $contacts->firstWhere('is_billing_contact', true) ?? $contacts->firstWhere('is_primary', true) ?? $contacts->first();
-
-        if (! $contact || blank($contact->email)) {
-            throw new RuntimeException('This client has no contact with an email address to send to.');
-        }
-
-        return $contact;
     }
 
     /**

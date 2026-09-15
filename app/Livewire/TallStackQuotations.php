@@ -9,6 +9,7 @@ use App\Enums\QuotationStatus;
 use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Quotation;
+use App\Services\Sales\QuotationMailer;
 use App\Support\TallStack\StatusColor;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
@@ -86,9 +87,35 @@ class TallStackQuotations extends Component
         $this->applyTransition($id, QuotationStatus::Approved);
     }
 
+    /**
+     * Same reasoning as TallStackQuotationForm::send() — the status
+     * transition stays a separate, already-tested concern, and this only
+     * adds the email dispatch alongside it.
+     */
     public function send(int $id): void
     {
-        $this->applyTransition($id, QuotationStatus::Sent);
+        $quotation = $this->findScoped($id);
+
+        if (! $quotation) {
+            return;
+        }
+
+        $this->authorize('update', $quotation);
+
+        try {
+            app(TransitionQuotationStatus::class)->transition($quotation, QuotationStatus::Sent);
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not update quotation', $e->getMessage())->send();
+
+            return;
+        }
+
+        try {
+            app(QuotationMailer::class)->sendQuotation($quotation);
+            $this->toast()->success('Quotation sent.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Quotation marked as sent, but the email could not be sent', $e->getMessage())->send();
+        }
     }
 
     public function reject(int $id): void

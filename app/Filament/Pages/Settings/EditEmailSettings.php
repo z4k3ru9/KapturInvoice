@@ -56,6 +56,8 @@ class EditEmailSettings extends Page
                         TextInput::make('invoice_email_body'),
                         TextInput::make('quote_email_subject'),
                         TextInput::make('quote_email_body'),
+                        TextInput::make('quotation_email_subject'),
+                        TextInput::make('quotation_email_body'),
                         TextInput::make('payment_email_subject'),
                         TextInput::make('payment_email_body'),
                     ]),
