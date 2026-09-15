@@ -86,6 +86,16 @@
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.jobs.show', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('sales-orders.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    {{-- Only ever shown for a Draft row — the guard's full
+                         predicate (no invoices/deliveries/handovers/service
+                         reports/job cost allocations/variations) is still
+                         re-checked server-side by
+                         App\Actions\Sales\ForceDeleteSalesOrder. --}}
+                    @if ($row['status'] === \App\Enums\SalesOrderStatus::Draft)
+                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this job? This cannot be undone." />
+                        </x-dropdown>
+                    @endif
                 </div>
             @endinteract
 

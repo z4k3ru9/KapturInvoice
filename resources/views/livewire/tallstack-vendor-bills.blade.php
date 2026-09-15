@@ -81,6 +81,13 @@
                         @if ($row['status'] === \App\Enums\VendorBillStatus::Submitted)
                             <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
                         @endif
+                        {{-- Only ever shown for a Draft row — the guard's
+                             full predicate (no payments) is still
+                             re-checked server-side by
+                             App\Actions\Procurement\ForceDeleteVendorBill. --}}
+                        @if ($row['status'] === \App\Enums\VendorBillStatus::Draft)
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this vendor bill? This cannot be undone." />
+                        @endif
                     </x-dropdown>
                 </div>
             @endinteract
