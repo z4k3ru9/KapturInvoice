@@ -11,7 +11,7 @@ use App\Models\Company;
 use App\Models\Quotation;
 use App\Services\Sales\QuotationMailer;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -62,8 +62,7 @@ class TallStackQuotations extends Component
         // the rest of the TALL-stack pages so a future addition doesn't
         // silently need this again) needs a resolved panel + tenant even
         // outside a real panel request.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

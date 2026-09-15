@@ -16,6 +16,7 @@ use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -54,6 +55,7 @@ class RelationManagerViewPageActionsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_client_contacts_create_action_is_visible_on_the_client_view_page(): void

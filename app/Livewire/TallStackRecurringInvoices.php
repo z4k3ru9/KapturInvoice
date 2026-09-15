@@ -6,7 +6,7 @@ use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Services\InvoiceDuplicator;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -59,8 +59,7 @@ class TallStackRecurringInvoices extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

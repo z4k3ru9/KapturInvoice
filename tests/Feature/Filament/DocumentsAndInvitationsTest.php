@@ -10,6 +10,7 @@ use App\Models\Contact;
 use App\Models\Invitation;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,6 +35,7 @@ class DocumentsAndInvitationsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_document_resource_index_page_renders(): void
@@ -49,11 +51,13 @@ class DocumentsAndInvitationsTest extends TestCase
         Invitation::create(['invoice_id' => $invoice->id, 'contact_id' => $contact->id]);
 
         Filament::setTenant($this->otherCompany);
+        app(Tenancy::class)->set($this->otherCompany);
         $otherClient = Client::create(['company_id' => $this->otherCompany->id, 'name' => 'Other Client']);
         $otherContact = Contact::create(['client_id' => $otherClient->id, 'first_name' => 'Jack']);
         $otherInvoice = Invoice::create(['company_id' => $this->otherCompany->id, 'client_id' => $otherClient->id, 'type' => 'invoice', 'status' => 'draft']);
         Invitation::create(['invoice_id' => $otherInvoice->id, 'contact_id' => $otherContact->id]);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         $this->get(InvitationResource::getUrl('index', tenant: $this->company))
             ->assertOk()

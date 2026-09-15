@@ -20,7 +20,7 @@ use App\Services\BillingMailer;
 use App\Services\DocumentNumberGenerator;
 use App\Services\InvoiceTotalsCalculator;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -151,11 +151,10 @@ class TallStackInvoiceForm extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `invoice` happens before this mount() body
-        // runs and before Filament::setTenant() above activates
+        // runs and before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — same explicit re-check as
         // TallStackQuotationForm::mount() and the PDF controllers.
         if ($invoice) {

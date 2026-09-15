@@ -13,7 +13,7 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Payment;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -92,8 +92,7 @@ class TallStackPayments extends Component
         // Same reasoning as TallStackDashboard::mount() — needed for any
         // future Resource::getUrl() usage, kept for parity with the rest
         // of the TALL-stack pages.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

@@ -14,6 +14,7 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -69,6 +70,7 @@ class MilestonesRelationManagerTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($salesOrder->company);
+        app(Tenancy::class)->set($salesOrder->company);
 
         Livewire::test(MilestonesRelationManager::class, ['ownerRecord' => $salesOrder, 'pageClass' => ViewSalesOrder::class])
             ->mountTableAction('create')
@@ -84,6 +86,7 @@ class MilestonesRelationManagerTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($salesOrder->company);
+        app(Tenancy::class)->set($salesOrder->company);
 
         Livewire::test(MilestonesRelationManager::class, ['ownerRecord' => $salesOrder, 'pageClass' => ViewSalesOrder::class])
             ->mountTableAction('create')

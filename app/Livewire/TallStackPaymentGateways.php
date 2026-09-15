@@ -7,7 +7,7 @@ use App\Models\Company;
 use App\Models\PaymentGateway;
 use App\Services\PaymentGateways\GatewayNotConfiguredException;
 use App\Services\PaymentGateways\PaymentGatewayManager;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
@@ -109,8 +109,7 @@ class TallStackPaymentGateways extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -50,6 +51,7 @@ class ActionQueueTest extends TestCase
         // doesn't otherwise depend on who's "currently" authenticated.
         $this->actingAs(User::factory()->create());
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     protected function tearDown(): void

@@ -18,6 +18,7 @@ use App\Models\Product;
 use App\Models\TaxRate;
 use App\Models\User;
 use App\Services\InvoiceTotalsCalculator;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -52,6 +53,7 @@ class AdminPanelResourcesTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_resource_index_pages_render(): void
@@ -77,8 +79,10 @@ class AdminPanelResourcesTest extends TestCase
         Client::create(['company_id' => $this->company->id, 'name' => 'Own Client']);
 
         Filament::setTenant($this->otherCompany);
+        app(Tenancy::class)->set($this->otherCompany);
         Client::create(['company_id' => $this->otherCompany->id, 'name' => 'Other Client']);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         $this->get(ClientResource::getUrl('index', tenant: $this->company))
             ->assertOk()

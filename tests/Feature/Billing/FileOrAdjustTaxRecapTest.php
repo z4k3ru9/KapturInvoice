@@ -13,6 +13,7 @@ use App\Models\CompanyTaxSetting;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -163,6 +164,7 @@ class FileOrAdjustTaxRecapTest extends TestCase
 
         $this->actingAs($accountant);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         Livewire::test(ViewInvoice::class, ['record' => $invoice->id])
             ->assertSuccessful()

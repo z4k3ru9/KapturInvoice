@@ -8,6 +8,7 @@ use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -36,6 +37,7 @@ class ClientBillingDefaultsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_client_can_be_created_with_a_default_discount_via_modal(): void
