@@ -42,6 +42,7 @@ use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackRecurringInvoiceForm;
 use App\Livewire\TallStackRecurringInvoices;
+use App\Livewire\TallStackRegisterCompany;
 use App\Livewire\TallStackReports;
 use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
@@ -168,6 +169,17 @@ Route::get('/statement-of-accounts/{statementOfAccount}/pdf', StatementOfAccount
 Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountPreviewController::class)
     ->middleware('auth')
     ->name('statement-of-accounts.preview');
+
+// TallStackUI-native replacement for App\Filament\Pages\Tenancy\RegisterCompany
+// (Filament's RegisterTenant page) — the only path that creates a new
+// Company row. Auth-only (no tenant to scope to yet): the component's own
+// mount() redirects a user who already has a company straight to its
+// dashboard instead. See App\Livewire\TallStackRegisterCompany's docblock
+// for how this relates to Filament's own (untouched) tenant-registration
+// redirect.
+Route::get('/register-company', TallStackRegisterCompany::class)
+    ->middleware('auth')
+    ->name('tallstack.register-company');
 
 // A TALL-stack-native (TallStackUI components, no Filament) rendering of
 // the admin Dashboard, for comparing visual fidelity against the Stitch
