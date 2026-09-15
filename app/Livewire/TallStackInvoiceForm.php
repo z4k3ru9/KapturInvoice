@@ -10,6 +10,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Enums\TaxCategory;
+use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -25,6 +26,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use RuntimeException;
 use TallStackUi\Traits\Interactions;
 
@@ -54,7 +57,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackInvoiceForm extends Component
 {
-    use Interactions;
+    use Interactions, ManagesDocuments, WithFileUploads;
 
     public Company $company;
 
@@ -144,6 +147,10 @@ class TallStackInvoiceForm extends Component
     public ?string $taxRecapNotes = null;
 
     public ?string $taxRecapAdjustmentReason = null;
+
+    // Document attachment state — see App\Livewire\Concerns\ManagesDocuments.
+    /** @var TemporaryUploadedFile|null */
+    public $newDocument = null;
 
     public function mount(Company $company, ?Invoice $invoice = null): void
     {
@@ -592,6 +599,37 @@ class TallStackInvoiceForm extends Component
         }
     }
 
+    // --- Documents ---------------------------------------------------------
+
+    public function uploadDocument(): void
+    {
+        if (! $this->invoice) {
+            return;
+        }
+
+        $this->authorize('update', $this->invoice);
+
+        $this->validate($this->documentUploadRules('newDocument'));
+
+        $this->storeUploadedDocument($this->invoice, $this->newDocument);
+
+        $this->reset('newDocument');
+        $this->toast()->success('Document uploaded.')->send();
+    }
+
+    public function deleteDocument(int $id): void
+    {
+        if (! $this->invoice) {
+            return;
+        }
+
+        $this->authorize('update', $this->invoice);
+
+        if ($this->deleteScopedDocument($this->invoice, $id)) {
+            $this->toast()->success('Document deleted.')->send();
+        }
+    }
+
     public function render(): View
     {
         $currency = $this->invoice?->currency_code ?: $this->company->currency_code;
@@ -625,6 +663,7 @@ class TallStackInvoiceForm extends Component
             'amountPaid' => $this->invoice ? Money::format((float) $this->invoice->amount_paid, $currency) : Money::format(0, $currency),
             'balance' => $this->invoice ? Money::format((float) $this->invoice->balance, $currency) : Money::format(0, $currency),
             'taxRecapAlreadyFiled' => $taxRecapAlreadyFiled,
+            'documents' => $this->invoice ? $this->documentRows($this->invoice) : collect(),
         ])->layoutData([
             'company' => $this->company,
             'active' => 'invoices',

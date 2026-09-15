@@ -247,6 +247,43 @@
                     <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
                 </x-card>
             @endif
+
+            {{--
+                Documents — attach a file to this invoice (PDF/JPG/PNG up
+                to 10MB, App\Livewire\Concerns\ManagesDocuments). Download
+                reuses the existing documents.download route; delete
+                removes the row (same physical-delete precedent as
+                App\Livewire\TallStackDocuments — an uploaded attachment,
+                not one of CLAUDE.md's "never physically deleted" issued
+                document types).
+            --}}
+            @if ($invoice)
+                <x-card>
+                    <x-slot:header>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Documents</span>
+                    </x-slot:header>
+                    <div class="flex flex-col gap-3">
+                        <x-upload wire:model="newDocument" label="Attach a document" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
+                        <x-button text="Upload" icon="arrow-up-tray" color="blue" sm wire:click="uploadDocument" />
+
+                        <x-table :headers="[
+                            ['index' => 'filename', 'label' => 'Filename', 'sortable' => false],
+                            ['index' => 'size', 'label' => 'Size', 'sortable' => false],
+                            ['index' => 'uploaded_by', 'label' => 'Uploaded by', 'sortable' => false],
+                            ['index' => 'uploaded_at', 'label' => 'Uploaded at', 'sortable' => false],
+                            ['index' => 'actions', 'label' => '', 'sortable' => false],
+                        ]" :rows="$documents">
+                            @interact('column_actions', $row)
+                                <div class="flex items-center justify-end gap-2">
+                                    <x-button icon="arrow-down-tray" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('documents.download', $row['id']) }}" target="_blank" tooltip="Download" />
+                                    <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteDocument({{ $row['id'] }})" wire:confirm="Delete this document?" />
+                                </div>
+                            @endinteract
+                            <x-slot:empty>No documents attached yet.</x-slot:empty>
+                        </x-table>
+                    </div>
+                </x-card>
+            @endif
         </div>
     </div>
 
