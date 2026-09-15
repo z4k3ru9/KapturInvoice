@@ -48,7 +48,7 @@ class RevenueBuckets
                     ->whereMonth('invoice_date', $cursor->month)
                     ->sum('total');
                 $collected[] = (float) Payment::query()
-                    ->where('status', PaymentStatus::Completed)
+                    ->whereIn('status', [PaymentStatus::Completed, PaymentStatus::Verified])
                     ->whereYear('payment_date', $cursor->year)
                     ->whereMonth('payment_date', $cursor->month)
                     ->sum('amount');
@@ -62,7 +62,7 @@ class RevenueBuckets
                     ->whereDate('invoice_date', $cursor->toDateString())
                     ->sum('total');
                 $collected[] = (float) Payment::query()
-                    ->where('status', PaymentStatus::Completed)
+                    ->whereIn('status', [PaymentStatus::Completed, PaymentStatus::Verified])
                     ->whereDate('payment_date', $cursor->toDateString())
                     ->sum('amount');
 
