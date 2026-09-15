@@ -1,4 +1,4 @@
-<div class="w-[90%] mx-auto py-6 flex flex-col gap-5">
+<div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
     {{-- Clients have no lifecycle status (prompt 10) — a muted "Since
          [date]" subtitle sits next to the title instead of a status
