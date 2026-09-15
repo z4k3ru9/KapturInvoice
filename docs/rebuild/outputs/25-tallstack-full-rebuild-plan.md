@@ -419,7 +419,25 @@ status checklist.
       screen ("Financial Analytics & Tax Reports (Axen Technology
       Variant)") — used directly, no Karunia variant to compare against.
       `App\Livewire\TallStackReports`.)
-- [ ] Phase 11 — Client portal restyle
+- [x] Phase 11 — Client portal restyle (`App\Livewire\Portal\ViewInvoice`/
+      `ClientPortalHome` restyled in place, matching the Client
+      Read-Only Portal Stitch mockup — zero data/action/authorization
+      changes, both stay on the standalone `layouts.public` layout, not
+      the admin shell. New `resources/views/portal/unavailable.blade.php`
+      + `App\Livewire\Portal\Concerns\RendersUnavailablePage` replace a
+      bare 404 for an unknown/cross-company/revoked/expired link with a
+      calm branded page that never reveals which case applied. Found and
+      fixed two real pre-existing bugs: dark mode was silently broken
+      app-wide on the shared public layout — same cross-stylesheet
+      Tailwind v4 cascade quirk already documented elsewhere in this
+      app, `dark:` classes losing to TallStackUI's later-loaded
+      stylesheet at equal specificity, fixed with `!important` — and
+      `<x-stats>`'s card background never actually toggles dark, so
+      fixing body text to go white in dark mode made stat-tile values
+      invisible against the still-light card; pinned those values to
+      `text-gray-900` with no dark variant instead. Preserved the
+      existing `status-badge.blade.php` WCAG fix and the scrollable-
+      table `tabindex`/`role`/`aria-label` mobile a11y fix unchanged.)
 - [x] Phase 12 — Onboarding/zero-state (a Dashboard panel, not a separate
       route/page — matches the Stitch mockup's own placement. Reuses
       `App\Filament\Support\SetupChecklist`'s real 5-step data/completion
