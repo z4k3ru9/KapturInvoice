@@ -1,5 +1,14 @@
 # KapturInvoice Permissions and State Matrix
 
+> **⚠️ SUPERSEDED — early planning draft.** This early role/approval/state
+> sketch is now substantially superseded by
+> [`docs/rebuild/Specs.md`](../Specs.md) §7 (workflow state matrices) and
+> §10 (roles and authorization), and by
+> [`docs/rebuild/specs/FINALIZED-DECISIONS.md`](../specs/FINALIZED-DECISIONS.md)
+> for the roles that were later refined per action (e.g. the vendor PO
+> variance and job variation approval roles). Kept for historical
+> reference only.
+
 ## Roles
 
 | Role | Launch authority |
