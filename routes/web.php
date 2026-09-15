@@ -25,6 +25,7 @@ use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackClientDetail;
 use App\Livewire\TallStackClients;
+use App\Livewire\TallStackCredits;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackDeliveryOrder;
 use App\Livewire\TallStackDeliveryOrders;
@@ -358,6 +359,21 @@ Route::get('/tall/{company:slug}/vendor-bills/create', TallStackVendorBillForm::
 Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendorBillForm::class)
     ->middleware('auth')
     ->name('tallstack.vendor-bills.edit');
+
+// Credits — register only (deferred-scope item, no earlier phase number;
+// see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's "Deferred"
+// list — a Stitch mockup ("Credits — Register (Karunia Abadi Variant)")
+// was generated later in that session, per
+// docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 15).
+// Read-only: Credits are imported historical records only
+// (docs/rebuild/specs/FINALIZED-DECISIONS.md §7 — "New credit-note
+// creation, editing, refunds, and write-offs remain deferred"), so unlike
+// every other TALL-stack register above there is no create/edit route
+// here at all. Same explicit company-ownership re-check pattern as
+// Quotations above.
+Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
+    ->middleware('auth')
+    ->name('tallstack.credits');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
