@@ -222,9 +222,16 @@
 
         <x-card header="Acceptance">
             @if ($invitation->signed_at)
-                <div class="flex items-center gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
-                    <x-icon name="check-circle" class="h-5 w-5 shrink-0" />
-                    Signed by <strong>{{ $invitation->signature }}</strong> on {{ $invitation->signed_at->toFormattedDateString() }}.
+                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                    <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
+                    <div>
+                        <p>Signed on {{ $invitation->signed_at->toFormattedDateString() }}.</p>
+                        @if ($invitation->hasSignatureImage())
+                            <img src="{{ $invitation->signature }}" alt="Signature" class="mt-2 h-20 rounded border border-green-200 bg-white">
+                        @elseif ($invitation->signature)
+                            <p class="mt-1">Signed by <strong>{{ $invitation->signature }}</strong>.</p>
+                        @endif
+                    </div>
                 </div>
             @else
                 @if ($settings?->portal_require_signature)
@@ -233,11 +240,32 @@
                     </p>
                 @endif
 
-                <form wire:submit="sign" class="flex flex-wrap items-end gap-3">
-                    <div class="min-w-64 flex-1">
-                        <x-input label="Type your full name to sign" wire:model="signatureName" placeholder="Jane Doe" />
+                <form wire:submit="sign" class="space-y-3">
+                    {{--
+                        `persistent` is load-bearing, not decorative: the
+                        signature canvas otherwise wipes its drawing (and
+                        clears the entangled model back to null) on any
+                        layout shift that nudges its container's width —
+                        a late web-font swap, an image reflow, a mobile
+                        keyboard opening — even after the signer has
+                        finished drawing. Confirmed live via Playwright:
+                        without this, a completed drawing (verified via
+                        the canvas's own pixel data right after the
+                        stroke) was silently cleared ~300ms later by the
+                        component's own ResizeObserver, well before the
+                        signer could click Accept & sign.
+                    --}}
+                    <x-signature
+                        wire:model="capturedSignature"
+                        label="Draw your signature to sign"
+                        hint="Draw inside the box below, then Accept & sign."
+                        height="200"
+                        clearable
+                        persistent
+                    />
+                    <div class="flex justify-end">
+                        <x-button type="submit" text="Accept & sign" color="primary" />
                     </div>
-                    <x-button type="submit" text="Accept & sign" color="primary" />
                 </form>
             @endif
         </x-card>
