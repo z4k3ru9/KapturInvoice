@@ -25,13 +25,7 @@ class ResolveCompanyFromDomain
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $host = preg_replace('/^www\./', '', $request->getHost());
-
-        $company = Company::query()->active()->where('domain', $host)->first();
-
-        if (! $company && app()->environment(['local', 'testing'])) {
-            $company = Company::query()->active()->orderBy('id')->first();
-        }
+        $company = self::resolve($request);
 
         // A disabled company must not be reachable through a stale/known
         // domain, a portal link, or a PDF download — reject it exactly
@@ -45,5 +39,27 @@ class ResolveCompanyFromDomain
         View::share('company', $company);
 
         return $next($request);
+    }
+
+    /**
+     * The same Host-header lookup as handle() above, exposed statically so
+     * a route's `->missing()` closure (route model binding failure — an
+     * unknown portal key) can resolve the domain-matched company for
+     * branding purposes too. That closure runs as part of route
+     * resolution, before this middleware's own `app()->instance('currentCompany', ...)`
+     * is guaranteed to have run, so it cannot simply rely on the
+     * container binding this method's caller sets up.
+     */
+    public static function resolve(Request $request): ?Company
+    {
+        $host = preg_replace('/^www\./', '', $request->getHost());
+
+        $company = Company::query()->active()->where('domain', $host)->first();
+
+        if (! $company && app()->environment(['local', 'testing'])) {
+            $company = Company::query()->active()->orderBy('id')->first();
+        }
+
+        return $company;
     }
 }
