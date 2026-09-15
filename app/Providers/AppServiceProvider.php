@@ -145,6 +145,15 @@ class AppServiceProvider extends ServiceProvider
         TallStackUi::customize()->form('input')->block('input.base')->append('px-3');
         TallStackUi::customize()->form('textarea')->block('input.base')->append('px-3');
         TallStackUi::customize()->select('styled')->block('input.wrapper.base')->append('px-3');
+        // <x-select.styled>'s own dropdown option rows ('box.list.item.wrapper')
+        // already ship with `px-2` (8px) — left alone, the closed trigger's
+        // selected-value text (now px-3/12px, from the block above) sat 4px
+        // to the right of that same option's text once the list opened,
+        // reading as the dropdown panel being misaligned/"moved" versus the
+        // trigger rather than a padding mismatch. Bumped to the same px-3
+        // so the open list's text lines up exactly under the closed
+        // trigger's text, and both match this app's other px-3 fields.
+        TallStackUi::customize()->select('styled')->block('box.list.item.wrapper')->replace('px-2', 'px-3');
     }
 
     /**
