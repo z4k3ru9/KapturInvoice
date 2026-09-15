@@ -1,14 +1,21 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
-    {{-- Page header --}}
+    {{--
+        Page header — "Dashboard" itself is a short, fixed title (unlike a
+        record's name/number elsewhere), so this left block is kept
+        compact (smaller heading, tighter line spacing, sm badge) rather
+        than matching the larger heading treatment a longer/variable title
+        would need — leaving more of the row's width to the period/export/
+        refresh controls on the right before they wrap.
+    --}}
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
-            <div class="flex items-center gap-2 text-xs text-gray-400 mb-1">
+            <div class="flex items-center gap-1.5 text-xs text-gray-400">
                 <span>{{ $company->name }}</span><span>/</span><span>Overview</span>
             </div>
-            <div class="flex items-center gap-3 flex-wrap">
-                <h1 class="font-bold text-2xl text-gray-900 dark:text-gray-100">Dashboard</h1>
-                <x-badge text="Owner · {{ auth()->user()->name }}" color="blue" icon="user-circle" />
+            <div class="flex items-center gap-2 flex-wrap">
+                <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">Dashboard</h1>
+                <x-badge text="Owner · {{ auth()->user()->name }}" color="blue" icon="user-circle" sm />
                 <span class="text-xs text-gray-400">Updated moments ago</span>
             </div>
         </div>
@@ -20,7 +27,7 @@
                 @endforeach
             </x-dropdown>
             <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" />
-            <x-button icon="arrow-path" square sm color="gray" class="h-9 w-9" wire:click="$refresh" />
+            <x-button icon="arrow-path" square sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="$refresh" />
         </div>
     </div>
 
@@ -132,7 +139,7 @@
                 @endinteract
                 @interact('column_actions', $row, $company)
                     <div class="flex items-center justify-end gap-2">
-                        <x-button icon="eye" href="/admin/{{ $company->slug }}/quotations/{{ $row['id'] }}" square sm color="gray" class="h-9 w-9" tooltip="Review" />
+                        <x-button icon="eye" href="/admin/{{ $company->slug }}/quotations/{{ $row['id'] }}" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Review" />
                         <x-dropdown icon="ellipsis-vertical" scope="row-action">
                             <x-dropdown.items text="Extend 7 days" icon="calendar" />
                             <x-dropdown.items text="Void quotation" icon="x-circle" />

@@ -91,7 +91,18 @@ class AppServiceProvider extends ServiceProvider
         // text-trigger "toolbar" scope above.
         TallStackUi::customize()->dropdown(scope: 'row-action')->block([
             'action.wrapper' => 'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md bg-gray-500 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
-            'action.icon' => 'h-4 w-4 text-gray-50 transition',
+            'action.icon' => 'h-5 w-5 text-gray-50 transition',
+        ]);
+
+        // A "sm" x-button's own icon defaults to just w-3 h-3 (12px) — fine
+        // next to a text label, but adrift in a lot of empty space once
+        // the button is icon-only and `square` (bell, refresh, a table
+        // row's "Review" eye icon: all 36x36 boxes). This scope matches
+        // that icon size to the row-action dropdown's 20px kebab above, so
+        // every icon-only square action button in this page reads at the
+        // same visual weight.
+        TallStackUi::customize()->button(scope: 'icon-action')->block([
+            'icon.sizes.sm' => 'h-5 w-5',
         ]);
 
         // The package's default sideBar.separator "line" style uses its own

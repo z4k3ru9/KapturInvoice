@@ -41,23 +41,33 @@
         /*
             The package's own desktop collapse button (aria-label="Toggle
             sidebar") always renders the same static bars-4 icon whatever
-            the sidebar's state — replaced below with a button whose icon
-            swaps between collapse/expand so the control's direction is
-            visible at a glance. Hide the stock one rather than fork the
-            vendor view.
+            the sidebar's state and is rendered unconditionally whenever
+            the sidebar is collapsible — `without-mobile-button` below
+            only drops its separate MOBILE hamburger, not this one. It's
+            replaced by the single adaptive button further down (icon
+            swaps between hamburger/collapse/expand so the control's
+            direction is visible at a glance), so the stock one is hidden
+            here rather than forking the vendor view.
 
-            The replacement button (and the search box beside it) use a
-            responsive "hidden md:!grid"/"hidden sm:!block" pattern rather
-            than plain "md:grid"/"sm:block": TallStackUI's own compiled
-            stylesheet (@tallStackUiStyle, loaded after app.css) redeclares
-            a bare `.hidden{display:none}` without redeclaring every
-            responsive variant this app uses, so its later-loaded rule
-            otherwise wins the cascade over an equal-specificity
-            `md:`/`sm:` utility from app.css at any width — the same kind
-            of cross-stylesheet Tailwind v4/lightningcss cascade quirk
-            already documented and worked around elsewhere in this app.
+            Selector is a bare `button[aria-label=...]`, not
+            `header button[...]` — TallStackUI's header component renders
+            as a plain <div>, never an actual <header> element, so a
+            `header`-qualified selector silently never matches and the
+            stock button stayed visible right next to the replacement
+            (looking like two redundant nav toggles sitting side by side).
+
+            The search box below still needs its own
+            "hidden sm:!block" (`!` important) rather than plain
+            "sm:block": TallStackUI's own compiled stylesheet
+            (@tallStackUiStyle, loaded after app.css) redeclares a bare
+            `.hidden{display:none}` without redeclaring every responsive
+            variant this app uses, so its later-loaded rule otherwise wins
+            the cascade over an equal-specificity `sm:` utility from
+            app.css at any width — the same kind of cross-stylesheet
+            Tailwind v4/lightningcss cascade quirk already documented and
+            worked around elsewhere in this app.
         */
-        header button[aria-label="Toggle sidebar"] { display: none !important; }
+        button[aria-label="Toggle sidebar"] { display: none !important; }
     </style>
     @livewireStyles
     @tallStackUiStyle
@@ -149,12 +159,23 @@
                             window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => this.desktop = e.matches);
                         },
                      }">
+                    {{--
+                        w-8 h-8 to match the sidebar brand logo/avatar
+                        square exactly (not the header's other h-9 w-9
+                        buttons) — a visible bg (not just on :hover) so it
+                        reads as a defined square chip sitting next to that
+                        logo, the same way the logo itself is a defined
+                        square, rather than a bare icon floating beside it.
+                        All three swapped icons share one size so the
+                        button's visual weight doesn't shift between
+                        states.
+                    --}}
                     <button type="button"
                             x-on:click="desktop ? $store['tsui.side-bar'].toggle() : (tallStackUiMenuMobile = !tallStackUiMenuMobile)"
                             x-bind:aria-expanded="desktop ? !$store['tsui.side-bar'].collapsed : tallStackUiMenuMobile"
                             aria-label="Toggle navigation"
-                            class="grid place-items-center h-9 w-9 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0">
-                        <x-icon name="bars-3" x-show="!desktop" class="w-5 h-5" />
+                            class="grid place-items-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer shrink-0">
+                        <x-icon name="bars-3" x-show="!desktop" class="w-4 h-4" />
                         <x-icon name="chevron-double-left" x-show="desktop && !$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
                         <x-icon name="chevron-double-right" x-show="desktop && $store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
                     </button>
@@ -168,7 +189,7 @@
             <x-slot:right>
                 <div class="flex items-center gap-2">
                     <x-button icon="plus" text="New" color="primary" sm class="h-9" />
-                    <x-button icon="bell" square color="gray" sm class="h-9 w-9" />
+                    <x-button icon="bell" square color="gray" sm scope="icon-action" class="h-9 w-9" />
                     <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
                 </div>
             </x-slot:right>
