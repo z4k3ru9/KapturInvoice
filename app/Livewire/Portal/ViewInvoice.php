@@ -29,7 +29,13 @@ class ViewInvoice extends Component
 
     public Invitation $invitation;
 
-    public string $signatureName = '';
+    /**
+     * Bound to TallStackUI's `<x-signature>` canvas (`wire:model`) — a
+     * base64 image data URI (`data:image/png;base64,...`) synced from the
+     * drawn strokes, entangled live in resources/views/livewire/portal/
+     * view-invoice.blade.php. Null until at least one stroke is drawn.
+     */
+    public ?string $capturedSignature = null;
 
     public bool $justSigned = false;
 
@@ -62,10 +68,15 @@ class ViewInvoice extends Component
 
     public function sign(): void
     {
-        $this->validate(['signatureName' => ['required', 'string', 'max:255']]);
+        $this->validate([
+            'capturedSignature' => ['required', 'string', 'starts_with:data:image/'],
+        ], [
+            'capturedSignature.required' => 'Please draw your signature before submitting.',
+            'capturedSignature.starts_with' => 'Please draw your signature before submitting.',
+        ]);
 
         $this->invitation->forceFill([
-            'signature' => $this->signatureName,
+            'signature' => $this->capturedSignature,
             'signed_at' => now(),
         ])->save();
 
