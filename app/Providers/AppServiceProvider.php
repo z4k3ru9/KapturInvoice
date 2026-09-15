@@ -43,7 +43,8 @@ class AppServiceProvider extends ServiceProvider
      * package's own dropdown trigger has no size variants at all (no `sm`
      * prop) and renders shorter/unstyled by default, which is what made
      * button rows like "This month / Export summary / refresh" visibly
-     * mismatched in height.
+     * mismatched in height. A "row-action" scope is the same idea for an
+     * icon-only (no `text`) overflow-menu trigger in a table row.
      */
     private function registerTallStackUiCustomizations(): void
     {
@@ -62,6 +63,15 @@ class AppServiceProvider extends ServiceProvider
         TallStackUi::customize()->dropdown(scope: 'toolbar')->block([
             'action.wrapper' => 'inline-flex h-9 w-full cursor-pointer items-center gap-x-1.5 rounded-md bg-gray-500 px-3 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
             'action.text' => 'text-sm font-medium',
+            'action.icon' => 'h-4 w-4 text-gray-50 transition',
+        ]);
+
+        // Icon-only variant for a table row's "..." overflow menu, matching
+        // the square gray icon buttons it sits next to (e.g. the row's own
+        // "Review" x-button icon="eye" square) rather than the wide
+        // text-trigger "toolbar" scope above.
+        TallStackUi::customize()->dropdown(scope: 'row-action')->block([
+            'action.wrapper' => 'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-md bg-gray-500 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
             'action.icon' => 'h-4 w-4 text-gray-50 transition',
         ]);
 
