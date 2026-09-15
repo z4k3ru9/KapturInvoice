@@ -47,6 +47,7 @@
             ['index' => 'handover_date', 'label' => 'Date'],
             ['index' => 'is_override', 'label' => 'Override'],
             ['index' => 'created_by', 'label' => 'Recorded by'],
+            ['index' => 'signed_at', 'label' => 'Signature'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$handoverReports" paginate loading>
             @interact('column_number', $row)
@@ -75,16 +76,53 @@
                 @endif
             @endinteract
 
+            {{-- Client e-signature captured on the public portal link
+                 (App\Livewire\Portal\SignHandoverReport) — same
+                 drawn-signature capability as the invoice portal,
+                 extended to Handover Reports. This register has no
+                 separate detail page, so it's surfaced here directly. --}}
+            @interact('column_signed_at', $row)
+                @if ($row['signed_at'])
+                    <button type="button" wire:click="viewSignature({{ $row['id'] }})" class="flex items-center gap-1.5 text-green-600 dark:text-green-400 hover:underline">
+                        <x-icon name="check-circle" class="w-4 h-4" />
+                        <span class="text-xs font-medium">{{ $row['signed_at'] }}</span>
+                    </button>
+                @else
+                    <span class="text-xs text-gray-400">Not signed</span>
+                @endif
+            @endinteract
+
             @interact('column_actions', $row, $company)
                 <div class="flex items-center justify-end gap-2">
                     @if ($row['job_id'])
                         <x-button icon="briefcase" href="{{ route('tallstack.jobs.show', [$company, $row['job_id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open job" />
                     @endif
                     <x-button icon="document-arrow-down" href="{{ route('handover-reports.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    <button type="button"
+                            x-on:click="window.navigator.clipboard.writeText('{{ route('portal.handover-report', $row['portal_key']) }}')"
+                            title="Copy client signing link"
+                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                        <x-icon name="clipboard" class="w-4 h-4" />
+                    </button>
                 </div>
             @endinteract
 
             <x-slot:empty>No handover reports recorded yet.</x-slot:empty>
         </x-table>
     </x-card>
+
+    <x-modal wire="showSignatureModal" title="Signature" center="sm">
+        @if ($viewingSignature)
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Confirmed by <strong>{{ $viewingSignature['signed_by_name'] }}</strong> on {{ $viewingSignature['signed_at'] }}.
+            </p>
+            @if ($viewingSignature['has_signature_image'])
+                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700 bg-white">
+            @endif
+        @endif
+
+        <x-slot:footer>
+            <x-button text="Close" color="gray" wire:click="$set('showSignatureModal', false)" />
+        </x-slot:footer>
+    </x-modal>
 </div>

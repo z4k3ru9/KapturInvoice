@@ -91,6 +91,17 @@
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    {{-- Client-side clipboard copy of the public
+                         drawn-signature acceptance link
+                         (App\Livewire\Portal\SignQuotation) — same
+                         pattern as tallstack-client-portal-invitations.blade.php's
+                         own "Copy portal link" action. --}}
+                    <button type="button"
+                            x-on:click="window.navigator.clipboard.writeText('{{ route('portal.quotation', $row['portal_key']) }}')"
+                            title="Copy client acceptance link"
+                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                        <x-icon name="clipboard" class="w-4 h-4" />
+                    </button>
                     <x-dropdown icon="ellipsis-vertical" scope="row-action">
                         @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
                             <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
@@ -105,6 +116,9 @@
                         @endif
                         @if ($row['status'] === \App\Enums\QuotationStatus::Accepted)
                             <x-dropdown.items text="Create job" icon="briefcase" wire:click="createJob({{ $row['id'] }})" />
+                        @endif
+                        @if ($row['signed_at'])
+                            <x-dropdown.items text="View signature" icon="pencil" wire:click="viewSignature({{ $row['id'] }})" />
                         @endif
                         @if (! \App\Enums\QuotationStatus::from($row['status']->value)->isTerminal())
                             <x-dropdown.items text="Cancel" icon="no-symbol" wire:click="cancel({{ $row['id'] }})" wire:confirm="Cancel this quotation?" />
@@ -137,6 +151,21 @@
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAcceptModal', false)" />
             <x-button text="Accept" color="green" wire:click="accept" />
+        </x-slot:footer>
+    </x-modal>
+
+    <x-modal wire="showSignatureModal" title="Signature" center="sm">
+        @if ($viewingSignature)
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Accepted by <strong>{{ $viewingSignature['signed_by_name'] }}</strong> on {{ $viewingSignature['signed_at'] }}.
+            </p>
+            @if ($viewingSignature['has_signature_image'])
+                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700 bg-white">
+            @endif
+        @endif
+
+        <x-slot:footer>
+            <x-button text="Close" color="gray" wire:click="$set('showSignatureModal', false)" />
         </x-slot:footer>
     </x-modal>
 </div>

@@ -52,6 +52,21 @@ class TallStackQuotations extends Component
 
     public ?string $customerPoDate = null;
 
+    /**
+     * The row currently shown in the "View signature" modal — a client
+     * e-signature captured on the public portal link
+     * (App\Livewire\Portal\SignQuotation).
+     */
+    public ?int $viewingSignatureId = null;
+
+    public bool $showSignatureModal = false;
+
+    public function viewSignature(int $id): void
+    {
+        $this->viewingSignatureId = $id;
+        $this->showSignatureModal = true;
+    }
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -259,6 +274,11 @@ class TallStackQuotations extends Component
                 'status' => $quotation->status,
                 'status_label' => $quotation->status->getLabel(),
                 'status_color' => StatusColor::map($quotation->status->getColor()),
+                'portal_key' => $quotation->portal_key,
+                'signed_at' => $quotation->signed_at?->format('d M Y H:i'),
+                'signed_by_name' => $quotation->signed_by_name,
+                'signature' => $quotation->signature,
+                'has_signature_image' => $quotation->hasSignatureImage(),
             ]);
 
         $counts = (clone $base)
@@ -286,8 +306,13 @@ class TallStackQuotations extends Component
             ? round(((int) ($counts[QuotationStatus::Accepted->value] ?? 0) / $decided) * 100, 1)
             : null;
 
+        $viewingSignature = $this->viewingSignatureId
+            ? collect($quotations->items())->firstWhere('id', $this->viewingSignatureId)
+            : null;
+
         return view('livewire.tallstack-quotations', [
             'quotations' => $quotations,
+            'viewingSignature' => $viewingSignature,
             'statuses' => QuotationStatus::cases(),
             'stats' => [
                 'active' => $active,

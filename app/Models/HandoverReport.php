@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'company_id', 'sales_order_id', 'number', 'handover_date', 'notes',
     'is_override', 'override_reason', 'created_by_user_id',
-    'document_language',
+    'document_language', 'signed_by_name', 'signature', 'signed_at',
 ])]
 class HandoverReport extends Model
 {
@@ -22,7 +23,26 @@ class HandoverReport extends Model
         return [
             'handover_date' => 'date',
             'is_override' => 'boolean',
+            'signed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $handoverReport) {
+            $handoverReport->portal_key ??= (string) Str::orderedUuid();
+        });
+    }
+
+    /**
+     * True when `signature` holds a drawn-signature image (a base64 data
+     * URI captured by the portal's `<x-signature>` canvas) — see
+     * App\Models\Invitation::hasSignatureImage() for the identical
+     * pattern this mirrors.
+     */
+    public function hasSignatureImage(): bool
+    {
+        return is_string($this->signature) && str_starts_with($this->signature, 'data:image/');
     }
 
     public function company(): BelongsTo
