@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * The full state list from docs/rebuild/specs/03-sales-and-job/Specs.md.
  * Order of the case list mirrors the intended lifecycle: a quotation is
@@ -13,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * (Accepted/Rejected/Expired) or is Cancelled from any non-terminal state.
  * See canTransitionTo() for the enforced edges.
  */
-enum QuotationStatus: string implements HasColor, HasLabel
+enum QuotationStatus: string
 {
     case Draft = 'draft';
     case Approved = 'approved';

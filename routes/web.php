@@ -70,9 +70,9 @@ use App\Livewire\TallStackVendors;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
-// (see ResolveCompanyFromDomain) — deliberately separate from the Filament
-// admin panel registered by App\Providers\Filament\AdminPanelProvider,
-// which resolves its own tenant from the URL path instead.
+// (see ResolveCompanyFromDomain) — deliberately separate from the
+// authenticated /tall/{company:slug}/** admin surface below, which
+// resolves its own tenant from the URL path instead.
 Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     Route::get('/', HomePage::class)->name('home');
 

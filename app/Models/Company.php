@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Filament\Models\Contracts\HasName;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,9 +14,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * The Filament tenant model: one row per billed entity. KapturInvoice runs
- * two of these, each with its own public-homepage domain and invoice
- * numbering sequence, sharing a single admin panel.
+ * The tenant model: one row per billed entity. KapturInvoice runs two of
+ * these, each with its own public-homepage domain and invoice numbering
+ * sequence, sharing a single admin surface (/tall/{company:slug}/**).
  */
 #[Fillable([
     'name', 'slug', 'code', 'is_active', 'domain', 'email', 'phone', 'tax_number',
@@ -30,7 +29,7 @@ use Throwable;
     'signatory_name', 'signatory_title', 'signature_image_path',
     'bank_name', 'bank_account_number', 'bank_account_name', 'payment_instructions',
 ])]
-class Company extends Model implements HasName
+class Company extends Model
 {
     use SoftDeletes;
 
@@ -125,11 +124,6 @@ class Company extends Model implements HasName
     public function paymentGateways(): HasMany
     {
         return $this->hasMany(PaymentGateway::class);
-    }
-
-    public function getFilamentName(): string
-    {
-        return $this->name;
     }
 
     /**

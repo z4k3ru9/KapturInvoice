@@ -2,10 +2,7 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
-enum PaymentStatus: string implements HasColor, HasLabel
+enum PaymentStatus: string
 {
     case Pending = 'pending';
     case Completed = 'completed';

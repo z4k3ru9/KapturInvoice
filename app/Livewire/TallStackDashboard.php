@@ -7,18 +7,17 @@ use App\Enums\InvoiceType;
 use App\Enums\PaymentStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\SalesOrderStatus;
-use App\Filament\Support\ActionQueue;
-use App\Filament\Support\DashboardPeriod;
-use App\Filament\Support\Money;
-use App\Filament\Support\RevenueBuckets;
-use App\Filament\Support\SetupChecklist;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Support\Dashboard\ActionQueue;
+use App\Support\Dashboard\DashboardPeriod;
+use App\Support\Dashboard\Money;
+use App\Support\Dashboard\RevenueBuckets;
+use App\Support\Dashboard\SetupChecklist;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -26,15 +25,11 @@ use Livewire\Component;
 
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
- * the same Dashboard — built to compare against
- * App\Filament\Pages\Dashboard's Filament-widget version for visual
- * fidelity against the Stitch "Dashboard - Company Overview" mockup (see
- * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md).
- * Deliberately reuses the exact same domain logic as the Filament
- * widgets (DashboardPeriod, RevenueBuckets, ActionQueue,
- * App\Filament\Widgets\RevenueOverview's own stat queries) rather than
- * recomputing anything, so the two presentations never disagree about
- * what a number means.
+ * the Dashboard — see
+ * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
+ * the visual-fidelity design this was built against. Reuses
+ * DashboardPeriod/RevenueBuckets/ActionQueue/SetupChecklist
+ * (App\Support\Dashboard) unmodified.
  */
 #[Layout('components.tallstack.app')]
 class TallStackDashboard extends Component
@@ -50,19 +45,6 @@ class TallStackDashboard extends Component
         $this->company = $company;
 
         app(Tenancy::class)->set($company);
-
-        // ActionQueue::for() (app/Filament/Support, untouched this phase)
-        // builds its item links via Filament resource URL generation
-        // (Resource::getUrl()), which needs Filament's OWN current panel +
-        // tenant even though this page itself is a plain Livewire route
-        // outside the panel — confirmed empirically: without this, every
-        // Resource::getUrl() call inside ActionQueue::for() throws
-        // UrlGenerationException ("Missing required parameter [tenant]").
-        // This is the one remaining genuine (not just incidental) runtime
-        // dependency on the Filament facade left in app/Livewire — see the
-        // Filament-removal Phase A report.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
     }
 
     public function render(): View

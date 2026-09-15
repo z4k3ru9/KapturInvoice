@@ -150,9 +150,9 @@ class TallStackDocumentsTest extends TestCase
             ->call('delete', $foreignDocument->id);
 
         // Bypass Document's own BelongsToCompany global scope here — it's
-        // active for the rest of this test process too (Filament::setTenant
-        // is still set from the component's own mount()), which would
-        // otherwise make this assertion pass for the wrong reason.
+        // active for the rest of this test process too (Tenancy is still
+        // set from the component's own mount()), which would otherwise
+        // make this assertion pass for the wrong reason.
         $this->assertNotNull(Document::withoutGlobalScopes()->find($foreignDocument->id));
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Livewire;
 
 use App\Enums\SalesOrderStatus;
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\SalesOrder;
+use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
