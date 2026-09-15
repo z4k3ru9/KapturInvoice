@@ -137,17 +137,29 @@ class AppServiceProvider extends ServiceProvider
         // border, not just visually tight against it. Confirmed by
         // reading the vendor source, not a customization this app
         // introduced — `input.paddings.left/right` only apply when an
-        // `icon` prop is set. <x-select.styled>'s selected-value box has
-        // the same gap in its own separate customization array
-        // ('input.wrapper.base'). Fixed globally here rather than adding
-        // a `class="px-3"` to every one of the ~225 call sites across
-        // this session's pages.
+        // `icon` prop is set. Fixed globally here rather than adding a
+        // `class="px-3"` to every one of the ~225 call sites across this
+        // session's pages.
         TallStackUi::customize()->form('input')->block('input.base')->append('px-3');
         TallStackUi::customize()->form('textarea')->block('input.base')->append('px-3');
-        TallStackUi::customize()->select('styled')->block('input.wrapper.base')->append('px-3');
+        // <x-select.styled>'s trigger text sits in a NESTED div
+        // ('input.content.wrapper.first', ships with its own `pl-2`)
+        // inside the trigger `<button>` ('input.wrapper.base'). An
+        // earlier version of this fix appended `px-3` onto
+        // 'input.wrapper.base' too, which — because these are two nested
+        // boxes, not one element with a losing/winning utility — didn't
+        // override the inner `pl-2` but ADDED to it: 12px (button) + 8px
+        // (inner div) = 20px of visual left inset, vs. 12px for every
+        // plain <x-input>. Confirmed via a real computed-style
+        // measurement (Playwright, Products page selects) before fixing.
+        // The correct fix touches only the inner div that actually owns
+        // the text's left inset, bumping its own `pl-2` straight to
+        // `pl-3` to match plain inputs exactly, with nothing appended to
+        // the outer button.
+        TallStackUi::customize()->select('styled')->block('input.content.wrapper.first')->replace('pl-2', 'pl-3');
         // <x-select.styled>'s own dropdown option rows ('box.list.item.wrapper')
         // already ship with `px-2` (8px) — left alone, the closed trigger's
-        // selected-value text (now px-3/12px, from the block above) sat 4px
+        // selected-value text (now pl-3/12px, from the block above) sat 4px
         // to the right of that same option's text once the list opened,
         // reading as the dropdown panel being misaligned/"moved" versus the
         // trigger rather than a padding mismatch. Bumped to the same px-3
