@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-#[Fillable(['company_id', 'legacy_document_id', 'disk', 'path', 'filename', 'mime_type', 'size'])]
+#[Fillable(['company_id', 'legacy_document_id', 'disk', 'path', 'filename', 'mime_type', 'size', 'uploaded_by_user_id'])]
 class Document extends Model
 {
     use BelongsToCompany;
@@ -28,5 +28,10 @@ class Document extends Model
     public function documentable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function uploadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by_user_id');
     }
 }
