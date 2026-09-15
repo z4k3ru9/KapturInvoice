@@ -42,6 +42,8 @@ use App\Livewire\TallStackPriceListItems;
 use App\Livewire\TallStackProducts;
 use App\Livewire\TallStackProposalForm;
 use App\Livewire\TallStackProposals;
+use App\Livewire\TallStackProposalSnippets;
+use App\Livewire\TallStackProposalTemplates;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackRecurringInvoiceForm;
@@ -431,6 +433,19 @@ Route::get('/tall/{company:slug}/proposals/create', TallStackProposalForm::class
 Route::get('/tall/{company:slug}/proposals/{proposal}/edit', TallStackProposalForm::class)
     ->middleware('auth')
     ->name('tallstack.proposals.edit');
+
+// Proposal Templates & Snippets — Proposals' own small supporting
+// library, reached via the tab-style links on TallStackProposals's own
+// header (docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt
+// 23). Deliberately NOT a top-level nav entry — same "reached via the
+// parent register's own tabs" scoping prompt 13 already established for
+// Tax Rates/Expense Categories/Task Statuses.
+Route::get('/tall/{company:slug}/proposals/templates', TallStackProposalTemplates::class)
+    ->middleware('auth')
+    ->name('tallstack.proposal-templates');
+Route::get('/tall/{company:slug}/proposals/snippets', TallStackProposalSnippets::class)
+    ->middleware('auth')
+    ->name('tallstack.proposal-snippets');
 
 // "Users & roles" (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
 // "Deferred, no Stitch mockup" list — a mockup was generated later, see
