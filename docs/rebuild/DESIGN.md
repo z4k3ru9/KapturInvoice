@@ -2,7 +2,17 @@
 
 **Status:** Approved UI/UX baseline  
 **Date:** 2026-09-12  
-**Scope:** Internal Filament workspace, TallStack UI portal, and marketing surfaces
+**Scope:** Internal admin workspace, TallStack UI portal, and marketing surfaces
+
+> **Note (TallStackUI migration):** This document was written when the internal
+> admin workspace was planned on Filament (its §1/§14 language below still
+> says "Filament"). The admin panel has since been fully rebuilt off Filament
+> onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`,
+> routed at `/tall/{company:slug}/...` — `app/Filament` no longer exists; see
+> `CLAUDE.md`). Read every "Filament" reference below as the equivalent
+> TallStackUI/Livewire+Alpine mechanism — the interaction contract itself
+> (modal semantics, loading states, motion timing) is unchanged, only the
+> framework implementing it is.
 
 This document converts the completed UI/UX grill into an execution contract. It works alongside [PRD.md](PRD.md), [CONTEXT.md](CONTEXT.md), [Specs.md](Specs.md), and [specs/FINALIZED-DECISIONS.md](specs/FINALIZED-DECISIONS.md). It describes how the approved product should feel and behave; it does not change the business rules.
 
@@ -10,7 +20,7 @@ This document converts the completed UI/UX grill into an execution contract. It 
 
 KapturInvoice is an operational billing and procurement tool. Design for repeated scanning, comparison, approval, and evidence review. Use one shared design system across companies with different identity tokens.
 
-- Filament native UI for internal administration.
+- TallStackUI/Livewire native UI for internal administration.
 - TallStack UI for marketing and read-only client portal.
 - Desktop-first authoring; tablet and phone support monitoring, approvals, payment verification, delivery updates, document viewing, and proof uploads.
 - English for internal administration; portal language may switch; printed documents default to Bahasa Indonesia with per-document English override.
@@ -185,13 +195,13 @@ Shared design-system changes require visual regression review across both compan
 
 ## 14. Micro-interactions and motion
 
-Standardize small, functional motion rather than decorating individual screens ad hoc. Filament's own shell already provides the baseline (Alpine-driven modal open/close, dropdown/panel transitions, `wire:loading` states) — do not reimplement these; extend them consistently.
+Standardize small, functional motion rather than decorating individual screens ad hoc. TallStackUI's own shell (Livewire+Alpine) already provides the baseline (Alpine-driven modal open/close, dropdown/panel transitions, `wire:loading` states) — do not reimplement these; extend them consistently.
 
-- **Modals** (Create/Edit, confirmation, review-summary per §7 Approval): use Filament's default open/close transition. Never skip `requiresConfirmation()`/a review step for a consequential action to save a click.
-- **Conditional fields** (a field that appears only when a toggle/select changes, e.g. a percentage input revealed by an "amount is a percentage" toggle): reveal with Filament's native `visible()`/live-reactivity transition — a simple height/opacity change, not a custom animation. Keep the reveal driven by real state (`Get`/`Set` — see the Job milestones percentage-to-amount computation) so the motion communicates an actual computed value, not decoration.
-- **Async actions** (PDF generation, an Action with a server round-trip, form submission): show Filament's built-in loading/disabled state on the triggering control (spinner + disabled, per §9 "disable only the active command while processing"). Do not add a custom spinner component where the native one already covers it.
+- **Modals** (Create/Edit, confirmation, review-summary per §7 Approval): use TallStackUI's default open/close transition (`<x-slide>` for content-heavy panels). Never skip a confirmation/review step for a consequential action to save a click.
+- **Conditional fields** (a field that appears only when a toggle/select changes, e.g. a percentage input revealed by an "amount is a percentage" toggle): reveal with Livewire's native reactive-property/`wire:model.live` transition — a simple height/opacity change, not a custom animation. Keep the reveal driven by real state (see the Job milestones percentage-to-amount computation) so the motion communicates an actual computed value, not decoration.
+- **Async actions** (PDF generation, a server round-trip action, form submission): show Livewire's built-in `wire:loading`/disabled state on the triggering control (spinner + disabled, per §9 "disable only the active command while processing"). Do not add a custom spinner component where the native one already covers it.
 - **Row/table changes** (a row appearing after Create, disappearing after Delete): rely on Livewire's default DOM diffing/transition; do not hand-roll slide/fade effects per resource.
-- **Toasts**: timing is fixed by §9's table (success 4s, information 5s, warning 8s, error persistent) — motion is Filament's default slide-in, not a per-screen choice.
+- **Toasts**: timing is fixed by §9's table (success 4s, information 5s, warning 8s, error persistent) — motion is TallStackUI's default slide-in, not a per-screen choice.
 - Respect `prefers-reduced-motion`: every transition above must degrade to an instant state change, not just a shorter duration — this is a §13 QA gate item, not optional polish.
 
 The standard is consistency, not novelty: a new screen should feel identical in its motion to an existing one doing the same kind of thing (another modal, another conditional field, another async action), never a bespoke animation invented for that one screen.
@@ -210,7 +220,7 @@ The standard is consistency, not novelty: a new screen should feel identical in 
 
 Apply the project's `frontend-design` skill (`.claude/skills/frontend-design/`) whenever making an aesthetic choice this document leaves open — it is the standing reference for grounding decisions in this product's actual subject matter rather than reaching for a generic templated default. §1-15 above are the settled, binding execution contract (spacing, rounding, semantic color, motion, layout); the skill governs *how* to fill in what those sections deliberately leave as a choice, not a rule to relitigate them.
 
-- **The internal Filament workspace's restraint is a deliberate choice, not a default avoided.** §1's "no decorative density," flat cards, and shared rounding exist because this is an operational tool for repeated scanning/comparison/approval (§1) — that is the brief, and disciplined consistency serves it. Do not read the skill's warning against generic "SaaS-card-kit" styling as license to add decoration here; it applies to where this document leaves real room to be distinctive (below).
+- **The internal admin workspace's restraint is a deliberate choice, not a default avoided.** §1's "no decorative density," flat cards, and shared rounding exist because this is an operational tool for repeated scanning/comparison/approval (§1) — that is the brief, and disciplined consistency serves it. Do not read the skill's warning against generic "SaaS-card-kit" styling as license to add decoration here; it applies to where this document leaves real room to be distinctive (below).
 - **Spend the boldness budget on identity, not chrome.** The one place each screen is allowed to be memorable is the company's own brand token (§10's red/blue accent rail, primary actions, status badges) — never a manufactured design flourish layered on top of it (a gradient wash, an all-caps eyebrow label, a middle-dot-joined meta string, an arrow appended to button text). If a Stitch render or a hand-built screen introduces one of these generic tells without a functional reason, remove it.
 - **The public homepage/portal (§11) is where real distinctiveness matters.** Its "Kinetic Obsidian" direction and per-company curated copy (`PortfolioContent`) already follow the skill's spirit — ground any further work on these surfaces in each real company's actual industry and services, not a generic template hero.
 - Before shipping a new screen's visual design (admin or public), run the skill's two-pass check: state the token choices (color/type/layout) and principles for *this* screen, then review whether any part is the generic default you'd produce for any similar screen — revise what is, and say what changed.
