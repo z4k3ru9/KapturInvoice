@@ -30,7 +30,7 @@
             ['key' => 'handover-reports', 'label' => 'Handover Reports', 'route' => route('tallstack.handover-reports', $company), 'icon' => 'document-check'],
         ],
         'Clients' => [
-            ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
+            ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
         ],
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
