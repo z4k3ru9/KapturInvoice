@@ -1,11 +1,10 @@
 # KapturInvoice
 
 TALL-stack (Tailwind, Alpine, Laravel 13, Livewire 4) billing/invoicing
-platform replacing a legacy InvoiceNinja v4 install, with Filament 5 as the
-multi-tenant admin/billing dashboard. Full background:
+platform replacing a legacy InvoiceNinja v4 install. Full background:
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
 - [`docs/price-list-import.md`](docs/price-list-import.md) — vendor pricelist (Hikvision/HiLook, Ruijie/Reyee) import: parser design, verified row counts, "update this regularly" upsert semantics.
-- [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — admin panel nav/page layout, what's built vs. still a gap (✅/⚠️ markers).
+- [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — pre-TallStackUI-rebuild admin panel nav/page layout design (✅/⚠️ markers). Describes the Filament admin panel that has since been fully removed — see the note immediately below. Kept as historical reference for the nav-group/page-composition reasoning it recorded; the current UI conventions are described in this file instead.
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
 - [`docs/rebuild/CLAUDE.md`](docs/rebuild/CLAUDE.md) — approved renovation handoff for the job-centric rebuild. Read this before coding the new product flow, data model, migration, documents, portal, or UI/UX work.
 - [`README.md`](README.md) — stack table, architecture, setup.
@@ -17,6 +16,27 @@ time.
 Read [`memory.md`](memory.md) once after this file. It records settled project
 decisions, current state, and anti-loop rules. Do not re-grill settled
 decisions or repeatedly reread unchanged historical reports.
+
+> **The Filament 5 admin panel described throughout the "Renovation
+> Phase"/"Stitch UI remake" narrative below has been completely removed
+> and rebuilt from scratch in TallStackUI + Livewire.** `app/Filament` no
+> longer exists in this codebase (confirm with `ls app/` and `git log
+> --oneline --all -- app/Filament`). Every former Filament Resource now
+> has an `App\Livewire\TallStack*` Livewire 4 component instead, routed
+> at `/tall/{company:slug}/...` (see `routes/web.php`), with a matching
+> `resources/views/livewire/tallstack-*.blade.php` view. The phase
+> narrative in "Conventions this codebase already commits to" below is a
+> **historical build record** — each phase's own text correctly describes
+> Filament as the live implementation *at the time that phase shipped*;
+> it is not being rewritten to pretend TallStackUI existed then. Current,
+> live TallStackUI/Livewire conventions are documented in the
+> non-phase-labeled bullets of that same section (routing, component/view
+> naming, `#[Fillable]`, `BelongsToCompany`, the shared shell/nav, modal
+> vs. dedicated-page create/edit, the dashboard). See `memory.md`'s
+> "Current state" for the one-paragraph summary and the established
+> TallStackUI component list (`<x-badge>`, `<x-editor>`, `<x-signature>`,
+> `<x-slide>`, `<x-card minimize>`, `App\Support\TallStack\StatusColor`,
+> `AutosavesDraft`/`ManagesDocuments` under `App\Livewire\Concerns`).
 
 ## Renovation guardrails
 
@@ -126,22 +146,27 @@ Or just `composer setup` (runs the same steps via the composer script).
 
 ## Login / seeded data (from `database/seeders/`)
 
-- **Admin panel:** `http://127.0.0.1:8000/admin` — login as
-  **`test@example.com` / `password`** (Laravel's stock `UserFactory`
-  default — `Hash::make('password')`, not a random string). This user has
-  `is_super_admin = true` and is attached to both seeded companies as
-  `owner`.
+- **Admin UI:** login at `http://127.0.0.1:8000/login`
+  (`App\Livewire\Login`) as **`test@example.com` / `password`** (Laravel's
+  stock `UserFactory` default — `Hash::make('password')`, not a random
+  string). This user has `is_super_admin = true` and is attached to both
+  seeded companies as `owner`. A successful login (or an already-signed-in
+  visit) resolves the user's own company and lands on its dashboard at
+  `/tall/{company:slug}/dashboard` — there is no separate `/admin` panel
+  anymore (see the note near the top of this file).
 - **Two seeded companies** (`CompanySeeder`) — the two real Surabaya
   IT/security-infrastructure integrators this replaces legacy InvoiceNinja
   installs for: **Karunia Abadi** (`karuniaabadi.id`, prefixes
   `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **PT. Axen
   Technology Indonesia** (`axentechnology.web.id`, prefixes
-  `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Switch between
-  them via the tenant menu once logged in, or jump straight to
-  `/admin/karunia-abadi`/`/admin/axen-technology-indonesia`. See
-  `docs/data-import.md` to actually load either one's real historical
-  invoices/clients/payments via `import:invoiceninja-v4`/`-v5`.
-- **Public homepage** (`/`, plain Livewire, outside the Filament panel) is
+  `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Jump straight
+  to a company's dashboard with its slug —
+  `/tall/karunia-abadi/dashboard` / `/tall/axen-technology-indonesia/dashboard`
+  (`{company:slug}` route-model-binds on `Company::$slug` for every
+  `/tall/...` route). See `docs/data-import.md` to actually load either
+  one's real historical invoices/clients/payments via
+  `import:invoiceninja-v4`/`-v5`.
+- **Public homepage** (`/`, plain Livewire) is
   resolved by the request's `Host` header, not URL path — to preview a
   specific entity locally without editing `/etc/hosts`, either send a
   `Host` header (`curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/`)
@@ -162,27 +187,47 @@ Or just `composer setup` (runs the same steps via the composer script).
 
 ## Conventions this codebase already commits to (don't relitigate)
 
-- **Filament v5 API**, not v3/v4 — forms use `Filament\Schemas\Schema`
-  (not `Filament\Forms\Form`); layout components (`Section`, `Grid`) live
-  in `Filament\Schemas\Components\*`; input components stay in
-  `Filament\Forms\Components\*`.
+- **TallStackUI + Livewire 4, not Filament** — the current admin UI (see
+  the note near the top of this file). One Livewire class per screen
+  under `App\Livewire`, named `TallStack{Thing}` (e.g. `TallStackClients`,
+  `TallStackInvoices`, `TallStackInvoiceForm`), paired with a Blade view
+  at `resources/views/livewire/tallstack-{kebab-case-name}.blade.php`
+  (verified across 30+ components — the class-to-view mapping is
+  Livewire's own default convention, not a bespoke one). Every page
+  attribute-loads the shared shell with `#[Layout('components.tallstack.app')]`
+  (`resources/views/components/tallstack/app.blade.php`), which builds
+  its own sidebar nav from a plain PHP `$nav` array keyed by group name
+  (`'Sales'`, `'Billing'`, `'Proposals'`, `'Procurement'`, …) defined
+  inline in that Blade file — there is no `navigationGroup()`
+  registration mechanism anymore, that array *is* the nav. Routes live in
+  `routes/web.php` under `/tall/{company:slug}/...`, one `Route::get()`
+  per component (`{company:slug}` route-model-binds `App\Models\Company`);
+  each component's own `mount(Company $company)` re-checks
+  `auth()->user()->canAccessTenant($company)` and calls
+  `app(Tenancy::class)->set($company)` itself — nothing does this
+  automatically the way a real Filament panel request once did. Business
+  logic stays exactly where Phases 02-06B put it (`App\Actions\*`/
+  `App\Services\*`) — these components orchestrate only, per this file's
+  guardrails above.
 - **`#[Fillable([...])]` PHP attribute** on every model, not a classic
-  `$fillable` property. When adding a field to a form, add it here too —
-  a missed column here silently no-ops the field (this has bitten every
-  new resource so far).
+  `$fillable` property (confirmed still in force: no model uses a plain
+  `protected $fillable`). When adding a field to a form, add it here too —
+  a missed column here silently no-ops the field.
 - **`App\Models\Concerns\BelongsToCompany`** trait on every directly
-  tenant-owned model — auto-scopes queries/`Select::relationship()`
-  pickers and auto-fills `company_id` on create. Models scoped only
-  *indirectly* (`Invitation` via its invoice, `User` via the
-  `company_user` pivot) instead set `protected static bool
-  $isScopedToTenant = false;` on their Resource and apply an explicit
-  `whereHas()` scope in `getEloquentQuery()`.
+  tenant-owned model — auto-scopes queries (a global scope keyed off
+  `App\Support\Tenancy\Tenancy`) and auto-fills `company_id` on create.
+  Neither the TallStackUI pages nor a manual query auto-scope a picker/
+  dropdown to the active tenant on their own without it — see the trait's
+  own docblock. Models scoped only *indirectly* (`Invitation` via its
+  invoice, `User` via the `company_user` pivot) apply their own explicit
+  scope at the point they're queried instead of using this trait.
 - **`App\Services\DocumentNumberGenerator`** assigns invoice/quote/credit
   numbers from `Company`'s prefix/next_number columns (transactional,
   `lockForUpdate()`'d) whenever a document is created with a blank
-  `number` — wired into each Create page's `mutateFormDataBeforeCreate()`
-  and into `InvoiceDuplicator`'s two generated-invoice paths. A manually
-  typed number is respected and doesn't consume the sequence.
+  `number` — wired into each `TallStack{Thing}Form` component's own
+  `save()` method (e.g. `TallStackInvoiceForm::save()`) and into
+  `InvoiceDuplicator`'s two generated-invoice paths. A manually typed
+  number is respected and doesn't consume the sequence.
 - **`App\Livewire\Portal\ViewInvoice`** is the public, unauthenticated
   "view/e-sign my invoice" page — routed at `/portal/{invitation:key}`,
   behind the same `ResolveCompanyFromDomain` middleware group as the
@@ -190,10 +235,15 @@ Or just `composer setup` (runs the same steps via the composer script).
   "Pay" is view-only (shows balance due, no real gateway yet — see below).
 - **`App\Services\BillingMailer`** renders and sends the invoice/quote/
   payment templates stored on `CompanySetting` (`{{token}}` placeholders
-  via `App\Services\EmailTemplateRenderer`) — wired into a Send/Resend
-  table action on Invoices/Quotes and a Send-receipt action on Payments.
-  `App\Console\Commands\SendInvoiceReminders` (scheduled daily,
-  `routes/console.php`) dispatches the `reminder1-4` schedule the same way.
+  via `App\Services\EmailTemplateRenderer`) — wired into each document
+  form's own Send action (`TallStackInvoiceForm::send()` for Invoices/
+  Quotes, a row action on `TallStackQuotes`) and `TallStackClientDetail`'s
+  "Send portal link" action. `App\Console\Commands\SendInvoiceReminders`
+  (scheduled daily, `routes/console.php`) dispatches the `reminder1-4`
+  schedule the same way. ⚠️ `BillingMailer::sendPaymentReceipt()` exists
+  but nothing in `App\Livewire` calls it today — a genuine gap opened by
+  the TallStackUI rebuild (Filament's Payments table used to have a
+  Send-receipt action; it hasn't been reconnected).
 - **`App\Services\PaymentGateways`** is the driver abstraction for
   `PaymentGateway`: `PaymentGatewayDriver` (interface) +
   `PaymentGatewayManager` (resolves one by the gateway's `driver` column).
@@ -203,99 +253,113 @@ Or just `composer setup` (runs the same steps via the composer script).
   `GET /v1/ping`), supporting Virtual Account/QRIS/card
   (`App\Enums\LocalPaymentMethod`) — swap the endpoint paths/response
   mapping in `mapResponse()` for the real provider's docs once available.
-  `PaymentGateway::config` is now `encrypted:array` (structured
+  `PaymentGateway::config` is `encrypted:array` (structured
   `base_url`/`api_key`/`merchant_id`/`methods`), not a flat string. A
-  **Test Connection** table action and a CSRF-exempt webhook route
+  **Test Connection** action (`TallStackPaymentGateways::testConnection()`)
+  and a CSRF-exempt webhook route
   (`POST /webhooks/payment-gateways/{paymentGateway}`) both work today.
   ⚠️ Nothing in the UI calls `charge()` yet — no "Charge" action on
   Payments, and the portal page's "Pay" section is still balance-due-only
   — that's the next real gap once a checkout flow is wanted.
 - **Proposals** (`App\Models\Proposal`/`ProposalTemplate`/`ProposalSnippet`,
-  nav group "Proposals") — a full HTML/CSS document (quote cover letter/
-  SOW), kept separate from Invoices/Quotes. `App\Services\ProposalConverter`
-  turns an accepted one into a real Invoice (one line item from its title/
-  amount), recorded on `proposals.invoice_id`. ⚠️ Admin-side only so far —
-  no send/portal flow, and Proposal Snippets still aren't insertable into
-  the rich editor from a live picker (copy/paste the snippet's HTML by
-  hand) — Products' "Create proposal snippet" action
-  (`App\Services\ProposalSnippetSync`) generates/refreshes one with the
-  product's picture pre-embedded as a base64 data URI, but placing it into
-  a proposal is still a manual paste.
-- **PDF export** (`barryvdh/laravel-dompdf`) — `resources/views/pdf/{invoice,credit}.blade.php`,
-  served by `InvoicePdfController`/`CreditPdfController` (admin, auth +
-  `canAccessTenant()` check, same pattern as `DocumentDownloadController`)
-  and `App\Http\Controllers\Portal\InvoicePdfController` (public portal,
-  same domain-matched guard as the portal page). A "Download PDF" table
-  action exists on Invoices/Quotes/Recurring Invoices/Credits
-  (`App\Filament\Support\DownloadPdfAction`) and as a link on the portal
-  page. Prints the company logo (`Company::getLogoDataUri()` — inlines the
-  upload as base64, since dompdf can't fetch a `Storage::url()` for the
-  `local` disk) plus company and client `tax_number`. ⚠️ Not attached to
-  outbound emails yet. The logo/color fields it reads (`logo_path`,
-  `primary_color`, `secondary_color`) are editable from **either**
-  `EditCompanyProfile` (the tenant-profile page) **or** the dedicated
-  `App\Filament\Pages\Settings\EditBrandingSettings` page (Settings nav
-  group) — same `Company` row, both forms save to it.
-- **Optional product picture** — `products.image_path` (a plain
-  `FileUpload::image()` field, `directory('products')`) resolves via
+  its own "Proposals" nav group in the TallStackUI shell) — a full HTML/CSS
+  document (quote cover letter/SOW), kept separate from Invoices/Quotes.
+  `App\Services\ProposalConverter` turns an accepted one into a real
+  Invoice (one line item from its title/amount), recorded on
+  `proposals.invoice_id`. Unlike under Filament (where Proposals was one
+  of the modal-based resources — see "Modal-based vs. dedicated create/
+  edit" below), the TallStackUI rebuild gave it a dedicated
+  `TallStackProposalForm` page (`/tall/{company:slug}/proposals/create`
+  and `/{proposal}/edit`) since its HTML/CSS editor needs real screen
+  space. ⚠️ Admin-side only so far — no send/portal flow, and Proposal
+  Snippets are inserted via `TallStackProposalForm::insertSnippet()`
+  (appends the snippet's HTML to the end of the content, not a
+  cursor-position insert — the rich editor has no such API) rather than a
+  true insert-at-cursor. Products' "Create proposal snippet" action
+  (`App\Services\ProposalSnippetSync`) still generates/refreshes a
+  snippet with the product's picture pre-embedded as a base64 data URI.
+- **PDF export** (`barryvdh/laravel-dompdf`) — `resources/views/pdf/{invoice,credit,quotation,proposal,...}.blade.php`,
+  one plain controller per document type under `App\Http\Controllers`
+  (`InvoicePdfController`, `CreditPdfController`, `QuotationPdfController`,
+  `ProposalPdfController`, plus one per Phase 06B document type — admin,
+  auth + `canAccessTenant()` check) and `App\Http\Controllers\Portal\
+  InvoicePdfController` (public portal, same domain-matched guard as the
+  portal page). No action-class layer — every "Download PDF" control in
+  the TallStackUI is just an `<x-button href="{{ route('invoices.pdf',
+  ...) }}" target="_blank">` icon link straight at the named route (see
+  e.g. `resources/views/livewire/tallstack-invoices.blade.php`), same on
+  the portal page. Prints the company logo (`Company::getLogoDataUri()` —
+  inlines the upload as base64, since dompdf can't fetch a
+  `Storage::url()` for the `local` disk) plus company and client
+  `tax_number`. ⚠️ Not attached to outbound emails yet. The logo/color
+  fields it reads (`logo_path`, `primary_color`, `secondary_color`) are
+  editable from **either** `App\Livewire\TallStackSettingsCompanyTaxes`'s
+  own Branding section **or** the dedicated
+  `App\Livewire\TallStackSettingsBranding` page — same `Company` row,
+  both forms save to it (this dual-entry-point is unchanged from the
+  Filament era, just re-implemented).
+- **Optional product picture** — `products.image_path` (a plain file
+  upload field, `directory('products')`) resolves via
   `Product::getImageDataUri()` (same base64-data-URI pattern as
   `Company::getLogoDataUri()`) so it renders without depending on a
-  public `Storage::url()`. Shown as a thumbnail column on the Products
-  table/infolist and on a Quotation's Items relation manager; embedded in
-  the new **Quotation PDF** (`QuotationPdfController`,
-  `resources/views/pdf/quotation.blade.php`) and reusable in a
-  **Proposal PDF** (`ProposalPdfController`,
+  public `Storage::url()`. Shown as a thumbnail on the Products list and
+  on a Quotation's line items; embedded in the Quotation PDF
+  (`QuotationPdfController`, `resources/views/pdf/quotation.blade.php`)
+  and reusable in a Proposal PDF (`ProposalPdfController`,
   `resources/views/pdf/proposal.blade.php` — wraps the proposal's
-  free-form `html`/`css`) via a Proposal Snippet (see above). Both PDFs
-  and their "Download PDF" table actions (`App\Filament\Support\DownloadPdfAction::quotation()/proposal()`)
-  follow the same admin-side, auth + `canAccessTenant()` pattern as
-  Invoice/Credit PDFs. Invoices deliberately do **not** get a product
-  picture — by the time a job is billed it's already been quoted or
-  proposed, so the invoice stays compact.
-- **Modal-based Create/Edit** — 14 resources (Clients, Vendors, Projects,
-  Products, Tax Rates, Credits, Payments, Payment Gateways, Proposals,
-  Expense Categories, Task Statuses, Proposal Templates, Proposal
-  Snippets, Price List Items) dropped their dedicated Create/Edit **pages**; Filament
-  auto-falls-back to a modal for the same `CreateAction`/`EditAction`
-  already in their List/Table/View classes when no page is registered for
-  that action name (`getPages()` just omits `'create'`/`'edit'` — no
-  other code changes needed). Invoices/Quotes/Recurring Invoices/Expenses
-  (relation-manager-heavy) and Users (no View page to fall back to) keep
-  full pages — see `docs/filament-admin-layout-design.md` §8 for the
-  full reasoning and which resources are which.
-- **`AdminPanelProvider` disables Filament's `readOnlyRelationManagersOnResourceViewPagesByDefault`**
-  (defaults to `true` upstream). Without this, every relation manager
-  shown on a resource's View page silently hides its Create/Edit/Delete
-  actions (no error — the header-actions slot just renders empty), and
-  since creating a record redirects to its View page by default when one
-  exists, this broke the primary way to add invoice/expense line items,
-  client/vendor contacts, and project tasks — worse for Clients/Vendors/
-  Projects (modal-based, no Edit *page* to fall back to at all). See
-  `RelationManagerViewPageActionsTest` for the regression coverage (fails
-  without the fix, across Client/Vendor/Project/Invoice).
+  free-form `html`/`css`) via a Proposal Snippet (see above). Invoices
+  deliberately do **not** get a product picture — by the time a job is
+  billed it's already been quoted or proposed, so the invoice stays
+  compact.
+- **Modal-based vs. dedicated create/edit** — under Filament, 14 resources
+  (Clients, Vendors, Projects, Products, Tax Rates, Credits, Payments,
+  Payment Gateways, Proposals, Expense Categories, Task Statuses, Proposal
+  Templates, Proposal Snippets, Price List Items) had no dedicated
+  Create/Edit *page* and fell back to a modal. **The same split carries
+  over into TallStackUI**, just reimplemented per component instead of
+  via Filament's page-registration fallback: `TallStackClients` and
+  `TallStackVendors`, for example, each hold their own `<x-modal>`-based
+  create/edit form inline (verified in both classes' docblocks, which
+  cite this exact convention) rather than routing to a separate page.
+  **One change since the Filament era:** Proposals was promoted to a
+  dedicated `TallStackProposalForm` page (`/tall/{company:slug}/proposals/
+  create` + `/{proposal}/edit`) because its HTML/CSS editor needs real
+  screen space — see the Proposals bullet above. Invoices/Quotes/
+  Recurring Invoices/Vendor Purchase Orders/Vendor Bills (item-heavy) and
+  Quotations/Jobs keep full dedicated pages, matching the original
+  full-page/modal split. `docs/filament-admin-layout-design.md` §8 has
+  the original reasoning for which resource is which (pre-TallStackUI-
+  rebuild architecture, but the same grouping still applies). ⚠️ Not
+  independently re-verified this pass: whether Tax Rates, Expense
+  Categories, and Task Statuses — three of the original 14 — have a
+  rebuilt TallStackUI list page at all; `routes/web.php` has no
+  `/tall/{company:slug}/tax-rates` (or `expense-categories`/
+  `task-statuses`) route today, so this may be a real UI gap rather than
+  a still-modal-based page — check before assuming either way.
 - **Client billing defaults** — `Client::default_discount`/
-  `default_discount_is_percentage` prefill `InvoiceForm`'s invoice-level
-  discount fields when a client is selected (still freely editable after).
-  Per-item discount is a separate, pre-existing thing
-  (`ItemsRelationManager`'s `discount`/`discount_is_percentage`, applied
-  per line before `InvoiceTotalsCalculator` sums the invoice `subtotal`)
-  — client defaults only seed the invoice-level one.
-- **`App\Filament\Pages\Dashboard`** replaces Filament's stock dashboard —
-  real stats (`RevenueOverview`), a trend chart (`RevenueTrendChart`), and
-  an upcoming/expired-quotes list (`ExpiringQuotesWidget`), all under
-  `app/Filament/Widgets/`, sharing one period filter
-  (`App\Filament\Support\DashboardPeriod::resolve($pageFilters)` via
-  `Filament\Widgets\Concerns\InteractsWithPageFilters`). ⚠️ All three
-  widgets set `$isLazy = false` — Filament's lazy-widget placeholder
-  rendering 500s on a `columnSpan` that can't collapse to a scalar (a
-  Filament/Livewire bug, not this app's), so lazy-loading is off rather
-  than worked around. See `docs/filament-admin-layout-design.md` §9.
+  `default_discount_is_percentage` prefill `TallStackInvoiceForm`'s
+  invoice-level discount fields when a client is selected (still freely
+  editable after). Per-item discount is a separate, pre-existing thing
+  (applied per line before `InvoiceTotalsCalculator` sums the invoice
+  `subtotal`) — client defaults only seed the invoice-level one.
+- **`App\Livewire\TallStackDashboard`** is the one Livewire component that
+  replaced the three separate Filament dashboard widgets (`RevenueOverview`/
+  `RevenueTrendChart`/`ExpiringQuotesWidget`) plus the later Stitch-era
+  additions (`ActionQueueWidget`/`SetupChecklistWidget`) — all merged into
+  its own `loadDashboardData()` method, which is explicitly *not* called
+  from `mount()` (own docblock explains why) and recomputes on
+  `updatedPeriod()`. The supporting classes those widgets used
+  (`DashboardPeriod`, `Money`, `RevenueBuckets`, `ActionQueue`,
+  `SetupChecklist`) moved namespace from `App\Filament\Support\*` to
+  `App\Support\Dashboard\*` but otherwise carried over unchanged.
 - **Normalized tax pivots** (`invoice_item_taxes`, `expense_taxes`) — not
   the legacy inline `tax_name1/rate1` + `tax_name2/rate2` columns.
   `tax_rate_ids` on the relevant forms is a **virtual field**, synced via
-  `InvoiceTotalsCalculator`/`ExpenseTotalsCalculator` in the
-  Create/Edit page or relation-manager action hooks — see
-  `ItemsRelationManager` for the canonical pattern.
+  `InvoiceTotalsCalculator`/`ExpenseTotalsCalculator` inside the owning
+  `TallStack{Thing}Form` component's own save/item-save methods (e.g.
+  `TallStackInvoiceForm`, `TallStackExpenses`,
+  `TallStackRecurringInvoiceForm`) — see any of those for the canonical
+  pattern.
 - **`legacy_*_id` column** on every importable table, for tracing rows
   back to the source InvoiceNinja dump.
 - **`import:invoiceninja-v4`/`import:invoiceninja-v5`** (`App\Console\Commands`)
@@ -316,10 +380,11 @@ Or just `composer setup` (runs the same steps via the composer script).
   end-to-end each with its own header/spec columns — see
   `docs/price-list-import.md` for the algorithm and both real files'
   verified row counts. Runs from `import:pricelist {company} {file}
-  --brand=` or, "to update this regularly" without a shell, the **Catalog
-  > Price List** resource's "Import pricelist" header action. Its
-  "Create/update product" row action (`App\Services\ProductSync`) copies
-  a chosen row's sku/description/price into a real, invoiceable `Product`
+  --brand=` or, "to update this regularly" without a shell,
+  `TallStackPriceListItems`'s "Import pricelist" action
+  (`openImportModal()`/`import()`). Its "Create/update product" row action
+  (`syncProduct()`, still backed by `App\Services\ProductSync`) copies a
+  chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
 - **Renovation Phase 06B (UX, browser QA, and SOA completion — in
@@ -524,8 +589,12 @@ Or just `composer setup` (runs the same steps via the composer script).
   Track A, implemented pre-PR#4-merge since these files don't overlap that
   branch's diff. Full detail in
   `docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md`;
-  see `docs/filament-admin-layout-design.md` §1/§9 for the current
-  nav-group/dashboard-widget state.
+  see `docs/filament-admin-layout-design.md` §1/§9 for the nav-group/
+  dashboard-widget state *as it stood under Filament*
+  (pre-TallStackUI-rebuild architecture; see current TallStackUI
+  conventions in this file instead — the Dashboard bullet above and the
+  nav-array description at the top of "Conventions this codebase already
+  commits to").
   - **Shell** — `AdminPanelProvider` now pins nav-group order (Sales →
     Procurement → Delivery → Catalog → Reports → Settings), applies each
     tenant's own `primary_color` via `App\Http\Middleware\
@@ -848,14 +917,30 @@ Or just `composer setup` (runs the same steps via the composer script).
   two known companies, not a generic CMS field). A company with no
   bespoke entry gets `PortfolioContent::default()`, a generic-but-honest
   fallback so the page never 500s.
-- Full Filament resource file layout per resource: `{Name}Resource.php`,
-  `Schemas/{Name}Form.php`, `Schemas/{Name}Infolist.php`,
-  `Tables/{Name}Table.php`, `Pages/{Create,Edit,List,View}{Name}.php` —
-  follow this shape for any new resource rather than inventing a new one.
-- Settings that are one row per tenant (`company_settings`,
-  `Company` itself) are Filament **Pages**
-  (`App\Filament\Pages\Settings\Concerns\InteractsWithSettingsRecord`),
-  never Resources.
+- **Current TallStackUI file shape for a new screen**: one
+  `App\Livewire\TallStack{Thing}` class (a register/list uses
+  `TallStack{Plural}`; a create/edit form for an item-heavy document uses
+  a separate `TallStack{Thing}Form`, per "Modal-based vs. dedicated
+  create/edit" above) plus its matching
+  `resources/views/livewire/tallstack-{kebab-case-name}.blade.php` view,
+  wired with `#[Layout('components.tallstack.app')]` and a
+  `/tall/{company:slug}/...` route in `routes/web.php` — see "TallStackUI
+  + Livewire 4, not Filament" near the top of this section for the full
+  convention. (Superseded: Filament's old per-resource file layout —
+  `{Name}Resource.php`, `Schemas/{Name}Form.php`,
+  `Schemas/{Name}Infolist.php`, `Tables/{Name}Table.php`,
+  `Pages/{Create,Edit,List,View}{Name}.php` — no longer applies; that
+  directory doesn't exist.)
+- Settings that are one row per tenant (`company_settings`, `Company`
+  itself) are their own single-purpose TallStackUI components today
+  (`TallStackSettingsBranding`, `TallStackSettingsCompanyTaxes`,
+  `TallStackSettingsEmail`, `TallStackSettingsLookups`,
+  `TallStackSettingsNumbering`, `TallStackSettingsClientPortal`) — the
+  Filament-era distinction this bullet used to describe (a Filament
+  *Page*, never a Resource, for a singleton settings record) no longer
+  has a live counterpart to contrast against, since neither concept
+  exists in TallStackUI; the shape above is simply what every screen
+  uses.
 - `composer.json`'s `require.php` is `^8.3`, but the CI matrix
   (`.github/workflows/tests.yml`) also runs PHP 8.4/8.5 — a plain
   `composer update` on a PHP 8.4+ machine will happily lock Symfony
@@ -875,7 +960,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 454 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
+php artisan test      # 531 PHP tests as of 2026-09-15 (see memory.md's Current state) + a Playwright browser suite (npm run test:browser) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 
