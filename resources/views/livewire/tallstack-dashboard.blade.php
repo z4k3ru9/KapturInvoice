@@ -1,4 +1,4 @@
-<div class="w-[90%] mx-auto py-6 flex flex-col gap-5">
+<div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
     {{--
         Shared page-header component — see its own docblock. "Dashboard"

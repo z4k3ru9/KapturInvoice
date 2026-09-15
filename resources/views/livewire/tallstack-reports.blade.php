@@ -1,4 +1,4 @@
-<div class="w-[90%] mx-auto py-6 flex flex-col gap-5">
+<div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Reports']]" title="Financial Analytics & Tax Reports">
         <x-slot:actions>
