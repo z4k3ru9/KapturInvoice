@@ -14,23 +14,18 @@ use Livewire\Component;
  * TallStackUI-native replacement for the equivalent pre-TallStackUI
  * Filament company-registration page (Filament's `RegisterTenant` page) —
  * the only path that creates a new
- * `Company` row and attaches the creating user to it as `owner`. This is a
- * presentation-layer parallel, not a replacement: it calls the exact same
- * fillable fields and the exact same `company_user` attach call
- * (`['role' => 'owner']`, `is_active` left to its DB default of `true`) that
- * RegisterCompany's `handleRegistration()` uses today. See that class's
- * docblock and docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
+ * `Company` row and attaches the creating user to it as `owner`. It calls
+ * the exact same fillable fields and the exact same `company_user` attach
+ * call (`['role' => 'owner']`, `is_active` left to its DB default of
+ * `true`) that RegisterCompany's `handleRegistration()` used. See
+ * docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
  *
- * Not wired into Filament's own tenancy middleware (`->tenantRegistration()`
- * in App\Providers\Filament\AdminPanelProvider) — see this page's own
- * checkpoint report for why: there is no non-Filament login/registration
- * entry point anywhere in this app today (the only way to authenticate is
- * Filament's own `/admin/login`), so Filament's built-in "zero-tenant user
- * gets redirected to RegisterCompany" behavior is untouched and keeps
- * working exactly as before. This page is reachable directly at
- * `/register-company` for any authenticated user with no company yet, ready
- * to become the real entry point once a non-Filament login page exists or
- * Filament is removed.
+ * The Filament admin panel (and its own `->tenantRegistration()`
+ * middleware) has since been fully removed — see the note near the top of
+ * CLAUDE.md — so this page, reachable at `/register-company`, is now the
+ * app's real entry point for an authenticated user with no company yet.
+ * `App\Livewire\Login::redirectToDestination()` sends a company-less user
+ * here directly after a successful login.
  */
 #[Layout('layouts.public')]
 class TallStackRegisterCompany extends Component

@@ -163,34 +163,55 @@ gap, not as evidence the underlying features are broken.
 - **Browser/E2E tests are no longer categorically out of scope** — this
   bullet's original "no Dusk/Playwright" stance is superseded by
   `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`. A repository-owned
-  Playwright suite now exists (`tests/browser/`, `playwright.config.ts`,
+  Playwright suite exists (`tests/browser/`, `playwright.config.ts`,
   `npm run test:browser`, wired into CI as a separate `browser-tests`
-  job) — see the coverage rows above. Both Slice 4 (foundation smoke
-  tests) and Slice 5 (full journey/accessibility coverage: portal,
-  documents, SOA, autosave, dynamic rows, dashboard, states, WCAG 2.2 AA)
-  are now built and green across all four projects (`desktop-light`/
-  `desktop-dark`/`tablet-light`/`mobile-light`). Three things Slice 5
-  found and deliberately did NOT build a fix for this pass, flagged
-  rather than silently dropped, were originally Filament-panel-specific:
-  toast deduplication; a stock `.fi-select-input-value-remove-btn`
-  (16x16px, under the WCAG 2.2 24x24 minimum target size); and a
-  dashboard widget's table (`.fi-ta-content-ctn`) becoming horizontally
-  scrollable with no keyboard access at tablet/mobile widths (axe:
-  scrollable-region-focusable). ⚠️ **These three exceptions, and the
-  Filament CSS-selector filters for them, still stand unchanged in
-  `tests/browser/ux/accessibility.spec.ts` even though the admin panel
-  itself is now TallStackUI, not Filament — that filter list needs
-  re-verifying against the current markup (the selectors may no longer
-  match anything, silently widening the exception instead of narrowing
-  it) rather than assumed still-accurate; not fixed as part of this docs
-  pass, since it's application/test code, not documentation.** Also
-  still open, per `docs/filament-admin-layout-design.md` §7.05 (a
+  job) — see the coverage rows above. Slice 4 (foundation smoke tests)
+  and Slice 5 (full journey/accessibility coverage: portal, documents,
+  SOA, autosave, dynamic rows, dashboard, states, WCAG 2.2 AA) were built
+  and green across all four projects (`desktop-light`/`desktop-dark`/
+  `tablet-light`/`mobile-light`) **at the time they were written, against
+  the then-current Filament admin panel.**
+  ⚠️ **Not currently reliable — the whole suite still targets the
+  removed Filament UI, not just the three items originally flagged
+  below.** The admin panel was subsequently rewritten from Filament to
+  TallStackUI/Livewire (see CLAUDE.md's note on that removal), and this
+  suite was not migrated along with it. Confirmed by static inspection
+  (no Chromium is installed in every sandbox, so this has not been
+  re-run end-to-end since the rewrite — verify with a real
+  `npm run test:browser` before trusting this row again): `tests/browser/
+  support/tenants.ts`'s shared `loginAsOwner()`/`gotoAdminPage()`
+  helpers — used by nearly every spec, including the ones this bullet
+  used to call "green" — navigate to `/admin/login` and
+  `{BASE_URL}/admin/{company-slug}`, both of which now 404 (`php artisan
+  route:list` has no `/admin` route at all); its `pickDate()` helper
+  drives a Filament `DateTimePicker`'s DOM (`.fi-fo-date-time-picker-*`
+  classes, `vendor/filament/forms/...`), which no longer exists anywhere
+  in `resources/views/components/tallstack/` or `vendor/` (Filament is
+  fully removed from `composer.json`). Only `tests/browser/documents/
+  autosave.spec.ts` references the current `/tall/...` routes/TallStack
+  markup at all. Treat every spec under `tests/browser/` except that one
+  as unverified against the current admin UI until a dedicated pass
+  rebuilds the shared helpers and each spec's selectors against
+  TallStackUI's real markup — this is a rebuild-sized effort, not a
+  small fixup.
+  Three things Slice 5 found and deliberately did NOT build a fix for,
+  flagged rather than silently dropped, were originally
+  Filament-panel-specific: toast deduplication; a stock
+  `.fi-select-input-value-remove-btn` (16x16px, under the WCAG 2.2 24x24
+  minimum target size); and a dashboard widget's table
+  (`.fi-ta-content-ctn`) becoming horizontally scrollable with no
+  keyboard access at tablet/mobile widths (axe:
+  scrollable-region-focusable). These three exceptions' Filament
+  CSS-selector filters in `tests/browser/ux/accessibility.spec.ts` are
+  part of the same now-stale-markup problem above, not a separate gap.
+  Also still open, per `docs/filament-admin-layout-design.md` §7.05 (a
   historical, Filament-era document — see that file's own top-of-file
   note): the embedded-Repeater "add a blank row after meaningful content
   / remove an untouched blank row" behavior DESIGN.md §5 describes; the
   two corresponding tests are `test.fixme()`, not silently passing. One
-  known flake, not a product defect: `documents/autosave.spec.ts`'s
-  two-tab stale-conflict test (and, more rarely, its single-tab sibling)
+  known flake, not a product defect, from when this suite last ran
+  against a real server: `documents/autosave.spec.ts`'s two-tab
+  stale-conflict test (and, more rarely, its single-tab sibling)
   occasionally exceeds even a 25s wait only when multiple Playwright
   projects are running concurrently against this app's single-threaded
   `php artisan serve` dev server, which queues their requests behind

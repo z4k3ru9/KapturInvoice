@@ -964,7 +964,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 531 PHP tests as of 2026-09-15 (see memory.md's Current state) + a Playwright browser suite (npm run test:browser) — see docs/testing-coverage.md
+php artisan test      # 550 PHP tests as of 2026-09-15 (see memory.md's Current state) + a Playwright browser suite (npm run test:browser) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 

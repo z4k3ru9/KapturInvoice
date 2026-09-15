@@ -36,7 +36,10 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 531 PHP tests passing as of 2026-09-15.
+- Test suite: 550 PHP tests passing as of 2026-09-15 (drifted up from the
+  531 previously recorded here — recent N+1/index fix commits added
+  regression coverage without updating this count; verified via `php -d
+  memory_limit=1024M vendor/bin/phpunit`).
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior

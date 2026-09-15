@@ -27,10 +27,10 @@ use DateTimeInterface;
  *
  * Every query below scopes explicitly by `$client->company_id` AND
  * `$client->id` rather than relying solely on BelongsToCompany's global
- * scope, which only auto-applies inside a Filament request with a
- * resolved tenant (see App\Models\Concerns\BelongsToCompany's own
- * docblock) — CLAUDE.md: "Treat company scoping ... as blocking safety
- * boundaries."
+ * scope, which only auto-applies once `App\Support\Tenancy\Tenancy` has a
+ * tenant set for the current request (see App\Models\Concerns\
+ * BelongsToCompany's own docblock) — CLAUDE.md: "Treat company scoping
+ * ... as blocking safety boundaries."
  */
 class BuildStatementOfAccount
 {
