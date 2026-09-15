@@ -112,10 +112,11 @@
             @interact('column_actions', $row)
                 <div class="flex items-center justify-end gap-2">
                     {{--
-                        Same client-side clipboard-copy pattern as
-                        App\Filament\Resources\Invitations\InvitationResource's
-                        own "Copy portal link" row action — no server
-                        round-trip, the invitation's key is never mutated.
+                        Same client-side clipboard-copy pattern as the
+                        equivalent resource's own "Copy portal link" row
+                        action from the pre-TallStackUI Filament admin — no
+                        server round-trip, the invitation's key is never
+                        mutated.
                     --}}
                     <button type="button"
                             x-on:click="window.navigator.clipboard.writeText('{{ url('/portal/'.$row['key']) }}')"
