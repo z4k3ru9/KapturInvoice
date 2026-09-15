@@ -30,6 +30,23 @@ use Livewire\Component;
  * the visual-fidelity design this was built against. Reuses
  * DashboardPeriod/RevenueBuckets/ActionQueue/SetupChecklist
  * (App\Support\Dashboard) unmodified.
+ *
+ * Stats/chart lazy loading (beautification pass): `$statsLoaded` starts
+ * `false` and the 5 stat cards / trend chart render as `skeleton` in that
+ * state. `loadDashboardData()` — the actual `RevenueBuckets::forPeriod()`
+ * work, a loop of up to ~2 queries per day/month bucket in the selected
+ * period, genuinely the most expensive part of this page — is deliberately
+ * NOT called from `mount()`/`render()`, so the first HTTP response paints
+ * the skeleton immediately without waiting on it. The Blade view fires it
+ * via `wire:init`, a second, separate Livewire round-trip the browser
+ * makes right after the first paint — this is what makes the loading state
+ * "genuine" (the initial response is measurably lighter) rather than a
+ * `skeleton` prop with nothing behind it. The same method re-runs on every
+ * period change (`updatedPeriod()`) and on the header's manual refresh
+ * button, and a `wire:loading` skeleton overlay (no `wire:target`,
+ * matching ANY request this component makes) covers those subsequent
+ * round-trips too, so the loading state is visible on every re-render, not
+ * only the first.
  */
 #[Layout('components.tallstack.app')]
 class TallStackDashboard extends Component
@@ -37,6 +54,20 @@ class TallStackDashboard extends Component
     public Company $company;
 
     public string $period = 'this_month';
+
+    public bool $statsLoaded = false;
+
+    /** @var array<string, mixed> */
+    public array $stats = [];
+
+    /** @var list<string> */
+    public array $chartLabels = [];
+
+    /** @var list<float> */
+    public array $chartInvoiced = [];
+
+    /** @var list<float> */
+    public array $chartCollected = [];
 
     public function mount(Company $company): void
     {
@@ -47,7 +78,12 @@ class TallStackDashboard extends Component
         app(Tenancy::class)->set($company);
     }
 
-    public function render(): View
+    /**
+     * Computes the stat cards and trend-chart buckets — see this class's
+     * own docblock for why this is split out of `render()` rather than run
+     * eagerly. Never called from `mount()`.
+     */
+    public function loadDashboardData(): void
     {
         $period = DashboardPeriod::resolve(['period' => $this->period]);
         $previous = DashboardPeriod::previous($period);
@@ -63,7 +99,50 @@ class TallStackDashboard extends Component
         $outstanding = $this->openInvoices();
         $overdue = $this->openInvoices()->where('due_date', '<', today());
 
+        $this->stats = [
+            'revenue' => Money::format($revenue, $currency),
+            'revenueRaw' => $revenue,
+            'revenueUp' => $revenue >= $previousRevenue,
+            'revenueFlat' => $revenue == 0.0 && $previousRevenue == 0.0,
+            'outstanding' => Money::format((clone $outstanding)->sum('balance'), $currency),
+            'outstandingCount' => (clone $outstanding)->count(),
+            'overdueCount' => (clone $overdue)->count(),
+            'overdueTotal' => Money::format((clone $overdue)->sum('balance'), $currency),
+            'openQuotations' => Quotation::query()
+                ->where('company_id', $this->company->id)
+                ->whereIn('status', [QuotationStatus::Approved, QuotationStatus::Sent])
+                ->count(),
+            'activeJobs' => SalesOrder::query()
+                ->where('company_id', $this->company->id)
+                ->whereIn('status', [
+                    SalesOrderStatus::Approved, SalesOrderStatus::Procurement,
+                    SalesOrderStatus::InProgress, SalesOrderStatus::Delivered, SalesOrderStatus::HandedOver,
+                ])
+                ->count(),
+        ];
+
         $bucket = RevenueBuckets::forPeriod($period);
+        $this->chartLabels = $bucket['labels'];
+        $this->chartInvoiced = $bucket['invoiced'];
+        $this->chartCollected = $bucket['collected'];
+
+        $this->statsLoaded = true;
+    }
+
+    /**
+     * Livewire lifecycle hook: reloads the stats/chart whenever the period
+     * dropdown changes `$this->period` (via `$set`), so switching periods
+     * shows fresh numbers rather than stale ones from the previous load.
+     */
+    public function updatedPeriod(): void
+    {
+        $this->loadDashboardData();
+    }
+
+    public function render(): View
+    {
+        $currency = $this->company->currency_code;
+        $periodLabel = DashboardPeriod::resolve(['period' => $this->period])['label'];
 
         // Phase 12 (onboarding/zero-state) — reuses
         // App\Filament\Support\SetupChecklist unmodified (same "what
@@ -78,31 +157,13 @@ class TallStackDashboard extends Component
 
         return view('livewire.tallstack-dashboard', [
             'periods' => DashboardPeriod::PERIODS,
-            'periodLabel' => $period['label'],
+            'periodLabel' => $periodLabel,
             'currency' => $currency,
-            'stats' => [
-                'revenue' => Money::format($revenue, $currency),
-                'revenueUp' => $revenue >= $previousRevenue,
-                'revenueFlat' => $revenue == 0.0 && $previousRevenue == 0.0,
-                'outstanding' => Money::format((clone $outstanding)->sum('balance'), $currency),
-                'outstandingCount' => (clone $outstanding)->count(),
-                'overdueCount' => (clone $overdue)->count(),
-                'overdueTotal' => Money::format((clone $overdue)->sum('balance'), $currency),
-                'openQuotations' => Quotation::query()
-                    ->where('company_id', $this->company->id)
-                    ->whereIn('status', [QuotationStatus::Approved, QuotationStatus::Sent])
-                    ->count(),
-                'activeJobs' => SalesOrder::query()
-                    ->where('company_id', $this->company->id)
-                    ->whereIn('status', [
-                        SalesOrderStatus::Approved, SalesOrderStatus::Procurement,
-                        SalesOrderStatus::InProgress, SalesOrderStatus::Delivered, SalesOrderStatus::HandedOver,
-                    ])
-                    ->count(),
-            ],
-            'chartLabels' => $bucket['labels'],
-            'chartInvoiced' => $bucket['invoiced'],
-            'chartCollected' => $bucket['collected'],
+            'statsLoaded' => $this->statsLoaded,
+            'stats' => $this->stats,
+            'chartLabels' => $this->chartLabels,
+            'chartInvoiced' => $this->chartInvoiced,
+            'chartCollected' => $this->chartCollected,
             'expiring' => Quotation::query()
                 ->where('company_id', $this->company->id)
                 ->where('status', QuotationStatus::Sent)
