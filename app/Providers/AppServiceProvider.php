@@ -10,6 +10,7 @@ use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use TallStackUi\Facades\TallStackUi;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,28 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerCompanyRoleGate();
+        $this->registerTallStackUiCustomizations();
+    }
+
+    /**
+     * A denser "compact" x-stats scope (`<x-stats scope="compact">`), used
+     * by the TALL-stack dashboard's 5-card overview row so it packs onto
+     * one row at more widths instead of the package's default padding/icon
+     * size forcing an awkward wrap.
+     */
+    private function registerTallStackUiCustomizations(): void
+    {
+        TallStackUi::customize()->stats('compact')->block([
+            'wrapper.second' => 'mx-3 flex h-full items-center justify-center gap-3',
+            'wrapper.second-no-header' => 'mt-3',
+            'wrapper.second-no-footer' => 'mb-3',
+            'wrapper.third' => 'flex h-9 w-9 items-center justify-center rounded-lg',
+            'icon' => 'h-5 w-5',
+            'title' => 'dark:text-dark-300 text-xs text-gray-600',
+            'number' => 'dark:text-dark-300 text-lg font-bold leading-none *:m-0',
+            'slots.footer.wrapper' => 'mx-3',
+            'slots.footer.text' => 'dark:text-dark-300 p-1 text-[11px] text-gray-600',
+        ]);
     }
 
     /**
