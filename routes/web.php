@@ -31,6 +31,7 @@ use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackPaymentAllocation;
 use App\Livewire\TallStackPayments;
+use App\Livewire\TallStackProducts;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackSalesOrder;
@@ -226,6 +227,16 @@ Route::get('/tall/{company:slug}/delivery-orders/{deliveryOrder}', TallStackDeli
 Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::class)
     ->middleware('auth')
     ->name('tallstack.handover-reports');
+
+// Phase 8 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Products/Catalog register, TALL-stack-native alongside the Filament
+// resource it mirrors (App\Filament\Resources\Products). Create/Edit is a
+// modal on this same page, not a separate route — see
+// App\Livewire\TallStackProducts's docblock. Re-checks company ownership
+// explicitly in mount(), same reasoning as the other TALL-stack pages.
+Route::get('/tall/{company:slug}/products', TallStackProducts::class)
+    ->middleware('auth')
+    ->name('tallstack.products');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
