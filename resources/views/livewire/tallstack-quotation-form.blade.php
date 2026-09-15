@@ -1,50 +1,73 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
-    {{-- Page header --}}
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-1.5 text-xs text-gray-400">
-                <a href="{{ route('tallstack.quotations', $company) }}" class="hover:underline">{{ $company->name }}</a><span>/</span>
-                <a href="{{ route('tallstack.quotations', $company) }}" class="hover:underline">Quotations</a><span>/</span>
-                <span>{{ $quotation ? $quotation->number : 'New' }}</span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">{{ $quotation ? $quotation->number : 'New quotation' }}</h1>
-                @if ($quotation)
-                    <x-badge text="{{ $quotation->status->getLabel() }}" :color="$quotation->status->getColor()" sm />
-                @endif
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2">
+    <x-tallstack.page-header
+        :crumbs="[
+            ['label' => $company->name, 'url' => route('tallstack.quotations', $company)],
+            ['label' => 'Quotations', 'url' => route('tallstack.quotations', $company)],
+            ['label' => $quotation ? $quotation->number : 'New'],
+        ]"
+        :title="$quotation ? $quotation->number : 'New quotation'"
+    >
+        @if ($quotation)
+            <x-slot:badge>
+                <x-badge text="{{ $quotation->status->getLabel() }}" :color="$statusColor" sm />
+            </x-slot:badge>
+        @endif
+        <x-slot:actions>
             @if ($quotation)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('quotations.pdf', $quotation) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
-            <x-button text="Save" icon="check" color="primary" sm class="h-9" wire:click="save" />
-        </div>
-    </div>
+            {{--
+                color="blue" for Save — same reasoning as every other
+                general-function button on these TALL-stack pages (see
+                app.blade.php's "+New" button): "primary" is the tenant's
+                own brand color, which for Karunia Abadi is red and reads
+                as visually identical to the destructive-red buttons in
+                the status bar below (Reject/Cancel quotation) — brand
+                color is reserved for identity chrome, not workflow
+                buttons.
+            --}}
+            {{-- icon="document-check" — closest available Heroicon to a
+                 floppy-disk/save glyph; this set has no literal one. --}}
+            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+        </x-slot:actions>
+    </x-tallstack.page-header>
 
-    {{-- Status action bar — every transition here calls the exact same
-         App\Actions\Sales\* class the Filament table row actions use; no
-         status is ever set directly from this UI. --}}
+    {{--
+        Status action bar — every transition here calls the exact same
+        App\Actions\Sales\* class the Filament table row actions use; no
+        status is ever set directly from this UI.
+
+        Colors are a fixed, standardized semantic palette — green for a
+        forward/positive move (Approve, Accept, Create job), blue for a
+        neutral in-progress action (Send), gray for a passive/neutral one
+        (Mark expired), red for anything destructive/terminal (Reject,
+        Cancel quotation) — never the tenant's own brand "primary" color.
+        Karunia Abadi's brand color happens to BE red, so an Approve/
+        Accept button colored "primary" was visually indistinguishable
+        from the Reject/Cancel buttons right beside it, despite meaning
+        the opposite thing.
+    --}}
     @if ($quotation)
         <div class="flex flex-wrap items-center gap-2">
             @if ($quotation->status === \App\Enums\QuotationStatus::Draft)
-                <x-button text="Approve" icon="check-circle" color="primary" sm wire:click="approve" />
+                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Approved)
-                <x-button text="Send" icon="paper-airplane" color="primary" sm wire:click="send" />
+                <x-button text="Send" icon="paper-airplane" color="blue" sm wire:click="send" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Sent)
-                <x-button text="Accept" icon="hand-thumb-up" color="primary" sm wire:click="openAcceptModal" />
-                <x-button text="Reject" icon="x-circle" color="red" sm wire:click="reject" wire:confirm="Reject this quotation?" />
+                <x-button text="Accept" icon="check" color="green" sm wire:click="openAcceptModal" />
+                <x-button text="Reject" icon="x-mark" color="red" sm wire:click="reject" wire:confirm="Reject this quotation?" />
                 <x-button text="Mark expired" icon="clock" color="gray" sm wire:click="markExpired" wire:confirm="Mark this quotation expired?" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Accepted && ! $quotation->salesOrder()->exists())
                 <x-button text="Create job" icon="briefcase" color="green" sm wire:click="createJob" wire:confirm="Create a job from this quotation?" />
             @endif
             @if (! $quotation->status->isTerminal())
-                <x-button text="Cancel quotation" icon="no-symbol" color="red" sm wire:click="cancel" wire:confirm="Cancel this quotation?" />
+                {{-- icon="document-minus" — closest available Heroicon to a
+                     "broken/voided paper" glyph; this set has no literal one. --}}
+                <x-button text="Cancel quotation" icon="document-minus" color="red" sm wire:click="cancel" wire:confirm="Cancel this quotation?" />
             @endif
         </div>
     @endif
@@ -82,7 +105,7 @@
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
                         @if ($quotation)
-                            <x-button text="Add line item" icon="plus" color="primary" sm wire:click="addItem" />
+                            <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
                     </div>
                 </x-slot:header>
@@ -105,8 +128,8 @@
                         @endinteract
                         @interact('column_actions', $row)
                             <div class="flex items-center justify-end gap-2">
-                                <x-button icon="pencil" square sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                <x-button icon="trash" square sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
+                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
                             </div>
                         @endinteract
                         <x-slot:empty>No line items yet.</x-slot:empty>
@@ -200,7 +223,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showItemModal', false)" />
-            <x-button text="Save line item" color="primary" wire:click="saveItem" />
+            <x-button text="Save line item" color="blue" wire:click="saveItem" />
         </x-slot:footer>
     </x-modal>
 
@@ -213,7 +236,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAcceptModal', false)" />
-            <x-button text="Accept" color="primary" wire:click="accept" />
+            <x-button text="Accept" color="green" wire:click="accept" />
         </x-slot:footer>
     </x-modal>
 </div>

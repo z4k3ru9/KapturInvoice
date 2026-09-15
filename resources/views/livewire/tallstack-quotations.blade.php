@@ -1,18 +1,13 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
-    {{-- Page header — mirrors tallstack-dashboard.blade.php's own header block. --}}
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-1.5 text-xs text-gray-400">
-                <span>{{ $company->name }}</span><span>/</span><span>Quotations</span>
-            </div>
-            <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">Quotations</h1>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <x-button text="New quotation" icon="plus" color="primary" sm class="h-9" href="{{ route('tallstack.quotations.create', $company) }}" />
-        </div>
-    </div>
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotations']]" title="Quotations">
+        <x-slot:actions>
+            {{-- color="blue", not "primary" — see app.blade.php's own
+                 "+New" button for why: a general action shouldn't borrow
+                 the tenant's brand color. --}}
+            <x-button text="New quotation" icon="plus" color="blue" sm class="h-9" href="{{ route('tallstack.quotations.create', $company) }}" />
+        </x-slot:actions>
+    </x-tallstack.page-header>
 
     {{-- Stat row — same "compact" x-stats scope as the Dashboard, matching the
          Stitch mockup's four-card summary (Active quotations / Awaiting
@@ -74,14 +69,28 @@
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$quotations" paginate loading>
+            {{--
+                Dense overview list: just the generated sequence (last 4
+                digits), not the full company-type-year-month number — the
+                module context (this table) already implies company/type,
+                and the full number is one click away on the quotation's
+                own page (its page-header title is never shortened).
+                title="" gives the full number as a native hover tooltip.
+            --}}
+            @interact('column_number', $row)
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                    {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
+                </span>
+            @endinteract
+
             @interact('column_status', $row)
                 <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
             @endinteract
 
             @interact('column_actions', $row, $company)
                 <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
+                    <x-button icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
                     <x-dropdown icon="ellipsis-vertical" scope="row-action">
                         @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
                             <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
@@ -120,7 +129,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAcceptModal', false)" />
-            <x-button text="Accept" color="primary" wire:click="accept" />
+            <x-button text="Accept" color="green" wire:click="accept" />
         </x-slot:footer>
     </x-modal>
 </div>

@@ -9,6 +9,7 @@ use App\Enums\QuotationStatus;
 use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Quotation;
+use App\Support\TallStack\StatusColor;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -214,7 +215,7 @@ class TallStackQuotations extends Component
                 'total' => Money::format((float) $quotation->total, $currency),
                 'status' => $quotation->status,
                 'status_label' => $quotation->status->getLabel(),
-                'status_color' => $quotation->status->getColor(),
+                'status_color' => StatusColor::map($quotation->status->getColor()),
             ]);
 
         $counts = (clone $base)

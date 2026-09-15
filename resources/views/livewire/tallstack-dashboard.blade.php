@@ -1,35 +1,28 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
     {{--
-        Page header — "Dashboard" itself is a short, fixed title (unlike a
-        record's name/number elsewhere), so this left block is kept
-        compact (smaller heading, tighter line spacing, sm badge) rather
-        than matching the larger heading treatment a longer/variable title
-        would need — leaving more of the row's width to the period/export/
-        refresh controls on the right before they wrap.
+        Shared page-header component — see its own docblock. "Dashboard"
+        itself is a short, fixed title (unlike a record's name/number
+        elsewhere), so an sm badge/status line is used here rather than
+        the larger heading treatment a longer/variable title would need —
+        leaving more of the row's width to the period/export/refresh
+        controls on the right before they wrap.
     --}}
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-1.5 text-xs text-gray-400">
-                <span>{{ $company->name }}</span><span>/</span><span>Overview</span>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-                <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">Dashboard</h1>
-                <x-badge text="Owner · {{ auth()->user()->name }}" color="blue" icon="user-circle" sm />
-                <span class="text-xs text-gray-400">Updated moments ago</span>
-            </div>
-        </div>
-
-        <div class="flex items-center gap-2">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Overview']]" title="Dashboard">
+        <x-slot:badge>
+            <x-badge text="Owner · {{ auth()->user()->name }}" color="blue" icon="user-circle" sm />
+            <span class="text-xs text-gray-400">Updated moments ago</span>
+        </x-slot:badge>
+        <x-slot:actions>
             <x-dropdown text="{{ $periodLabel }}" icon="calendar" scope="toolbar">
                 @foreach ($periods as $value => $label)
                     <x-dropdown.items :text="$label" wire:click="$set('period', '{{ $value }}')" />
                 @endforeach
             </x-dropdown>
             <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" />
-            <x-button icon="arrow-path" square sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="$refresh" />
-        </div>
-    </div>
+            <x-button icon="arrow-path" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="$refresh" />
+        </x-slot:actions>
+    </x-tallstack.page-header>
 
     {{-- Stat row --}}
     {{--
@@ -119,7 +112,7 @@
                         <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Expiring quotations</div>
                         <div class="text-xs text-gray-400">{{ $expiring->count() }} due for a decision within 7 days</div>
                     </div>
-                    <x-button text="View all" href="/admin/{{ $company->slug }}/quotations" color="primary" sm />
+                    <x-button text="View all" href="{{ route('tallstack.quotations', $company) }}" color="blue" sm />
                 </div>
             </x-slot:header>
 
@@ -130,6 +123,13 @@
                 ['index' => 'total', 'label' => 'Total'],
                 ['index' => 'actions', 'label' => ''],
             ]" :rows="$expiring">
+                {{-- Dense overview list — see the same pattern's own comment
+                     on the Quotations register table. --}}
+                @interact('column_number', $row)
+                    <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                        {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
+                    </span>
+                @endinteract
                 @interact('column_days', $row)
                     @if ($row['expired'])
                         <x-badge text="Expired {{ $row['days'] }}d ago" color="red" sm />
@@ -139,7 +139,7 @@
                 @endinteract
                 @interact('column_actions', $row, $company)
                     <div class="flex items-center justify-end gap-2">
-                        <x-button icon="eye" href="/admin/{{ $company->slug }}/quotations/{{ $row['id'] }}" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Review" />
+                        <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Review" />
                         <x-dropdown icon="ellipsis-vertical" scope="row-action">
                             <x-dropdown.items text="Extend 7 days" icon="calendar" />
                             <x-dropdown.items text="Void quotation" icon="x-circle" />
@@ -169,7 +169,7 @@
                                 <span class="text-sm truncate text-gray-700 dark:text-gray-200">{{ $item['count'] }} {{ $item['label'] }}</span>
                             </div>
                             @if ($item['url'])
-                                <x-button text="View" href="{{ $item['url'] }}" color="primary" sm class="shrink-0" />
+                                <x-button text="View" href="{{ $item['url'] }}" color="blue" sm class="shrink-0" />
                             @endif
                         </li>
                     @endforeach
