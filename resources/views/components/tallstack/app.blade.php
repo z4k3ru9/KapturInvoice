@@ -168,7 +168,39 @@
 
 <x-layout>
     <x-slot:menu>
-        <x-side-bar collapsible thin-scroll>
+        {{--
+            `navigate` (not `navigate-hover`): every item below binds
+            `:route`, not `:href` — TallStackUI's own item.blade.php only
+            ever attaches `wire:navigate`/`wire:navigate.hover` when
+            `$href` is null (vendor/tallstackui/tallstackui/src/resources/
+            views/components/layout/sidebar/item.blade.php), so `href`
+            would have silently made this a no-op. `navigate-hover`
+            (prefetch-on-hover) was deliberately skipped: this app's dev
+            server is a single-threaded `php artisan serve`
+            (docs/rebuild/specs/06b-ux-browser-soa/... already documents
+            this queuing real requests behind each other), so an eager
+            hover-prefetch competing with an actual click's request is
+            more request-queuing risk than the prefetch is worth; plain
+            `navigate` (fires only on an actual click) was verified stable
+            across 8+ page-to-page navigations, including 5 rapid clicks
+            in a row, in both companies and both color schemes — see this
+            audit's report.
+
+            `smart` is deliberately NOT set here — every item's
+            `current` is instead computed explicitly per page (each
+            TallStack*.php Livewire component passes its own `active`
+            key to this layout). `smart`'s own `matches()` (vendor
+            Component.php) does an exact current-URL-vs-route-URL string
+            compare, which cannot express "this nested edit/detail page
+            still highlights its parent list item" (e.g. a Quotation edit
+            page must keep "Quotations" active, not go dark) — and one
+            page (TallStackInvoiceForm) picks between two DIFFERENT nav
+            keys ('quotes' vs 'invoices') from the record's own `type`
+            column, not from the route at all. Both are real requirements
+            `smart`/`match` cannot express; the explicit per-page `active`
+            key was verified correct instead.
+        --}}
+        <x-side-bar collapsible thin-scroll navigate>
             <x-slot:brand>
                 <div class="flex items-center gap-3 px-1">
                     @if ($logo)
@@ -213,9 +245,21 @@
                         current route reads in the tenant's brand color,
                         matching the Stitch mockup's muted/active contrast.
                     --}}
+                    {{--
+                        `:route`, not `:href` — see this file's own
+                        `navigate` comment above on <x-side-bar>: only
+                        `route` lets the vendor item template attach
+                        `wire:navigate`. Both props render an identical
+                        `href="..."` attribute value either way (vendor
+                        Component.php resolves `route ?? href`), and
+                        `smart` stays off (see above), so `current` below
+                        is still the only thing that decides highlighting
+                        — this swap changes no visible behavior beyond
+                        enabling SPA navigation.
+                    --}}
                     <x-side-bar.item
                         :text="$item['label']"
-                        :href="$item['route']"
+                        :route="$item['route']"
                         :current="$active === $item['key']"
                         :class="$active === $item['key'] ? '' : '!text-gray-600 dark:!text-gray-300'"
                     >
