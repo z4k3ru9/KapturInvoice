@@ -71,7 +71,7 @@ class TallStackSettingsClientPortal extends Component
         return view('livewire.tallstack-settings-client-portal')
             ->layoutData([
                 'company' => $this->company,
-                'active' => 'settings-client-portal',
+                'active' => 'settings',
                 'title' => 'Client Portal',
             ]);
     }

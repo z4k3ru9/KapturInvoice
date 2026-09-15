@@ -118,6 +118,10 @@ class RolePermissionMatrixTest extends TestCase
             'email' => ['tallstack.settings.email'],
             'numbering' => ['tallstack.settings.numbering'],
             'company profile' => ['tallstack.settings.company-and-taxes'],
+            // Phase 12 (F29) settings consolidation added the shared
+            // tab-wrapper component every one of these routes now renders
+            // through — this route previously had no coverage here at all.
+            'lookups' => ['tallstack.settings.lookups'],
         ];
     }
 
@@ -150,5 +154,50 @@ class RolePermissionMatrixTest extends TestCase
         $this->assertTrue($user->can('create', Client::class));
         $this->assertTrue($user->can('forceDelete', $client));
         $this->get(route('tallstack.settings.branding', $this->company))->assertOk();
+    }
+
+    /**
+     * Phase 12 (F29): the six settings pages were consolidated behind one
+     * shared tab-header component (resources/views/components/tallstack/
+     * settings-tabs.blade.php). TallStackUI's tab labels are only ever
+     * materialized client-side by Alpine (`x-text` inside a `<template
+     * x-for>`), seeded from a JSON literal server-rendered via `@js($title)`
+     * inside each `<x-tab.items>`'s own `x-init` — so a real "Company &
+     * Taxes" substring never appears in the raw server HTML even when
+     * correct; what this test can assert against is that JSON literal.
+     * `@js()` JSON-encodes with JSON_HEX_AMP, so a correctly single-escaped
+     * label's `&` becomes the JSON unicode escape for it (backslash, u,
+     * 0, 0, 2, 6) — three of the six labels contain one ("Company &
+     * Taxes", "Tax Rates & Lookups", "Email & Reminders"), asserted
+     * against literally below. The bug this session found and fixed
+     * (`title="{{ $string }}"` on `<x-tab.items>` re-escapes an
+     * already-plain string via Blade's own `{{ }}` before that string
+     * ever reaches `@js()`) would instead produce that same escape
+     * followed by the letters "amp;" — and once Alpine renders that JSON
+     * value into the DOM via `x-text` (which does not decode HTML
+     * entities), the tab would visibly read "Company &amp; Taxes" in the
+     * browser.
+     */
+    public function test_settings_tab_strip_seeds_every_tab_title_with_correct_ampersands(): void
+    {
+        $this->userWithRole('owner');
+
+        $html = $this->get(route('tallstack.settings.company-and-taxes', $this->company))
+            ->assertOk()
+            ->getContent();
+
+        $expectedTitles = [
+            'company-and-taxes' => 'Company \u0026 Taxes',
+            'branding' => 'Branding',
+            'lookups' => 'Tax Rates \u0026 Lookups',
+            'numbering' => 'Numbering',
+            'email' => 'Email \u0026 Reminders',
+            'client-portal' => 'Client Portal',
+        ];
+
+        foreach ($expectedTitles as $tab => $title) {
+            $needle = "tab: '{$tab}', title: '{$title}'";
+            $this->assertSame(1, substr_count($html, $needle), "expected exactly one tab-strip entry [{$needle}]");
+        }
     }
 }

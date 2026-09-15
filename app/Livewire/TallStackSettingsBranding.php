@@ -152,7 +152,7 @@ class TallStackSettingsBranding extends Component
         return view('livewire.tallstack-settings-branding')
             ->layoutData([
                 'company' => $this->company,
-                'active' => 'settings-branding',
+                'active' => 'settings',
                 'title' => 'Branding',
             ]);
     }

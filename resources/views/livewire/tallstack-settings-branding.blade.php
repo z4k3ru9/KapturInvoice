@@ -6,6 +6,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="branding">
     <x-card>
         <x-slot:header>
             <div>
@@ -85,4 +86,5 @@
             <x-textarea wire:model="payment_instructions" label="Payment instructions" rows="3" />
         </div>
     </x-card>
+    </x-tallstack.settings-tabs>
 </div>

@@ -143,12 +143,26 @@
         'Settings' => [
             'icon' => 'cog-6-tooth',
             'items' => [
-                ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
-                ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
-                ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
-                ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
-                ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
-                ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
+                // Phase 12 (F29) settings consolidation — the six former
+                // separate nav entries (Company & Taxes/Email & Reminders/
+                // Branding/Tax Rates & Lookups/Numbering/Client Portal)
+                // collapsed into this ONE item: each is now a tab on the
+                // consolidated settings page (resources/views/components/
+                // tallstack/settings-tabs.blade.php) rather than its own
+                // sidebar row. The six routes/pages/Livewire classes
+                // themselves are unchanged — this item links to the first
+                // tab, "Company & Taxes". Every one of those six pages now
+                // sets `'active' => 'settings'` (see each TallStackSettings*
+                // Livewire class's own render()), so this single item stays
+                // highlighted no matter which settings tab is open. Users &
+                // Roles and Payment Gateways deliberately stay as their own
+                // separate nav items/pages below — both are full CRUD
+                // register-style resources (member list with role/invite
+                // management, gateway list with a Test Connection action),
+                // not simple one-row-per-tenant settings forms like the six
+                // that were consolidated, so folding them into the same tab
+                // strip would misrepresent what they are.
+                ['key' => 'settings', 'label' => 'Settings', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'cog-6-tooth'],
                 ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
                 // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
                 // prompt 20) — folded into this SAME 'Settings' key, never a

@@ -385,7 +385,7 @@ class TallStackSettingsLookups extends Component
             'taskStatuses' => $taskStatuses,
         ])->layoutData([
             'company' => $this->company,
-            'active' => 'settings-lookups',
+            'active' => 'settings',
             'title' => 'Tax Rates & Small Lookups',
         ]);
     }

@@ -149,7 +149,7 @@ class TallStackSettingsEmail extends Component
         return view('livewire.tallstack-settings-email')
             ->layoutData([
                 'company' => $this->company,
-                'active' => 'settings-email',
+                'active' => 'settings',
                 'title' => 'Email & Reminders',
             ]);
     }
