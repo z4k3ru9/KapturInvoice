@@ -11,6 +11,7 @@ use App\Filament\Support\ActionQueue;
 use App\Filament\Support\DashboardPeriod;
 use App\Filament\Support\Money;
 use App\Filament\Support\RevenueBuckets;
+use App\Filament\Support\SetupChecklist;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -74,6 +75,17 @@ class TallStackDashboard extends Component
 
         $bucket = RevenueBuckets::forPeriod($period);
 
+        // Phase 12 (onboarding/zero-state) — reuses
+        // App\Filament\Support\SetupChecklist unmodified (same "what
+        // counts as done" logic as App\Filament\Widgets\SetupChecklistWidget),
+        // this is a presentation-layer port only. The panel hides itself
+        // once every step is done, exactly mirroring the Filament
+        // widget's own canView() rule.
+        $checklist = SetupChecklist::for($this->company);
+        $firstIncomplete = collect($checklist['steps'])->search(fn (array $step) => ! $step['done']);
+        $clientStep = collect($checklist['steps'])->firstWhere('key', 'client');
+        $quotationStep = collect($checklist['steps'])->firstWhere('key', 'quotation');
+
         return view('livewire.tallstack-dashboard', [
             'periods' => DashboardPeriod::PERIODS,
             'periodLabel' => $period['label'],
@@ -118,6 +130,10 @@ class TallStackDashboard extends Component
                     'id' => $quotation->id,
                 ]),
             'actionQueue' => ActionQueue::for(auth()->user(), $this->company),
+            'checklist' => $checklist,
+            'showChecklist' => $checklist['done'] < $checklist['total'],
+            'firstIncompleteStep' => $firstIncomplete === false ? null : $firstIncomplete,
+            'isZeroState' => ! $clientStep['done'] && ! $quotationStep['done'],
         ])->layoutData([
             'company' => $this->company,
             'active' => 'dashboard',
