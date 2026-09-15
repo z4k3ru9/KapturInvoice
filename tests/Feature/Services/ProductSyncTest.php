@@ -53,4 +53,42 @@ class ProductSyncTest extends TestCase
         $this->assertSame(1, Product::where('price_list_item_id', $item->id)->count());
         $this->assertSame('150.0000', (string) $second->fresh()->unit_cost);
     }
+
+    public function test_inherits_the_pricelist_items_category_as_a_one_time_default(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $item = PriceListItem::create([
+            'company_id' => $company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'DS-7104NI-Q1/M',
+            'category' => 'NVRs',
+            'reference_price' => 100,
+        ]);
+
+        $product = app(ProductSync::class)->createOrUpdateFromPriceListItem($item);
+
+        $this->assertSame('NVRs', $product->category);
+    }
+
+    public function test_does_not_overwrite_a_category_the_user_has_since_set_by_hand(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $item = PriceListItem::create([
+            'company_id' => $company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'DS-7104NI-Q1/M',
+            'category' => 'NVRs',
+            'reference_price' => 100,
+        ]);
+
+        $product = app(ProductSync::class)->createOrUpdateFromPriceListItem($item);
+        $product->update(['category' => 'Custom category']);
+
+        $item->update(['category' => 'Cameras', 'reference_price' => 150]);
+        $refreshed = app(ProductSync::class)->createOrUpdateFromPriceListItem($item);
+
+        $this->assertSame($product->id, $refreshed->id);
+        $this->assertSame('Custom category', $refreshed->fresh()->category);
+        $this->assertSame('150.0000', (string) $refreshed->fresh()->unit_cost);
+    }
 }

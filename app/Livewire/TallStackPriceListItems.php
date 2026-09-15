@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\PriceListItem;
+use App\Models\Product;
 use App\Services\PriceListImporter;
 use App\Services\ProductSync;
 use App\Support\Dashboard\Money;
@@ -39,6 +40,11 @@ use TallStackUi\Traits\Interactions;
  * a way to correct it without re-importing the whole sheet is worth the
  * one-field exception. Every other column (brand/sku/description/price)
  * stays a pure reflection of the last import, unchanged.
+ *
+ * `category` shares one taxonomy with `Product::category` per decision
+ * gate G3 (repair plan Phase 10b) — render()'s `categories` option list
+ * merges both tables' distinct values, not just this one's, so a category
+ * introduced from either side offers itself on the other.
  */
 #[Layout('components.tallstack.app')]
 class TallStackPriceListItems extends Component
@@ -244,17 +250,29 @@ class TallStackPriceListItems extends Component
                 ->distinct()
                 ->orderBy('brand')
                 ->pluck('brand'),
-            // Powers <x-tallstack.category-select>'s picker — every
-            // distinct category already used on this tenant's price list
-            // items, scoped exactly like every other tenant-scoped lookup
-            // on this page (see class docblock: never trust an unscoped
-            // query for a picker/dropdown).
+            // Powers <x-tallstack.category-select>'s picker with the
+            // SHARED taxonomy per decision gate G3 (repair plan Phase
+            // 10b) — every distinct category already used on this
+            // tenant's Price List Items *and* its Products, not just this
+            // table's own values, otherwise a category created from the
+            // Products side would never round-trip back here even though
+            // both pickers claim to share one list. Mirrors
+            // TallStackProducts::render()'s equivalent query.
             'categories' => PriceListItem::query()
                 ->where('company_id', $this->company->id)
                 ->whereNotNull('category')
                 ->distinct()
-                ->orderBy('category')
-                ->pluck('category'),
+                ->pluck('category')
+                ->merge(
+                    Product::query()
+                        ->where('company_id', $this->company->id)
+                        ->whereNotNull('category')
+                        ->distinct()
+                        ->pluck('category')
+                )
+                ->unique()
+                ->sort()
+                ->values(),
             'currency' => $currency,
             'hasAnyItems' => PriceListItem::query()->where('company_id', $this->company->id)->exists(),
         ])->layoutData([

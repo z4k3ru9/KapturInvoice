@@ -16,6 +16,15 @@ use App\Models\Product;
  * from the (presumably just re-imported) pricelist row instead of creating
  * a duplicate — the same "update this regularly" upsert spirit as
  * PriceListImporter itself, one step further down the chain.
+ *
+ * `category` (repair plan Phase 10b / decision gate G3: Products share one
+ * category taxonomy with Price List Items) is deliberately NOT in that
+ * always-refreshed field set — it's a one-time default inherited from the
+ * source item only when the Product doesn't already have a category of its
+ * own, mirroring this class's existing create-vs-refresh idempotency shape
+ * one level down: sku/name/description/unit_cost always track the
+ * pricelist row, but category, once set (by this sync or by hand in the
+ * Products form), is never silently overwritten by a later re-run.
  */
 class ProductSync
 {
@@ -34,6 +43,10 @@ class ProductSync
             'description' => $item->description,
             'unit_cost' => $item->reference_price ?? 0,
         ]);
+
+        if (blank($product->category)) {
+            $product->category = $item->category;
+        }
 
         $product->save();
 
