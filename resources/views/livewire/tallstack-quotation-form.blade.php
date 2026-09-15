@@ -156,8 +156,10 @@
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
-                    <x-textarea wire:model="terms" label="Terms" rows="4" />
-                    <x-textarea wire:model="notes" label="Notes" rows="4" />
+                    <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="20rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                    <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="20rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
                 </div>
             </x-card>
         </div>

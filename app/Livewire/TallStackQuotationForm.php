@@ -18,6 +18,7 @@ use App\Services\DocumentNumberGenerator;
 use App\Services\QuotationTotalsCalculator;
 use App\Services\Sales\QuotationMailer;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
@@ -157,6 +158,10 @@ class TallStackQuotationForm extends Component
 
     public function save(): void
     {
+        $sanitizer = app(RichTextSanitizer::class);
+        $this->terms = $sanitizer->sanitize($this->terms);
+        $this->notes = $sanitizer->sanitize($this->notes);
+
         $data = $this->validate([
             'client_id' => ['required', Rule::exists('clients', 'id')->where('company_id', $this->company->id)],
             'number' => ['nullable', 'string', 'max:255'],

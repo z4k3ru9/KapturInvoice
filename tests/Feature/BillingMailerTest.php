@@ -298,6 +298,74 @@ class BillingMailerTest extends TestCase
     }
 
     /**
+     * The body template moved from a plain-text field to TallStackUI's
+     * <x-editor> (App\Livewire\TallStackSettingsEmail) — resources/views/
+     * emails/plain.blade.php now renders it raw once it looks like real
+     * HTML (server-sanitized via App\Support\Html\RichTextSanitizer on
+     * save, on top of the editor's own client-side sanitizer), instead of
+     * escaping and nl2br()-ing it as a plain-text template.
+     */
+    public function test_sending_renders_a_formatted_html_body_unescaped(): void
+    {
+        Mail::fake();
+
+        CompanySetting::create([
+            'company_id' => $this->company->id,
+            'invoice_email_subject' => 'Your bill {{invoice_number}}',
+            'invoice_email_body' => '<p>Hi {{contact_name}}, please pay <strong>{{amount}}</strong>.</p><ul><li>Thank you</li></ul>',
+        ]);
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0010',
+        ]);
+        $invoice->forceFill(['total' => 99.5])->save();
+
+        app(BillingMailer::class)->sendInvoice($invoice);
+
+        Mail::assertSent(CompanyTemplatedMail::class, function (CompanyTemplatedMail $mail) {
+            $rendered = view('emails.plain', ['body' => $mail->bodyText])->render();
+
+            return str_contains($rendered, '<strong>99.50</strong>')
+                && str_contains($rendered, '<li>Thank you</li>')
+                && ! str_contains($rendered, '&lt;strong&gt;');
+        });
+    }
+
+    /**
+     * A company that hasn't customized a template yet still falls back to
+     * BillingMailer::templateFor()'s hardcoded plain-text default, which
+     * carries literal "\n" line breaks and no HTML — the view has to
+     * still treat that shape correctly (escaped, nl2br()'d), not render
+     * it raw.
+     */
+    public function test_sending_renders_the_plain_text_default_template_escaped_with_line_breaks(): void
+    {
+        Mail::fake();
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0011',
+        ]);
+        $invoice->forceFill(['total' => 10])->save();
+
+        app(BillingMailer::class)->sendInvoice($invoice);
+
+        Mail::assertSent(CompanyTemplatedMail::class, function (CompanyTemplatedMail $mail) {
+            $rendered = view('emails.plain', ['body' => $mail->bodyText])->render();
+
+            return str_contains($rendered, '<br')
+                && ! str_contains($rendered, '<p>');
+        });
+    }
+
+    /**
      * `Mailable::hasAttachment()` compares raw resolved attachment
      * bytes, which we can't recreate independently of the mailer's own
      * PDF render here — so this asserts the attachment that was

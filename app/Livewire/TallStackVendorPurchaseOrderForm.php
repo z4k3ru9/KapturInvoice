@@ -14,6 +14,7 @@ use App\Models\VendorPurchaseOrderItem;
 use App\Services\DocumentNumberGenerator;
 use App\Services\Procurement\VendorPurchaseOrderTotalsCalculator;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
@@ -106,6 +107,10 @@ class TallStackVendorPurchaseOrderForm extends Component
 
     public function save(): void
     {
+        $sanitizer = app(RichTextSanitizer::class);
+        $this->terms = $sanitizer->sanitize($this->terms);
+        $this->notes = $sanitizer->sanitize($this->notes);
+
         $data = $this->validate([
             'vendor_id' => ['required', 'exists:vendors,id'],
             'number' => ['nullable', 'string', 'max:255'],

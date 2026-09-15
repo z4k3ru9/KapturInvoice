@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Vendor;
 use App\Models\VendorBill;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -106,6 +107,8 @@ class TallStackVendors extends Component
 
     public function save(): void
     {
+        $this->notes = app(RichTextSanitizer::class)->sanitize($this->notes);
+
         $data = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email'],

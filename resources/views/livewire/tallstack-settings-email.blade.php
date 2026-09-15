@@ -12,21 +12,24 @@
         </x-slot:header>
 
         <div class="flex flex-col gap-4">
-            <div class="grid sm:grid-cols-2 gap-4">
+            @php
+                $bodyToolbar = ['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo'];
+            @endphp
+            <div class="flex flex-col gap-2">
                 <x-input wire:model="invoice_email_subject" label="Invoice — subject" />
-                <x-input wire:model="invoice_email_body" label="Invoice — body" />
+                <x-editor wire:model="invoice_email_body" label="Invoice — body" min-height="8rem" max-height="18rem" :toolbar="$bodyToolbar" />
             </div>
-            <div class="grid sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
                 <x-input wire:model="quote_email_subject" label="Quote — subject" />
-                <x-input wire:model="quote_email_body" label="Quote — body" />
+                <x-editor wire:model="quote_email_body" label="Quote — body" min-height="8rem" max-height="18rem" :toolbar="$bodyToolbar" />
             </div>
-            <div class="grid sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
                 <x-input wire:model="quotation_email_subject" label="Quotation — subject" />
-                <x-input wire:model="quotation_email_body" label="Quotation — body" />
+                <x-editor wire:model="quotation_email_body" label="Quotation — body" min-height="8rem" max-height="18rem" :toolbar="$bodyToolbar" />
             </div>
-            <div class="grid sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
                 <x-input wire:model="payment_email_subject" label="Payment receipt — subject" />
-                <x-input wire:model="payment_email_body" label="Payment receipt — body" />
+                <x-editor wire:model="payment_email_body" label="Payment receipt — body" min-height="8rem" max-height="18rem" :toolbar="$bodyToolbar" />
             </div>
         </div>
     </x-card>

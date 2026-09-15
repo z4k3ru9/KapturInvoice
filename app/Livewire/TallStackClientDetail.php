@@ -15,6 +15,7 @@ use App\Models\PortalLink;
 use App\Models\Quotation;
 use App\Services\BillingMailer;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -156,6 +157,8 @@ class TallStackClientDetail extends Component
     public function saveClient(): void
     {
         $this->authorize('update', $this->client);
+
+        $this->notes = app(RichTextSanitizer::class)->sanitize($this->notes);
 
         $data = $this->validate([
             'name' => ['required', 'string', 'max:255'],
