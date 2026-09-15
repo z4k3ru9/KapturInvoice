@@ -14,6 +14,14 @@
             </x-slot:badge>
         @endif
         <x-slot:actions>
+            @if ($invoice && $invoice->status === \App\Enums\InvoiceStatus::Draft)
+                {{-- Draft-only autosave status for the header text fields
+                     below (Terms/Public notes/Private notes/Footer/PO
+                     number) — see App\Livewire\Concerns\AutosavesDraft.
+                     Inline and persistent, never a toast, per
+                     docs/rebuild/DESIGN.md §6. --}}
+                <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+            @endif
             @if ($invoice)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('invoices.pdf', $invoice) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
@@ -71,7 +79,7 @@
                     <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
                     <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
                         :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
-                    <x-input wire:model="po_number" label="PO number" />
+                    <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
                     <x-input wire:model="currency_code" label="Currency code" />
                     <x-date wire:model="invoice_date" label="Invoice date" />
                     <x-date wire:model="due_date" label="Due date" />
@@ -136,10 +144,10 @@
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
-                    <x-textarea wire:model="terms" label="Terms" rows="3" />
-                    <x-textarea wire:model="public_notes" label="Public notes" rows="3" />
-                    <x-textarea wire:model="private_notes" label="Private notes" rows="3" />
-                    <x-textarea wire:model="footer" label="Footer" rows="3" />
+                    <x-textarea wire:model.live.debounce.1750ms="terms" label="Terms" rows="3" />
+                    <x-textarea wire:model.live.debounce.1750ms="public_notes" label="Public notes" rows="3" />
+                    <x-textarea wire:model.live.debounce.1750ms="private_notes" label="Private notes" rows="3" />
+                    <x-textarea wire:model.live.debounce.1750ms="footer" label="Footer" rows="3" />
                 </div>
             </x-card>
         </div>
