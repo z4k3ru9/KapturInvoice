@@ -188,8 +188,18 @@
             </x-slot:left>
             <x-slot:right>
                 <div class="flex items-center gap-2">
-                    <x-button icon="plus" text="New" color="primary" sm class="h-9" />
-                    <x-button icon="bell" square color="gray" sm scope="icon-action" class="h-9 w-9" />
+                    {{--
+                        color="blue", not "primary": a general function
+                        (create a new record) shouldn't borrow the tenant's
+                        own brand color — for Karunia Abadi (brand red)
+                        that made "New" read identically to a destructive
+                        red action elsewhere on the page. Brand color stays
+                        reserved for actual identity chrome (the logo, the
+                        active nav item) rather than every button on the
+                        page.
+                    --}}
+                    <x-button icon="plus" text="New" color="blue" sm class="h-9" />
+                    <x-button icon="bell" color="gray" sm scope="icon-action" class="h-9 w-9" />
                     <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
                 </div>
             </x-slot:right>

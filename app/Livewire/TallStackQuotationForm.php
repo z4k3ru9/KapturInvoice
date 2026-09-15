@@ -16,6 +16,7 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Services\DocumentNumberGenerator;
 use App\Services\QuotationTotalsCalculator;
+use App\Support\TallStack\StatusColor;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -448,6 +449,7 @@ class TallStackQuotationForm extends Component
             'jobTypes' => JobType::cases(),
             'items' => $items,
             'currency' => $currency,
+            'statusColor' => $this->quotation ? StatusColor::map($this->quotation->status->getColor()) : null,
             'subtotal' => $this->quotation ? Money::format((float) $this->quotation->subtotal, $currency) : Money::format(0, $currency),
             'total' => $this->quotation ? Money::format((float) $this->quotation->total, $currency) : Money::format(0, $currency),
         ])->layoutData([

@@ -48,6 +48,19 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerTallStackUiCustomizations(): void
     {
+        // Corner-radius scale, deliberately two-tier, not one flat value:
+        // small interactive controls (buttons, badges, inputs, the 36px
+        // icon-only action squares) stay at the package's own default
+        // rounded-md (6px); larger containers (cards, the stat-card icon
+        // box) use rounded-lg (8px). Forcing every button up to 8px was
+        // tried and reverted — the SAME pixel radius reads as a crisp,
+        // moderate corner on a wide rectangular button but as a rounded
+        // "squircle"/pill on a near-square 36x36 icon button, which is
+        // more visually inconsistent than the small size difference
+        // between rounded-md and rounded-lg ever was. Keep every
+        // icon-only square button (icon-action/row-action scopes below)
+        // and every plain <x-button>/<x-badge> at the package default —
+        // don't add a border.radius override for them.
         TallStackUi::customize()->stats('compact')->block([
             // gap-2, not gap-3: at this card width (~173px content area,
             // minus the 36px icon box), the text column has ~125-129px to

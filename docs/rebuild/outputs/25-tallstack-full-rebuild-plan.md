@@ -121,6 +121,25 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
   nav items to the `$nav` array in that file, in the correct nav group
   (Sales/Billing/Procurement/Clients/Catalog — matches Filament's own
   pinned nav-group order in `AdminPanelProvider`).
+- **Shared page header**: `resources/views/components/tallstack/page-header.blade.php`
+  (`<x-tallstack.page-header :crumbs="[...]" :title="...">`, with
+  `<x-slot:badge>`/`<x-slot:actions>`) — the breadcrumb-row + H1 +
+  optional status badge + right-aligned action buttons pattern every page
+  uses (Dashboard, Quotations register, the Quotation form all use it as
+  of Phase 1). Use this instead of hand-copying that markup block again —
+  it existed as copy-pasted markup for two pages before being extracted;
+  don't let it go back to being copy-pasted for a third.
+- **`App\Support\TallStack\StatusColor::map()`**: every status enum's
+  `getColor()` returns a Filament semantic name (gray/info/success/
+  warning/danger) — correct for Filament's own Badge column, but
+  TallStackUI's `<x-badge>` color prop expects a literal Tailwind palette
+  name (gray/blue/green/amber/red/...) and silently renders an unstyled
+  black-outline badge for any name it doesn't recognize (a real bug found
+  and fixed in Phase 1 — the Quotation status badge rendered with no
+  color at all until this mapping was added). Always wrap an enum's
+  `getColor()` through `StatusColor::map()` before passing it to
+  `<x-badge>`/`<x-stats>`'s `color` prop — never pass an enum's
+  `getColor()` result straight through.
 - **Filament context for URL generation**: any page needing
   `Resource::getUrl()` (e.g. via `App\Filament\Support\ActionQueue`) must
   call `Filament::setCurrentPanel(...)` + `Filament::setTenant(...)` in
