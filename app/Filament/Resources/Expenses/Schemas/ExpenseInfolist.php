@@ -25,10 +25,10 @@ class ExpenseInfolist
                 Section::make('Amounts')
                     ->columns(2)
                     ->schema([
-                        TextEntry::make('subtotal')->label('Amount')->money('IDR'),
+                        TextEntry::make('subtotal')->label('Amount')->money(fn (Expense $record) => $record->currency_code),
                         TextEntry::make('taxes.name')->label('Taxes')->badge()->placeholder('-'),
-                        TextEntry::make('tax_total')->money('IDR'),
-                        TextEntry::make('total')->money('IDR'),
+                        TextEntry::make('tax_total')->money(fn (Expense $record) => $record->currency_code),
+                        TextEntry::make('total')->money(fn (Expense $record) => $record->currency_code),
                     ]),
                 Section::make('Rebilling')
                     ->columns(2)

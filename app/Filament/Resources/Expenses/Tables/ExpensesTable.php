@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Expenses\Tables;
 
+use App\Models\Expense;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -28,8 +29,8 @@ class ExpensesTable
                 TextColumn::make('vendor.name')->searchable()->sortable(),
                 TextColumn::make('category.name')->label('Category'),
                 TextColumn::make('expense_date')->date()->sortable(),
-                TextColumn::make('subtotal')->label('Amount')->money('IDR')->sortable(),
-                TextColumn::make('total')->money('IDR')->sortable(),
+                TextColumn::make('subtotal')->label('Amount')->money(fn (Expense $record) => $record->currency_code)->sortable(),
+                TextColumn::make('total')->money(fn (Expense $record) => $record->currency_code)->sortable(),
                 IconColumn::make('should_be_invoiced')->label('Rebill')->boolean(),
                 TextColumn::make('client.name')->label('Client'),
                 TextColumn::make('documents_count')->counts('documents')->label('Documents'),
