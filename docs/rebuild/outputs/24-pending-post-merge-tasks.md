@@ -1,5 +1,15 @@
 # Post-Merge Tasks — PR #4 (`claude/invoiceninja-schema-reference-6s9aqc` → `main`)
 
+> **⚠️ FULLY SUPERSEDED — PR #4 has since merged.** Every section below
+> (open-PR status, CI state, the "what not to duplicate" file list, the
+> "safe to do now" list, and the post-merge checklist) was written to
+> coordinate work around one specific in-flight PR; that PR merged long
+> ago (see `memory.md`'s Current state), and the codebase has since moved
+> further still — the Filament admin panel referenced throughout this doc
+> has been fully removed and replaced by a hand-built TallStackUI admin.
+> None of this doc's guidance is actionable anymore. Kept for historical
+> reference only; there is no live tracking left to update in place.
+
 Status snapshot as of 2026-09-14. This is a live tracking doc, not a
 historical checkpoint report — update it in place as PR #4's status
 changes, rather than adding a new numbered file.

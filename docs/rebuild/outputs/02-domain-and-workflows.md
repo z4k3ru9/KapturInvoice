@@ -1,5 +1,11 @@
 # KapturInvoice Domain and Workflow Model
 
+> **⚠️ SUPERSEDED — early planning draft.** This early glossary and
+> workflow sketch is now substantially superseded by the canonical glossary
+> in [`docs/rebuild/CONTEXT.md`](../CONTEXT.md) and the detailed workflow
+> requirements in [`docs/rebuild/Specs.md`](../Specs.md) §7. Kept for
+> historical reference only.
+
 ## Canonical vocabulary
 
 | Term | Meaning |

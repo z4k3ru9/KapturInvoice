@@ -1,5 +1,13 @@
 # KapturInvoice Canonical Data Model Specification
 
+> **⚠️ SUPERSEDED — early planning draft.** This draft table list (e.g.
+> `vendor_bill_payments`, `receipts` for vendor payments) predates the
+> actual schema, which diverged in real implementation (e.g. the parallel
+> `VendorPaymentReceipt` event model, `StatementOfAccount`). It is now
+> substantially superseded by [`docs/rebuild/Specs.md`](../Specs.md) §6
+> (canonical database model). Kept for historical reference only — do not
+> use the table names below as current schema.
+
 Status: Approved direction derived from the PRD  
 Purpose: Database renovation reference for migrations, models, policies, and reports
 

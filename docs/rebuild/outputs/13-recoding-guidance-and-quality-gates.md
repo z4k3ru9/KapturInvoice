@@ -1,5 +1,11 @@
 # KapturInvoice Recoding Guidance and Quality Gates
 
+> **⚠️ SUPERSEDED — early planning draft.** The build-order slices here are
+> the precursor to [`docs/rebuild/Specs.md`](../Specs.md) §16's actual
+> recoding order, and the change-control rule in §8 is now restated in
+> `CLAUDE.md`'s "Use change control for..." guardrail. Kept for historical
+> reference only.
+
 Status: Approved execution guidance  
 Audience: UI designer, Laravel/Filament developer, migration developer, reviewer
 

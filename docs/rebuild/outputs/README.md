@@ -1,57 +1,124 @@
-# KapturInvoice Revamp Preparation
+# KapturInvoice Rebuild — Outputs Index
 
 > **Historical handoff note:** Claude-generated checkpoint reports in this
 > directory are historical implementation evidence only. They do not approve
-> the current `main` branch or release readiness. The current progressive
+> the current `main` branch or release readiness. The current canonical
 > specifications, current-branch verification, current tests,
 > migration/reconciliation evidence, and Owner-approved release checkpoint
 > are authoritative.
 
-This directory is the handoff pack for the next UI-design and programming session.
+This directory is a dated record of the renovation: early planning drafts
+that came before the approved specs existed, and later checkpoint reports
+that record what was actually built. It is not itself a spec — start with
+the canonical docs below, then use this index to find only the output
+files that still add something those docs don't cover.
 
-## Reading order
+## Start here (canonical, currently authoritative)
 
-0. [Claude Code execution specification](../Specs.md)
-0a. [Finalized implementation decisions](../specs/FINALIZED-DECISIONS.md)
-0b. [Concise PRD](../PRD.md) and [Claude implementation guardrail](../CLAUDE.md)
-0c. [Design execution specification](../DESIGN.md)
-1. [Requirements baseline](01-requirements-baseline.md)
-2. [Domain and workflow model](02-domain-and-workflows.md)
-3. [Permissions and state matrix](03-permissions-and-state-matrix.md)
-4. [Migration and reconciliation plan](04-migration-and-reconciliation-plan.md)
-5. [Implementation plan](05-implementation-plan.md)
-6. [Architecture decisions](06-architecture-decisions.md)
-7. [Localization and terminology](07-localization-and-terminology.md)
-8. [UI experience specification](08-ui-experience-specification.md)
-9. [Product requirements document](09-product-requirements-document.md)
-10. [Renovation architecture specification](10-renovation-architecture-specification.md)
-11. [Canonical data model specification](11-canonical-data-model-specification.md)
-12. [Migration execution runbook](12-migration-execution-runbook.md)
-13. [Recoding guidance and quality gates](13-recoding-guidance-and-quality-gates.md)
-14. [Gate 0 baseline report](14-gate-0-baseline-report.md)
-15. [Phase 01 checkpoint report](15-phase-01-checkpoint-report.md)
-16. [Phase 02 checkpoint report](16-phase-02-checkpoint-report.md)
-17. [Phase 03 checkpoint report](17-phase-03-checkpoint-report.md)
-18. [Stitch UI layout gap analysis](18-stitch-ui-gap-analysis/README.md) — execution notes for bringing the Filament admin, PDFs, and portal toward the Google Stitch layout drafts without breaching approved specs
+Read these first, in this order (also CLAUDE.md's own "Renovation
+guardrails" reading order):
 
-## Handoff rules
+0. [`../Specs.md`](../Specs.md) — the execution contract (detailed
+   requirements, canonical data model, workflows, roles, numbering,
+   migration spec, recoding order).
+0a. [`../specs/FINALIZED-DECISIONS.md`](../specs/FINALIZED-DECISIONS.md) —
+    binding decisions that override earlier wording anywhere in this repo.
+0b. [`../PRD.md`](../PRD.md) — the concise product contract.
+0c. [`../CONTEXT.md`](../CONTEXT.md) — the canonical business-language
+    glossary.
+0d. [`../DESIGN.md`](../DESIGN.md) — the UI/UX execution contract.
 
-- The PRD and finalized implementation decisions are the approved product baseline. The documents after them are the progressed renovation specifications for design and implementation.
-- No application code, package installation, commit, or pull request was made while preparing it.
-- The implementation session must first confirm the current branch and working tree in `/Users/richardpangalila/Downloads/KapturInvoice`.
-- Existing user changes must be preserved.
-- Use the existing Laravel 13, Filament 5, Livewire 4, Tailwind 4, and TallStack UI 4 stack.
-- UI design should start from the workflows and states in this pack, not from the legacy navigation.
-- Printed documents must support Bahasa Indonesia terminology aligned with Indonesian business usage.
-- The UI uses a job-centric Filament admin, TallStack UI public surfaces, company-specific themes, and a globally locked semantic status palette.
-- Livewire/Alpine interactions must respect the 1 GB hosting resource budget defined in the UI specification.
-- Payment gateway, full accounting journal, full inventory, project/task tracking, formal proposals, recurring invoices, credits/refunds, vendor login, and client uploads are deferred.
+Everything in this folder is dated evidence or draft material relative to
+those five documents.
 
-## Repository facts captured for handoff
+## Superseded — early planning drafts (historical reference only)
 
-- The repository already uses the requested TALL and Filament stack.
-- Payments currently point directly to one invoice and need an allocation model.
-- The current invoice calculator applies global discount after tax and must be corrected.
-- The current number generator uses simple prefixes and counters and needs company/type/year/month formatting.
-- The current portal has legacy payment, task, and signature settings that must be disabled or re-scoped for launch.
-- The current queue default is the database queue and the scheduler contains a daily reminder command.
+These 13 files (`01`-`13`) were written before the canonical docs above
+existed. Each now carries a top-of-file marker naming what superseded it.
+Their *content* is substantially duplicated (and refined) by the canonical
+docs — open one only if you specifically want the earlier, less-refined
+wording or the original reasoning behind a decision.
+
+| File | What it was | Superseded by |
+| --- | --- | --- |
+| [01-requirements-baseline.md](01-requirements-baseline.md) | First requirements-grill output: scope, tax rules, numbering, payments, roles | PRD.md, CONTEXT.md, Specs.md |
+| [02-domain-and-workflows.md](02-domain-and-workflows.md) | Early glossary + relationship diagram + main workflow steps | CONTEXT.md, Specs.md §7 |
+| [03-permissions-and-state-matrix.md](03-permissions-and-state-matrix.md) | Early roles/approvals/state-machine table | Specs.md §7/§10, FINALIZED-DECISIONS.md |
+| [04-migration-and-reconciliation-plan.md](04-migration-and-reconciliation-plan.md) | Pre-implementation migration plan, no real numbers | Specs.md §14; real numbers in `docs/data-import.md` |
+| [05-implementation-plan.md](05-implementation-plan.md) | Task-by-task plan with concrete (now-stale) Filament file paths | Specs.md §16 and the phase specs under `docs/rebuild/specs/` |
+| [06-architecture-decisions.md](06-architecture-decisions.md) | Six ADRs (deployment isolation, job hub, payments-as-events, immutability, palette, Alpine/Livewire split) | PRD.md, DESIGN.md, Specs.md §5 |
+| [07-localization-and-terminology.md](07-localization-and-terminology.md) | Early Indonesian glossary draft — contains at least one now-known-wrong term | Specs.md §13; real glossary in `resources/lang/{id,en}/documents.php` |
+| [08-ui-experience-specification.md](08-ui-experience-specification.md) | Detailed UI/UX reference; the file itself says DESIGN.md is now authoritative | DESIGN.md |
+| [09-product-requirements-document.md](09-product-requirements-document.md) | Full early PRD (functional requirements, state matrices, risks) | PRD.md, Specs.md |
+| [10-renovation-architecture-specification.md](10-renovation-architecture-specification.md) | Bounded-context map + lettered Phase A-G plan (does not match actual phases) | Specs.md §5, §16 |
+| [11-canonical-data-model-specification.md](11-canonical-data-model-specification.md) | Draft table list — table names diverged from the real schema | Specs.md §6 |
+| [12-migration-execution-runbook.md](12-migration-execution-runbook.md) | Pre-implementation cutover runbook, no real numbers | Specs.md §14; real numbers in `docs/data-import.md` |
+| [13-recoding-guidance-and-quality-gates.md](13-recoding-guidance-and-quality-gates.md) | Build-order slices + change-control rule (early draft) | Specs.md §16; CLAUDE.md's change-control guardrail |
+
+## Phase checkpoint reports (historical record — not superseded, just dated)
+
+These record what was actually verified at each phase gate, including real
+test counts and known gaps at the time. They are not duplicated by the
+canonical docs (which describe the *target*, not what happened) and are
+safe to read for phase-specific implementation detail the canonical docs
+don't carry. Treat them as evidence, not as current status — check
+`memory.md` for what's settled now. A few contain their own later
+"Superseded in part" notes where a subsequent phase corrected something.
+
+| File | Phase | One-line summary |
+| --- | --- | --- |
+| [14-gate-0-baseline-report.md](14-gate-0-baseline-report.md) | Gate 0 | Pre-Phase-01 environment/baseline check (PHP/Node versions, clean migrate, test count) |
+| [15-phase-01-checkpoint-report.md](15-phase-01-checkpoint-report.md) | 01 | Company/access foundation: numbering, roles, audit log, membership, invitations |
+| [16-phase-02-checkpoint-report.md](16-phase-02-checkpoint-report.md) | 02 | Parties and catalog: clients/contacts/vendors, catalog item types, tax categories |
+| [17-phase-03-checkpoint-report.md](17-phase-03-checkpoint-report.md) | 03 | Sales/Customer PO/Job: Quotation, SalesOrder, JobVariation |
+| [18-phase-04-checkpoint-report.md](18-phase-04-checkpoint-report.md) | 04 | Billing, tax, payments, receipts: TaxCalculationService, IssueInvoice, payment allocation |
+| [20-phase-05-checkpoint-report.md](20-phase-05-checkpoint-report.md) | 05 | Procurement, job cost, delivery, handover — includes a later "superseded in part" note on VendorPayment |
+| [21-phase-06-checkpoint-report.md](21-phase-06-checkpoint-report.md) | 06 | Documents, portal, reporting — includes a note that 06B made its scoped-out items mandatory |
+| [22-phase-06b-terminology-sources.md](22-phase-06b-terminology-sources.md) | 06B | Sourced review of every Indonesian document-label translation key |
+| [23-phase-06b-checkpoint-report.md](23-phase-06b-checkpoint-report.md) | 06B | UX/browser-QA/SOA completion gate — Playwright suite, accessibility fixes, post-PR Codex review fixes |
+
+Note: there is no file numbered `19` — `18` is used twice (the Phase 04
+checkpoint report and the `18-stitch-ui-gap-analysis/` folder below), and
+numbering continues from `20`.
+
+## Rebuild-plan and prompt docs (historical — not superseded)
+
+| File | Status |
+| --- | --- |
+| [24-pending-post-merge-tasks.md](24-pending-post-merge-tasks.md) | **Fully superseded/moot** (marked at top of file) — was a live tracking doc for coordinating work around one specific open PR (#4). That PR merged long ago, and the Filament admin it discusses has since been fully removed and replaced by TallStackUI. Nothing in it is actionable anymore. |
+| [25-tallstack-full-rebuild-plan.md](25-tallstack-full-rebuild-plan.md) | Historical resume-point doc for the Filament→TallStackUI admin rebuild (Google Stitch mockup mapping, phase order, screen inventory). Its "Filament stays installed in parallel" decision was later superseded by a full removal (see `memory.md`), but this file is kept as-is per scope — read `memory.md`'s Current state for what's actually true today. |
+| [26-stitch-missing-screens-prompts.md](26-stitch-missing-screens-prompts.md) | Stitch mockup-generation prompts 10-17 for screens not covered by the original prompt set (Clients, Users, Proposals, small settings lookups, Price List Items, Credits, Recurring Invoices, SOA). |
+| [27-filament-parity-gap-prompts.md](27-filament-parity-gap-prompts.md) | Stitch mockup-generation prompts 18-24 for the post-Filament-removal parity gap (RegisterCompany, Expenses, PaymentGateways, Invitations, Documents, Proposal Templates/Snippets, a non-Filament login page). |
+
+## `18-stitch-ui-gap-analysis/` — Filament-era gap analysis (historical)
+
+**Read this whole subfolder as historical.** It's a detailed, file-by-file
+gap analysis comparing Google Stitch mockups against the **Filament**
+admin panel as it stood on 2026-09-14 (before Phase 04 and before the
+later decision — see `25-tallstack-full-rebuild-plan.md` — to replace
+Filament entirely with a hand-built TallStackUI admin, which has since
+happened). Its Filament-specific execution guidance (resource/page/
+relation-manager changes) no longer matches the current codebase. What
+remains useful: its cross-cutting "decisions the Stitch drafts get wrong"
+table (tax-rule/compliance-theater items to never copy into any UI) and
+its DESIGN.md §16 restraint checklist, both of which are still accurate
+product rules independent of which admin framework renders them.
+
+| File | Covers |
+| --- | --- |
+| [README.md](18-stitch-ui-gap-analysis/README.md) | Index, cross-cutting rules, priority execution order, settled decisions |
+| [00-scoped-backlog.md](18-stitch-ui-gap-analysis/00-scoped-backlog.md) | Re-sorts every area file's items against PR #4 (built/safe/must-wait/spec-gap) |
+| [01-shell-dashboard.md](18-stitch-ui-gap-analysis/01-shell-dashboard.md) | App shell, dashboard, first-run zero state, logos |
+| [02-job-workspace.md](18-stitch-ui-gap-analysis/02-job-workspace.md) | Job (SalesOrder) workspace header/tracker/tabs |
+| [03-quotations.md](18-stitch-ui-gap-analysis/03-quotations.md) | Quotations register, line editor, A4 print preview |
+| [04-invoices-payments.md](18-stitch-ui-gap-analysis/04-invoices-payments.md) | Customer invoices register/detail, payment allocation panel |
+| [05-procurement-delivery.md](18-stitch-ui-gap-analysis/05-procurement-delivery.md) | Vendors, vendor bills/POs, delivery orders, handover |
+| [06-products-settings-reports.md](18-stitch-ui-gap-analysis/06-products-settings-reports.md) | Products picture upload, company/tax settings, reports |
+| [07-portal.md](18-stitch-ui-gap-analysis/07-portal.md) | Client read-only portal, access-expired page |
+
+## Handoff rules (from the original handoff pack — still generally true)
+
+- The PRD and finalized implementation decisions are the approved product baseline; use change control (per CLAUDE.md) for anything that changes an approved role, tax behavior, numbering, workflow state, payment behavior, migration rule, legal output, or launch/deferred scope.
+- UI design follows `docs/rebuild/DESIGN.md`, not the legacy navigation.
+- Printed documents default to Bahasa Indonesia terminology aligned with Indonesian business usage, with per-document English override.
+- The admin surface is now a hand-built TallStackUI/Livewire admin (Filament has been fully removed) — see `memory.md`'s Current state before assuming any older doc's "Filament" references still apply literally.
