@@ -74,6 +74,19 @@ re-run completed audits unless new evidence contradicts them.
   `App\Enums\VendorPaymentStatus` and `App\Actions\Procurement\
   {VerifyVendorPayment,IssueVendorPaymentReceipt,ReverseVendorPayment,
   AmendVendorPayment}`.
+- **Decided (2026-09-15): the entire admin interface is being rebuilt in
+  hand-built TallStackUI/Livewire, replacing Filament.** Full plan, Stitch
+  screen inventory, phase order, and reusable TallStackUI patterns/gotchas
+  are in `docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md` — read
+  that file before doing any further TALL-stack work, it is the resume
+  point. Key constraints, already agreed with the user: Filament stays
+  installed and running at `/admin/**` in parallel until every phase is
+  verified (no removal without a separate explicit go-ahead); every new
+  page reuses the exact same domain actions/services/policies the Filament
+  resource already calls (presentation-layer swap only, no business-logic
+  change); match the Google Stitch "KapturInvoice Admin Workflow UI"
+  project (`projectId 17287642508359312726`) as closely as possible.
+  Phase 0 (Dashboard, `/tall/{company:slug}/dashboard`) is done.
 
 ## Binding product decisions
 
