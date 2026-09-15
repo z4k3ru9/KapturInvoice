@@ -34,6 +34,7 @@ use App\Livewire\TallStackHandoverReports;
 use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackPaymentAllocation;
+use App\Livewire\TallStackPaymentGateways;
 use App\Livewire\TallStackPayments;
 use App\Livewire\TallStackPriceListItems;
 use App\Livewire\TallStackProducts;
@@ -373,6 +374,16 @@ Route::get('/tall/{company:slug}/settings/numbering', TallStackSettingsNumbering
 Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
     ->middleware('auth')
     ->name('tallstack.settings.client-portal');
+
+// Payment Gateways — register and configuration (pre-Filament-removal
+// audit gap; docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// prompt 20). Same explicit company-ownership re-check pattern as every
+// other TALL-stack route, plus the same CompanyPolicy::viewSettings()
+// (Owner/Admin only) gate the other Settings-group pages above already
+// apply, checked in the component's own mount().
+Route::get('/tall/{company:slug}/payment-gateways', TallStackPaymentGateways::class)
+    ->middleware('auth')
+    ->name('tallstack.payment-gateways');
 
 // Proposals — register and SOW rich editor (deferred-scope item, no
 // earlier phase number; see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
