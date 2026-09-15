@@ -23,7 +23,7 @@ class ExpenseCategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Expenses';
+    protected static string|UnitEnum|null $navigationGroup = 'Procurement';
 
     protected static ?string $recordTitleAttribute = 'name';
 

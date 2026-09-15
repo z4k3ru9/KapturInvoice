@@ -4,6 +4,8 @@ namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\ExpenseCategories\ExpenseCategoryResource;
 use App\Filament\Resources\Expenses\ExpenseResource;
+use App\Filament\Resources\Expenses\Pages\ListExpenses;
+use App\Filament\Resources\Expenses\Pages\ViewExpense;
 use App\Filament\Resources\Vendors\VendorResource;
 use App\Models\Company;
 use App\Models\ExpenseCategory;
@@ -13,6 +15,7 @@ use App\Models\Vendor;
 use App\Services\ExpenseTotalsCalculator;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ExpensesTest extends TestCase
@@ -65,5 +68,55 @@ class ExpensesTest extends TestCase
 
         $this->assertSame('10.00', (string) $expense->tax_total);
         $this->assertSame('110.00', (string) $expense->total);
+    }
+
+    public function test_vendor_expense_and_expense_category_resources_are_in_the_procurement_nav_group(): void
+    {
+        foreach ([VendorResource::class, ExpenseResource::class, ExpenseCategoryResource::class] as $resource) {
+            $this->assertSame('Procurement', $resource::getNavigationGroup());
+        }
+    }
+
+    public function test_expenses_table_can_be_filtered_by_vendor_and_sorts_by_expense_date_by_default(): void
+    {
+        $vendorA = Vendor::create(['company_id' => $this->company->id, 'name' => 'Vendor A']);
+        $vendorB = Vendor::create(['company_id' => $this->company->id, 'name' => 'Vendor B']);
+        $category = ExpenseCategory::create(['company_id' => $this->company->id, 'name' => 'Office']);
+
+        $older = $this->company->expenses()->create([
+            'vendor_id' => $vendorA->id,
+            'expense_category_id' => $category->id,
+            'expense_date' => now()->subDays(5),
+            'subtotal' => 100,
+        ]);
+        $newer = $this->company->expenses()->create([
+            'vendor_id' => $vendorB->id,
+            'expense_category_id' => $category->id,
+            'expense_date' => now(),
+            'subtotal' => 200,
+        ]);
+
+        Livewire::test(ListExpenses::class)
+            ->assertCanSeeTableRecords([$newer, $older], inOrder: true)
+            ->filterTable('vendor_id', $vendorA->id)
+            ->assertCanSeeTableRecords([$older])
+            ->assertCanNotSeeTableRecords([$newer]);
+    }
+
+    public function test_expense_infolist_groups_amounts_and_record_metadata_into_sections(): void
+    {
+        $vendor = Vendor::create(['company_id' => $this->company->id, 'name' => 'ACME Supplies']);
+        $category = ExpenseCategory::create(['company_id' => $this->company->id, 'name' => 'Office']);
+
+        $expense = $this->company->expenses()->create([
+            'vendor_id' => $vendor->id,
+            'expense_category_id' => $category->id,
+            'subtotal' => 100,
+        ]);
+
+        Livewire::test(ViewExpense::class, ['record' => $expense->getRouteKey()])
+            ->assertSchemaComponentExists('vendor.name')
+            ->assertSchemaComponentExists('subtotal')
+            ->assertSchemaComponentExists('legacy_expense_id');
     }
 }
