@@ -14,13 +14,13 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <x-dropdown text="{{ $periodLabel }}" icon="calendar" sm>
+            <x-dropdown text="{{ $periodLabel }}" icon="calendar" scope="toolbar">
                 @foreach ($periods as $value => $label)
                     <x-dropdown.items :text="$label" wire:click="$set('period', '{{ $value }}')" />
                 @endforeach
             </x-dropdown>
-            <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" />
-            <x-button icon="arrow-path" square sm color="gray" wire:click="$refresh" />
+            <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" />
+            <x-button icon="arrow-path" square sm color="gray" class="h-9 w-9" wire:click="$refresh" />
         </div>
     </div>
 

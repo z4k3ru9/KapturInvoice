@@ -81,9 +81,28 @@
                     </div>
                 </div>
             </x-slot:brand>
+            {{-- Collapsed rail: logo only, no name — the full name has no
+                 room in the railed width and only ever showed truncated. --}}
+            <x-slot:brandCollapsed>
+                <div class="flex items-center justify-center px-1">
+                    @if ($logo)
+                        <img src="{{ $logo }}" alt="{{ $company->name }}" class="w-8 h-8 rounded-lg object-cover shrink-0">
+                    @else
+                        <span class="w-8 h-8 rounded-lg grid place-items-center text-white font-bold text-sm shrink-0"
+                              style="background: {{ $primary }}">{{ mb_substr($company->name, 0, 1) }}</span>
+                    @endif
+                </div>
+            </x-slot:brandCollapsed>
 
             @foreach ($nav as $group => $items)
-                <div class="px-3 pt-4 pb-1 text-[11px] font-semibold tracking-wide text-gray-400 uppercase">{{ $group }}</div>
+                {{--
+                    A plain text label truncates/wraps badly at the railed
+                    (collapsed) width — x-side-bar.separator is TallStackUI's
+                    own collapse-aware group divider: it shows the label
+                    when expanded and fades to just the rule line when
+                    railed, so nothing gets forced to show past its width.
+                --}}
+                <x-side-bar.separator text="{{ $group }}" line scope="nav" />
                 @foreach ($items as $item)
                     {{--
                         The component's own default text color is
@@ -104,39 +123,53 @@
                     </x-side-bar.item>
                 @endforeach
             @endforeach
-
-            <x-slot:footer>
-                <div class="px-3 py-3 text-[11px] text-gray-400 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> System online &middot; v2.4
-                </div>
-            </x-slot:footer>
         </x-side-bar>
     </x-slot:menu>
 
     <x-slot:header>
-        <x-layout.header>
+        <x-layout.header without-mobile-button>
             <x-slot:left>
-                <button type="button"
-                        x-show="$store['tsui.side-bar'].collapsible"
-                        x-on:click="$store['tsui.side-bar'].toggle()"
-                        x-bind:aria-expanded="!$store['tsui.side-bar'].collapsed"
-                        x-cloak
-                        aria-label="Collapse sidebar"
-                        class="hidden md:!grid place-items-center w-8 h-8 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0">
-                    <x-icon name="chevron-double-left" x-show="!$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
-                    <x-icon name="chevron-double-right" x-show="$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
-                </button>
+                {{--
+                    A single adaptive toggle rather than two separate icons:
+                    the package's own header renders its own mobile
+                    hamburger (opens the mobile drawer) alongside our
+                    desktop collapse toggle, and since both only ever
+                    render one-at-a-time by breakpoint they LOOK like two
+                    controls doing the same "open/close the nav" job side
+                    by side whenever a viewport briefly sits in between —
+                    `without-mobile-button` above drops the package's own
+                    one, and this single button below picks the right
+                    action (open the mobile drawer vs. collapse the rail)
+                    from the live viewport width instead of two elements
+                    that both claim to toggle navigation.
+                --}}
+                <div x-data="{
+                        desktop: window.matchMedia('(min-width: 768px)').matches,
+                        init() {
+                            window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => this.desktop = e.matches);
+                        },
+                     }">
+                    <button type="button"
+                            x-on:click="desktop ? $store['tsui.side-bar'].toggle() : (tallStackUiMenuMobile = !tallStackUiMenuMobile)"
+                            x-bind:aria-expanded="desktop ? !$store['tsui.side-bar'].collapsed : tallStackUiMenuMobile"
+                            aria-label="Toggle navigation"
+                            class="grid place-items-center h-9 w-9 rounded-lg text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shrink-0">
+                        <x-icon name="bars-3" x-show="!desktop" class="w-5 h-5" />
+                        <x-icon name="chevron-double-left" x-show="desktop && !$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
+                        <x-icon name="chevron-double-right" x-show="desktop && $store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
+                    </button>
+                </div>
                 <div class="hidden sm:!block relative">
                     <x-icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="search" placeholder="Search records, clients, invoices…"
-                           class="w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800 dark:bg-gray-900 pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                           class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800 dark:bg-gray-900 pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
                 </div>
             </x-slot:left>
             <x-slot:right>
                 <div class="flex items-center gap-2">
-                    <x-button icon="plus" text="New" color="primary" sm />
-                    <x-button icon="bell" square color="gray" sm />
-                    <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm />
+                    <x-button icon="plus" text="New" color="primary" sm class="h-9" />
+                    <x-button icon="bell" square color="gray" sm class="h-9 w-9" />
+                    <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
                 </div>
             </x-slot:right>
         </x-layout.header>
@@ -144,6 +177,31 @@
 
     {{ $slot }}
 </x-layout>
+
+{{--
+    A floating status indicator rather than the sidebar's own footer slot:
+    the footer sits inside the sidebar's fixed, `overflow-hidden` rail, so
+    at the railed (collapsed) width its text had nowhere to go but get
+    clipped mid-word. Floating it outside the sidebar avoids that clipping
+    entirely and reads like a toast rather than a cut-off label.
+--}}
+<div x-data="{ open: false, online: true }"
+     x-on:mouseenter="open = true"
+     x-on:mouseleave="open = false"
+     class="fixed bottom-4 left-4 z-40">
+    <div x-show="open" x-transition x-cloak
+         class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-xl">
+        <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full shrink-0" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="online ? 'All systems operational' : 'System offline'"></span>
+        </div>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">KapturInvoice v2.4 &middot; {{ now()->year }}</p>
+    </div>
+    <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
+        <span class="h-2 w-2 rounded-full" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-300" x-text="online ? 'Online' : 'Offline'"></span>
+    </div>
+</div>
 
 @livewireScripts
 @tallStackUiScript
