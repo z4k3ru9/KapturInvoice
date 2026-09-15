@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class InvoicePdfController extends Controller
 
         $invoice->loadMissing('client', 'company', 'items');
 
-        return Pdf::loadView('pdf.invoice', ['invoice' => $invoice])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.invoice', ['invoice' => $invoice]))
             ->stream("{$invoice->number}.pdf");
     }
 }

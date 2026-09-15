@@ -123,4 +123,9 @@ return [
     'soa_no_activity' => 'No activity in this period',
     'soa_generated_at' => 'Generated at',
     'soa_preview' => 'PREVIEW — NOT YET GENERATED',
+
+    // Phase 8 (PDF pagination footer) — shared across every printed
+    // document via resources/views/pdf/partials/page-footer.blade.php.
+    'page' => 'Page',
+    'of' => 'of',
 ];

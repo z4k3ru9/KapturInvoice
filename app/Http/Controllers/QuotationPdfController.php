@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Quotation;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -25,7 +26,7 @@ class QuotationPdfController extends Controller
         // product picture, when the linked product has one.
         $quotation->loadMissing('client', 'company', 'items.product');
 
-        return Pdf::loadView('pdf.quotation', ['quotation' => $quotation])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.quotation', ['quotation' => $quotation]))
             ->stream("{$quotation->number}.pdf");
     }
 }

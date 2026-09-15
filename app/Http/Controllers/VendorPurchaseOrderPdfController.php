@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VendorPurchaseOrder;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,7 +23,7 @@ class VendorPurchaseOrderPdfController extends Controller
 
         $vendorPurchaseOrder->loadMissing('vendor', 'company', 'items');
 
-        return Pdf::loadView('pdf.vendor-purchase-order', ['vendorPurchaseOrder' => $vendorPurchaseOrder])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.vendor-purchase-order', ['vendorPurchaseOrder' => $vendorPurchaseOrder]))
             ->stream("{$vendorPurchaseOrder->number}.pdf");
     }
 }

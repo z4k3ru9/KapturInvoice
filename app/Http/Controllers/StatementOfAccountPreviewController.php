@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\StatementOfAccount;
 use App\Services\Reports\BuildStatementOfAccount;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -54,7 +55,7 @@ class StatementOfAccountPreviewController extends Controller
         $preview->setRelation('company', $client->company);
         $preview->setRelation('client', $client);
 
-        return Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $preview])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $preview]))
             ->stream('SOA-preview.pdf');
     }
 }

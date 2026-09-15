@@ -6,6 +6,7 @@ use App\Mail\CompanyTemplatedMail;
 use App\Models\Quotation;
 use App\Services\Concerns\ResolvesBillingContact;
 use App\Services\EmailTemplateRenderer;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Mail;
@@ -58,7 +59,7 @@ class QuotationMailer
         // Reuses QuotationPdfController's exact rendering — same view,
         // same loaded relations — rather than a second copy of the
         // Blade template.
-        $pdf = Pdf::loadView('pdf.quotation', ['quotation' => $quotation])->output();
+        $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.quotation', ['quotation' => $quotation]))->output();
 
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),

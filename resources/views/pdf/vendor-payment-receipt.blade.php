@@ -31,6 +31,7 @@
     <meta charset="utf-8">
     <title>{{ __('documents.vendor_payment_receipt_title') }} {{ $vendorPaymentReceipt->number }}</title>
     <style>
+        @include('pdf.partials.page-footer')
         body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #1f2937; }
         .header { width: 100%; margin-bottom: 24px; }
         .header td { vertical-align: top; }

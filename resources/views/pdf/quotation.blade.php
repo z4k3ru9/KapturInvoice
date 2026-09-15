@@ -26,6 +26,7 @@
     <meta charset="utf-8">
     <title>{{ $documentTypeLabel }} {{ $quotation->number }}</title>
     <style>
+        @include('pdf.partials.page-footer')
         {{-- dompdf has limited CSS support (no flexbox/grid) — plain
              block/table layout only, per docs/filament-admin-layout-design.md §7. --}}
         body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #1f2937; }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +25,7 @@ class InvoicePdfController extends Controller
             404
         );
 
-        return Pdf::loadView('pdf.invoice', ['invoice' => $invitation->invoice])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.invoice', ['invoice' => $invitation->invoice]))
             ->stream("{$invitation->invoice->number}.pdf");
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VendorPaymentReceipt;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,7 +23,7 @@ class VendorPaymentReceiptPdfController extends Controller
 
         $vendorPaymentReceipt->loadMissing('company', 'vendorPayment.vendorBill.vendor');
 
-        return Pdf::loadView('pdf.vendor-payment-receipt', ['vendorPaymentReceipt' => $vendorPaymentReceipt])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.vendor-payment-receipt', ['vendorPaymentReceipt' => $vendorPaymentReceipt]))
             ->stream("{$vendorPaymentReceipt->number}.pdf");
     }
 }
