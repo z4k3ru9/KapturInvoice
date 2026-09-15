@@ -13,11 +13,13 @@ be created/refreshed from. This is deliberately a *separate* concept from
   both entry points below.
 - `php artisan import:pricelist {company} {file} {--brand=}` — CLI entry
   point (`App\Console\Commands\ImportPriceList`).
-- **Catalog > Price List**'s "Import pricelist" header action — the
-  self-service, no-shell-access entry point
-  (`App\Filament\Resources\PriceListItems`), for updating it regularly as
-  new vendor pricelists arrive.
-- **"Create/update product"** row action on the same resource
+- **`App\Livewire\TallStackPriceListItems`** (routed at
+  `/tall/{company:slug}/price-list-items`) — the self-service,
+  no-shell-access entry point: its "Import pricelist" action
+  (`openImportModal()`/`import()`) reuses `PriceListImporter` exactly as
+  above, for updating it regularly as new vendor pricelists arrive.
+  Register/list only — no hand-edit-a-row form.
+- **"Create/update product"** row action on the same page
   (`App\Services\ProductSync`) — turns/refreshes a chosen `PriceListItem`
   row into a real, invoiceable `Product`, linked via
   `products.price_list_item_id`.
