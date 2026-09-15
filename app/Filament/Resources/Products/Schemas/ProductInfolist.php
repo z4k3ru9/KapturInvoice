@@ -7,6 +7,7 @@ use Filament\Facades\Filament;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ProductInfolist
@@ -15,9 +16,17 @@ class ProductInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('legacy_product_id')
-                    ->numeric()
-                    ->placeholder('-'),
+                // Import traceability only — mirrors ProductForm's own
+                // collapsed, conditional section (Stitch/§9 do not show
+                // this on the operational catalog view).
+                Section::make('Import traceability')
+                    ->collapsed()
+                    ->components([
+                        TextEntry::make('legacy_product_id')
+                            ->numeric()
+                            ->placeholder('-'),
+                    ])
+                    ->visible(fn (Product $record): bool => filled($record->legacy_product_id)),
                 TextEntry::make('sku')
                     ->label('SKU')
                     ->placeholder('-'),
