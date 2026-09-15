@@ -127,6 +127,24 @@ class AppServiceProvider extends ServiceProvider
             'line.border' => 'border-gray-200 dark:border-dark-700 w-full border-t',
             'line.base' => 'dark:bg-dark-800 text-gray-400 bg-white px-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap overflow-hidden transition-all duration-150',
         ]);
+
+        // The package's own default "input.base" class
+        // (TallStackUi\Components\Traits\FormDefaultInputClasses::input())
+        // carries `py-1.5` but genuinely no horizontal padding at all — a
+        // plain <x-input>/<x-textarea> with no icon/prefix/suffix (the
+        // vast majority of fields across every TALL-stack page) renders
+        // its typed/displayed text flush against the field's left ring
+        // border, not just visually tight against it. Confirmed by
+        // reading the vendor source, not a customization this app
+        // introduced — `input.paddings.left/right` only apply when an
+        // `icon` prop is set. <x-select.styled>'s selected-value box has
+        // the same gap in its own separate customization array
+        // ('input.wrapper.base'). Fixed globally here rather than adding
+        // a `class="px-3"` to every one of the ~225 call sites across
+        // this session's pages.
+        TallStackUi::customize()->form('input')->block('input.base')->append('px-3');
+        TallStackUi::customize()->form('textarea')->block('input.base')->append('px-3');
+        TallStackUi::customize()->select('styled')->block('input.wrapper.base')->append('px-3');
     }
 
     /**
