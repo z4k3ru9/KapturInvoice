@@ -28,6 +28,8 @@ class ExpenseResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Procurement';
 
+    protected static ?string $recordTitleAttribute = 'transaction_reference';
+
     public static function form(Schema $schema): Schema
     {
         return ExpenseForm::configure($schema);

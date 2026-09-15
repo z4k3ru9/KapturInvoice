@@ -27,6 +27,8 @@ use Throwable;
     'quote_prefix', 'quote_next_number',
     'credit_prefix', 'credit_next_number',
     'default_payment_terms', 'default_tax_rate_1_id', 'default_tax_rate_2_id',
+    'signatory_name', 'signatory_title', 'signature_image_path',
+    'bank_name', 'bank_account_number', 'bank_account_name', 'payment_instructions',
 ])]
 class Company extends Model implements HasName
 {
@@ -154,6 +156,33 @@ class Company extends Model implements HasName
             $mimeType = $disk->mimeType($this->logo_path) ?: 'image/png';
 
             return 'data:'.$mimeType.';base64,'.base64_encode($disk->get($this->logo_path));
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * The signature image as a base64 data URI, mirroring
+     * getLogoDataUri() exactly — same local-disk-read-and-inline
+     * rationale, since dompdf can't fetch a `Storage::url()` for the
+     * `local` disk either. Returns null when unset or missing.
+     */
+    public function getSignatureDataUri(): ?string
+    {
+        if (blank($this->signature_image_path)) {
+            return null;
+        }
+
+        try {
+            $disk = Storage::disk(config('filesystems.default'));
+
+            if (! $disk->exists($this->signature_image_path)) {
+                return null;
+            }
+
+            $mimeType = $disk->mimeType($this->signature_image_path) ?: 'image/png';
+
+            return 'data:'.$mimeType.';base64,'.base64_encode($disk->get($this->signature_image_path));
         } catch (Throwable) {
             return null;
         }

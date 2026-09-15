@@ -519,6 +519,47 @@ Or just `composer setup` (runs the same steps via the composer script).
     reduced the balance differently depending only on which side of the
     period boundary its `verified_at` fell — both now use the full
     verified-payment-amount basis.
+- **Stitch UI remake — Track A1 (shell) + A2 (dashboard)** — per
+  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
+  Track A, implemented pre-PR#4-merge since these files don't overlap that
+  branch's diff. Full detail in
+  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md`;
+  see `docs/filament-admin-layout-design.md` §1/§9 for the current
+  nav-group/dashboard-widget state.
+  - **Shell** — `AdminPanelProvider` now pins nav-group order (Sales →
+    Procurement → Delivery → Catalog → Reports → Settings), applies each
+    tenant's own `primary_color` via `App\Http\Middleware\
+    ApplyCompanyBrand` (`->tenantMiddleware([...], isPersistent: true)`,
+    since `->colors()` itself runs before the tenant resolves), renders
+    the tenant's own logo/name in the brand slot
+    (`Company::getLogoDataUri()`), drops the stock `Widgets\AccountWidget`,
+    adds `->sidebarCollapsibleOnDesktop()`, and hides Filament's manual
+    dark-mode switcher (`->themeSwitcher(false)`, dark mode itself stays
+    on and system-controlled per DESIGN.md §1). `VendorResource` moved
+    from `Expenses` to `Procurement`. `CompanySeeder`'s `primary_color`/
+    `secondary_color` now match DESIGN.md §10's real hexes (`#E63934`/
+    `#050708` Karunia, `#5065A8`/`#64748B` Axen) — no Stitch placeholder
+    logo SVGs adopted (`memory.md`).
+  - **Dashboard** — `DashboardPeriod` gains a `this_quarter` option (grouped
+    by month, same >60-day rule as a long custom range) and a `previous()`
+    helper for period-over-period deltas. `RevenueOverview` now shows five
+    stats (Total revenue with a delta, Outstanding balance, Overdue
+    invoices, Open quotations, Active jobs) formatted via the new
+    `App\Filament\Support\Money` (`Number::currency(..., locale: 'id',
+    precision: 0)`). `RevenueTrendChart` gained a second series (cash
+    collected vs. legacy-invoiced) and a companion `RevenueTrendTable`
+    accessible alternative — both share one query,
+    `App\Filament\Support\RevenueBuckets`. The legacy `ExpiringQuotesWidget`
+    (over `invoices`/`type=quote`) is retired in favor of
+    `ExpiringQuotationsWidget`, reading the canonical
+    `Quotation.valid_until`. Two new widgets: `ActionQueueWidget`
+    (`App\Filament\Support\ActionQueue` — DESIGN.md §3's per-role queue,
+    Owner/Admin/Accountant/Sales/Staff each get their own item set, real
+    company-scoped data, plain index links only — no `?tableFilters=`
+    deep link yet, that needs status-filter wiring on
+    `InvoicesTable`/`QuotationsTable`/`SalesOrdersTable` deferred to
+    Track B) and `SetupChecklistWidget` (`App\Filament\Support\
+    SetupChecklist` — five first-run steps, hides itself once complete).
 - **Renovation Phase 06 (documents, portal, and reporting)** — per
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
@@ -834,7 +875,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 412 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
+php artisan test      # 454 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 
