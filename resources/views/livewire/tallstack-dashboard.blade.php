@@ -113,8 +113,8 @@
                 @endinteract
                 @interact('column_actions', $row, $company)
                     <div class="flex items-center justify-end gap-2">
-                        <x-button text="Review" href="/admin/{{ $company->slug }}/quotations/{{ $row['id'] }}" sm color="gray" />
-                        <x-dropdown text="Extend / Void" sm color="gray">
+                        <x-button icon="eye" href="/admin/{{ $company->slug }}/quotations/{{ $row['id'] }}" square sm color="gray" class="h-9 w-9" tooltip="Review" />
+                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
                             <x-dropdown.items text="Extend 7 days" icon="calendar" />
                             <x-dropdown.items text="Void quotation" icon="x-circle" />
                         </x-dropdown>
@@ -143,7 +143,7 @@
                                 <span class="text-sm truncate text-gray-700 dark:text-gray-200">{{ $item['count'] }} {{ $item['label'] }}</span>
                             </div>
                             @if ($item['url'])
-                                <a href="{{ $item['url'] }}" class="text-xs font-semibold shrink-0 text-[color:var(--ts-primary)]">View</a>
+                                <x-button text="View" href="{{ $item['url'] }}" color="primary" sm class="shrink-0" />
                             @endif
                         </li>
                     @endforeach
