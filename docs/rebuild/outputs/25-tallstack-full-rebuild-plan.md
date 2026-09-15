@@ -64,10 +64,14 @@ Dashboard mockup comparison worked earlier this session.
 **No dedicated Stitch screen found for**: Clients (list/detail), Users,
 Proposals/Proposal Templates/Snippets, Tax Rates, Expense Categories, Task
 Statuses, Price List Items, Credits, Recurring Invoices, Statement of
-Accounts. Build these following the Dashboard/Job Workspace visual
-conventions (same shell, same card/table/badge patterns) rather than
-inventing a new look, and flag them for a Stitch pass later if the user
-wants dedicated mockups.
+Accounts. **Update: ready-to-paste Stitch generation prompts for all of
+these now exist** — see
+[`26-stitch-missing-screens-prompts.md`](26-stitch-missing-screens-prompts.md)
+(numbered 10-17, continuing the original project's own
+`kapturinvoice-stitch-prompts.md` 1-9). Generate those screens (via
+Stitch directly, or `mcp__Google_Stich__generate_screen_from_text` with
+`projectId 17287642508359312726`) before building the corresponding
+phase below, the same way Phase 1 (Quotations) already had its screens.
 
 ## Phase order
 
