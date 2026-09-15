@@ -15,6 +15,7 @@
             ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
             ['key' => 'payments', 'label' => 'Payments', 'route' => route('tallstack.payments', $company), 'icon' => 'credit-card'],
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
+            ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
         ],
         // Mirrors App\Filament\Resources\Proposals\ProposalResource's own
         // navigationGroup ('Proposals', a group of its own rather than
