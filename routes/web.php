@@ -23,6 +23,8 @@ use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
+use App\Livewire\TallStackClientDetail;
+use App\Livewire\TallStackClients;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
@@ -154,6 +156,19 @@ Route::get('/tall/{company:slug}/quotations/create', TallStackQuotationForm::cla
 Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotationForm::class)
     ->middleware('auth')
     ->name('tallstack.quotations.edit');
+
+// Phase 5 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Clients register and detail view, TALL-stack-native alongside the
+// Filament resource they mirror (App\Filament\Resources\Clients).
+// `/clients` is registered before `/clients/{client}` so the literal
+// segment binds first. Both components re-check company ownership
+// explicitly in mount(), same reasoning as the Quotations routes above.
+Route::get('/tall/{company:slug}/clients', TallStackClients::class)
+    ->middleware('auth')
+    ->name('tallstack.clients');
+Route::get('/tall/{company:slug}/clients/{client}', TallStackClientDetail::class)
+    ->middleware('auth')
+    ->name('tallstack.clients.show');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
