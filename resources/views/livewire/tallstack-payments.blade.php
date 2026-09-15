@@ -2,10 +2,11 @@
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Payments']]" title="Payments">
         <x-slot:actions>
-            {{-- color="blue", not "primary" — see app.blade.php's own
-                 "+New" button for why: a general action shouldn't borrow
-                 the tenant's brand color. --}}
-            <x-button text="Record payment" icon="plus" color="blue" sm class="h-9" wire:click="openRecordModal" />
+            {{-- color="brand" — Primary role (AppServiceProvider::
+                 registerActionColorPalette()'s docblock): the single main
+                 action of the Payments list, so it gets the tenant's own
+                 brand color. --}}
+            <x-button text="Record payment" icon="plus" color="brand" sm class="h-9" wire:click="openRecordModal" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -116,7 +117,8 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showRecordModal', false)" />
-            <x-button text="Record payment" color="blue" wire:click="recordPayment" />
+            {{-- color="brand" — this modal's own single commit action (Primary role). --}}
+            <x-button text="Record payment" color="brand" wire:click="recordPayment" />
         </x-slot:footer>
     </x-modal>
 

@@ -200,6 +200,127 @@ class AppServiceProvider extends ServiceProvider
             'dark:border-b-dark-600/50 border-b border-gray-100',
             'border-b border-[color:color-mix(in_srgb,var(--ts-primary)_20%,transparent)]'
         );
+
+        $this->registerActionColorPalette();
+        $this->registerTallStackUiGlobals();
+    }
+
+    /**
+     * The app's deliberate, named `<x-button color="...">` palette — one
+     * semantic role per kind of action, reused everywhere rather than each
+     * page picking a color ad hoc (the state this app was actually in
+     * before this method existed: `color="blue"` alone covered "New X" nav
+     * buttons, "Save", "Send", "Add line item", and plain navigation links,
+     * with no way to tell any of those intents apart by color). Every role
+     * below maps to a TallStackUI color/style verified from the real
+     * vendor source (`vendor/tallstackui/tallstackui/src/Support/Colors/
+     * Components/NormalButtonColors.php`, `.../Components/Button/Normal/
+     * Component.php`) and the package's own docs
+     * (https://tallstackui.com/docs/customization/color) — `solid` (this
+     * app's only style in practice) resolves a color name through
+     * `data_get($palette, "{$style}.{$color}")`, so `color="gray"` etc.
+     * below are the package's own built-in Tailwind palette entries
+     * (unmodified), and `color="brand"` is a new entry this app adds via
+     * `App\View\Components\TallStackUi\Colors\NormalButtonColors` (see
+     * that class's own docblock for exactly how TallStackUI's
+     * `#[ColorsThroughOf(...)]` color-personalization mechanism resolves
+     * it — a real, documented extension point, not a `scope`/`block()`
+     * override standing in for one).
+     *
+     * | Role                  | `color=`  | Used for                                                                 |
+     * |------------------------|-----------|---------------------------------------------------------------------------|
+     * | Primary                | `brand`   | The single main create/commit action of the current page or modal (e.g. "New invoice", the invoice form's "Save", a modal's non-Cancel submit button) — the current tenant's own `--ts-primary` brand color (Karunia's red, Axen's blue), never a fixed hex, so "the button that does the main thing" always reads as that company's own identity. |
+     * | Neutral / secondary     | `gray`    | Cancel, Back, and any non-primary structural/utility action (Export, Refresh, "Add line item", icon-only row actions like view/edit/download). Already the package default gray — unchanged. |
+     * | Success / confirm       | `green`   | A forward, non-destructive state transition that finalizes something (Issue, Verify a payment). Standard "green = approved/confirmed" convention — unchanged from this app's existing usage. |
+     * | Destructive             | `red`     | Delete, Void & reissue, Reverse, Remove — anything that ends, cancels, or undoes a record. Standard "red = destructive" convention — unchanged. |
+     * | Caution / sensitive     | `amber`   | Non-destructive but sensitive overrides (Test connection, Record/Approve a vendor PO variance) — already this app's existing usage, kept as-is. |
+     * | Info / communicate      | `blue`    | Outbound communication (Send/Resend an invoice) and read-only navigation (a dashboard's "View all"/"View" links). Kept as its own role, distinct from Primary, specifically so a toolbar like the invoice form's Issue/Send/Amend/Void row — four buttons that DO sit side by side — never has two of them collapse onto the same hue (Primary reusing the tenant's OWN brand red for Karunia would otherwise land visually on top of the Destructive red two buttons over). |
+     *
+     * Primary (`brand`) and Destructive (`red`) are the one pair worth
+     * flagging explicitly: Karunia Abadi's own brand color IS a red
+     * (`#E63934`), so on that tenant a Primary button and a Destructive
+     * button are both, unavoidably, "a red button" — the two are never
+     * rendered inside the same toolbar/button-group in this app today
+     * (verified across every page this palette was applied to), so they
+     * are never seen side by side, but a future page that puts a Primary
+     * "brand" action directly next to a Destructive "red" one on Karunia's
+     * tenant would read as two shades of the same color, not two distinct
+     * actions — worth a real design pass (a different style, e.g.
+     * `outline`, for one of the two) if that layout ever comes up, rather
+     * than assuming the general "different hue families" guidance above
+     * always holds.
+     */
+    private function registerActionColorPalette(): void
+    {
+        // No block()/customize() call belongs in this method — the actual
+        // color mapping lives entirely in
+        // App\View\Components\TallStackUi\Colors\NormalButtonColors,
+        // TallStackUI's own color-personalization extension point (see its
+        // docblock). This method exists purely so the palette's rationale
+        // has one documented home next to every other cross-cutting
+        // TallStackUI customization in this file, per this file's own
+        // established pattern of "explain the WHY right next to the
+        // component being customized."
+    }
+
+    /**
+     * TallStackUI's "globals" preset system
+     * (https://tallstackui.com/docs/customization/globals) — a SEPARATE
+     * mechanism from the per-component `->form(...)`/`->button(...)`/
+     * `->card()` soft-customization calls above: those target one
+     * component's own `customization()`/color blocks, while
+     * `->globals()` applies one of three sweeping, cross-component
+     * presets app-wide: `flash()` (drops every component's `x-transition`
+     * directives for instant, non-animated show/hide), `square()` (strips
+     * every `rounded-*` class app-wide), and `colorful()` (inverts
+     * Dialog/Toast notification styling: the notification-type color
+     * becomes the body background with white text, instead of the
+     * package's default white card plus a small colored accent icon).
+     *
+     * Only `colorful()` is enabled here, scoped to `toast` alone
+     * (`dialog: false`):
+     * - This app's only interactive-notification surface in real use is
+     *   `TallStackUi\Traits\Interactions::toast()` — grep confirms every
+     *   Livewire component in `app/Livewire/*.php` calls
+     *   `$this->toast()->success(...)`/`->error(...)`, and NONE call
+     *   `$this->dialog()` or render `<x-dialog>` anywhere in this app.
+     *   Destructive confirmations here use Livewire's own native
+     *   `wire:confirm="..."` (a plain browser `confirm()` popup, not
+     *   TallStackUI's Dialog component) — see e.g. the invoice form's
+     *   "Issue"/"Remove this line item?" buttons. `colorful(dialog: true)`
+     *   would therefore be dead configuration with nothing in this
+     *   codebase to visibly affect; `colorful(toast: true)` immediately
+     *   changes real, already-shipping UI across the whole app.
+     * - The effect itself is exactly what ties Toast into the SAME
+     *   semantic system as the button palette documented above: a
+     *   `$this->toast()->success(...)` (paired with a Primary/Success
+     *   button action, e.g. "Invoice saved."/"Invoice issued.") now reads
+     *   as a bold green card instead of a neutral white one with a small
+     *   green icon, and `$this->toast()->error(...)` (paired with a
+     *   Destructive-flavored failure, e.g. "Could not issue invoice")
+     *   reads as bold red — the toast reinforces the same color meaning
+     *   the button that triggered it already carries, rather than being a
+     *   visually neutral notification that happens to have a colored
+     *   icon.
+     *
+     * `square()` is deliberately NOT enabled — this file's own
+     * `TallStackUi::customize()->stats('compact')->block([...])` call
+     * above documents a two-tier rounded-md/rounded-lg corner system
+     * that was specifically chosen over one flat radius (see that
+     * block's own comment: the same pixel radius reads differently on a
+     * wide button vs. a near-square icon button). `square()` strips
+     * every `rounded-*` class app-wide unconditionally, which would
+     * silently overwrite that already-settled, explicitly-reasoned
+     * design decision — out of scope for a color-palette task and not
+     * requested.
+     *
+     * `flash()` is also NOT enabled — it removes Alpine transition
+     * animations, an interaction/motion change, not a color one, and
+     * nothing about this task calls for it.
+     */
+    private function registerTallStackUiGlobals(): void
+    {
+        TallStackUi::customize()->globals()->colorful(toast: true, dialog: false);
     }
 
     /**

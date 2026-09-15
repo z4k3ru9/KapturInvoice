@@ -2,10 +2,11 @@
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Invoices']]" title="Invoices">
         <x-slot:actions>
-            {{-- color="blue", not "primary" — see Quotations register's own
-                 "+New" button for the same reasoning: a general action
-                 shouldn't borrow the tenant's brand color. --}}
-            <x-button text="New invoice" icon="plus" color="blue" sm class="h-9" href="{{ route('tallstack.invoices.create', $company) }}" />
+            {{-- color="brand" — Primary role (AppServiceProvider::
+                 registerActionColorPalette()'s docblock): this IS the
+                 single main action of the Invoices list, so it gets the
+                 tenant's own brand color rather than a fixed hue. --}}
+            <x-button text="New invoice" icon="plus" color="brand" sm class="h-9" href="{{ route('tallstack.invoices.create', $company) }}" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
