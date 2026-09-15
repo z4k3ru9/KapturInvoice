@@ -40,6 +40,8 @@ use App\Livewire\TallStackProposalForm;
 use App\Livewire\TallStackProposals;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
+use App\Livewire\TallStackRecurringInvoiceForm;
+use App\Livewire\TallStackRecurringInvoices;
 use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
 use App\Livewire\TallStackSettingsBranding;
@@ -208,6 +210,27 @@ Route::get('/tall/{company:slug}/invoices/create', TallStackInvoiceForm::class)
 Route::get('/tall/{company:slug}/invoices/{invoice}', TallStackInvoiceForm::class)
     ->middleware('auth')
     ->name('tallstack.invoices.edit');
+
+// Deferred-scope item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md
+// status checklist) — the Recurring Invoices register and its detail/
+// schedule-editor page, TALL-stack-native alongside the Filament resource
+// they mirror (App\Filament\Resources\RecurringInvoices). A recurring
+// template is an App\Models\Invoice row (`is_recurring = true`), so these
+// components/routes mirror the plain Invoices ones above field-for-field
+// — see App\Livewire\TallStackRecurringInvoiceForm's docblock for what's
+// deliberately different (no Issue/Send/Amend/Void lifecycle; a
+// "Generate now" action instead). `/create` is registered before
+// `/{invoice}/edit` so the literal segment binds first, same ordering
+// reasoning as the Quotations routes above.
+Route::get('/tall/{company:slug}/recurring-invoices', TallStackRecurringInvoices::class)
+    ->middleware('auth')
+    ->name('tallstack.recurring-invoices');
+Route::get('/tall/{company:slug}/recurring-invoices/create', TallStackRecurringInvoiceForm::class)
+    ->middleware('auth')
+    ->name('tallstack.recurring-invoices.create');
+Route::get('/tall/{company:slug}/recurring-invoices/{invoice}/edit', TallStackRecurringInvoiceForm::class)
+    ->middleware('auth')
+    ->name('tallstack.recurring-invoices.edit');
 
 // Phase 4 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Payments register and its allocation panel, TALL-stack-native alongside

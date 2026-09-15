@@ -13,6 +13,7 @@
         ],
         'Billing' => [
             ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
+            ['key' => 'recurring-invoices', 'label' => 'Recurring Invoices', 'route' => route('tallstack.recurring-invoices', $company), 'icon' => 'arrow-path'],
             ['key' => 'payments', 'label' => 'Payments', 'route' => route('tallstack.payments', $company), 'icon' => 'credit-card'],
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
             ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
