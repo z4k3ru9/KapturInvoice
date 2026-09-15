@@ -4,6 +4,7 @@ namespace App\Actions\Sales;
 
 use App\Enums\SalesOrderStatus;
 use App\Models\SalesOrder;
+use App\Services\AuditLogger;
 use RuntimeException;
 
 /**
@@ -14,6 +15,8 @@ use RuntimeException;
  */
 class TransitionSalesOrderStatus
 {
+    public function __construct(private AuditLogger $auditLogger) {}
+
     public function transition(SalesOrder $salesOrder, SalesOrderStatus $to): SalesOrder
     {
         if ($to === SalesOrderStatus::Approved) {
@@ -26,6 +29,8 @@ class TransitionSalesOrderStatus
             );
         }
 
+        $before = ['status' => $salesOrder->status->value, 'cancelled_at' => $salesOrder->cancelled_at];
+
         $salesOrder->status = $to;
 
         if ($to === SalesOrderStatus::Cancelled) {
@@ -33,6 +38,14 @@ class TransitionSalesOrderStatus
         }
 
         $salesOrder->save();
+
+        $this->auditLogger->record(
+            $salesOrder->company,
+            $to === SalesOrderStatus::Cancelled ? 'sales_order.cancelled' : 'sales_order.status_changed',
+            $salesOrder,
+            $before,
+            ['status' => $salesOrder->status->value, 'cancelled_at' => $salesOrder->cancelled_at],
+        );
 
         return $salesOrder;
     }

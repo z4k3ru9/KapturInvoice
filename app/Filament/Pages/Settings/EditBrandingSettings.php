@@ -8,6 +8,8 @@ use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -62,6 +64,23 @@ class EditBrandingSettings extends Page
                             ->columnSpanFull(),
                         ColorPicker::make('primary_color'),
                         ColorPicker::make('secondary_color'),
+                    ]),
+                Section::make('Signatory & banking')
+                    ->description('Printed on invoice/quotation PDFs once wired into rendering (a later slice) — not yet reflected in generated documents.')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('signatory_name'),
+                        TextInput::make('signatory_title'),
+                        FileUpload::make('signature_image_path')
+                            ->label('Signature image')
+                            ->image()
+                            ->directory('signatures')
+                            ->columnSpanFull(),
+                        TextInput::make('bank_name'),
+                        TextInput::make('bank_account_number'),
+                        TextInput::make('bank_account_name'),
+                        Textarea::make('payment_instructions')
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
