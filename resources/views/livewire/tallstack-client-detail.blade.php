@@ -149,8 +149,23 @@
                 @endinteract
 
                 @interact('column_actions', $row)
-                    <div class="flex items-center justify-end">
+                    <div class="flex items-center justify-end gap-2">
                         @unless ($row['revoked'])
+                            {{-- Client-side clipboard copy of the portal
+                                 link's own URL — same pattern as
+                                 tallstack-quotations.blade.php's "Copy
+                                 client acceptance link" action. Without
+                                 this, a link only ever existed in the
+                                 3s-default "generated and emailed" toast;
+                                 this row action is the durable way back
+                                 to it (e.g. the email step failed, or the
+                                 admin didn't copy it in time). --}}
+                            <button type="button"
+                                    x-on:click="window.navigator.clipboard.writeText('{{ route('portal.client-home', $row['key']) }}')"
+                                    title="Copy portal link"
+                                    class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                                <x-icon name="clipboard" class="w-4 h-4" />
+                            </button>
                             <x-button text="Revoke" color="red" scope="row-action" sm wire:click="revokePortalLink({{ $row['id'] }})" wire:confirm="Revoke this portal link?" />
                         @endunless
                     </div>

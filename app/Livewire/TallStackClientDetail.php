@@ -282,6 +282,11 @@ class TallStackClientDetail extends Component
      * Same action + mail dispatch as ContactsRelationManager's own
      * "Generate portal link" row action — a portal link is generated
      * from a contact, not the client directly.
+     *
+     * The generated link is always reachable afterward from the Portal
+     * Links tab's own "Copy link" row action (see the view), so this
+     * toast's longer timeout is just immediate feedback — not the only
+     * way back to the link if the admin misses the default 3s window.
      */
     public function generatePortalLink(int $contactId): void
     {
@@ -297,9 +302,9 @@ class TallStackClientDetail extends Component
 
         try {
             app(BillingMailer::class)->sendPortalLink($link);
-            $this->toast()->success('Portal link generated and emailed.')->send();
+            $this->toast()->timeout(10)->success('Portal link generated and emailed.')->send();
         } catch (RuntimeException $e) {
-            $this->toast()->error('Portal link created, but the email could not be sent', $e->getMessage())->send();
+            $this->toast()->timeout(10)->error('Portal link created, but the email could not be sent', $e->getMessage())->send();
         }
 
         $this->client->refresh()->load('portalLinks.contact');
@@ -404,6 +409,7 @@ class TallStackClientDetail extends Component
 
             return [
                 'id' => $link->id,
+                'key' => $link->key,
                 'contact' => $link->contact?->name ?? '—',
                 'created_at' => $link->created_at->format('d M Y'),
                 'expires_at' => $link->expires_at?->format('d M Y') ?? 'Never',
