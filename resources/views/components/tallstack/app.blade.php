@@ -44,6 +44,12 @@
         ],
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
+            // Deferred item, built alongside Products/Catalog
+            // (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+            // folded into this SAME 'Catalog' key, never a second
+            // 'Catalog' => [...] block (see this file's own duplicate-key
+            // warning further down).
+            ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
         ],
         // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order
