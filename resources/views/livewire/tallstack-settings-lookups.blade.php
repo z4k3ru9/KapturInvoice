@@ -42,33 +42,18 @@
                     <p class="text-xs text-gray-400 mt-1 max-w-sm">No tax rates are used — enable tax in Company & Taxes to configure rates.</p>
                 </div>
             @else
-                <x-table :headers="[
-                    ['index' => 'name', 'label' => 'Name'],
-                    ['index' => 'rate', 'label' => 'Rate', 'align' => 'right'],
-                    ['index' => 'is_inclusive', 'label' => 'Inclusive'],
-                    ['index' => 'actions', 'label' => '', 'sortable' => false],
-                ]" :rows="$taxRates">
-                    @interact('column_is_inclusive', $row)
-                        @if ($row['is_inclusive'])
-                            <x-icon name="check-circle" class="w-4 h-4 text-green-500" />
+                <x-list :items="$taxRates" searchable search-placeholder="Search tax rates…" compact>
+                    @interact('item_menu', $item)
+                        <x-dropdown.items text="Edit" icon="pencil" wire:click="openEditTaxRateModal({{ $item['id'] }})" />
+                        @if ($item['usage'] > 0)
+                            <x-dropdown.items text="In use — cannot delete" icon="lock-closed" separator />
                         @else
-                            <x-icon name="minus" class="w-4 h-4 text-gray-300" />
+                            <x-dropdown.items text="Delete" icon="trash" separator wire:click="deleteTaxRate({{ $item['id'] }})" wire:confirm="Delete this tax rate?" />
                         @endif
                     @endinteract
 
-                    @interact('column_actions', $row)
-                        <div class="flex items-center justify-end gap-2">
-                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="openEditTaxRateModal({{ $row['id'] }})" tooltip="Edit" />
-                            @if ($row['usage'] > 0)
-                                <x-button icon="trash" sm color="gray" scope="icon-action" class="h-9 w-9 opacity-40 cursor-not-allowed" disabled tooltip="In use by {{ $row['usage'] }} record{{ $row['usage'] === 1 ? '' : 's' }} — cannot delete." />
-                            @else
-                                <x-button icon="trash" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="deleteTaxRate({{ $row['id'] }})" wire:confirm="Delete this tax rate?" tooltip="Delete" />
-                            @endif
-                        </div>
-                    @endinteract
-
                     <x-slot:empty>No tax rates yet.</x-slot:empty>
-                </x-table>
+                </x-list>
             @endif
         </x-card>
     @endif
@@ -76,19 +61,14 @@
     {{-- Expense Categories ------------------------------------------------ --}}
     @if ($tab === 'expense-categories')
         <x-card>
-            <x-table :headers="[
-                ['index' => 'name', 'label' => 'Name'],
-                ['index' => 'actions', 'label' => '', 'sortable' => false],
-            ]" :rows="$expenseCategories">
-                @interact('column_actions', $row)
-                    <div class="flex items-center justify-end gap-2">
-                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="openEditExpenseCategoryModal({{ $row->id }})" tooltip="Edit" />
-                        <x-button icon="trash" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="deleteExpenseCategory({{ $row->id }})" wire:confirm="Delete this expense category?" tooltip="Delete" />
-                    </div>
+            <x-list :items="$expenseCategories" searchable search-placeholder="Search expense categories…" compact>
+                @interact('item_menu', $item)
+                    <x-dropdown.items text="Edit" icon="pencil" wire:click="openEditExpenseCategoryModal({{ $item['id'] }})" />
+                    <x-dropdown.items text="Delete" icon="trash" separator wire:click="deleteExpenseCategory({{ $item['id'] }})" wire:confirm="Delete this expense category?" />
                 @endinteract
 
                 <x-slot:empty>No expense categories yet.</x-slot:empty>
-            </x-table>
+            </x-list>
         </x-card>
     @endif
 
@@ -100,20 +80,18 @@
                  App\Models\TaskStatus's Fillable set and its own
                  "FROZEN — legacy" docblock) — deliberately not built
                  rather than inventing a field the schema doesn't have. --}}
-            <x-table :headers="[
-                ['index' => 'name', 'label' => 'Name'],
-                ['index' => 'sort_order', 'label' => 'Order'],
-                ['index' => 'actions', 'label' => '', 'sortable' => false],
-            ]" :rows="$taskStatuses">
-                @interact('column_actions', $row)
-                    <div class="flex items-center justify-end gap-2">
-                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="openEditTaskStatusModal({{ $row->id }})" tooltip="Edit" />
-                        <x-button icon="trash" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="deleteTaskStatus({{ $row->id }})" wire:confirm="Delete this task status?" tooltip="Delete" />
-                    </div>
+            <x-list :items="$taskStatuses" searchable search-placeholder="Search task statuses…" compact>
+                @interact('item_caption', $item)
+                    Order: {{ $item['sort_order'] }}
+                @endinteract
+
+                @interact('item_menu', $item)
+                    <x-dropdown.items text="Edit" icon="pencil" wire:click="openEditTaskStatusModal({{ $item['id'] }})" />
+                    <x-dropdown.items text="Delete" icon="trash" separator wire:click="deleteTaskStatus({{ $item['id'] }})" wire:confirm="Delete this task status?" />
                 @endinteract
 
                 <x-slot:empty>No task statuses yet.</x-slot:empty>
-            </x-table>
+            </x-list>
         </x-card>
     @endif
 

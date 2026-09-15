@@ -353,13 +353,19 @@ class TallStackSettingsLookups extends Component
                 ->where('company_id', $this->company->id)
                 ->orderBy('name')
                 ->get()
-                ->map(fn (TaxRate $taxRate) => [
-                    'id' => $taxRate->id,
-                    'name' => $taxRate->name,
-                    'rate' => number_format((float) $taxRate->rate, 3).'%',
-                    'is_inclusive' => (bool) $taxRate->is_inclusive,
-                    'usage' => $this->taxRateUsageCount($taxRate),
-                ]);
+                ->map(function (TaxRate $taxRate) {
+                    $rate = number_format((float) $taxRate->rate, 3).'%';
+                    $usage = $this->taxRateUsageCount($taxRate);
+
+                    return [
+                        'id' => $taxRate->id,
+                        'name' => $taxRate->name,
+                        'rate' => $rate,
+                        'is_inclusive' => (bool) $taxRate->is_inclusive,
+                        'usage' => $usage,
+                        'caption' => $rate.' · '.($taxRate->is_inclusive ? 'Inclusive' : 'Exclusive'),
+                    ];
+                });
         }
 
         $expenseCategories = ExpenseCategory::query()
