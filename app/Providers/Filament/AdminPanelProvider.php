@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             // Pre-tenant fallback only (the login page, tenant registration
             // — there's no resolved Company yet at this point in the
