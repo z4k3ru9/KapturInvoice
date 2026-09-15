@@ -236,6 +236,10 @@ class TallStackInvoiceForm extends Component
 
         $this->invoice_date = now()->toDateString();
         $this->currency_code = $company->currency_code;
+        // Phase 11 (repair plan, decision gate G5): prefill Terms from the
+        // company-wide default, never overwriting a real saved value —
+        // this whole branch only runs when there is no existing $invoice.
+        $this->terms = $company->default_payment_terms;
 
         // Reached from the Job's own Billing tab "Create invoice" action
         // (tallstack-sales-order.blade.php) — same `?<field>=` query-param

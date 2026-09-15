@@ -107,6 +107,11 @@ class TallStackVendorPurchaseOrderForm extends Component
         }
 
         $this->po_date = now()->toDateString();
+        // Phase 11 (repair plan, decision gate G5): prefill Terms from the
+        // company-wide default, never overwriting a real saved value —
+        // this whole branch only runs when there is no existing
+        // $purchaseOrder.
+        $this->terms = $company->default_payment_terms;
     }
 
     public function save(): void

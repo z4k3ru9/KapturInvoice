@@ -141,6 +141,15 @@ class TallStackQuotationForm extends Component
         }
 
         $this->quotation_date = now()->toDateString();
+        // Phase 11 (repair plan, decision gate G5): prefill Terms and
+        // Valid until from the company-wide defaults, never overwriting a
+        // real saved value — this whole branch only runs when there is no
+        // existing $quotation.
+        $this->terms = $company->default_payment_terms;
+
+        if ($company->default_expire_after_days) {
+            $this->valid_until = now()->addDays($company->default_expire_after_days)->toDateString();
+        }
     }
 
     /** Same client-default-discount prefill as QuotationForm's own afterStateUpdated(). */

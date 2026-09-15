@@ -111,7 +111,18 @@
                                 <x-select.styled wire:model.live="client_id" label="Client" searchable required
                                     :options="$clients->map(fn ($c) => ['label' => $c->name, 'value' => (string) $c->id])->all()" />
                             </div>
-                            <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                            {{--
+                                Number field: hidden entirely on create — the
+                                number is auto-assigned silently by
+                                App\Services\DocumentNumberGenerator at save
+                                time (Phase 11, repair plan). Kept visible and
+                                editable on edit, since a manually typed
+                                number on an already-saved document must stay
+                                correctable.
+                            --}}
+                            @if ($quotation)
+                                <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                            @endif
                             <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
                                 :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
                             <x-select.styled wire:model="job_type" label="Job type" required

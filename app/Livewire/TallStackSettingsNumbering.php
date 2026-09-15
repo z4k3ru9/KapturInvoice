@@ -28,6 +28,20 @@ use TallStackUi\Traits\Interactions;
  * every other TALL-stack Settings page uses, re-checked here in mount()
  * and again in save() since this route sits outside Filament's own panel
  * authorization.
+ *
+ * `default_expire_after_days` (repair plan Phase 11 / decision gate G5):
+ * prefills a new Quotation's `valid_until` (today + N days) on
+ * TallStackQuotationForm::mount(). It lives here rather than a new
+ * settings screen because it's another document-creation default,
+ * exactly like the fields above it. G5 also called for a "default Terms"
+ * and a "default payment-method/instructions" settings field, but both
+ * already exist unwired — `default_payment_terms` right above (now wired
+ * into TallStackInvoiceForm/TallStackQuotationForm/
+ * TallStackRecurringInvoiceForm/TallStackVendorPurchaseOrderForm's own
+ * `mount()`) and `Company::payment_instructions`/`bank_name`/
+ * `bank_account_number`/`bank_account_name` (editable on
+ * TallStackSettingsBranding, still with no consuming form/PDF field
+ * anywhere in the app) — so only this one column was genuinely missing.
  */
 #[Layout('components.tallstack.app')]
 class TallStackSettingsNumbering extends Component
@@ -48,6 +62,8 @@ class TallStackSettingsNumbering extends Component
 
     public ?int $default_tax_rate_2_id = null;
 
+    public ?int $default_expire_after_days = null;
+
     public function mount(Company $company): void
     {
         $user = Auth::user();
@@ -65,6 +81,7 @@ class TallStackSettingsNumbering extends Component
         $this->default_payment_terms = $company->default_payment_terms;
         $this->default_tax_rate_1_id = $company->default_tax_rate_1_id;
         $this->default_tax_rate_2_id = $company->default_tax_rate_2_id;
+        $this->default_expire_after_days = $company->default_expire_after_days;
     }
 
     /** @return array<int, array{label: string, value: string}> */
@@ -91,6 +108,7 @@ class TallStackSettingsNumbering extends Component
             'default_payment_terms' => ['nullable', 'string'],
             'default_tax_rate_1_id' => ['nullable', 'integer', 'exists:tax_rates,id'],
             'default_tax_rate_2_id' => ['nullable', 'integer', 'exists:tax_rates,id'],
+            'default_expire_after_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
         $this->company->update($data);
