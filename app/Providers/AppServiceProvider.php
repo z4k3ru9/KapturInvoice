@@ -36,6 +36,14 @@ class AppServiceProvider extends ServiceProvider
      * by the TALL-stack dashboard's 5-card overview row so it packs onto
      * one row at more widths instead of the package's default padding/icon
      * size forcing an awkward wrap.
+     *
+     * A "toolbar" x-dropdown scope (`<x-dropdown scope="toolbar">`) gives a
+     * dropdown trigger the same 36px (h-9) height and gray-button look as
+     * the plain `<x-button color="gray" sm>` controls it sits beside — the
+     * package's own dropdown trigger has no size variants at all (no `sm`
+     * prop) and renders shorter/unstyled by default, which is what made
+     * button rows like "This month / Export summary / refresh" visibly
+     * mismatched in height.
      */
     private function registerTallStackUiCustomizations(): void
     {
@@ -49,6 +57,22 @@ class AppServiceProvider extends ServiceProvider
             'number' => 'dark:text-dark-300 text-lg font-bold leading-none *:m-0',
             'slots.footer.wrapper' => 'mx-3',
             'slots.footer.text' => 'dark:text-dark-300 p-1 text-[11px] text-gray-600',
+        ]);
+
+        TallStackUi::customize()->dropdown(scope: 'toolbar')->block([
+            'action.wrapper' => 'inline-flex h-9 w-full cursor-pointer items-center gap-x-1.5 rounded-md bg-gray-500 px-3 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
+            'action.text' => 'text-sm font-medium',
+            'action.icon' => 'h-4 w-4 text-gray-50 transition',
+        ]);
+
+        // The package's default sideBar.separator "line" style uses its own
+        // primary (indigo) brand color, clashing with the tenant's own
+        // brand-red active-item color and the plain gray group labels the
+        // rest of the sidebar uses — restyled to match instead of standing
+        // out as a different brand.
+        TallStackUi::customize()->sideBar('separator', 'nav')->block([
+            'line.border' => 'border-gray-200 dark:border-dark-700 w-full border-t',
+            'line.base' => 'dark:bg-dark-800 text-gray-400 bg-white px-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap overflow-hidden transition-all duration-150',
         ]);
     }
 
