@@ -29,6 +29,7 @@ use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -353,6 +354,37 @@ class TallStackVendorBillForm extends Component
         }
 
         return $this->bill->items->firstWhere('id', $id);
+    }
+
+    /**
+     * Same dynamic-row reorder contract as TallStackInvoiceForm::reorderItems()
+     * — one Livewire round trip reassigns `sort_order` sequentially, and
+     * it's a no-op once the bill has left Draft (same guard saveItem()/
+     * deleteItem() already apply above).
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderItems(array $orderedIds): void
+    {
+        if (! $this->bill || $this->bill->status !== VendorBillStatus::Draft) {
+            return;
+        }
+
+        $orderedIds = array_map('intval', $orderedIds);
+
+        $owned = $this->bill->items()->whereIn('id', $orderedIds)->pluck('id')->all();
+
+        if (count($owned) !== count($orderedIds) || array_diff($orderedIds, $owned) !== []) {
+            return;
+        }
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $id) {
+                VendorBillItem::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+
+        $this->refreshBill();
     }
 
     // --- Job-cost allocation ("shared allocation") ------------------------

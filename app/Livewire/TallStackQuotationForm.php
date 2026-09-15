@@ -21,6 +21,7 @@ use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -333,6 +334,38 @@ class TallStackQuotationForm extends Component
         }
 
         return $this->quotation->items->firstWhere('id', $id);
+    }
+
+    /**
+     * Same dynamic-row reorder contract as TallStackInvoiceForm::reorderItems()
+     * — one Livewire round trip reassigns `sort_order` sequentially, and
+     * it's a no-op once the quotation has left Draft.
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderItems(array $orderedIds): void
+    {
+        if (! $this->quotation || $this->quotation->status !== QuotationStatus::Draft) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        $orderedIds = array_map('intval', $orderedIds);
+
+        $owned = $this->quotation->items()->whereIn('id', $orderedIds)->pluck('id')->all();
+
+        if (count($owned) !== count($orderedIds) || array_diff($orderedIds, $owned) !== []) {
+            return;
+        }
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $id) {
+                QuotationItem::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+
+        $this->quotation->refresh()->load('items.product');
     }
 
     // --- Status transitions — identical to TallStackQuotations, scoped to this record. -----

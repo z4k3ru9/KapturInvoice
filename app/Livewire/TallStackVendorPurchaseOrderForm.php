@@ -17,6 +17,7 @@ use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use RuntimeException;
@@ -264,6 +265,37 @@ class TallStackVendorPurchaseOrderForm extends Component
         }
 
         return $this->purchaseOrder->items->firstWhere('id', $id);
+    }
+
+    /**
+     * Same dynamic-row reorder contract as TallStackInvoiceForm::reorderItems()
+     * — one Livewire round trip reassigns `sort_order` sequentially, and
+     * it's a no-op once the PO has left Draft (same guard saveItem()/
+     * deleteItem() already apply above).
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderItems(array $orderedIds): void
+    {
+        if (! $this->purchaseOrder || $this->purchaseOrder->status !== VendorPurchaseOrderStatus::Draft) {
+            return;
+        }
+
+        $orderedIds = array_map('intval', $orderedIds);
+
+        $owned = $this->purchaseOrder->items()->whereIn('id', $orderedIds)->pluck('id')->all();
+
+        if (count($owned) !== count($orderedIds) || array_diff($orderedIds, $owned) !== []) {
+            return;
+        }
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $id) {
+                VendorPurchaseOrderItem::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+
+        $this->purchaseOrder->refresh()->load('items.product');
     }
 
     // --- Status transition ----------------------------------------------
