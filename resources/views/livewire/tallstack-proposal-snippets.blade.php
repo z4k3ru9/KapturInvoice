@@ -22,49 +22,35 @@
         </a>
         <a href="{{ route('tallstack.proposal-snippets', $company) }}"
            class="px-3 py-2 text-sm font-semibold border-b-2 border-[color:var(--ts-primary)] text-[color:var(--ts-primary)]">
-            Snippets ({{ $snippets->total() }})
+            Snippets ({{ $snippets->count() }})
         </a>
     </div>
 
     <x-card>
         <x-slot:header>
-            <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Snippets</span>
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search name…" icon="magnifying-glass" clearable />
-                </div>
-            </div>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Snippets</span>
         </x-slot:header>
 
-        <x-table :headers="[
-            ['index' => 'preview', 'label' => 'Preview', 'sortable' => false],
-            ['index' => 'name', 'label' => 'Name'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$snippets" paginate loading>
-            @interact('column_preview', $row)
-                <x-tallstack.document-thumbnail :html="$row['html']" :image="$row['thumbnail']" :size="48" />
+        <x-list :items="$snippets" searchable search-placeholder="Search snippets…">
+            @interact('item_caption', $item)
+                @if ($item['product_name'])
+                    <span title="Generated from {{ $item['product_name'] }}'s own 'Create proposal snippet' action.">
+                        <x-badge text="Linked to product" color="blue" sm />
+                    </span>
+                @endif
             @endinteract
 
-            @interact('column_name', $row)
-                <div class="flex items-center gap-2">
-                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ $row['name'] }}</span>
-                    @if ($row['product_name'])
-                        <span title="Generated from {{ $row['product_name'] }}'s own 'Create proposal snippet' action.">
-                            <x-badge text="Linked to product" color="blue" sm />
-                        </span>
-                    @endif
-                </div>
+            @interact('item_action', $item)
+                <x-tallstack.document-thumbnail :html="$item['html']" :image="$item['thumbnail']" :size="40" />
             @endinteract
 
-            @interact('column_actions', $row)
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="edit({{ $row['id'] }})" tooltip="Edit" />
-                    <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="delete({{ $row['id'] }})" wire:confirm="Delete this snippet? This cannot be undone." tooltip="Delete" />
-                </div>
+            @interact('item_menu', $item)
+                <x-dropdown.items text="Edit" icon="pencil" wire:click="edit({{ $item['id'] }})" />
+                <x-dropdown.items text="Delete" icon="trash" separator wire:click="delete({{ $item['id'] }})" wire:confirm="Delete this snippet? This cannot be undone." />
             @endinteract
 
             <x-slot:empty>No snippets yet — snippets are created from a product's own "Create proposal snippet" action, or built here directly.</x-slot:empty>
-        </x-table>
+        </x-list>
     </x-card>
 
     <x-modal wire="showModal" title="{{ $editingId ? 'Edit snippet' : 'New snippet' }}" center="sm" scrollable>

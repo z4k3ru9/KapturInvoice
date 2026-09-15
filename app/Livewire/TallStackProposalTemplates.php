@@ -10,7 +10,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
 use TallStackUi\Traits\Interactions;
 
 /**
@@ -46,11 +45,9 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackProposalTemplates extends Component
 {
-    use Interactions, WithPagination;
+    use Interactions;
 
     public Company $company;
-
-    public string $search = '';
 
     public bool $showModal = false;
 
@@ -72,11 +69,6 @@ class TallStackProposalTemplates extends Component
         // for parity even though nothing on this page calls
         // Resource::getUrl() today.
         app(Tenancy::class)->set($company);
-    }
-
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
     }
 
     public function create(): void
@@ -202,10 +194,9 @@ class TallStackProposalTemplates extends Component
     {
         $templates = ProposalTemplate::query()
             ->where('company_id', $this->company->id)
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
-            ->paginate(10)
-            ->through(fn (ProposalTemplate $template) => [
+            ->get()
+            ->map(fn (ProposalTemplate $template) => [
                 'id' => $template->id,
                 'name' => $template->name,
                 'html' => $template->html,
