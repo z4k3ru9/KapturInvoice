@@ -55,14 +55,15 @@ re-run completed audits unless new evidence contradicts them.
   12), inline line-item editing + `AutosavesDraft` rollout to Quotation/
   Recurring Invoice/Vendor Bill/Vendor PO (Phase 13), portal-link
   copy-to-clipboard fix (Phase 14), payment-proof file encryption (Phase
-  15's G4 slice), and the Phase 07 migration-tracking module
-  cherry-picked from a since-rejected branch (Phase 15's migration
-  slice). **Deliberately not done, per explicit decision:** passkey/
-  WebAuthn login (own dedicated session, out of scope here) and the live
-  currency-API (explicitly deferred by the user to "the last stage of
-  this development"). **Not yet done:** Phase 16 (docs/repo
-  reorganization) — intentionally sequenced last so it audits the final
-  set of cross-references rather than a moving target.
+  15's G4 slice), the Phase 07 migration-tracking module cherry-picked
+  from a since-rejected branch (Phase 15's migration slice), and
+  `docs/rebuild/outputs/` reorganized into `planning/`/`checkpoints/`/
+  `ui-rebuild/` subfolders with every cross-reference repo-wide updated
+  (Phase 16, run last by design). **Deliberately not done, per explicit
+  decision:** passkey/WebAuthn login (own dedicated session, out of
+  scope here) and the live currency-API (explicitly deferred by the
+  user to "the last stage of this development"). Nothing else from this
+  repair plan remains open.
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior
