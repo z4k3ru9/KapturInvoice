@@ -243,13 +243,13 @@
             <x-input wire:model="item_title" label="Title" required />
             <x-textarea wire:model="item_description" label="Description" rows="2" />
             <div class="grid grid-cols-2 gap-4">
-                <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
-                <x-input wire:model="item_unit_cost" label="Unit cost" type="number" step="0.01" />
+                <x-input wire:model.live.debounce.500ms="item_quantity" label="Quantity" type="number" step="0.0001" />
+                <x-input wire:model.live.debounce.500ms="item_unit_cost" label="Unit cost" type="number" step="0.01" />
                 <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
                 <div class="flex items-end pb-2">
                     <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
                 </div>
-                <x-input wire:model="item_net_amount" label="Net amount" type="number" step="0.01" hint="Before this line's discount." />
+                <x-input wire:model.live.debounce.500ms="item_net_amount" label="Net amount" type="number" step="0.01" hint="Before this line's discount. Pre-filled from qty x unit cost — edit freely if the vendor's actual bill differs." />
                 <x-input wire:model="item_tax_amount" label="Tax amount" type="number" step="0.01" />
             </div>
         </div>
@@ -286,7 +286,8 @@
         <div class="flex flex-col gap-4">
             <x-input wire:model="payment_amount" label="Amount" type="number" step="0.01" required />
             <x-date wire:model="payment_date" label="Payment date" />
-            <x-input wire:model="payment_method" label="Method" hint="bank_transfer, cheque, or manual." />
+            <x-select.styled wire:model="payment_method" label="Method" clearable
+                :options="collect($paymentMethods)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
             <x-input wire:model="payment_reference" label="Reference" />
             <x-upload wire:model="payment_proof" label="Proof of payment" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
             <x-textarea wire:model="payment_notes" label="Notes" rows="2" />
