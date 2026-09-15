@@ -1,5 +1,19 @@
 # KapturInvoice Codebase Audit & Rescaffolding Plan
 
+> **⚠️ HISTORICAL — pre-Phase-01 planning snapshot.** This audit describes the
+> repository as it stood at Gate 0 (118 tests, `app/Filament/Resources/` with
+> 20 folders, no `docs/rebuild/specs/0X-*` phase yet built). Every phase it
+> plans for (01 Company foundation through 08 Release readiness) is now
+> **complete** — see `memory.md` "Current state" and the top-level
+> `CLAUDE.md`'s Phase 01-06B sections for what was actually built, which in
+> several places differs from what this document predicted (most notably:
+> `app/Filament` was fully removed rather than kept as the admin UI — the
+> admin panel was later rebuilt onto TallStackUI/Livewire, `App\Livewire\
+> TallStack*` at `/tall/{company:slug}/...`). Kept for historical reference
+> only (the KEEP/MODIFY/DEPRECATE reasoning and the risk analysis in §2 are
+> still useful project history) — do not use it as a guide to the current
+> codebase, model list, or test count.
+
 **Status:** Read-only planning document — no source files were changed while
 producing this audit.
 **Date:** 2026-09-13

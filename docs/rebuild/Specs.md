@@ -5,6 +5,16 @@
 **Repository:** `z4k3ru9/KapturInvoice`  
 **Working copy:** `/Users/richardpangalila/Downloads/KapturInvoice`
 
+> **Note (TallStackUI migration):** §1, §5, §10-§12 below name Filament as the
+> internal admin framework — that was the plan at the time this document was
+> written. The internal admin panel has since been fully rebuilt off Filament
+> onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`,
+> routed at `/tall/{company:slug}/...` — `app/Filament` no longer exists in
+> this codebase; see `CLAUDE.md`). Read those Filament mentions as the
+> equivalent TallStackUI/Livewire mechanism; the binding requirements
+> themselves (workflow states, roles, tax rules, numbering, document
+> integrity) are unaffected and remain in force.
+
 ## Progressive execution map
 
 For pause-and-resume coding, use the phase specifications in [`specs/README.md`](specs/README.md). Execute folders in numeric order; each folder is independently checkpointed and should be completed before opening the next one.
@@ -42,7 +52,7 @@ The existing stack is already the target stack:
 
 - PHP 8.3 or newer within the supported project range
 - Laravel 13
-- Filament 5 for internal administration
+- TallStackUI 4 (Livewire) for internal administration — originally planned on Filament 5, later rebuilt off Filament onto TallStackUI/Livewire (see the note above and `CLAUDE.md`)
 - Livewire 4
 - Tailwind CSS 4
 - TallStack UI 4 for marketing and client portal surfaces
@@ -164,7 +174,7 @@ Use bounded contexts with application actions/services between UI and persistenc
 | Reporting | read-oriented balances, margin, due dates, dashboards |
 | Migration | source mapping, batches, exceptions, reconciliation |
 
-Filament resources and Livewire components orchestrate actions. They must not independently implement financial formulas, numbering, authorization, or document mutation rules.
+Admin UI Livewire components (TallStackUI) orchestrate actions. They must not independently implement financial formulas, numbering, authorization, or document mutation rules.
 
 ## 6. Canonical database model
 
@@ -467,7 +477,7 @@ Protected actions:
 - View settings: Owner/Admin according to setting sensitivity; Auditor never.
 - Physical deletion: Owner-controlled only for unused drafts and unreferenced master data, with reason and audit event. Issued records and audit events are never physically deleted; they are voided, reversed, amended, or archived.
 
-Enforce authorization in policies, Filament resources/actions, Livewire methods, controllers, downloads, jobs, commands, and future API endpoints. Hiding a button is not authorization.
+Enforce authorization in policies, Livewire components/actions, controllers, downloads, jobs, commands, and future API endpoints. Hiding a button is not authorization.
 
 ## 11. Portal and public interface
 
@@ -499,11 +509,11 @@ Magic links expire by company configuration, default 30 days, and can be revoked
 
 ### Marketing site
 
-Use TallStack UI, separate by company/domain, with supplied logos and company identity. Liquid-glass surfaces and limited parallax are permitted only in marketing and selected portal headers. Do not use these effects in financial tables, balances, forms, or Filament administration.
+Use TallStack UI, separate by company/domain, with supplied logos and company identity. Liquid-glass surfaces and limited parallax are permitted only in marketing and selected portal headers. Do not use these effects in financial tables, balances, forms, or the admin UI.
 
 ## 12. Admin UI specification
 
-Use Filament native UI. The primary experience is desktop-first; tablet and phone views must remain usable for monitoring and approvals.
+Use TallStackUI (Livewire) native UI — originally specified as Filament native UI; the admin panel was later rebuilt off Filament onto TallStackUI (see the note at the top of this document). The primary experience is desktop-first; tablet and phone views must remain usable for monitoring and approvals.
 
 Navigation:
 
@@ -547,7 +557,7 @@ Company themes must not redefine these meanings. Company identity uses logo, com
 
 ### Notifications
 
-Use Toastbox/Filament notifications carefully:
+Use Toastbox/TallStackUI notifications carefully:
 
 - Success/info: short auto-dismiss.
 - Warning: longer display and clear action.
