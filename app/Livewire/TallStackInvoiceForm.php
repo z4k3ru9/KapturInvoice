@@ -22,6 +22,7 @@ use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -397,6 +398,48 @@ class TallStackInvoiceForm extends Component
         }
 
         return $this->invoice->items->firstWhere('id', $id);
+    }
+
+    /**
+     * Phase 06B Slice 3 dynamic-row reorder, rebuilt after the Filament
+     * removal: takes the full new ordered list of item ids (the same
+     * shape Filament's own `reorderTable()` call took) and reassigns
+     * `sort_order` sequentially in one Livewire round trip — never one
+     * write per intermediate drag position. A no-op (never even
+     * attempted) once the invoice has left Draft: reordering an issued
+     * invoice's items would silently mutate an already-printed document
+     * and break the positional correspondence with its frozen tax
+     * snapshot's line-by-line breakdown (the same Codex review finding
+     * the deleted DynamicRowReorderTest documented). This server-side
+     * guard is the real authority — the Blade view only hides the drag
+     * handle/keyboard controls once the invoice isn't Draft, which is UX
+     * only and never trusted alone.
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderItems(array $orderedIds): void
+    {
+        if (! $this->invoice || $this->invoice->status !== InvoiceStatus::Draft) {
+            return;
+        }
+
+        $this->authorize('update', $this->invoice);
+
+        $orderedIds = array_map('intval', $orderedIds);
+
+        $owned = $this->invoice->items()->whereIn('id', $orderedIds)->pluck('id')->all();
+
+        if (count($owned) !== count($orderedIds) || array_diff($orderedIds, $owned) !== []) {
+            return;
+        }
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $id) {
+                InvoiceItem::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+
+        $this->invoice->refresh()->load(['items.product', 'items.taxes']);
     }
 
     // --- Issue / Send -----------------------------------------------------

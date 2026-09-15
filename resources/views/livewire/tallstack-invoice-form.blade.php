@@ -90,35 +90,49 @@
                 @if (! $invoice)
                     <p class="text-sm text-gray-400">Save the invoice first to add line items.</p>
                 @else
-                    <x-table :headers="[
-                        ['index' => 'image', 'label' => '', 'sortable' => false],
-                        ['index' => 'title', 'label' => 'Item', 'sortable' => false],
-                        ['index' => 'quantity', 'label' => 'Qty', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'unit_cost', 'label' => 'Unit cost', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'taxes', 'label' => 'Taxes', 'sortable' => false],
-                        ['index' => 'line_total', 'label' => 'Line total', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'actions', 'label' => '', 'sortable' => false],
-                    ]" :rows="$items">
-                        @interact('column_image', $row)
-                            @if ($row['image'])
-                                <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
-                            @endif
-                        @endinteract
-                        @interact('column_taxes', $row)
-                            @forelse ($row['taxes'] as $tax)
-                                <x-badge text="{{ $tax }}" color="gray" sm />
-                            @empty
-                                <x-badge text="No tax" color="gray" sm />
-                            @endforelse
-                        @endinteract
-                        @interact('column_actions', $row)
-                            <div class="flex items-center justify-end gap-2">
-                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
-                            </div>
-                        @endinteract
-                        <x-slot:empty>No line items yet.</x-slot:empty>
-                    </x-table>
+                    @php $itemsAreReorderable = $invoice->status === \App\Enums\InvoiceStatus::Draft; @endphp
+                    <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
+                        <x-slot:head>
+                            <th class="px-3 py-2"></th>
+                            <th class="px-3 py-2 text-left">Item</th>
+                            <th class="px-3 py-2 text-right">Qty</th>
+                            <th class="px-3 py-2 text-right">Unit cost</th>
+                            <th class="px-3 py-2 text-left">Taxes</th>
+                            <th class="px-3 py-2 text-right">Line total</th>
+                            <th class="px-3 py-2"></th>
+                        </x-slot:head>
+
+                        @forelse ($items as $index => $row)
+                            <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
+                                <td class="px-3 py-2">
+                                    @if ($row['image'])
+                                        <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
+                                <td class="px-3 py-2 text-left">
+                                    @forelse ($row['taxes'] as $tax)
+                                        <x-badge text="{{ $tax }}" color="gray" sm />
+                                    @empty
+                                        <x-badge text="No tax" color="gray" sm />
+                                    @endforelse
+                                </td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
+                                <td class="px-3 py-2">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
+                                        <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                    </div>
+                                </td>
+                            </x-tallstack.reorderable-item-row>
+                        @empty
+                            <tr>
+                                <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
+                            </tr>
+                        @endforelse
+                    </x-tallstack.reorderable-items-table>
                 @endif
             </x-card>
 

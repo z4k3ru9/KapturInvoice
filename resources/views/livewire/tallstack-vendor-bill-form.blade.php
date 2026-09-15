@@ -69,39 +69,54 @@
                 @if (! $bill)
                     <p class="text-sm text-gray-400">Save the vendor bill first to add line items.</p>
                 @else
-                    <x-table :headers="[
-                        ['index' => 'image', 'label' => '', 'sortable' => false],
-                        ['index' => 'title', 'label' => 'Item', 'sortable' => false],
-                        ['index' => 'quantity', 'label' => 'Qty', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'net_amount', 'label' => 'Net', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'tax_amount', 'label' => 'Tax', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'line_total', 'label' => 'Gross', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'unallocated', 'label' => 'Unallocated', 'sortable' => false, 'align' => 'right'],
-                        ['index' => 'actions', 'label' => '', 'sortable' => false],
-                    ]" :rows="$items">
-                        @interact('column_image', $row)
-                            @if ($row['image'])
-                                <div class="w-8 h-8 shrink-0">
-                                    <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
-                                </div>
-                            @endif
-                        @endinteract
-                        @interact('column_unallocated', $row)
-                            <span class="{{ $row['unallocated_raw'] > 0.009 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-gray-400' }}">
-                                {{ $row['unallocated'] }}
-                            </span>
-                        @endinteract
-                        @interact('column_actions', $row, $bill)
-                            <div class="flex items-center justify-end gap-2">
-                                <x-button icon="arrows-right-left" sm color="blue" scope="icon-action" class="h-9 w-9" wire:click="openAllocateModal({{ $row['id'] }})" tooltip="Allocate to job" />
-                                @if ($bill->status === \App\Enums\VendorBillStatus::Draft)
-                                    <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                    <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
-                                @endif
-                            </div>
-                        @endinteract
-                        <x-slot:empty>No line items yet.</x-slot:empty>
-                    </x-table>
+                    @php $itemsAreReorderable = $bill->status === \App\Enums\VendorBillStatus::Draft; @endphp
+                    <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
+                        <x-slot:head>
+                            <th class="px-3 py-2"></th>
+                            <th class="px-3 py-2 text-left">Item</th>
+                            <th class="px-3 py-2 text-right">Qty</th>
+                            <th class="px-3 py-2 text-right">Net</th>
+                            <th class="px-3 py-2 text-right">Tax</th>
+                            <th class="px-3 py-2 text-right">Gross</th>
+                            <th class="px-3 py-2 text-right">Unallocated</th>
+                            <th class="px-3 py-2"></th>
+                        </x-slot:head>
+
+                        @forelse ($items as $index => $row)
+                            <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
+                                <td class="px-3 py-2">
+                                    @if ($row['image'])
+                                        <div class="w-8 h-8 shrink-0">
+                                            <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['net_amount'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['tax_amount'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">
+                                    <span class="{{ $row['unallocated_raw'] > 0.009 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-gray-400' }}">
+                                        {{ $row['unallocated'] }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <x-button icon="arrows-right-left" sm color="blue" scope="icon-action" class="h-9 w-9" wire:click="openAllocateModal({{ $row['id'] }})" tooltip="Allocate to job" />
+                                        @if ($bill->status === \App\Enums\VendorBillStatus::Draft)
+                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
+                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                        @endif
+                                    </div>
+                                </td>
+                            </x-tallstack.reorderable-item-row>
+                        @empty
+                            <tr>
+                                <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
+                            </tr>
+                        @endforelse
+                    </x-tallstack.reorderable-items-table>
 
                     {{-- Per-line job-cost allocation breakdown — "one vendor
                          purchase may serve multiple jobs; show unallocated
