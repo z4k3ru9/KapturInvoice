@@ -16,8 +16,8 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack-native Credits register — otherwise read-only, matching
- * App\Filament\Resources\Credits (see that resource's docblock:
- * "Credits/refunds are deferred launch scope"; and
+ * the equivalent pre-TallStackUI Filament credits resource
+ * ("Credits/refunds are deferred launch scope"; and
  * docs/rebuild/specs/FINALIZED-DECISIONS.md §7: "New credit-note creation,
  * editing, refunds, and write-offs remain deferred"). Every imported
  * Credit row is a historical record from InvoiceNinja data migration only

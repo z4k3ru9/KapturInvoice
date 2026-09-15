@@ -163,8 +163,8 @@ class TallStackPaymentAllocation extends Component
         $result = [];
 
         foreach ($rows as $row) {
-            // Same fix as App\Filament\Resources\Payments\Tables\
-            // PaymentsTable::mapAllocations() — a real bug found on PR #4:
+            // Same fix as the equivalent mapAllocations() method on the
+            // pre-TallStackUI Filament payments table — a real bug found on PR #4:
             // assigning (not summing) here silently dropped every row but
             // the last for a repeated invoice_id, understating the total
             // while still reporting success.

@@ -34,17 +34,17 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack create/edit line editor for a Quotation — the sibling
- * page to App\Livewire\TallStackQuotations. Mirrors
- * App\Filament\Resources\Quotations\Schemas\QuotationForm (header fields)
- * and ...\RelationManagers\ItemsRelationManager (line items) field-for-
- * field: no field is added or dropped, and `status` is never a form field
- * here either — every transition goes through the exact same
- * App\Actions\Sales\* classes the Filament table's row actions call.
+ * page to App\Livewire\TallStackQuotations. Mirrors the equivalent
+ * pre-TallStackUI Filament quotation form (header fields) and its items
+ * relation manager (line items) field-for-field: no field is added or
+ * dropped, and `status` is never a form field here either — every
+ * transition goes through the exact same App\Actions\Sales\* classes that
+ * Filament table's row actions called.
  *
  * A quotation must exist before it can carry line items (line items
- * belong to a `quotation_id`) — same reason
- * App\Filament\Resources\Quotations\Pages\CreateQuotation redirects into
- * the Edit page immediately after creating. This component mirrors that:
+ * belong to a `quotation_id`) — same reason the equivalent Filament
+ * "Create Quotation" page redirected into the Edit page immediately after
+ * creating. This component mirrors that:
  * saving a brand-new quotation redirects into its own edit route before
  * the items table becomes available.
  */
@@ -390,8 +390,8 @@ class TallStackQuotationForm extends Component
     /**
      * The status transition (Approved -> Sent) stays a separate,
      * already-tested concern — this only adds the email dispatch
-     * alongside it, the same as the Filament table's own "Send" action
-     * (App\Filament\Resources\Quotations\Tables\QuotationsTable). If the
+     * alongside it, the same as the equivalent pre-TallStackUI Filament
+     * quotations table's own "Send" action. If the
      * transition fails, the email is never attempted. If the transition
      * succeeds but the email fails, the quotation is still Sent — that
      * failure surfaces as its own error toast rather than rolling back

@@ -23,15 +23,14 @@ use TallStackUi\Traits\Interactions;
  * The TALL-stack create/edit editor for a Proposal — the sibling page to
  * App\Livewire\TallStackProposals, following the same shape as
  * App\Livewire\TallStackQuotationForm (see that class's docblock). Mirrors
- * App\Filament\Resources\Proposals\Schemas\ProposalForm field-for-field:
+ * the equivalent pre-TallStackUI Filament proposal form field-for-field:
  * title, client_id, status, amount, valid_until, proposal_template_id,
  * html, css — no field is added or dropped. Unlike Quotation, Proposal's
- * own Filament form already exposes `status` as a directly editable
- * select (App\Filament\Resources\Proposals\Tables\ProposalsTable's
- * "Mark accepted"/"Mark declined" row actions are a convenience shortcut
- * on top of the same column, not the only path to it) — this page keeps
- * that same directness rather than inventing a stricter state machine
- * the Filament resource doesn't enforce.
+ * own Filament form already exposed `status` as a directly editable
+ * select (that same resource's table "Mark accepted"/"Mark declined" row
+ * actions were a convenience shortcut on top of the same column, not the
+ * only path to it) — this page keeps that same directness rather than
+ * inventing a stricter state machine the Filament resource didn't enforce.
  *
  * `App\Services\ProposalConverter::convertToInvoice()` is reused
  * unmodified — the one-way, one-time proposal-to-invoice conversion rule
@@ -204,9 +203,9 @@ class TallStackProposalForm extends Component
 
     /**
      * Gated only on "not already converted" (App\Services\ProposalConverter's
-     * own check), exactly matching
-     * App\Filament\Resources\Proposals\Tables\ProposalsTable's
-     * "Convert to invoice" row action — there is no server-side status
+     * own check), exactly matching the equivalent pre-TallStackUI Filament
+     * proposals table's "Convert to invoice" row action — there is no
+     * server-side status
      * requirement to match here. The Blade view's "disabled until
      * Accepted" button (prompt 12's own spec) is a UI-only nudge on this
      * page, not a new business rule: it prevents a normal click before

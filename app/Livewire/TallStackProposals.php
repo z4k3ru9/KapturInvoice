@@ -19,8 +19,9 @@ use TallStackUi\Traits\Interactions;
  * the Proposals register — see App\Livewire\TallStackQuotations's docblock
  * for the established pattern this follows. Reuses App\Models\Proposal
  * and App\Enums\ProposalStatus unmodified; the "Mark accepted"/"Mark
- * declined" actions mirror App\Filament\Resources\Proposals\Tables\ProposalsTable's
- * own row actions exactly (a direct forceFill()+save() there too — there
+ * declined" actions mirror the equivalent pre-TallStackUI Filament
+ * proposals table's own row actions exactly (a direct forceFill()+save()
+ * there too — there
  * is no dedicated Sales/Billing Action class for these two transitions,
  * so none is invented here either).
  *

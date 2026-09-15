@@ -26,9 +26,9 @@ use TallStackUi\Traits\Interactions;
  * the Quotations register — see App\Livewire\TallStackDashboard's docblock
  * for the established pattern this follows. Reuses App\Models\Quotation,
  * App\Enums\QuotationStatus, and every App\Actions\Sales\* action the
- * Filament QuotationsTable already uses for status transitions — this is a
- * presentation-layer swap only, never a reimplementation of the state
- * machine (see App\Filament\Resources\Quotations\Tables\QuotationsTable).
+ * equivalent pre-TallStackUI Filament quotations table already used for
+ * status transitions — this is a presentation-layer swap only, never a
+ * reimplementation of the state machine.
  */
 #[Layout('components.tallstack.app')]
 class TallStackQuotations extends Component

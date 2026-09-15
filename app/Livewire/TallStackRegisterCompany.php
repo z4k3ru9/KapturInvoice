@@ -11,8 +11,9 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * TallStackUI-native replacement for App\Filament\Pages\Tenancy\RegisterCompany
- * (Filament's `RegisterTenant` page) — the only path that creates a new
+ * TallStackUI-native replacement for the equivalent pre-TallStackUI
+ * Filament company-registration page (Filament's `RegisterTenant` page) —
+ * the only path that creates a new
  * `Company` row and attaches the creating user to it as `owner`. This is a
  * presentation-layer parallel, not a replacement: it calls the exact same
  * fillable fields and the exact same `company_user` attach call
