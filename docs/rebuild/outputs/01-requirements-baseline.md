@@ -1,5 +1,15 @@
 # KapturInvoice Reconciliation Requirements Baseline
 
+> **⚠️ SUPERSEDED — early planning draft.** This was the first requirements
+> grill output, written before the approved renovation baseline existed. Its
+> scope, tax rules, numbering, payment, and role content are now
+> substantially covered (and refined) by
+> [`docs/rebuild/PRD.md`](../PRD.md),
+> [`docs/rebuild/CONTEXT.md`](../CONTEXT.md), and
+> [`docs/rebuild/Specs.md`](../Specs.md). Kept for historical reference
+> only — do not treat this file as current scope or as a change-control
+> baseline.
+
 Status: Prepared for implementation handoff
 Approval state: Accepted during requirements grill; user approval of this written baseline is the gate before coding
 Date: 2026-09-10

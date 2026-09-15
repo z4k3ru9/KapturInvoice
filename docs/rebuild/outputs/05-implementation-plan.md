@@ -1,5 +1,14 @@
 # KapturInvoice Revamp Implementation Plan
 
+> **⚠️ SUPERSEDED — early planning draft.** This task-by-task plan (with
+> its own file paths, e.g. `app/Filament/Resources/SalesOrders`) predates
+> the actual phase structure and, since then, this repository's Filament
+> admin has been fully removed and replaced by a hand-built TallStackUI
+> admin (see `memory.md`'s Current state) — the concrete file paths below
+> no longer match the codebase. The real build order is
+> [`docs/rebuild/Specs.md`](../Specs.md) §16 and the phase-by-phase specs
+> under `docs/rebuild/specs/`. Kept for historical reference only.
+
 > **For agentic workers:** Read the requirements and domain documents in this handoff pack before starting. Work task-by-task with a test checkpoint after every task. The written requirements baseline is approved; implementation still requires a fresh branch/worktree check, repository instructions review, and a recorded pre-change test baseline.
 
 **Goal:** Rebuild KapturInvoice around two isolated company workflows for quotation, job execution, procurement, staged billing, payment receipts, delivery, handover, and reconciliation.

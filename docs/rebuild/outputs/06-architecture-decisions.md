@@ -1,5 +1,14 @@
 # KapturInvoice Architecture Decisions
 
+> **⚠️ SUPERSEDED — early planning draft.** These ADRs' decisions (separate
+> deployments, job-centric hub, payments-as-events, immutable documents,
+> locked semantic palette, hybrid Alpine/Livewire) are now binding rules
+> restated in [`docs/rebuild/PRD.md`](../PRD.md),
+> [`docs/rebuild/DESIGN.md`](../DESIGN.md), and
+> [`docs/rebuild/Specs.md`](../Specs.md) §5. Kept for historical reference
+> only — the "Reason"/"Consequences" rationale here may still be useful
+> color, but is not itself an authoritative source.
+
 ## ADR-001: Separate company deployments with isolated financial ownership
 
 Decision: Company A and Company B launch on separate hosting accounts and domains. Each deployment owns its own database, files, queue, scheduler, local accounts, tenant settings, and financial records. A later single-host, multiple-domain arrangement is allowed only when these isolation boundaries remain intact.
