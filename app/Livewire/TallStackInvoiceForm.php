@@ -10,6 +10,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Enums\TaxCategory;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -22,6 +23,8 @@ use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -54,7 +57,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackInvoiceForm extends Component
 {
-    use Interactions;
+    use AutosavesDraft, Interactions;
 
     public Company $company;
 
@@ -176,6 +179,8 @@ class TallStackInvoiceForm extends Component
             $this->private_notes = $invoice->private_notes;
             $this->footer = $invoice->footer;
 
+            $this->initializeAutosaveVersion();
+
             return;
         }
 
@@ -194,6 +199,67 @@ class TallStackInvoiceForm extends Component
             $this->discount = (float) $client->default_discount;
             $this->discount_is_percentage = (bool) $client->default_discount_is_percentage;
         }
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Wired only onto the plain free-text/metadata header fields — po_number,
+    // terms, public_notes, private_notes, footer — never client_id, number,
+    // pricing_mode, dates, or the discount fields, since those either
+    // already go through save()'s own validation/redirect path or feed
+    // App\Services\InvoiceTotalsCalculator's recalculation, which this raw
+    // conditional-UPDATE autosave deliberately never triggers. See
+    // App\Livewire\Concerns\AutosavesDraft's docblock for the full
+    // algorithm this ports from the old Filament reference implementation.
+
+    public function updatedPoNumber(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedTerms(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedPublicNotes(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedPrivateNotes(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedFooter(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->invoice;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['po_number', 'terms', 'public_notes', 'private_notes', 'footer'];
+    }
+
+    /**
+     * Same "Auditor is read-only everywhere" boundary save() enforces via
+     * its own explicit $this->authorize('update', ...) call
+     * (App\Providers\AppServiceProvider::registerCompanyRoleGate()) —
+     * autosave must not become a side channel that bypasses it just
+     * because it never routes through save()'s validated form submission.
+     */
+    protected function autosaveGuard(): bool
+    {
+        return $this->invoice !== null
+            && $this->invoice->status === InvoiceStatus::Draft
+            && Gate::allows('update', $this->invoice);
     }
 
     public function save(): void
