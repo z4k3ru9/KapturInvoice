@@ -26,6 +26,15 @@
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => "{$adminBase}/products", 'icon' => 'cube'],
         ],
+        // "Users & Roles" is administrative/settings-adjacent (matches
+        // Filament's own UserResource, App\Filament\Resources\Users\
+        // UserResource, navigationGroup 'Team' — kept under this app's own
+        // "Settings" grouping here since a standalone one-item nav group
+        // reads as noise at this sidebar width) — see
+        // docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
+        'Settings' => [
+            ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
+        ],
     ];
 @endphp
 
