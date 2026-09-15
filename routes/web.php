@@ -42,6 +42,7 @@ use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackRecurringInvoiceForm;
 use App\Livewire\TallStackRecurringInvoices;
+use App\Livewire\TallStackReports;
 use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
 use App\Livewire\TallStackSettingsBranding;
@@ -397,6 +398,16 @@ Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendo
 Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
     ->middleware('auth')
     ->name('tallstack.credits');
+
+// Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Financial Analytics & Tax Reports. Reuses the Dashboard's own revenue/
+// outstanding/overdue aggregates, App\Filament\Widgets\JobMarginReport's
+// query/computation, and real App\Models\TaxRecap rows — introduces no
+// new calculation of its own. Same explicit company-ownership re-check
+// pattern as every other TALL-stack register above.
+Route::get('/tall/{company:slug}/reports', TallStackReports::class)
+    ->middleware('auth')
+    ->name('tallstack.reports');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
