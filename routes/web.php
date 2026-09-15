@@ -24,6 +24,8 @@ use App\Livewire\HomePage;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
+use App\Livewire\TallStackInvoiceForm;
+use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackSalesOrder;
@@ -168,6 +170,22 @@ Route::get('/tall/{company:slug}/jobs', TallStackSalesOrders::class)
 Route::get('/tall/{company:slug}/jobs/{salesOrder}', TallStackSalesOrder::class)
     ->middleware('auth')
     ->name('tallstack.jobs.show');
+
+// Phase 3 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Invoices register and its detail/edit page (line items + status
+// lifecycle + e-Faktur/Tax Recap issuance), TALL-stack-native alongside
+// the Filament resource they mirror (App\Filament\Resources\Invoices).
+// `/create` is registered before `/{invoice}` so the literal segment
+// binds first, same ordering reasoning as the Quotations routes above.
+Route::get('/tall/{company:slug}/invoices', TallStackInvoices::class)
+    ->middleware('auth')
+    ->name('tallstack.invoices');
+Route::get('/tall/{company:slug}/invoices/create', TallStackInvoiceForm::class)
+    ->middleware('auth')
+    ->name('tallstack.invoices.create');
+Route::get('/tall/{company:slug}/invoices/{invoice}', TallStackInvoiceForm::class)
+    ->middleware('auth')
+    ->name('tallstack.invoices.edit');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
