@@ -19,7 +19,7 @@
     <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800">
         <a href="{{ route('tallstack.proposal-templates', $company) }}"
            class="px-3 py-2 text-sm font-semibold border-b-2 border-[color:var(--ts-primary)] text-[color:var(--ts-primary)]">
-            Templates ({{ $templates->total() }})
+            Templates ({{ $templates->count() }})
         </a>
         <a href="{{ route('tallstack.proposal-snippets', $company) }}"
            class="px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
@@ -29,45 +29,26 @@
 
     <x-card>
         <x-slot:header>
-            <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Templates</span>
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search name…" icon="magnifying-glass" clearable />
-                </div>
-            </div>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Templates</span>
         </x-slot:header>
 
-        <x-table :headers="[
-            ['index' => 'preview', 'label' => 'Preview', 'sortable' => false],
-            ['index' => 'name', 'label' => 'Name'],
-            ['index' => 'updated_at', 'label' => 'Last updated'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$templates" paginate loading>
-            @interact('column_preview', $row)
-                <x-tallstack.document-thumbnail :html="$row['html']" :css="$row['css']" :size="48" />
+        <x-list :items="$templates" searchable search-placeholder="Search templates…">
+            @interact('item_caption', $item)
+                Updated {{ $item['updated_relative'] }}
             @endinteract
 
-            @interact('column_name', $row)
-                <span class="font-medium text-gray-900 dark:text-gray-100">{{ $row['name'] }}</span>
+            @interact('item_action', $item)
+                <x-tallstack.document-thumbnail :html="$item['html']" :css="$item['css']" :size="40" />
             @endinteract
 
-            @interact('column_updated_at', $row)
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $row['updated_relative'] }}</span>
-            @endinteract
-
-            @interact('column_actions', $row)
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="edit({{ $row['id'] }})" tooltip="Edit" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Edit" icon="pencil-square" wire:click="edit({{ $row['id'] }})" />
-                        <x-dropdown.items text="Duplicate" icon="document-duplicate" wire:click="duplicate({{ $row['id'] }})" />
-                        <x-dropdown.items text="Delete" icon="trash" wire:click="delete({{ $row['id'] }})" wire:confirm="Delete this proposal template? This cannot be undone." />
-                    </x-dropdown>
-                </div>
+            @interact('item_menu', $item)
+                <x-dropdown.items text="Edit" icon="pencil-square" wire:click="edit({{ $item['id'] }})" />
+                <x-dropdown.items text="Duplicate" icon="document-duplicate" wire:click="duplicate({{ $item['id'] }})" />
+                <x-dropdown.items text="Delete" icon="trash" separator wire:click="delete({{ $item['id'] }})" wire:confirm="Delete this proposal template? This cannot be undone." />
             @endinteract
 
             <x-slot:empty>No proposal templates yet — New template to get started.</x-slot:empty>
-        </x-table>
+        </x-list>
     </x-card>
 
     <x-modal wire="showModal" title="{{ $editingId ? 'Edit proposal template' : 'New proposal template' }}" center="lg" size="4xl" scrollable>

@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
 use RuntimeException;
 use TallStackUi\Traits\Interactions;
 
@@ -52,11 +51,9 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackPaymentGateways extends Component
 {
-    use Interactions, WithPagination;
+    use Interactions;
 
     public Company $company;
-
-    public string $search = '';
 
     public bool $showModal = false;
 
@@ -110,11 +107,6 @@ class TallStackPaymentGateways extends Component
         $this->company = $company;
 
         app(Tenancy::class)->set($company);
-    }
-
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
     }
 
     public function driverOptions(): array
@@ -317,10 +309,9 @@ class TallStackPaymentGateways extends Component
         $base = PaymentGateway::query()->where('company_id', $this->company->id);
 
         $gateways = (clone $base)
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
-            ->paginate(10)
-            ->through(fn (PaymentGateway $gateway) => [
+            ->get()
+            ->map(fn (PaymentGateway $gateway) => [
                 'id' => $gateway->id,
                 'name' => $gateway->name,
                 'driver' => $gateway->driver,

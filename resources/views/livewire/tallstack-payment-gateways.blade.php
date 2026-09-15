@@ -20,61 +20,37 @@
 
     <x-card>
         <x-slot:header>
-            <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Configured gateways</span>
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search name…" icon="magnifying-glass" clearable />
-                </div>
-            </div>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Configured gateways</span>
         </x-slot:header>
 
-        <x-table :headers="[
-            ['index' => 'name', 'label' => 'Name'],
-            ['index' => 'driver', 'label' => 'Driver'],
-            ['index' => 'is_enabled', 'label' => 'Enabled'],
-            ['index' => 'accepted_credit_cards', 'label' => 'Accepted credit cards'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$gateways" paginate loading>
-            @interact('column_driver', $row)
-                <x-badge text="{{ str($row['driver'])->replace('_', ' ')->title() }}" color="gray" sm />
+        <x-list :items="$gateways" searchable search-placeholder="Search gateways…">
+            @interact('item_caption', $item)
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <x-badge text="{{ str($item['driver'])->replace('_', ' ')->title() }}" color="gray" sm />
+                    <x-badge :text="$item['is_enabled'] ? 'Enabled' : 'Disabled'" :color="$item['is_enabled'] ? 'green' : 'gray'" sm />
+                    @foreach ($item['accepted_credit_cards'] as $card)
+                        <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                            <x-icon name="credit-card" class="w-3 h-3 shrink-0" />
+                            {{ strtoupper($card) }}
+                        </span>
+                    @endforeach
+                </div>
             @endinteract
 
-            @interact('column_is_enabled', $row)
-                <x-badge :text="$row['is_enabled'] ? 'Enabled' : 'Disabled'" :color="$row['is_enabled'] ? 'green' : 'gray'" sm />
-            @endinteract
+            @interact('item_action', $item, $testResults)
+                <div class="flex flex-col items-end gap-1.5">
+                    {{--
+                        "Test Connection" gets a distinct amber/bolt
+                        styling — a live request, not a form-opening
+                        action — per prompt 20's own framing ("a
+                        distinct button style with a small plug/bolt
+                        icon, since it fires a live request rather than
+                        opening a form").
+                    --}}
+                    <x-button icon="bolt" sm color="amber" scope="icon-action" class="h-9 w-9" wire:click="testConnection({{ $item['id'] }})" wire:loading.attr="disabled" wire:target="testConnection({{ $item['id'] }})" tooltip="Test connection" />
 
-            @interact('column_accepted_credit_cards', $row)
-                @if (empty($row['accepted_credit_cards']))
-                    <span class="text-xs text-gray-400">—</span>
-                @else
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        @foreach ($row['accepted_credit_cards'] as $card)
-                            <span class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 text-[11px] font-medium text-gray-600 dark:text-gray-300">
-                                <x-icon name="credit-card" class="w-3 h-3 shrink-0" />
-                                {{ strtoupper($card) }}
-                            </span>
-                        @endforeach
-                    </div>
-                @endif
-            @endinteract
-
-            @interact('column_actions', $row, $testResults)
-                <div class="flex flex-col items-end gap-1.5 w-56 ml-auto">
-                    <div class="flex items-center justify-end gap-2">
-                        {{--
-                            "Test Connection" gets a distinct amber/bolt
-                            styling — a live request, not a form-opening
-                            action — per prompt 20's own framing ("a
-                            distinct button style with a small plug/bolt
-                            icon, since it fires a live request rather than
-                            opening a form").
-                        --}}
-                        <x-button icon="bolt" sm color="amber" scope="icon-action" class="h-9 w-9" wire:click="testConnection({{ $row['id'] }})" wire:loading.attr="disabled" wire:target="testConnection({{ $row['id'] }})" tooltip="Test connection" />
-                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="edit({{ $row['id'] }})" tooltip="Edit" />
-                    </div>
-
-                    @if (isset($testResults[$row['id']]))
-                        @php($result = $testResults[$row['id']])
+                    @if (isset($testResults[$item['id']]))
+                        @php($result = $testResults[$item['id']])
                         <div class="flex items-start gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium w-56 text-right whitespace-normal break-words
                             {{ $result['success'] ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-400' }}">
                             <x-icon :name="$result['success'] ? 'check-circle' : 'x-circle'" class="w-3.5 h-3.5 shrink-0 mt-0.5" />
@@ -84,8 +60,12 @@
                 </div>
             @endinteract
 
+            @interact('item_menu', $item)
+                <x-dropdown.items text="Edit" icon="pencil" wire:click="edit({{ $item['id'] }})" />
+            @endinteract
+
             <x-slot:empty>No payment gateways configured yet — New gateway to add your first one.</x-slot:empty>
-        </x-table>
+        </x-list>
     </x-card>
 
     <x-modal wire="showModal" title="{{ $editingId ? 'Edit payment gateway' : 'New payment gateway' }}" center="lg" scrollable>
