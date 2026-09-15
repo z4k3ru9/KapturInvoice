@@ -89,6 +89,9 @@
                         @if ($row['status'] === \App\Enums\PaymentStatus::Verified && ! $row['has_receipt'])
                             <x-dropdown.items text="Issue receipt" icon="document-text" wire:click="issueReceipt({{ $row['id'] }})" wire:confirm="Issue a receipt for this payment?" />
                         @endif
+                        @if ($row['has_receipt'])
+                            <x-dropdown.items text="Send receipt" icon="envelope" wire:click="sendReceipt({{ $row['id'] }})" wire:confirm="Email this receipt to the client's billing contact?" />
+                        @endif
                         @if (in_array($row['status'], [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Verified], true))
                             <x-dropdown.items text="Reverse" icon="no-symbol" wire:click="openReverseModal({{ $row['id'] }})" />
                         @endif

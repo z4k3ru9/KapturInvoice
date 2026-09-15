@@ -329,13 +329,16 @@ Or just `composer setup` (runs the same steps via the composer script).
   Quotations/Jobs keep full dedicated pages, matching the original
   full-page/modal split. `docs/filament-admin-layout-design.md` §8 has
   the original reasoning for which resource is which (pre-TallStackUI-
-  rebuild architecture, but the same grouping still applies). ⚠️ Not
-  independently re-verified this pass: whether Tax Rates, Expense
-  Categories, and Task Statuses — three of the original 14 — have a
-  rebuilt TallStackUI list page at all; `routes/web.php` has no
-  `/tall/{company:slug}/tax-rates` (or `expense-categories`/
-  `task-statuses`) route today, so this may be a real UI gap rather than
-  a still-modal-based page — check before assuming either way.
+  rebuild architecture, but the same grouping still applies).
+  **Resolved:** Tax Rates, Expense Categories, and Task Statuses — three
+  of the original 14 — don't each get their own route; they're
+  deliberately consolidated into one tabbed page,
+  `App\Livewire\TallStackSettingsLookups` at
+  `/tall/{company:slug}/settings/lookups`, per a fetched Stitch mockup
+  titled "Settings — Tax Rates & Small Lookups" ("design ONE
+  representative screen... rather than three near-duplicate mockups" —
+  see that class's own docblock). Not a gap; a `/tax-rates` route was
+  never the intended shape.
 - **Client billing defaults** — `Client::default_discount`/
   `default_discount_is_percentage` prefill `TallStackInvoiceForm`'s
   invoice-level discount fields when a client is selected (still freely

@@ -29,14 +29,32 @@ the dispatching prompt only needs to state what's different about this task.
 
 ## Workspace
 
-- Work in a fresh git worktree. Rebase onto the branch your task specifies
-  as current (check `memory.md`'s "Current state" for the active working
-  branch if the task prompt doesn't name one explicitly) — that branch
-  moves frequently while you work, so rebase again right before your final
-  commit if meaningful time has passed.
+- Work in a fresh git worktree, created with `git worktree add` at a path
+  under `/tmp` or your own scratchpad — never reuse another agent's
+  worktree path, and never run git commands (especially `git remote
+  set-url`, `composer require` with a VCS repository, or anything that
+  touches `.git/config`) against the shared main checkout. `.git/config`
+  is shared across every worktree of this repo: a `remote` edit or a
+  stray `composer` VCS-repository add in one worktree corrupts `origin`
+  for the orchestrator and every other concurrent worker too. This has
+  happened once already this project — treat it as a real risk, not a
+  hypothetical.
+- Rebase onto the branch your task specifies as current (check
+  `memory.md`'s "Current state" for the active working branch if the task
+  prompt doesn't name one explicitly — as of the last full merge, that is
+  `main` itself, since the long-running feature branch was merged and
+  deleted). That branch moves while you work, so rebase again right
+  before your final commit if meaningful time has passed.
 - If your task says a sibling agent is running concurrently on a
   related/overlapping file, treat that as real: avoid touching its stated
   files, and expect to rebase past its landed work before you finish.
+- `git push origin --delete <branch>` (or the `:refs/heads/<branch>`
+  refspec form) has failed with a consistent 403 in this environment even
+  with a clean auth session for ordinary pushes — a likely policy
+  restriction on destructive remote branch deletion, not a bug in your
+  invocation. Don't retry it more than once or burn time working around
+  it; note it in your handback report and let the orchestrator decide
+  (local branch deletion and ordinary pushes are unaffected).
 
 ## Scope discipline
 
