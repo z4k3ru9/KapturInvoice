@@ -12,20 +12,19 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * The app's only non-Filament, standalone login page — routed at `/login`
- * (named `login`, matching Laravel's own guest-redirect convention: every
- * `middleware('auth')` route across the TALL-stack side of this app, the
- * portal, and `/register-company` relies on `route('login')` resolving,
- * via Illuminate\Auth\Middleware\Authenticate::redirectTo()). This is a
- * new, parallel entry point — Filament's own `/admin/login` is untouched
- * and keeps working exactly as before.
+ * The app's only login page — routed at `/login` (named `login`, matching
+ * Laravel's own guest-redirect convention: every `middleware('auth')`
+ * route across the TALL-stack side of this app, the portal, and
+ * `/register-company` relies on `route('login')` resolving, via
+ * Illuminate\Auth\Middleware\Authenticate::redirectTo()). The Filament
+ * admin panel this once ran alongside (`/admin/login`) has since been
+ * fully removed — see the note near the top of CLAUDE.md — so this is
+ * now the only authentication entry point in the app.
  *
- * Authenticates against the same `web` guard / `App\Models\User` eloquent
- * provider Filament's panel already uses (config/auth.php's defaults —
- * AdminPanelProvider never calls ->authGuard(), so it's the framework
- * default), so a plain `Auth::attempt()` here is a real, working
- * credential check against the same user table, not a parallel auth
- * system.
+ * Authenticates against the plain `web` guard / `App\Models\User` eloquent
+ * provider (config/auth.php's defaults), so a plain `Auth::attempt()` here
+ * is a real, working credential check against the same user table, not a
+ * parallel auth system.
  *
  * Post-login redirect mirrors App\Livewire\TallStackRegisterCompany's own
  * "existing company" resolution exactly (first active company — a super

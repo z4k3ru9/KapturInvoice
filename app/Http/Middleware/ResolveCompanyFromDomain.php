@@ -13,9 +13,11 @@ use Symfony\Component\HttpFoundation\Response;
  * matching the request's host against `companies.domain` — the two
  * businesses KapturInvoice runs each get their own domain, sharing this
  * codebase (see docs/invoiceninja-v4-schema-reference.md §4). This is
- * deliberately separate from Filament's tenancy: the admin panel resolves
- * its tenant from the URL path (/admin/{tenant}), the public site resolves
- * it from the Host header.
+ * deliberately separate from the admin panel's own tenancy resolution
+ * (`App\Support\Tenancy\Tenancy`, resolved from the `/tall/{company:slug}/...`
+ * URL path — the old Filament panel this replaced resolved its tenant
+ * from `/admin/{tenant}` the same way): the public site resolves its
+ * company from the Host header instead.
  *
  * Falls back to the first configured company in local/testing so the
  * homepage is reachable during development without editing /etc/hosts —

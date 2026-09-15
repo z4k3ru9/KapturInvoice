@@ -208,14 +208,14 @@ Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountP
     ->middleware('auth')
     ->name('statement-of-accounts.preview');
 
-// The app's only non-Filament, standalone login page — a new, parallel
-// entry point alongside (not replacing) Filament's own /admin/login. Named
-// `login` specifically: Illuminate\Auth\Middleware\Authenticate::redirectTo()
-// calls route('login') for every middleware('auth') route in this file
-// (and the Filament panel's own auth failures still go through Filament's
-// own login independently) — before this route existed, an unauthenticated
-// visit to any of those routes threw RouteNotFoundException instead of
-// redirecting. No `guest` middleware here deliberately: the framework's
+// The app's only login page (the Filament admin panel this once ran
+// alongside, `/admin/login`, has since been fully removed — see the note
+// near the top of CLAUDE.md). Named `login` specifically:
+// Illuminate\Auth\Middleware\Authenticate::redirectTo() calls
+// route('login') for every middleware('auth') route in this file — before
+// this route existed, an unauthenticated visit to any of those routes
+// threw RouteNotFoundException instead of redirecting. No `guest`
+// middleware here deliberately: the framework's
 // own Illuminate\Auth\Middleware\RedirectIfAuthenticated falls back to
 // Route::has('dashboard')/'home' (neither name exists in this app — every
 // company page is named `tallstack.dashboard`) or finally '/', which would
@@ -240,9 +240,8 @@ Route::post('/logout', LogoutController::class)
 // pre-TallStackUI Filament admin (Filament's RegisterTenant page) — the only path that creates a new
 // Company row. Auth-only (no tenant to scope to yet): the component's own
 // mount() redirects a user who already has a company straight to its
-// dashboard instead. See App\Livewire\TallStackRegisterCompany's docblock
-// for how this relates to Filament's own (untouched) tenant-registration
-// redirect.
+// dashboard instead. Now the app's real entry point for this flow — see
+// App\Livewire\TallStackRegisterCompany's docblock.
 Route::get('/register-company', TallStackRegisterCompany::class)
     ->middleware('auth')
     ->name('tallstack.register-company');
@@ -251,7 +250,7 @@ Route::get('/register-company', TallStackRegisterCompany::class)
 // the admin Dashboard, for comparing visual fidelity against the Stitch
 // mockup — see App\Livewire\TallStackDashboard's docblock.
 // canAccessTenant() authorization happens in the component's mount(),
-// same check Filament's own panel tenancy uses.
+// same check the old Filament panel's tenancy used.
 Route::get('/tall/{company:slug}/dashboard', TallStackDashboard::class)
     ->middleware('auth')
     ->name('tallstack.dashboard');

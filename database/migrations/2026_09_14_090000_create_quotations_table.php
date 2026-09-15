@@ -12,7 +12,9 @@ return new class extends Migration
      * A new, canonical aggregate for Phase 03
      * (docs/rebuild/specs/03-sales-and-job/Specs.md) — deliberately NOT the
      * existing `invoices` table's `type = 'quote'` rows (see
-     * App\Filament\Resources\Quotes\QuoteResource's docblock and
+     * App\Livewire\TallStackQuotes's docblock — the Filament
+     * `QuoteResource` this originally referenced no longer exists, per
+     * CLAUDE.md's note on the Filament removal — and
      * docs/REFACTOR_PLAN.md §1.2's "MODIFY (major) ... becomes its own
      * QuotationResource over the new quotations table"). Per
      * docs/rebuild/specs/IMPLEMENTATION-STRUCTURE.md §7 ("Introduce new

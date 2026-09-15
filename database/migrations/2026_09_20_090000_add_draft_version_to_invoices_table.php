@@ -9,8 +9,10 @@ return new class extends Migration
     /**
      * Phase 06B Slice 3 (docs/rebuild/specs/06b-ux-browser-soa/Specs.md):
      * "Add server version or equivalent optimistic concurrency
-     * protection" for draft autosave — see App\Filament\Concerns\
-     * AutosavesDraft. Deliberately not a `#[Fillable]` column: it is
+     * protection" for draft autosave — see App\Livewire\Concerns\
+     * AutosavesDraft (ported from the equivalent Filament trait when the
+     * Filament admin panel was removed; see CLAUDE.md's note on that
+     * removal). Deliberately not a `#[Fillable]` column: it is
      * only ever written by that trait's own forceFill(), never through a
      * normal form submission.
      */
