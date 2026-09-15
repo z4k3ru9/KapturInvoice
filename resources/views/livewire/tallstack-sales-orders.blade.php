@@ -75,7 +75,7 @@
 
             @interact('column_status', $row)
                 <div class="flex items-center gap-1.5">
-                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
                     @if ($row['closed'])
                         <x-icon name="lock-closed" class="w-3.5 h-3.5 text-gray-400 shrink-0" title="Fully closed" />
                     @endif

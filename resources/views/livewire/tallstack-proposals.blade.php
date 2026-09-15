@@ -48,7 +48,7 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$proposals" paginate loading>
             @interact('column_status', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
 
             {{-- "Converted to invoice" — a small link icon + invoice

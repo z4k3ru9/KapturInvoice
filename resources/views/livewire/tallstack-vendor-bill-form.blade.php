@@ -155,7 +155,7 @@
                         ['index' => 'actions', 'label' => '', 'sortable' => false],
                     ]" :rows="$payments">
                         @interact('column_status', $row)
-                            <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                            <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
                         @endinteract
                         @interact('column_actions', $row, $canVerifyPayments)
                             <div class="flex items-center justify-end gap-2">

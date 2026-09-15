@@ -130,13 +130,24 @@ class TallStackRecurringInvoices extends Component
         return $next;
     }
 
+    /**
+     * A cadence label, not a lifecycle status — deliberately not run
+     * through App\Support\TallStack\StatusColor::map(). 'primary' (the
+     * tenant's own brand color, reserved for the page's one main commit
+     * action per AppServiceProvider::registerActionColorPalette()) was
+     * previously reused here for "Annually", which both collides with
+     * that reserved meaning and made this one frequency's color vary by
+     * tenant for no reason tied to its own meaning — swapped for
+     * 'indigo', a plain categorical palette entry with no semantic role
+     * elsewhere in this app.
+     */
     private function frequencyBadge(?string $frequency): array
     {
         return match (strtolower((string) $frequency)) {
             'weekly' => ['label' => 'Weekly', 'color' => 'blue'],
             'monthly' => ['label' => 'Monthly', 'color' => 'green'],
             'quarterly' => ['label' => 'Quarterly', 'color' => 'amber'],
-            'annually', 'yearly' => ['label' => 'Annually', 'color' => 'primary'],
+            'annually', 'yearly' => ['label' => 'Annually', 'color' => 'indigo'],
             default => ['label' => $frequency ?: '—', 'color' => 'gray'],
         };
     }

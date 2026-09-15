@@ -51,7 +51,15 @@ enum InvoiceStatus: string
             self::Overdue => 'danger',
             self::Cancelled => 'gray',
             self::Approved => 'info',
-            self::Issued => 'primary',
+            // Was 'primary' (the tenant's own brand color, reserved for
+            // the page's single main commit action per
+            // AppServiceProvider::registerActionColorPalette()) — that
+            // made an "Issued" badge's meaning vary by tenant brand
+            // rather than by anything about the status itself, and
+            // collided with the reserved role. 'info' matches Approved/
+            // Sent/Viewed: still moving through the lifecycle, not yet
+            // resolved to Paid/Overdue/Void.
+            self::Issued => 'info',
             self::Void => 'danger',
             self::Amended => 'gray',
         };

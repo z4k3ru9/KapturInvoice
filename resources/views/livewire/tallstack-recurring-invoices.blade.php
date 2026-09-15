@@ -73,7 +73,7 @@
             @endinteract
 
             @interact('column_status_label', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
 
             @interact('column_generated_count', $row)
