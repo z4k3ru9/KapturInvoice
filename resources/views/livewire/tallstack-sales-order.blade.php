@@ -228,7 +228,19 @@
     {{-- ============================= BILLING ============================= --}}
     <div @if ($activeTab !== 'billing') hidden @endif class="flex flex-col gap-4">
         <x-card>
-            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Invoices billed against this job</span></x-slot:header>
+            <x-slot:header>
+                <div class="flex items-center justify-between w-full">
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Invoices billed against this job</span>
+                    {{-- App\Models\Invoice::sales_order_id — prefilled via the
+                         same `?sales_order_id=` query-param convention
+                         App\Livewire\TallStackStatementOfAccount already uses
+                         for period_start/period_end (see
+                         TallStackInvoiceForm::mount()). color="gray" —
+                         Neutral role, a secondary structural action. --}}
+                    <x-button text="Create invoice" icon="plus" color="gray" sm
+                        href="{{ route('tallstack.invoices.create', ['company' => $company, 'sales_order_id' => $job->id]) }}" />
+                </div>
+            </x-slot:header>
             <x-table :headers="[
                 ['index' => 'number', 'label' => 'Number'],
                 ['index' => 'date', 'label' => 'Date'],

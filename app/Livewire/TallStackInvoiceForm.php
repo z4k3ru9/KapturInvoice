@@ -14,9 +14,11 @@ use App\Livewire\Concerns\AutosavesDraft;
 use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
+use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Models\SalesOrder;
 use App\Services\BillingMailer;
 use App\Services\DocumentNumberGenerator;
 use App\Services\InvoiceTotalsCalculator;
@@ -109,6 +111,20 @@ class TallStackInvoiceForm extends Component
 
     public ?string $currency_code = null;
 
+    /**
+     * The Job this invoice is billed against (App\Models\Invoice::
+     * sales_order_id, a real #[Fillable] column that this form previously
+     * never referenced at all — see App\Models\SalesOrder::invoices()).
+     * Prefilled from a `?sales_order_id=` query param when this page is
+     * reached via the Job's own Billing tab "Create invoice" action
+     * (tallstack-sales-order.blade.php), and otherwise pickable directly
+     * here — scoped to the selected client's own open jobs, see
+     * `render()`'s `salesOrders` option list — since Invoices > Create
+     * already exists as its own entry point and shouldn't require going
+     * through the Job page first.
+     */
+    public ?string $sales_order_id = null;
+
     public float $discount = 0;
 
     public bool $discount_is_percentage = false;
@@ -197,7 +213,7 @@ class TallStackInvoiceForm extends Component
             abort_unless($invoice->company_id === $company->id, 404);
             abort_unless(in_array($invoice->type, [InvoiceType::Invoice, InvoiceType::Quote], true), 404);
 
-            $this->invoice = $invoice->loadMissing(['items.product', 'items.taxes', 'client', 'taxRecap', 'originalInvoice', 'correction', 'salesOrder']);
+            $this->invoice = $invoice->loadMissing(['items.product', 'items.taxes', 'client', 'taxRecap', 'originalInvoice', 'correction', 'salesOrder.quotation']);
             $this->client_id = (string) $invoice->client_id;
             $this->number = $invoice->number;
             $this->pricing_mode = $invoice->pricing_mode?->value ?? PricingMode::Exclusive->value;
@@ -205,6 +221,7 @@ class TallStackInvoiceForm extends Component
             $this->invoice_date = $invoice->invoice_date?->toDateString();
             $this->due_date = $invoice->due_date?->toDateString();
             $this->currency_code = $invoice->currency_code;
+            $this->sales_order_id = $invoice->sales_order_id ? (string) $invoice->sales_order_id : null;
             $this->discount = (float) $invoice->discount;
             $this->discount_is_percentage = $invoice->discount_is_percentage;
             $this->terms = $invoice->terms;
@@ -219,6 +236,19 @@ class TallStackInvoiceForm extends Component
 
         $this->invoice_date = now()->toDateString();
         $this->currency_code = $company->currency_code;
+
+        // Reached from the Job's own Billing tab "Create invoice" action
+        // (tallstack-sales-order.blade.php) — same `?<field>=` query-param
+        // prefill convention TallStackStatementOfAccount::mount() already
+        // uses for period_start/period_end. Silently ignored if the id
+        // doesn't resolve to a real job on this tenant (e.g. a stale
+        // link) rather than aborting the whole page.
+        $salesOrderId = request()->query('sales_order_id');
+
+        if ($salesOrderId && $job = SalesOrder::query()->where('company_id', $company->id)->find($salesOrderId)) {
+            $this->sales_order_id = (string) $job->id;
+            $this->client_id = (string) $job->client_id;
+        }
     }
 
     /** Livewire computed property (`$this->isQuote` in the view) — see class docblock's "Also the edit page for a legacy type=Quote row" section. */
@@ -230,6 +260,19 @@ class TallStackInvoiceForm extends Component
     /** Same client-default-discount prefill as InvoiceForm's own afterStateUpdated(). */
     public function updatedClientId(?string $value): void
     {
+        // A previously-picked job stops being valid once it no longer
+        // belongs to the (now different) selected client — the
+        // `salesOrders` option list in render() is scoped per-client, so
+        // a stale selection would otherwise silently point at a job for
+        // someone else's invoice.
+        if ($this->sales_order_id) {
+            $job = SalesOrder::query()->where('company_id', $this->company->id)->find($this->sales_order_id);
+
+            if (! $job || (string) $job->client_id !== (string) $value) {
+                $this->sales_order_id = null;
+            }
+        }
+
         if (! $value || $this->invoice) {
             return;
         }
@@ -321,6 +364,7 @@ class TallStackInvoiceForm extends Component
             'invoice_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'currency_code' => ['nullable', 'string', 'max:10'],
+            'sales_order_id' => ['nullable', Rule::exists('sales_orders', 'id')->where('company_id', $this->company->id)],
             'discount' => ['numeric', 'min:0'],
             'discount_is_percentage' => ['boolean'],
             'terms' => ['nullable', 'string'],
@@ -328,6 +372,22 @@ class TallStackInvoiceForm extends Component
             'private_notes' => ['nullable', 'string'],
             'footer' => ['nullable', 'string'],
         ]);
+
+        // A cross-field check Rule::exists alone can't express — the job
+        // must belong to the same client actually being invoiced, not
+        // merely the same company (an editable manual picker on this form
+        // means the client can change after a job was picked, or vice
+        // versa — see updatedClientId()'s own reset for the common case;
+        // this is the authoritative backstop for it).
+        if (filled($data['sales_order_id'] ?? null)) {
+            $job = SalesOrder::query()->where('company_id', $this->company->id)->find($data['sales_order_id']);
+
+            if (! $job || (string) $job->client_id !== (string) $data['client_id']) {
+                $this->addError('sales_order_id', 'The selected job does not belong to this client.');
+
+                return;
+            }
+        }
 
         $payload = [
             'client_id' => $data['client_id'],
@@ -337,6 +397,7 @@ class TallStackInvoiceForm extends Component
             'invoice_date' => $this->invoice_date,
             'due_date' => $this->due_date,
             'currency_code' => $this->currency_code,
+            'sales_order_id' => filled($data['sales_order_id'] ?? null) ? $data['sales_order_id'] : null,
             'discount' => $this->discount,
             'discount_is_percentage' => $this->discount_is_percentage,
             'terms' => $this->terms,
@@ -831,10 +892,28 @@ class TallStackInvoiceForm extends Component
             $taxRecapStatusColor = $adjusted ? 'blue' : ($filed ? 'green' : 'amber');
         }
 
+        // The manual Job picker's own option list — the selected client's
+        // own open (non-terminal) jobs, per App\Enums\SalesOrderStatus::
+        // isTerminal(). The invoice's currently-linked job is always kept
+        // even if it has since closed/been cancelled, so an existing
+        // selection never silently disappears from the dropdown.
+        $salesOrders = collect();
+        if ($this->client_id) {
+            $salesOrders = SalesOrder::query()
+                ->where('company_id', $this->company->id)
+                ->where('client_id', $this->client_id)
+                ->get(['id', 'number', 'status'])
+                ->filter(fn (SalesOrder $job) => ! $job->status->isTerminal() || (string) $job->id === (string) $this->sales_order_id)
+                ->sortBy('number')
+                ->values();
+        }
+
         return view('livewire.tallstack-invoice-form', [
             'clients' => Client::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'products' => Product::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'taxRates' => $this->company->taxRates()->orderBy('name')->get(['id', 'name']),
+            'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
+            'salesOrders' => $salesOrders->map(fn (SalesOrder $job) => ['label' => $job->number.' ('.$job->status->getLabel().')', 'value' => (string) $job->id])->all(),
             'pricingModes' => PricingMode::cases(),
             'items' => $items,
             'currency' => $currency,

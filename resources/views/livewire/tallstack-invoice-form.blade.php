@@ -67,34 +67,84 @@
         </div>
     @endif
 
-    <div class="grid lg:grid-cols-[1.6fr_1fr] gap-4 items-start">
-        <div class="flex flex-col gap-4">
-            {{-- Client & invoice terms --}}
-            <x-card>
-                <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Client &amp; invoice terms</span>
-                </x-slot:header>
+    {{--
+        Phase 4 (docs/rebuild — TallStackUI repair plan) tabbed layout,
+        replacing the previous stacked-cards/two-column arrangement. This
+        is the first use of TallStackUI's own <x-tab> component anywhere
+        in this codebase (see vendor/tallstackui/tallstackui/.ai/components/tab) —
+        every other TallStack*Form page still uses the old stacked-cards
+        shape; this establishes the pattern later forms can copy. Plain
+        client-side ("selected", no wire:model) since every tab's content
+        is already present in one render() payload regardless of which
+        tab is open — there's nothing server-side to defer.
+    --}}
+    <x-tab selected="client-terms">
+        <x-tab.items tab="client-terms" title="Client & Terms">
+            <div class="flex flex-col gap-4">
+                <x-card>
+                    <x-slot:header>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Client &amp; invoice terms</span>
+                    </x-slot:header>
 
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <div class="sm:col-span-2">
-                        <x-select.styled wire:model.live="client_id" label="Client" searchable required
-                            :options="$clients->map(fn ($c) => ['label' => $c->name, 'value' => (string) $c->id])->all()" />
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <x-select.styled wire:model.live="client_id" label="Client" searchable required
+                                :options="$clients->map(fn ($c) => ['label' => $c->name, 'value' => (string) $c->id])->all()" />
+                        </div>
+                        {{--
+                            Job link (App\Models\Invoice::sales_order_id) — the
+                            manual entry point for when this form is reached
+                            directly (Invoices > Create), scoped to the
+                            selected client's own open jobs (render()'s
+                            $salesOrders). Prefilled instead, with the client
+                            locked in alongside it, when reached from the
+                            Job's own Billing tab "Create invoice" action —
+                            see mount()'s `?sales_order_id=` handling.
+                        --}}
+                        <div class="sm:col-span-2">
+                            <x-select.styled wire:model="sales_order_id" label="Job (optional)" searchable clearable
+                                :options="$salesOrders"
+                                hint="Links this invoice to a job for cost/margin reporting. Scoped to the selected client's own open jobs." />
+                        </div>
+                        <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                        <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
+                            :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
+                        <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
+                        <x-select.styled wire:model="currency_code" label="Currency" searchable
+                            :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
+                        <x-date wire:model="invoice_date" label="Invoice date" />
+                        <x-date wire:model="due_date" label="Due date" />
+                        <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
+                        <div class="flex items-end pb-2">
+                            <x-toggle wire:model="discount_is_percentage" label="Discount is a percentage" />
+                        </div>
                     </div>
-                    <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
-                    <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
-                        :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
-                    <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
-                    <x-input wire:model="currency_code" label="Currency code" />
-                    <x-date wire:model="invoice_date" label="Invoice date" />
-                    <x-date wire:model="due_date" label="Due date" />
-                    <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
-                    <div class="flex items-end pb-2">
-                        <x-toggle wire:model="discount_is_percentage" label="Discount is a percentage" />
-                    </div>
-                </div>
-            </x-card>
+                </x-card>
 
-            {{-- Line items --}}
+                <x-card>
+                    <x-slot:header>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Terms</span>
+                    </x-slot:header>
+                    {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                         <x-editor> (it only checks for .live/.blur — see TallStackUI\Support\Blade\
+                         Wireable::entangle()), so autosave is wired the equivalent way the
+                         AutosavesDraft docblock anticipates: a plain deferred wire:model keeps the
+                         property entangled locally, and x-on:editor:change carries Alpine's own
+                         .debounce modifier to commit it to the server after the same 1750ms pause.
+                         $wire.updated{Field}() itself can't be called directly — Livewire refuses a
+                         direct call to a lifecycle-hook-named method ("Unable to call lifecycle
+                         method... directly") — so this calls $wire.$commit() instead, which pushes
+                         the already-entangled value to the server, where Livewire's own dirty-check
+                         then fires updated{Field}() automatically (sanitize + autosaveDraft()) exactly
+                         as it would for any other property change. --}}
+                    <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="18rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                </x-card>
+            </div>
+        </x-tab.items>
+
+        <x-tab.items tab="line-items" title="Line Items">
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
@@ -156,154 +206,160 @@
                     </x-tallstack.reorderable-items-table>
                 @endif
             </x-card>
+        </x-tab.items>
 
+        <x-tab.items tab="notes" title="Notes">
             <x-card>
                 <x-slot:header>
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
-                    {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
-                         <x-editor> (it only checks for .live/.blur — see TallStackUI\Support\Blade\
-                         Wireable::entangle()), so autosave is wired the equivalent way the
-                         AutosavesDraft docblock anticipates: a plain deferred wire:model keeps the
-                         property entangled locally, and x-on:editor:change carries Alpine's own
-                         .debounce modifier to commit it to the server after the same 1750ms pause.
-                         $wire.updated{Field}() itself can't be called directly — Livewire refuses a
-                         direct call to a lifecycle-hook-named method ("Unable to call lifecycle
-                         method... directly") — so this calls $wire.$commit() instead, which pushes
-                         the already-entangled value to the server, where Livewire's own dirty-check
-                         then fires updated{Field}() automatically (sanitize + autosaveDraft()) exactly
-                         as it would for any other property change. --}}
-                    <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="18rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
-                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     <x-editor wire:model="public_notes" label="Public notes" min-height="8rem" max-height="18rem"
                         :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
                         x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     <x-editor wire:model="private_notes" label="Private notes" min-height="8rem" max-height="18rem"
                         :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
                         x-on:editor:change.debounce.1750ms="$wire.$commit()" />
-                    <x-editor wire:model="footer" label="Footer" min-height="4rem" max-height="8rem"
-                        :toolbar="['bold', 'italic', 'clear-format', 'undo', 'redo']"
-                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                    <div class="sm:col-span-2">
+                        <x-editor wire:model="footer" label="Footer" min-height="4rem" max-height="8rem"
+                            :toolbar="['bold', 'italic', 'clear-format', 'undo', 'redo']"
+                            x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                    </div>
                 </div>
             </x-card>
-        </div>
+        </x-tab.items>
 
-        {{-- Financial summary + tax recap / correction history --}}
-        <div class="flex flex-col gap-4">
-            <x-card>
-                <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
-                </x-slot:header>
-                <div class="flex flex-col gap-2 text-sm">
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
-                        <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Discount</span>
-                        <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Tax</span>
-                        <span class="tabular-nums">{{ $taxTotal }}</span>
-                    </div>
-                    <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-900 dark:text-gray-100">Total</span>
-                        <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
-                    </div>
-                    @if ($invoice)
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Paid</span>
-                            <span class="tabular-nums">{{ $amountPaid }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-semibold text-gray-900 dark:text-gray-100">Balance</span>
-                            <span class="font-semibold tabular-nums">{{ $balance }}</span>
-                        </div>
-                    @endif
-                    <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above. Totals and balance are frozen once issued — see App\Actions\Billing\IssueInvoice.</p>
-                </div>
-            </x-card>
-
-            @if ($invoice && ($invoice->originalInvoice || $invoice->correction))
+        <x-tab.items tab="financial-summary" title="Financial Summary">
+            <div class="flex flex-col gap-4">
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Correction history</span>
-                    </x-slot:header>
-                    <div class="flex flex-col gap-2 text-sm">
-                        @if ($invoice->originalInvoice)
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Corrects</span>
-                                <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
-                            </div>
-                        @endif
-                        @if ($invoice->correction)
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Corrected by</span>
-                                <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
-                            </div>
-                        @endif
-                        @if ($invoice->void_reason)
-                            <p class="text-gray-500 dark:text-gray-400">Void reason: {{ $invoice->void_reason }}</p>
-                        @endif
-                        @if ($invoice->correction_reason)
-                            <p class="text-gray-500 dark:text-gray-400">Correction reason: {{ $invoice->correction_reason }}</p>
-                        @endif
-                    </div>
-                </x-card>
-            @endif
-
-            {{--
-                e-Faktur / Tax Recap issuance — only exists once IssueInvoice
-                itself decided this invoice was taxable (App\Models\
-                Company\CompanyTaxSetting::tax_enabled plus a nonzero tax
-                total; Karunia Abadi's own tax_enabled=false never creates
-                one). Every field/action here mirrors
-                InvoiceInfolist::fileOrAdjustTaxRecapAction() exactly.
-            --}}
-            @if ($invoice?->taxRecap)
-                <x-card>
-                    <x-slot:header>
-                        <div class="flex items-center justify-between w-full">
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Tax recap (e-Faktur)</span>
-                            <x-button icon="document-arrow-down" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('tax-recaps.pdf', $invoice->taxRecap) }}" target="_blank" tooltip="Download PDF" />
-                        </div>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
                     </x-slot:header>
                     <div class="flex flex-col gap-2 text-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Number</span>
-                            <span class="font-semibold">{{ $invoice->taxRecap->number ?? '—' }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
+                            <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Reporting period</span>
-                            <span>{{ $invoice->taxRecap->reporting_period }}</span>
+                            <span class="text-gray-500 dark:text-gray-400">Discount</span>
+                            <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Status</span>
-                            <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
+                            <span class="text-gray-500 dark:text-gray-400">Tax</span>
+                            <span class="tabular-nums">{{ $taxTotal }}</span>
                         </div>
+                        <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Filing date</span>
-                            <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
+                            <span class="font-bold text-gray-900 dark:text-gray-100">Total</span>
+                            <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                         </div>
-                        {{-- color="brand" — this card's own single commit action (Primary role). --}}
-                        <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="brand" sm class="mt-1" wire:click="openTaxRecapModal" />
+                        @if ($invoice)
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Paid</span>
+                                <span class="tabular-nums">{{ $amountPaid }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-semibold text-gray-900 dark:text-gray-100">Balance</span>
+                                <span class="font-semibold tabular-nums">{{ $balance }}</span>
+                            </div>
+                        @endif
+                        <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above. Totals and balance are frozen once issued — see App\Actions\Billing\IssueInvoice.</p>
                     </div>
                 </x-card>
-            @endif
 
-            @if ($invoice?->salesOrder)
-                <x-card>
-                    <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job</span>
-                    </x-slot:header>
-                    <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
-                </x-card>
-            @endif
+                @if ($invoice && ($invoice->originalInvoice || $invoice->correction))
+                    <x-card>
+                        <x-slot:header>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Correction history</span>
+                        </x-slot:header>
+                        <div class="flex flex-col gap-2 text-sm">
+                            @if ($invoice->originalInvoice)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400">Corrects</span>
+                                    <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
+                                </div>
+                            @endif
+                            @if ($invoice->correction)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400">Corrected by</span>
+                                    <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
+                                </div>
+                            @endif
+                            @if ($invoice->void_reason)
+                                <p class="text-gray-500 dark:text-gray-400">Void reason: {{ $invoice->void_reason }}</p>
+                            @endif
+                            @if ($invoice->correction_reason)
+                                <p class="text-gray-500 dark:text-gray-400">Correction reason: {{ $invoice->correction_reason }}</p>
+                            @endif
+                        </div>
+                    </x-card>
+                @endif
 
+                {{--
+                    e-Faktur / Tax Recap issuance — only exists once IssueInvoice
+                    itself decided this invoice was taxable (App\Models\
+                    Company\CompanyTaxSetting::tax_enabled plus a nonzero tax
+                    total; Karunia Abadi's own tax_enabled=false never creates
+                    one). Every field/action here mirrors
+                    InvoiceInfolist::fileOrAdjustTaxRecapAction() exactly.
+                --}}
+                @if ($invoice?->taxRecap)
+                    <x-card>
+                        <x-slot:header>
+                            <div class="flex items-center justify-between w-full">
+                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Tax recap (e-Faktur)</span>
+                                <x-button icon="document-arrow-down" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('tax-recaps.pdf', $invoice->taxRecap) }}" target="_blank" tooltip="Download PDF" />
+                            </div>
+                        </x-slot:header>
+                        <div class="flex flex-col gap-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Number</span>
+                                <span class="font-semibold">{{ $invoice->taxRecap->number ?? '—' }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Reporting period</span>
+                                <span>{{ $invoice->taxRecap->reporting_period }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Status</span>
+                                <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400">Filing date</span>
+                                <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
+                            </div>
+                            {{-- color="brand" — this card's own single commit action (Primary role). --}}
+                            <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="brand" sm class="mt-1" wire:click="openTaxRecapModal" />
+                        </div>
+                    </x-card>
+                @endif
+
+                @if ($invoice?->salesOrder)
+                    <x-card>
+                        <x-slot:header>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job</span>
+                        </x-slot:header>
+                        <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
+                    </x-card>
+                @endif
+
+                {{-- Cross-reference to the quotation this invoice's job descended
+                     from — App\Models\Invoice::salesOrder()->quotation(), not a
+                     direct link on Invoice itself (an invoice only ever knows
+                     its own job; the job carries the quotation reference). Same
+                     plain-text visual pattern as the "Job" card above. --}}
+                @if ($invoice?->salesOrder?->quotation)
+                    <x-card>
+                        <x-slot:header>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">From quotation</span>
+                        </x-slot:header>
+                        <p class="text-sm">{{ $invoice->salesOrder->quotation->number }}</p>
+                    </x-card>
+                @endif
+            </div>
+        </x-tab.items>
+
+        <x-tab.items tab="documents" title="Documents">
             {{--
                 Documents — attach a file to this invoice (PDF/JPG/PNG up
                 to 10MB, App\Livewire\Concerns\ManagesDocuments). Download
@@ -313,11 +369,13 @@
                 not one of CLAUDE.md's "never physically deleted" issued
                 document types).
             --}}
-            @if ($invoice)
-                <x-card>
-                    <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Documents</span>
-                    </x-slot:header>
+            <x-card>
+                <x-slot:header>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Documents</span>
+                </x-slot:header>
+                @if (! $invoice)
+                    <p class="text-sm text-gray-400">Save the invoice first to attach documents.</p>
+                @else
                     <div class="flex flex-col gap-3">
                         <x-upload wire:model="newDocument" label="Attach a document" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
                         <x-button text="Upload" icon="arrow-up-tray" color="blue" sm wire:click="uploadDocument" />
@@ -338,10 +396,10 @@
                             <x-slot:empty>No documents attached yet.</x-slot:empty>
                         </x-table>
                     </div>
-                </x-card>
-            @endif
-        </div>
-    </div>
+                @endif
+            </x-card>
+        </x-tab.items>
+    </x-tab>
 
     {{-- Line item modal --}}
     <x-modal wire="showItemModal" title="{{ $editingItemId ? 'Edit line item' : 'Add line item' }}" center="sm" scrollable>
