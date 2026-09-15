@@ -329,7 +329,7 @@ class TallStackProducts extends Component
                 'unit' => $product->unit ?? '—',
                 'price' => Money::format((float) $product->unit_cost, $currency),
                 'tax_category_label' => $product->tax_category->getLabel(),
-                'tax_category_color' => $product->tax_category === TaxCategory::StandardTaxable ? 'blue' : 'gray',
+                'tax_category_color' => StatusColor::map($product->tax_category->getColor()),
                 'stock_flag' => (bool) $product->stock_flag,
                 'has_image' => filled($product->image_path),
             ]);

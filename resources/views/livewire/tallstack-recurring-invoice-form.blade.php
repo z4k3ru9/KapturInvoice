@@ -198,7 +198,7 @@
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="tabular-nums font-semibold">{{ $gen['total'] }}</span>
-                                        <x-badge text="{{ $gen['status_label'] }}" :color="$gen['status_color']" sm />
+                                        <x-badge text="{{ $gen['status_label'] }}" :color="$gen['status_color']" sm light />
                                     </div>
                                 </a>
                             @endforeach
