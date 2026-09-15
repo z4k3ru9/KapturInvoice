@@ -52,8 +52,14 @@ class AppServiceProvider extends ServiceProvider
             'wrapper.second' => 'mx-3 flex h-full items-center justify-center gap-3',
             'wrapper.second-no-header' => 'mt-3',
             'wrapper.second-no-footer' => 'mb-3',
-            'wrapper.third' => 'flex h-9 w-9 items-center justify-center rounded-lg',
-            'icon' => 'h-5 w-5',
+            // shrink-0 on both: without it, the icon square is just
+            // another flex child and a longer title (e.g. "Outstanding
+            // balance") or the increase/decrease trend arrow squeezes it
+            // down from 36px to as little as 20px instead of shrinking
+            // the text beside it — the cropped/uneven icon boxes reported
+            // against the Stitch mockup.
+            'wrapper.third' => 'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+            'icon' => 'h-5 w-5 shrink-0',
             'title' => 'dark:text-dark-300 text-xs text-gray-600',
             'number' => 'dark:text-dark-300 text-lg font-bold leading-none *:m-0',
             'slots.footer.wrapper' => 'mx-3',
