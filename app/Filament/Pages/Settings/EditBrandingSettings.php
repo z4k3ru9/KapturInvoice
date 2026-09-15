@@ -66,7 +66,9 @@ class EditBrandingSettings extends Page
                         ColorPicker::make('secondary_color'),
                     ]),
                 Section::make('Signatory & banking')
-                    ->description('Printed on invoice/quotation PDFs once wired into rendering (a later slice) — not yet reflected in generated documents.')
+                    ->description('For a future signature block and payment instructions on invoice/quotation PDFs — not yet printed on generated documents.')
+                    ->collapsible()
+                    ->collapsed()
                     ->columns(2)
                     ->schema([
                         TextInput::make('signatory_name'),
@@ -78,7 +80,8 @@ class EditBrandingSettings extends Page
                             ->columnSpanFull(),
                         TextInput::make('bank_name'),
                         TextInput::make('bank_account_number'),
-                        TextInput::make('bank_account_name'),
+                        TextInput::make('bank_account_name')
+                            ->helperText('Beneficiary name as registered with the bank.'),
                         Textarea::make('payment_instructions')
                             ->columnSpanFull(),
                     ]),
