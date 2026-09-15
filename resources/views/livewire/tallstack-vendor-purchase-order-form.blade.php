@@ -14,6 +14,11 @@
             </x-slot:badge>
         @endif
         <x-slot:actions>
+            @if ($purchaseOrder && $purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
+                {{-- Draft-only autosave status for the Terms/Notes tabs
+                     below — see App\Livewire\Concerns\AutosavesDraft. --}}
+                <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+            @endif
             @if ($purchaseOrder)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('vendor-purchase-orders.pdf', $purchaseOrder) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
@@ -152,12 +157,17 @@
                      headers if one is used there. --}}
                 <x-tab selected="terms" scroll-on-mobile>
                     <x-tab.items tab="terms" title="Terms">
+                        {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                             <x-editor> — see TallStackInvoiceForm's own Terms card comment for the
+                             full explanation of this $wire.$commit() pattern. --}}
                         <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="20rem"
-                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                            x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     </x-tab.items>
                     <x-tab.items tab="notes" title="Notes">
                         <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="20rem"
-                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                            x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     </x-tab.items>
                 </x-tab>
             </x-card>

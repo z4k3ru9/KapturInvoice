@@ -14,6 +14,11 @@
             </x-slot:badge>
         @endif
         <x-slot:actions>
+            @if ($bill && $bill->status === \App\Enums\VendorBillStatus::Draft)
+                {{-- Draft-only autosave status for the Notes field below —
+                     see App\Livewire\Concerns\AutosavesDraft. --}}
+                <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+            @endif
             @if ($bill)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('vendor-bills.pdf', $bill) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
@@ -199,8 +204,12 @@
                 <x-slot:header>
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
+                {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                     <x-editor> — see TallStackInvoiceForm's own Terms card comment for the
+                     full explanation of this $wire.$commit() pattern. --}}
                 <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="18rem"
-                    :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                    :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                    x-on:editor:change.debounce.1750ms="$wire.$commit()" />
             </x-card>
         </div>
 

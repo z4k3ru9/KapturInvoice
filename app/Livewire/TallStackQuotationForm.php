@@ -8,6 +8,7 @@ use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\JobType;
 use App\Enums\PricingMode;
 use App\Enums\QuotationStatus;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
@@ -22,8 +23,10 @@ use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -51,7 +54,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackQuotationForm extends Component
 {
-    use Interactions, ManagesDocuments, WithFileUploads;
+    use AutosavesDraft, Interactions, ManagesDocuments, WithFileUploads;
 
     public Company $company;
 
@@ -78,8 +81,13 @@ class TallStackQuotationForm extends Component
 
     public ?string $notes = null;
 
-    // Line item modal state — mirrors ItemsRelationManager's own form.
-    public bool $showItemModal = false;
+    // Inline line-item add/edit form state (Phase 13 repair plan — replaces
+    // the previous <x-modal wire="showItemModal"> round-trip; see
+    // App\Livewire\TallStackInvoiceForm's own identical fields for the full
+    // rationale). `itemFormOpen` gates whether the inline form row renders
+    // at all; `editingItemId` distinguishes "editing this row" (set) from
+    // "adding a new trailing row" (null).
+    public bool $itemFormOpen = false;
 
     public ?int $editingItemId = null;
 
@@ -137,6 +145,8 @@ class TallStackQuotationForm extends Component
             $this->terms = $quotation->terms;
             $this->notes = $quotation->notes;
 
+            $this->initializeAutosaveVersion();
+
             return;
         }
 
@@ -163,6 +173,51 @@ class TallStackQuotationForm extends Component
             $this->discount = (float) $client->default_discount;
             $this->discount_is_percentage = (bool) $client->default_discount_is_percentage;
         }
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Wired only onto the plain free-text metadata fields — terms, notes —
+    // never client_id/number/pricing_mode/job_type/dates/discount, since
+    // those either go through save()'s own validation/redirect path or feed
+    // App\Services\QuotationTotalsCalculator's recalculation, which this
+    // raw conditional-UPDATE autosave deliberately never triggers. Same
+    // reasoning as TallStackInvoiceForm's own wiring.
+
+    public function updatedTerms(): void
+    {
+        $this->terms = app(RichTextSanitizer::class)->sanitize($this->terms);
+        $this->autosaveDraft();
+    }
+
+    public function updatedNotes(): void
+    {
+        $this->notes = app(RichTextSanitizer::class)->sanitize($this->notes);
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->quotation;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['terms', 'notes'];
+    }
+
+    /**
+     * Same "Auditor is read-only everywhere" boundary save() enforces via
+     * its own explicit $this->authorize('update', ...) call — autosave
+     * must not become a side channel that bypasses it just because it
+     * never routes through save()'s validated form submission.
+     */
+    protected function autosaveGuard(): bool
+    {
+        return $this->quotation !== null
+            && $this->quotation->status === QuotationStatus::Draft
+            && Gate::allows('update', $this->quotation);
     }
 
     public function save(): void
@@ -229,7 +284,7 @@ class TallStackQuotationForm extends Component
     public function addItem(): void
     {
         $this->resetItemForm();
-        $this->showItemModal = true;
+        $this->itemFormOpen = true;
     }
 
     public function editItem(int $id): void
@@ -248,7 +303,14 @@ class TallStackQuotationForm extends Component
         $this->item_unit_cost = (float) $item->unit_cost;
         $this->item_discount = (float) $item->discount;
         $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
-        $this->showItemModal = true;
+        $this->itemFormOpen = true;
+    }
+
+    /** Closes the inline add/edit form without saving — mirrors the old modal's "Cancel". */
+    public function cancelItemForm(): void
+    {
+        $this->itemFormOpen = false;
+        $this->resetItemForm();
     }
 
     /** Same product -> title/unit_cost autofill as ItemsRelationManager's afterStateUpdated(). */
@@ -310,7 +372,7 @@ class TallStackQuotationForm extends Component
         app(QuotationTotalsCalculator::class)->recalculate($this->quotation);
         $this->quotation->refresh()->load('items.product');
 
-        $this->showItemModal = false;
+        $this->itemFormOpen = false;
         $this->resetItemForm();
         $this->toast()->success('Line item saved.')->send();
     }

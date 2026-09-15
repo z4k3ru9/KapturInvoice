@@ -6,6 +6,7 @@ use App\Actions\Procurement\ApproveVendorPoVariance;
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
 use App\Enums\CompanyRole;
 use App\Enums\VendorPurchaseOrderStatus;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\Vendor;
@@ -18,7 +19,9 @@ use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use RuntimeException;
@@ -37,7 +40,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackVendorPurchaseOrderForm extends Component
 {
-    use Interactions;
+    use AutosavesDraft, Interactions;
 
     public Company $company;
 
@@ -103,6 +106,8 @@ class TallStackVendorPurchaseOrderForm extends Component
             $this->terms = $vendorPurchaseOrder->terms;
             $this->notes = $vendorPurchaseOrder->notes;
 
+            $this->initializeAutosaveVersion();
+
             return;
         }
 
@@ -112,6 +117,44 @@ class TallStackVendorPurchaseOrderForm extends Component
         // this whole branch only runs when there is no existing
         // $purchaseOrder.
         $this->terms = $company->default_payment_terms;
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Wired only onto the plain free-text metadata fields — terms, notes —
+    // never vendor_id/number/dates, since those go through save()'s own
+    // validation/redirect path and the PO's `total` is immutable once
+    // approved (class docblock) — same reasoning as TallStackInvoiceForm's
+    // own wiring.
+
+    public function updatedTerms(): void
+    {
+        $this->terms = app(RichTextSanitizer::class)->sanitize($this->terms);
+        $this->autosaveDraft();
+    }
+
+    public function updatedNotes(): void
+    {
+        $this->notes = app(RichTextSanitizer::class)->sanitize($this->notes);
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->purchaseOrder;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['terms', 'notes'];
+    }
+
+    protected function autosaveGuard(): bool
+    {
+        return $this->purchaseOrder !== null
+            && $this->purchaseOrder->status === VendorPurchaseOrderStatus::Draft
+            && Gate::allows('update', $this->purchaseOrder);
     }
 
     public function save(): void
