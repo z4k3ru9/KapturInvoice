@@ -21,7 +21,7 @@
             ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
         ],
         'Clients' => [
-            ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
+            ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
         ],
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => "{$adminBase}/products", 'icon' => 'cube'],
