@@ -425,8 +425,20 @@ status checklist.
       dropped Phase 9's four Settings pages entirely; watch for this
       whenever two independently-built phases both want a "Settings" nav
       group.)
-- [ ] Deferred, not yet started: Price List Items, Credits, Recurring
-      Invoices — Stitch screens exist, not yet built.
+- [x] Price List Items (`/tall/{company:slug}/price-list-items` — a
+      register/list-only page per prompt 14's own framing: browse the
+      imported vendor pricelist, Import pricelist (brand + file upload
+      modal, reuses `App\Services\PriceListImporter` unmodified), and a
+      "Create/update product" row action (reuses `App\Services\ProductSync`
+      unmodified) with a "Linked" badge on rows already backed by a real
+      Product. No hand-edit-a-row form — the Stitch mockup itself never
+      shows one either, and the Filament resource's own manual
+      create/edit form is a rarely-used fallback for hand-typed rows, not
+      the primary flow. `App\Livewire\TallStackPriceListItems`. Folded
+      into the existing `'Catalog'` nav-group array (not a second
+      `'Catalog' => [...]` block).)
+- [ ] Deferred, not yet started: Credits, Recurring Invoices — Stitch
+      screens exist, not yet built.
 - [ ] Deferred, blocked on a Stitch mockup: Statement of Accounts — see
       the screen-inventory table's own row for the retry history.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
