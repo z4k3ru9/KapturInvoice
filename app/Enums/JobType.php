@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Job types at launch are goods, installation, and service. Goods jobs
  * close operationally after delivery; installation jobs require delivery
@@ -14,7 +12,7 @@ use Filament\Support\Contracts\HasLabel;
  * (App\Actions\Sales\CreateSalesOrderFromQuotation), which also derives
  * `SalesOrder::requires_handover` from it (false only for Goods).
  */
-enum JobType: string implements HasLabel
+enum JobType: string
 {
     case Goods = 'goods';
     case Installation = 'installation';

@@ -7,16 +7,17 @@ use App\Enums\InvoiceType;
 use App\Enums\PaymentStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\SalesOrderStatus;
-use App\Filament\Support\ActionQueue;
-use App\Filament\Support\DashboardPeriod;
-use App\Filament\Support\Money;
-use App\Filament\Support\RevenueBuckets;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
-use Filament\Facades\Filament;
+use App\Support\Dashboard\ActionQueue;
+use App\Support\Dashboard\DashboardPeriod;
+use App\Support\Dashboard\Money;
+use App\Support\Dashboard\RevenueBuckets;
+use App\Support\Dashboard\SetupChecklist;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -24,15 +25,28 @@ use Livewire\Component;
 
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
- * the same Dashboard — built to compare against
- * App\Filament\Pages\Dashboard's Filament-widget version for visual
- * fidelity against the Stitch "Dashboard - Company Overview" mockup (see
- * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md).
- * Deliberately reuses the exact same domain logic as the Filament
- * widgets (DashboardPeriod, RevenueBuckets, ActionQueue,
- * App\Filament\Widgets\RevenueOverview's own stat queries) rather than
- * recomputing anything, so the two presentations never disagree about
- * what a number means.
+ * the Dashboard — see
+ * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
+ * the visual-fidelity design this was built against. Reuses
+ * DashboardPeriod/RevenueBuckets/ActionQueue/SetupChecklist
+ * (App\Support\Dashboard) unmodified.
+ *
+ * Stats/chart lazy loading (beautification pass): `$statsLoaded` starts
+ * `false` and the 5 stat cards / trend chart render as `skeleton` in that
+ * state. `loadDashboardData()` — the actual `RevenueBuckets::forPeriod()`
+ * work, a loop of up to ~2 queries per day/month bucket in the selected
+ * period, genuinely the most expensive part of this page — is deliberately
+ * NOT called from `mount()`/`render()`, so the first HTTP response paints
+ * the skeleton immediately without waiting on it. The Blade view fires it
+ * via `wire:init`, a second, separate Livewire round-trip the browser
+ * makes right after the first paint — this is what makes the loading state
+ * "genuine" (the initial response is measurably lighter) rather than a
+ * `skeleton` prop with nothing behind it. The same method re-runs on every
+ * period change (`updatedPeriod()`) and on the header's manual refresh
+ * button, and a `wire:loading` skeleton overlay (no `wire:target`,
+ * matching ANY request this component makes) covers those subsequent
+ * round-trips too, so the loading state is visible on every re-render, not
+ * only the first.
  */
 #[Layout('components.tallstack.app')]
 class TallStackDashboard extends Component
@@ -41,22 +55,35 @@ class TallStackDashboard extends Component
 
     public string $period = 'this_month';
 
+    public bool $statsLoaded = false;
+
+    /** @var array<string, mixed> */
+    public array $stats = [];
+
+    /** @var list<string> */
+    public array $chartLabels = [];
+
+    /** @var list<float> */
+    public array $chartInvoiced = [];
+
+    /** @var list<float> */
+    public array $chartCollected = [];
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
 
         $this->company = $company;
 
-        // ActionQueue::for() builds its item links via Filament resource
-        // URL generation (Resource::getUrl()), which needs a current
-        // panel + tenant even though this page itself is a plain
-        // Livewire route outside the panel — set both manually so those
-        // links resolve instead of throwing.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
-    public function render(): View
+    /**
+     * Computes the stat cards and trend-chart buckets — see this class's
+     * own docblock for why this is split out of `render()` rather than run
+     * eagerly. Never called from `mount()`.
+     */
+    public function loadDashboardData(): void
     {
         $period = DashboardPeriod::resolve(['period' => $this->period]);
         $previous = DashboardPeriod::previous($period);
@@ -72,35 +99,71 @@ class TallStackDashboard extends Component
         $outstanding = $this->openInvoices();
         $overdue = $this->openInvoices()->where('due_date', '<', today());
 
+        $this->stats = [
+            'revenue' => Money::format($revenue, $currency),
+            'revenueRaw' => $revenue,
+            'revenueUp' => $revenue >= $previousRevenue,
+            'revenueFlat' => $revenue == 0.0 && $previousRevenue == 0.0,
+            'outstanding' => Money::format((clone $outstanding)->sum('balance'), $currency),
+            'outstandingCount' => (clone $outstanding)->count(),
+            'overdueCount' => (clone $overdue)->count(),
+            'overdueTotal' => Money::format((clone $overdue)->sum('balance'), $currency),
+            'openQuotations' => Quotation::query()
+                ->where('company_id', $this->company->id)
+                ->whereIn('status', [QuotationStatus::Approved, QuotationStatus::Sent])
+                ->count(),
+            'activeJobs' => SalesOrder::query()
+                ->where('company_id', $this->company->id)
+                ->whereIn('status', [
+                    SalesOrderStatus::Approved, SalesOrderStatus::Procurement,
+                    SalesOrderStatus::InProgress, SalesOrderStatus::Delivered, SalesOrderStatus::HandedOver,
+                ])
+                ->count(),
+        ];
+
         $bucket = RevenueBuckets::forPeriod($period);
+        $this->chartLabels = $bucket['labels'];
+        $this->chartInvoiced = $bucket['invoiced'];
+        $this->chartCollected = $bucket['collected'];
+
+        $this->statsLoaded = true;
+    }
+
+    /**
+     * Livewire lifecycle hook: reloads the stats/chart whenever the period
+     * dropdown changes `$this->period` (via `$set`), so switching periods
+     * shows fresh numbers rather than stale ones from the previous load.
+     */
+    public function updatedPeriod(): void
+    {
+        $this->loadDashboardData();
+    }
+
+    public function render(): View
+    {
+        $currency = $this->company->currency_code;
+        $periodLabel = DashboardPeriod::resolve(['period' => $this->period])['label'];
+
+        // Phase 12 (onboarding/zero-state) — reuses
+        // App\Filament\Support\SetupChecklist unmodified (same "what
+        // counts as done" logic as App\Filament\Widgets\SetupChecklistWidget),
+        // this is a presentation-layer port only. The panel hides itself
+        // once every step is done, exactly mirroring the Filament
+        // widget's own canView() rule.
+        $checklist = SetupChecklist::for($this->company);
+        $firstIncomplete = collect($checklist['steps'])->search(fn (array $step) => ! $step['done']);
+        $clientStep = collect($checklist['steps'])->firstWhere('key', 'client');
+        $quotationStep = collect($checklist['steps'])->firstWhere('key', 'quotation');
 
         return view('livewire.tallstack-dashboard', [
             'periods' => DashboardPeriod::PERIODS,
-            'periodLabel' => $period['label'],
+            'periodLabel' => $periodLabel,
             'currency' => $currency,
-            'stats' => [
-                'revenue' => Money::format($revenue, $currency),
-                'revenueUp' => $revenue >= $previousRevenue,
-                'revenueFlat' => $revenue == 0.0 && $previousRevenue == 0.0,
-                'outstanding' => Money::format((clone $outstanding)->sum('balance'), $currency),
-                'outstandingCount' => (clone $outstanding)->count(),
-                'overdueCount' => (clone $overdue)->count(),
-                'overdueTotal' => Money::format((clone $overdue)->sum('balance'), $currency),
-                'openQuotations' => Quotation::query()
-                    ->where('company_id', $this->company->id)
-                    ->whereIn('status', [QuotationStatus::Approved, QuotationStatus::Sent])
-                    ->count(),
-                'activeJobs' => SalesOrder::query()
-                    ->where('company_id', $this->company->id)
-                    ->whereIn('status', [
-                        SalesOrderStatus::Approved, SalesOrderStatus::Procurement,
-                        SalesOrderStatus::InProgress, SalesOrderStatus::Delivered, SalesOrderStatus::HandedOver,
-                    ])
-                    ->count(),
-            ],
-            'chartLabels' => $bucket['labels'],
-            'chartInvoiced' => $bucket['invoiced'],
-            'chartCollected' => $bucket['collected'],
+            'statsLoaded' => $this->statsLoaded,
+            'stats' => $this->stats,
+            'chartLabels' => $this->chartLabels,
+            'chartInvoiced' => $this->chartInvoiced,
+            'chartCollected' => $this->chartCollected,
             'expiring' => Quotation::query()
                 ->where('company_id', $this->company->id)
                 ->where('status', QuotationStatus::Sent)
@@ -118,6 +181,10 @@ class TallStackDashboard extends Component
                     'id' => $quotation->id,
                 ]),
             'actionQueue' => ActionQueue::for(auth()->user(), $this->company),
+            'checklist' => $checklist,
+            'showChecklist' => $checklist['done'] < $checklist['total'],
+            'firstIncompleteStep' => $firstIncomplete === false ? null : $firstIncomplete,
+            'isZeroState' => ! $clientStep['done'] && ! $quotationStep['done'],
         ])->layoutData([
             'company' => $this->company,
             'active' => 'dashboard',

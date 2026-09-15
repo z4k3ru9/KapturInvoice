@@ -26,6 +26,13 @@ use RuntimeException;
  * fresh document, not a numbered amendment of the original. The original
  * is preserved untouched except for its status flipping to Void, with
  * `void_reason` recorded.
+ *
+ * Scoped to a plain `type = InvoiceType::Invoice` row here, same guard as
+ * App\Actions\Billing\IssueInvoice/AmendIssuedInvoice — a legacy
+ * `type = InvoiceType::Quote` row (App\Livewire\TallStackInvoiceForm
+ * reuses this same edit page for both) must never reach this path, even
+ * if a status value it happens to carry would otherwise satisfy
+ * canTransitionTo(Void).
  */
 class VoidAndReissueInvoice
 {
@@ -42,6 +49,10 @@ class VoidAndReissueInvoice
     {
         if (! $actor->hasCompanyRole($original->company, ...CompanyRole::documentAmendmentRoles())) {
             throw new RuntimeException('Only Admin or Owner may void and reissue an invoice.');
+        }
+
+        if ($original->type !== InvoiceType::Invoice) {
+            throw new RuntimeException('Only a plain invoice can be voided and reissued this way — a legacy quote is never issued in the tax-snapshot sense, so it has nothing to void.');
         }
 
         if (! $original->status->canTransitionTo(InvoiceStatus::Void)) {

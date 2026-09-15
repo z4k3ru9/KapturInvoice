@@ -67,15 +67,16 @@ Dashboard mockup comparison worked earlier this session.
 | Price List Items | "Price List Items — Vendor Catalog Reference" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\PriceListItems` |
 | Credits | "Credits — Register (Karunia Abadi Variant)" | `App\Filament\Resources\Credits` |
 | Recurring Invoices | "Recurring Invoices — Register & Schedule Editor" | `App\Filament\Resources\RecurringInvoices` |
-| Statement of Account | **not yet generated** — `generate_screen_from_text` was fired against prompt 17 in `26-stitch-missing-screens-prompts.md` (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) and timed out client-side at 60s twice across sessions; two follow-up `list_screens` checks (a few minutes apart) still show no matching screen, so this one did not complete server-side either. Needs a fresh `generate_screen_from_text` retry next time this area is picked up. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
+| Statement of Account | "Statement of Account — Document Preview & Issuance Ledger" (2 copies), "Statement of Accounts — Master Register (Karunia Abadi Variant)", "Statement of Account — Preview & Issuance Ledger" (+ "(Axen Technology Variant)") — confirmed present via `list_screens` on 2026-09-15. Three earlier `generate_screen_from_text` calls against prompt 17 (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) had each timed out client-side at 60s with no completion visible in a `list_screens` check shortly after; at least one of those calls evidently finished server-side sometime later, since these screens were already present before a fourth generation call was needed this session. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
 
 **Formerly "no dedicated Stitch screen found" for**: Clients, Users,
 Proposals/Proposal Templates/Snippets, Tax Rates, Expense Categories, Task
-Statuses, Price List Items, Credits, Recurring Invoices — all now have
-generated Stitch screens, listed in the table above. **Statement of
-Accounts is the one remaining gap** — see that table row. The
-ready-to-paste prompts for all nine areas (including the still-pending
-SOA one) live in
+Statuses, Price List Items, Credits, Recurring Invoices, Statement of
+Accounts — all now have generated Stitch screens, listed in the table
+above. Statement of Accounts was the last of the nine to be confirmed
+(2026-09-15) — the mockup existing is not the same as the screen being
+built in TallStackUI; see the status checklist below for that distinction.
+The prompts for all nine areas live in
 [`26-stitch-missing-screens-prompts.md`](26-stitch-missing-screens-prompts.md)
 (numbered 10-17, continuing the original project's own
 `kapturinvoice-stitch-prompts.md` 1-9).
@@ -105,10 +106,18 @@ confirm/adjust with the user before Phase 2 if anything looks off:
 12. **Phase 11 — Client portal restyle** (already Livewire; reskin to the
     "Client Read-Only Portal (TallStack UI)" mockup).
 13. **Phase 12 — Onboarding / zero-state**.
-14. **Deferred, no Stitch mockup**: Proposals, Users, Tax Rates, Expense
-    Categories, Task Statuses, Price List Items, Credits, Recurring
-    Invoices, Statement of Accounts — build last, reusing the established
-    shell.
+14. **Deferred items — all built except Statement of Accounts**: Tax
+    Rates/Expense Categories/Task Statuses shipped as part of Phase 9's
+    Settings work (a tabbed "lookups" page). Proposals, Users & roles,
+    Price List Items, Credits, and Recurring Invoices all now have
+    generated Stitch screens and are all built (see the status checklist
+    below for each). **Statement of Accounts is the sole remaining
+    item** — it now has a generated Stitch mockup ("Statement of Account
+    — Document Preview & Issuance Ledger" + variants, confirmed
+    2026-09-15 via `list_screens` after three earlier
+    `generate_screen_from_text` attempts had each timed out client-side
+    with no completion visible at the time — at least one apparently
+    finished server-side later) but is not yet built in TallStackUI.
 
 Only remove a Filament resource / drop the `filament/filament` package once
 **every** phase above is done and verified — that is a separate decision
@@ -158,7 +167,13 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
 - **`@interact('column_name', $row, $extra1, $extra2, ...)`** for
   `<x-table>` custom columns — any outer Blade variable used inside the
   column (like `$company`) must be listed as an extra argument, or it's
-  `Undefined variable` — closures don't inherit scope automatically.
+  `Undefined variable` — closures don't inherit scope automatically. The
+  extra arguments compile straight into the closure's `use()` clause, so
+  they must each be a plain variable, never `$this` or any other
+  non-variable expression — `@interact('column_actions', $row, $this)`
+  is a fatal "Cannot use $this as lexical variable" (found fixing Phase
+  6's Vendor Bill detail page). Precompute what you need into a plain
+  `$variable` via `@php(...)` before the table and pass that instead.
 - **Cross-stylesheet Tailwind v4 cascade quirk**: TallStackUI's own
   compiled CSS (`@tallStackUiStyle`, loaded after `app.css`) redeclares
   bare `.hidden`/`.grid-cols-2`/etc. without every responsive variant this
@@ -181,6 +196,20 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
 - **Icon-only square buttons**: use the `icon-action` button scope (20px
   icon in a 36px box) rather than the package's default `sm` icon size
   (12px, looks adrift in a square box with no text beside it).
+- **`<x-input>`/`<x-textarea>`/`<x-select.styled>` have zero left padding
+  by default**: the package's own `FormDefaultInputClasses::input()`
+  (`'base' => '... border-0 bg-transparent py-1.5 ring-0 ...'`) carries
+  vertical padding but no `px-*` at all — a plain field with no
+  icon/prefix/suffix (the overwhelming majority of fields across every
+  TALL-stack page: ~225 call sites as of this session) renders its
+  text flush against the field's own ring border. `input.paddings.left/
+  right` only apply when an `icon` prop is set, so they don't help here.
+  Fixed globally in `AppServiceProvider::registerTallStackUiCustomizations()`
+  via `TallStackUi::customize()->form('input')->block('input.base')->append('px-3')`
+  (+ the same for `form('textarea')` and, since `<x-select.styled>` keeps
+  a separate customization array under `'input.wrapper.base'`,
+  `TallStackUi::customize()->select('styled')->block('input.wrapper.base')->append('px-3')`)
+  — never add a per-call-site `class="px-3"` workaround instead.
 - **Verification discipline**: after every visual change, `npm run build`
   (Tailwind won't pick up new Blade files/classes otherwise — verified by
   compiled CSS byte-size actually changing), `php artisan view:clear` +
@@ -315,20 +344,226 @@ status checklist.
       (`$this->toast()->success()/error()->send()`) with a single
       `<x-toast />` host added to the shared shell — reuse both for every
       later phase instead of a custom notify event.)
-- [ ] Phase 2 — Job workspace (SalesOrder)
-- [ ] Phase 3 — Invoices
-- [ ] Phase 4 — Payments & receipts
-- [ ] Phase 5 — Clients
-- [ ] Phase 6 — Procurement (Vendors, Vendor Bills, Vendor POs)
-- [ ] Phase 7 — Delivery & handover
-- [ ] Phase 8 — Products/Catalog
-- [ ] Phase 9 — Settings
-- [ ] Phase 10 — Reports
-- [ ] Phase 11 — Client portal restyle
-- [ ] Phase 12 — Onboarding/zero-state
-- [ ] Deferred (no Stitch mockup): Proposals, Users, Tax Rates, Expense
-      Categories, Task Statuses, Price List Items, Credits, Recurring
-      Invoices, Statement of Accounts
+- [x] Phase 2 — Job (SalesOrder) workspace (`/tall/{company:slug}/jobs`,
+      `/tall/{company:slug}/jobs/{salesOrder}` — register + 7-tab
+      workspace: Overview/Activity/Billing/Commercial/Delivery/
+      Procurement/Margin. Every status transition/action reuses the same
+      `App\Actions\Sales\*`/`App\Actions\Delivery\*` classes the Filament
+      resource uses. `App\Livewire\TallStackSalesOrders`/`TallStackSalesOrder`.)
+- [x] Phase 3 — Invoices (`/tall/{company:slug}/invoices`,
+      `/tall/{company:slug}/invoices/create`,
+      `/tall/{company:slug}/invoices/{invoice}` — register + detail/edit
+      with line items, Issue/Amend/Void & reissue/Send, e-Faktur/Tax Recap
+      issuance. `App\Livewire\TallStackInvoices`/`TallStackInvoiceForm`.)
+- [x] Phase 4 — Payments & receipts (`/tall/{company:slug}/payments`,
+      `/tall/{company:slug}/payments/{payment}` — register + allocation
+      panel: Verify/Allocate/Amend allocation/Issue receipt/Reverse.
+      `App\Livewire\TallStackPayments`/`TallStackPaymentAllocation`.)
+- [x] Phase 5 — Clients (`/tall/{company:slug}/clients`,
+      `/tall/{company:slug}/clients/{client}` — register + detail:
+      billing defaults, financial summary, Contacts/Portal Links/
+      Statement of Accounts relation managers, Generate/Preview SOA.
+      `App\Livewire\TallStackClients`/`TallStackClientDetail`.)
+- [x] Phase 6 — Procurement (`/tall/{company:slug}/vendors`,
+      `/vendor-purchase-orders` (+ create/edit), `/vendor-bills` (+
+      create/edit) — Vendors register + modal create/edit, Vendor
+      Purchase Order line planning/Approve/variance recording, Vendor
+      Bill shared job-cost allocation + full vendor-payment lifecycle
+      (Record/Verify/Issue receipt/Amend/Reverse). `App\Livewire\
+      TallStackVendors`/`TallStackVendorPurchaseOrders(Form)`/
+      `TallStackVendorBills(Form)`. Every action reuses
+      `App\Actions\Procurement\*` unmodified, including the PO-wide
+      payment-ceiling check. Found a real `@interact` gotcha — see the
+      "Established TallStackUI patterns" section above.)
+- [x] Phase 7 — Delivery & handover (`/tall/{company:slug}/delivery-orders`
+      (+ detail), `/tall/{company:slug}/handover-reports` — new top-level
+      read/browse registers across all jobs, linking back to the owning
+      job's workspace to record a delivery/handover rather than
+      duplicating those actions. `App\Livewire\TallStackDeliveryOrders`/
+      `TallStackDeliveryOrder`/`TallStackHandoverReports`.)
+- [x] Phase 8 — Products/Catalog (`/tall/{company:slug}/products` —
+      register + modal create/edit, picture upload, "Create proposal
+      snippet". `App\Livewire\TallStackProducts`. Found and fixed a real
+      bug: TallStackUI's global `img{max-width:100%}` silently shrinks a
+      thumbnail inside a `<td>` with no explicit column width unless
+      wrapped in a fixed-size block-level div.)
+- [x] Phase 9 — Settings (`/tall/{company:slug}/settings/company-and-taxes`,
+      `/settings/email-and-reminders`, `/settings/branding`,
+      `/settings/lookups` — Company & Taxes, Email & Reminders, Branding,
+      and a tabbed Tax Rates/Expense Categories/Task Statuses page.
+      `App\Livewire\TallStackSettingsCompanyTaxes`/`TallStackSettingsEmail`/
+      `TallStackSettingsBranding`/`TallStackSettingsLookups`. The Company &
+      Taxes Stitch mockup sketches a DJP/e-Faktur-gateway/digital-
+      certificate/banking-webhook surface with no backing model anywhere
+      in this codebase — only its card-grid visual language was borrowed,
+      every built field maps to a real column.)
+- [x] Phase 10 — Reports (`/tall/{company:slug}/reports` — Financial
+      Analytics & Tax Reports, a new "Reports" nav group (Catalog →
+      Reports → Settings, matching AdminPanelProvider's pinned order).
+      Introduces no new calculation: the revenue/outstanding/overdue
+      stats and trend chart reuse the exact same DashboardPeriod/
+      RevenueBuckets/Money-driven queries App\Livewire\TallStackDashboard
+      already runs; the paginated job-margin table ports
+      App\Filament\Widgets\JobMarginReport's query/columns verbatim
+      (sales value / allocated gross cost / margin / unallocated
+      purchasing cost kept as four genuinely separate values, never
+      blended); Tax Reports lists real App\Models\TaxRecap rows (status
+      derived the same pending/filed/adjusted way
+      App\Actions\Billing\FileOrAdjustTaxRecap already treats those
+      columns), each linking to the existing tax-recaps.pdf route, with
+      a tax-disabled explanatory empty state for Karunia Abadi mirroring
+      Tax Rates' own. No report-viewing role gate exists anywhere in this
+      codebase (JobMarginReport itself has none), so access matches every
+      other read-mostly TALL-stack register: any authenticated company
+      member. Only an Axen Technology Stitch variant exists for this
+      screen ("Financial Analytics & Tax Reports (Axen Technology
+      Variant)") — used directly, no Karunia variant to compare against.
+      `App\Livewire\TallStackReports`.)
+- [x] Phase 11 — Client portal restyle (`App\Livewire\Portal\ViewInvoice`/
+      `ClientPortalHome` restyled in place, matching the Client
+      Read-Only Portal Stitch mockup — zero data/action/authorization
+      changes, both stay on the standalone `layouts.public` layout, not
+      the admin shell. New `resources/views/portal/unavailable.blade.php`
+      + `App\Livewire\Portal\Concerns\RendersUnavailablePage` replace a
+      bare 404 for an unknown/cross-company/revoked/expired link with a
+      calm branded page that never reveals which case applied. Found and
+      fixed two real pre-existing bugs: dark mode was silently broken
+      app-wide on the shared public layout — same cross-stylesheet
+      Tailwind v4 cascade quirk already documented elsewhere in this
+      app, `dark:` classes losing to TallStackUI's later-loaded
+      stylesheet at equal specificity, fixed with `!important` — and
+      `<x-stats>`'s card background never actually toggles dark, so
+      fixing body text to go white in dark mode made stat-tile values
+      invisible against the still-light card; pinned those values to
+      `text-gray-900` with no dark variant instead. Preserved the
+      existing `status-badge.blade.php` WCAG fix and the scrollable-
+      table `tabindex`/`role`/`aria-label` mobile a11y fix unchanged.)
+- [x] Phase 12 — Onboarding/zero-state (a Dashboard panel, not a separate
+      route/page — matches the Stitch mockup's own placement. Reuses
+      `App\Filament\Support\SetupChecklist`'s real 5-step data/completion
+      logic unmodified; hides itself once complete. A zero-state welcome
+      panel replaces the revenue trend chart specifically when a company
+      has no clients/quotations yet. The mockup's CSV-import and payment-
+      gateway-escrow steps were left out — deferred launch scope.)
+- [x] Tax Rates / Expense Categories / Task Statuses — built as part of
+      Phase 9 (see above), no longer a separate deferred item.
+- [x] Proposals (`/tall/{company:slug}/proposals` (+ create/edit) —
+      register + full-page rich-text editor using TallStackUI's native
+      `<x-editor>`, snippet insertion, Preview PDF, Convert to Invoice.
+      `App\Livewire\TallStackProposals`/`TallStackProposalForm`. Reuses
+      `App\Services\ProposalConverter`/`ProposalSnippetSync` unmodified.)
+- [x] Users & roles (`/tall/{company:slug}/users` — register with a
+      role-boundary reference panel, Invite/Edit-role/Remove modals.
+      `App\Livewire\TallStackUsers`. Added `CompanyRole::description()`
+      as the single source of truth for each role's plain-language
+      boundary, grounded in the enum's own docblocks — no boundary logic
+      changed. Nav folded into the same 'Settings' array Phase 9 already
+      populates, not a second `'Settings' => [...]` key — PHP array
+      literals silently let a later duplicate key win, which would have
+      dropped Phase 9's four Settings pages entirely; watch for this
+      whenever two independently-built phases both want a "Settings" nav
+      group.)
+- [x] Price List Items (`/tall/{company:slug}/price-list-items` — a
+      register/list-only page per prompt 14's own framing: browse the
+      imported vendor pricelist, Import pricelist (brand + file upload
+      modal, reuses `App\Services\PriceListImporter` unmodified), and a
+      "Create/update product" row action (reuses `App\Services\ProductSync`
+      unmodified) with a "Linked" badge on rows already backed by a real
+      Product. No hand-edit-a-row form — the Stitch mockup itself never
+      shows one either, and the Filament resource's own manual
+      create/edit form is a rarely-used fallback for hand-typed rows, not
+      the primary flow. `App\Livewire\TallStackPriceListItems`. Folded
+      into the existing `'Catalog'` nav-group array (not a second
+      `'Catalog' => [...]` block).)
+- [x] Credits (`/tall/{company:slug}/credits` — register-only, read-only:
+      Number/Client/Related invoice/Amount/Credit date, View row action
+      only, no create/edit/delete. Matches the approved deferred-scope
+      decision (FINALIZED-DECISIONS §7 — credit creation stays disabled)
+      and the mockup's own "absent button + explanation" pattern rather
+      than a disabled/greyed-out one. `App\Livewire\TallStackCredits`.)
+- [x] Recurring Invoices (`/tall/{company:slug}/recurring-invoices` (+
+      create/edit) — register + schedule/line-item editor.
+      `App\Livewire\TallStackRecurringInvoices`/
+      `TallStackRecurringInvoiceForm`. Confirmed there is no separate
+      RecurringInvoice model — it's `Invoice` with `is_recurring=true` —
+      and reused `InvoiceForm`'s fields, `InvoiceTotalsCalculator`, and
+      `InvoiceDuplicator::generateRecurringInstance()` unmodified. No
+      Pause/Resume action or automatic generation scheduler exists
+      anywhere in this codebase yet, so neither was invented here — the
+      register instead shows a real Active/Ended status derived only
+      from `recurring_end_date`, with a manual "Generate now" action and
+      an on-page note that generation is manual-only for now.)
+- [x] Statement of Accounts (`/tall/{company:slug}/clients/{client}/statement-of-account/{statementOfAccount?}`
+      — a Preview mode (live-computed against an editable period,
+      unmistakable top-corner banner ribbon) and an Issued mode (renders
+      the frozen `snapshot`). `App\Livewire\TallStackStatementOfAccount`.
+      Wired into `TallStackClientDetail`'s existing Generate/Preview
+      actions and Statement of Accounts relation manager, which
+      previously had no in-app document view at all. Adds
+      `BillingMailer::sendStatementOfAccount()` for "Email to client",
+      following the existing `sendPortalLink()` pattern. Built primarily
+      from prompt 17's detailed spec rather than pixel-matching the
+      fetched Stitch screenshot — a deliberate scope trade-off, noted for
+      anyone who wants a closer visual pass later. Mockup: ("Statement of
+      Account — Document Preview & Issuance Ledger" /
+      "Statement of Accounts — Master Register (Karunia Abadi Variant)" /
+      "Statement of Account — Preview & Issuance Ledger" + Axen Technology
+      Variant) confirmed present in the Stitch project as of 2026-09-15,
+      after three earlier `generate_screen_from_text` attempts timed out
+      client-side with no completion confirmed at the time — at least one
+      evidently finished server-side later. This was the last item in the
+      phases above did.
+- [x] Filament-parity gap closure — pre-removal audit found 9 real gaps
+      (see `docs/rebuild/outputs/27-filament-parity-gap-prompts.md`).
+      Closing them one worktree-agent at a time (max 3 concurrent), each
+      built against its own generated Stitch mockup:
+      - [x] Company registration/onboarding (`/register-company`,
+            `App\Livewire\TallStackRegisterCompany`) — standalone,
+            `middleware('auth')` only.
+      - [x] Settings → Numbering (`tallstack.settings.numbering`).
+      - [x] Settings → Client Portal (`tallstack.settings.client-portal`).
+      - [x] Expenses (`/tall/{company:slug}/expenses`,
+            `App\Livewire\TallStackExpenses` — folded into the
+            `'Procurement'` nav group).
+      - [x] Payment Gateways (`/tall/{company:slug}/payment-gateways`,
+            `App\Livewire\TallStackPaymentGateways` — folded into the
+            `'Settings'` nav group, real "Test Connection" action wired
+            to `PaymentGatewayManager`). Fixed a real bug found during
+            verification: test-result banner overflowing its table cell
+            instead of wrapping.
+      - [x] Login (`route('login')`, standalone, `App\Livewire\Login`) —
+            closes the critical blocker that this app had NO authentication
+            route/page outside Filament at all. Also adds
+            `App\Http\Controllers\LogoutController` (`POST /logout`) and a
+            logout control in the TallStack admin shell header. Post-login
+            redirect mirrors `TallStackRegisterCompany`'s own
+            "first active company" resolution and honors
+            `session('url.intended')`. The "Sign in — Standalone
+            (KapturInvoice)" Stitch mockup could not be located in the
+            project at build time despite being marked generated — built
+            from prompt 24's full written spec plus the sibling "Create
+            Company — Standalone" screen's screenshot for visual
+            consistency instead; worth a visual diff later if that screen
+            surfaces under a different title.
+      - [x] Client Portal Invitations (`tallstack.client-portal-invitations`,
+            `App\Livewire\TallStackClientPortalInvitations` — folded into
+            the existing 'Clients' nav group) — read-mostly audit register
+            of every `Invitation` (invoice/contact/sent/viewed/signed,
+            Viewed/Signed filters, "Copy portal link" only, no
+            edit/delete). Matched against the "Portal Invitations —
+            Invoice Magic Link Audit Register" Stitch mockup.
+      - [x] Documents (`tallstack.documents`, `App\Livewire\TallStackDocuments`
+            — new top-level 'Documents' nav group, matching
+            `DocumentResource`'s own Filament grouping) — company-scoped
+            file library, reuses the existing `Document` model and
+            `DocumentDownloadController` unmodified; no upload button
+            here by design (uploads happen from the owning record).
+            Matched against the "Documents & File Library — Company
+            Scoped Reference Register" Stitch mockup.
+      - [ ] Proposal Templates & Snippets — mockup generated ("Proposal
+            Templates & Snippets Library"), build in progress.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
-      **not started, not scheduled** until every phase above is verified;
-      needs its own explicit go-ahead from the user
+      **not started, not scheduled** until every gap above (including
+      login) is closed and verified; the user has already given a
+      conditional go-ahead ("Yes, remove Filament now too") once that
+      holds.

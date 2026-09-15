@@ -27,6 +27,12 @@ use RuntimeException;
  * issued through App\Actions\Billing\IssueInvoice so it gets its own tax
  * snapshot/recap like any other issued invoice (Admin/Owner already
  * satisfies IssueInvoice's own broader Accountant-and-higher check).
+ *
+ * Scoped to a plain `type = InvoiceType::Invoice` row here, same guard as
+ * App\Actions\Billing\IssueInvoice — a legacy `type = InvoiceType::Quote`
+ * row (App\Livewire\TallStackInvoiceForm reuses this same edit page for
+ * both) must never reach this path, even if a status value it happens to
+ * carry would otherwise satisfy canTransitionTo(Amended).
  */
 class AmendIssuedInvoice
 {
@@ -43,6 +49,10 @@ class AmendIssuedInvoice
     {
         if (! $actor->hasCompanyRole($original->company, ...CompanyRole::documentAmendmentRoles())) {
             throw new RuntimeException('Only Admin or Owner may amend an issued invoice.');
+        }
+
+        if ($original->type !== InvoiceType::Invoice) {
+            throw new RuntimeException('Only a plain invoice can be amended this way — a legacy quote is never issued in the tax-snapshot sense, so it has nothing to amend.');
         }
 
         if (! $original->status->canTransitionTo(InvoiceStatus::Amended)) {

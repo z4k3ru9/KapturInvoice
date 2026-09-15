@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * The canonical Phase 03 quotation aggregate
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'discount', 'discount_is_percentage', 'quotation_date', 'valid_until',
     'customer_po_number', 'customer_po_date', 'customer_po_is_system_generated',
     'terms', 'notes', 'document_language',
+    'signed_by_name', 'signature', 'signed_at',
 ])]
 class Quotation extends Model
 {
@@ -52,7 +54,26 @@ class Quotation extends Model
             'rejected_at' => 'datetime',
             'expired_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'signed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $quotation) {
+            $quotation->portal_key ??= (string) Str::orderedUuid();
+        });
+    }
+
+    /**
+     * True when `signature` holds a drawn-signature image (a base64 data
+     * URI captured by the portal's `<x-signature>` canvas) — see
+     * App\Models\Invitation::hasSignatureImage() for the identical
+     * pattern this mirrors.
+     */
+    public function hasSignatureImage(): bool
+    {
+        return is_string($this->signature) && str_starts_with($this->signature, 'data:image/');
     }
 
     public function company(): BelongsTo

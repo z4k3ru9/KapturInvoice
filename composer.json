@@ -2,13 +2,12 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "z4k3ru9/kapturinvoice",
     "type": "project",
-    "description": "KapturInvoice — a TALL-stack billing/invoicing platform (Filament admin panel + per-domain public homepage) for two entities sharing one codebase.",
-    "keywords": ["laravel", "filament", "livewire", "tallstackui"],
+    "description": "KapturInvoice — a TALL-stack billing/invoicing platform (TallStackUI admin panel + per-domain public homepage) for two entities sharing one codebase.",
+    "keywords": ["laravel", "livewire", "tallstackui"],
     "license": "MIT",
     "require": {
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",
-        "filament/filament": "^5.7",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "openspout/openspout": "^4.23",
@@ -56,8 +55,7 @@
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi",
-            "@php artisan filament:upgrade"
+            "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"

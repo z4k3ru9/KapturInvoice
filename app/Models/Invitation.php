@@ -35,4 +35,16 @@ class Invitation extends Model
     {
         return $this->belongsTo(Contact::class);
     }
+
+    /**
+     * True when `signature` holds a drawn-signature image (a base64 data
+     * URI — either captured by the portal's `<x-signature>` canvas or
+     * imported from a legacy InvoiceNinja `signature_base64` column) rather
+     * than the older plain typed-name string a handful of already-signed
+     * rows may still carry.
+     */
+    public function hasSignatureImage(): bool
+    {
+        return is_string($this->signature) && str_starts_with($this->signature, 'data:image/');
+    }
 }

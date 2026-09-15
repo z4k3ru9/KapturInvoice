@@ -9,6 +9,7 @@ use App\Models\Invitation;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PortalLink;
+use App\Models\StatementOfAccount;
 use App\Services\Concerns\ResolvesBillingContact;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
@@ -105,6 +106,42 @@ class BillingMailer
     }
 
     /**
+     * Emails an already-Issued `StatementOfAccount`'s frozen PDF to the
+     * client's resolved billing contact — same "no dedicated
+     * CompanySetting template column, hardcoded subject/body" pattern as
+     * `sendPortalLink()` above (an SOA is not one of the four templates
+     * stored on `CompanySetting`), reusing `pdf.statement-of-account`
+     * (the exact same view `App\Http\Controllers\
+     * StatementOfAccountPdfController` renders) rather than a second copy.
+     * Never called for a Preview — a Preview has no `number`/persisted
+     * row to attach.
+     */
+    public function sendStatementOfAccount(StatementOfAccount $statementOfAccount): void
+    {
+        $statementOfAccount->loadMissing('client.contacts', 'company.settings');
+
+        $contact = $this->resolveContact(null, $statementOfAccount->client->contacts);
+
+        [$subjectTemplate, $bodyTemplate] = $this->templateFor($statementOfAccount->company->settings, 'statement_of_account');
+
+        $tokens = [
+            '{{client_name}}' => $statementOfAccount->client->name,
+            '{{contact_name}}' => $contact->name,
+            '{{company_name}}' => $statementOfAccount->company->name,
+            '{{soa_number}}' => (string) $statementOfAccount->number,
+            '{{closing_balance}}' => number_format((float) $statementOfAccount->closing_balance, 2),
+        ];
+
+        $pdf = Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount])->output();
+
+        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+            $this->renderer->render($subjectTemplate, $tokens),
+            $this->renderer->render($bodyTemplate, $tokens),
+            [Attachment::fromData(fn () => $pdf, "{$statementOfAccount->number}.pdf")->withMime('application/pdf')],
+        ));
+    }
+
+    /**
      * @param  array<int, string>  $cc
      */
     protected function sendForInvoice(Invoice $invoice, string $templateKind, ?int $reminderTier = null, array $cc = []): Invitation
@@ -178,6 +215,10 @@ class BillingMailer
             'portal_link' => [
                 'Your billing portal link from {{company_name}}',
                 "Hi {{contact_name}},\n\nYou can view {{client_name}}'s billing history here:\n{{portal_link}}\n\nThis link expires on {{expires_at}}.\n\nThanks,\n{{company_name}}",
+            ],
+            'statement_of_account' => [
+                'Statement of Account {{soa_number}} from {{company_name}}',
+                "Hi {{contact_name}},\n\nPlease find attached {{client_name}}'s Statement of Account {{soa_number}}. Closing balance: {{closing_balance}}.\n\nThanks,\n{{company_name}}",
             ],
         };
     }

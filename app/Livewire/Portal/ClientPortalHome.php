@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Enums\InvoiceType;
+use App\Livewire\Portal\Concerns\RendersUnavailablePage;
 use App\Models\Invoice;
 use App\Models\PortalLink;
 use Carbon\CarbonInterface;
@@ -29,6 +30,8 @@ use Livewire\Component;
 #[Layout('layouts.public')]
 class ClientPortalHome extends Component
 {
+    use RendersUnavailablePage;
+
     public PortalLink $portalLink;
 
     /** @var Collection<int, Invoice> */
@@ -38,12 +41,13 @@ class ClientPortalHome extends Component
     {
         $portalLink->loadMissing('client.company', 'contact');
 
-        abort_unless(
-            app()->bound('currentCompany') && $portalLink->company_id === app('currentCompany')->id,
-            404
-        );
+        if (! app()->bound('currentCompany') || $portalLink->company_id !== app('currentCompany')->id) {
+            $this->abortUnavailable();
+        }
 
-        abort_unless($portalLink->isActive(), 404);
+        if (! $portalLink->isActive()) {
+            $this->abortUnavailable();
+        }
 
         $portalLink->forceFill(['last_viewed_at' => now()])->save();
 

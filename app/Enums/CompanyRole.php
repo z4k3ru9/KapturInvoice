@@ -30,6 +30,29 @@ enum CompanyRole: string
     }
 
     /**
+     * A single-sentence, plain-language statement of this role's real
+     * permission boundary — the single source of truth for the "Users &
+     * Roles" UI (Stitch prompt 11's edit-role modal: "every role's real
+     * permission boundary stated in plain language right where it's
+     * assigned"). Grounded in this file's own docblocks (which methods a
+     * role appears in above) plus docs/rebuild/PRD.md §"Roles" and
+     * docs/rebuild/Specs.md §10 "Protected actions" — never hand-copy this
+     * prose elsewhere; call this method instead so the UI can't drift out
+     * of sync with the actual role-array membership above.
+     */
+    public function description(): string
+    {
+        return match ($this) {
+            self::Owner => 'Full access, including force-delete and financial-close overrides — only role that can override an outstanding-balance job closure.',
+            self::Admin => 'Operates approved workflows and exceptions — manages users and settings, approves job/vendor variances and issued-document amendments — but never force-deletes issued records or overrides an outstanding-balance job closure (Owner only).',
+            self::Accountant => 'Issues invoices, verifies customer payments, approves vendor bills, and handles reconciliation — cannot manage users/settings or amend an already-issued document.',
+            self::Sales => 'Owns commercial work — creates and manages quotations, sales orders, and jobs — cannot verify payments, issue invoices, or manage users/settings.',
+            self::Staff => 'Handles delivery and handover — records deliveries and handover reports — cannot verify payments, issue invoices, or manage users/settings.',
+            self::Auditor => 'Read-only across every module — cannot create, edit, or approve anything, ever.',
+        };
+    }
+
+    /**
      * Every role except Auditor may create/update/delete company-scoped
      * records (subject to further per-action policy once those actions
      * exist — see docs/rebuild/Specs.md §10 "Protected actions"). Auditor

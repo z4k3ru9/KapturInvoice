@@ -8,7 +8,7 @@ use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\JobType;
 use App\Enums\PricingMode;
 use App\Enums\QuotationStatus;
-use App\Filament\Support\Money;
+use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Product;
@@ -17,13 +17,18 @@ use App\Models\QuotationItem;
 use App\Services\DocumentNumberGenerator;
 use App\Services\QuotationTotalsCalculator;
 use App\Services\Sales\QuotationMailer;
+use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use RuntimeException;
 use TallStackUi\Traits\Interactions;
 
@@ -46,7 +51,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackQuotationForm extends Component
 {
-    use Interactions;
+    use Interactions, ManagesDocuments, WithFileUploads;
 
     public Company $company;
 
@@ -99,17 +104,20 @@ class TallStackQuotationForm extends Component
 
     public ?string $customerPoDate = null;
 
+    // Document attachment state — see App\Livewire\Concerns\ManagesDocuments.
+    /** @var TemporaryUploadedFile|null */
+    public $newDocument = null;
+
     public function mount(Company $company, ?Quotation $quotation = null): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `quotation` happens before this mount() body
-        // runs and before Filament::setTenant() above activates
+        // runs and before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — so, exactly like
         // App\Http\Controllers\QuotationPdfController, cross-company
         // access is checked explicitly here rather than trusted to the
@@ -150,6 +158,10 @@ class TallStackQuotationForm extends Component
 
     public function save(): void
     {
+        $sanitizer = app(RichTextSanitizer::class);
+        $this->terms = $sanitizer->sanitize($this->terms);
+        $this->notes = $sanitizer->sanitize($this->notes);
+
         $data = $this->validate([
             'client_id' => ['required', Rule::exists('clients', 'id')->where('company_id', $this->company->id)],
             'number' => ['nullable', 'string', 'max:255'],
@@ -336,6 +348,38 @@ class TallStackQuotationForm extends Component
         return $this->quotation->items->firstWhere('id', $id);
     }
 
+    /**
+     * Same dynamic-row reorder contract as TallStackInvoiceForm::reorderItems()
+     * — one Livewire round trip reassigns `sort_order` sequentially, and
+     * it's a no-op once the quotation has left Draft.
+     *
+     * @param  array<int, int|string>  $orderedIds
+     */
+    public function reorderItems(array $orderedIds): void
+    {
+        if (! $this->quotation || $this->quotation->status !== QuotationStatus::Draft) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        $orderedIds = array_map('intval', $orderedIds);
+
+        $owned = $this->quotation->items()->whereIn('id', $orderedIds)->pluck('id')->all();
+
+        if (count($owned) !== count($orderedIds) || array_diff($orderedIds, $owned) !== []) {
+            return;
+        }
+
+        DB::transaction(function () use ($orderedIds): void {
+            foreach ($orderedIds as $index => $id) {
+                QuotationItem::whereKey($id)->update(['sort_order' => $index]);
+            }
+        });
+
+        $this->quotation->refresh()->load('items.product');
+    }
+
     // --- Status transitions — identical to TallStackQuotations, scoped to this record. -----
 
     public function approve(): void
@@ -458,6 +502,37 @@ class TallStackQuotationForm extends Component
         }
     }
 
+    // --- Documents ---------------------------------------------------------
+
+    public function uploadDocument(): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        $this->validate($this->documentUploadRules('newDocument'));
+
+        $this->storeUploadedDocument($this->quotation, $this->newDocument);
+
+        $this->reset('newDocument');
+        $this->toast()->success('Document uploaded.')->send();
+    }
+
+    public function deleteDocument(int $id): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        if ($this->deleteScopedDocument($this->quotation, $id)) {
+            $this->toast()->success('Document deleted.')->send();
+        }
+    }
+
     public function render(): View
     {
         $currency = $this->company->currency_code;
@@ -483,6 +558,7 @@ class TallStackQuotationForm extends Component
             'statusColor' => $this->quotation ? StatusColor::map($this->quotation->status->getColor()) : null,
             'subtotal' => $this->quotation ? Money::format((float) $this->quotation->subtotal, $currency) : Money::format(0, $currency),
             'total' => $this->quotation ? Money::format((float) $this->quotation->total, $currency) : Money::format(0, $currency),
+            'documents' => $this->quotation ? $this->documentRows($this->quotation) : collect(),
         ])->layoutData([
             'company' => $this->company,
             'active' => 'quotations',

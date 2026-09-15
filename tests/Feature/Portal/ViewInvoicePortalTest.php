@@ -76,10 +76,24 @@ class ViewInvoicePortalTest extends TestCase
         $other = Company::create(['name' => 'Other', 'slug' => 'other', 'domain' => 'other.test']);
         $invitation = $this->makeInvitation($owner);
 
-        $this->get("http://{$other->domain}/portal/{$invitation->key}")->assertNotFound();
+        $this->get("http://{$other->domain}/portal/{$invitation->key}")
+            ->assertNotFound()
+            ->assertSee('This link is no longer available')
+            ->assertDontSee($invitation->invoice->number)
+            ->assertDontSee('Client Co');
     }
 
-    public function test_signing_records_the_signature_and_timestamp(): void
+    public function test_an_unknown_invitation_key_renders_the_calm_unavailable_page_instead_of_a_bare_404(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+
+        $this->get("http://{$company->domain}/portal/does-not-exist")
+            ->assertNotFound()
+            ->assertSee('This link is no longer available')
+            ->assertSee('Acme');
+    }
+
+    public function test_signing_records_the_drawn_signature_and_timestamp(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
         $invitation = $this->makeInvitation($company);
@@ -89,13 +103,72 @@ class ViewInvoicePortalTest extends TestCase
         // HomePageTest for the same pattern).
         $this->app->instance('currentCompany', $company);
 
+        $signature = 'data:image/png;base64,'.base64_encode('fake-png-bytes');
+
         Livewire::test(ViewInvoice::class, ['invitation' => $invitation])
-            ->set('signatureName', 'Jane Doe')
+            ->set('capturedSignature', $signature)
             ->call('sign')
+            ->assertHasNoErrors()
             ->assertSet('justSigned', true);
 
         $invitation->refresh();
-        $this->assertSame('Jane Doe', $invitation->signature);
+        $this->assertSame($signature, $invitation->signature);
         $this->assertNotNull($invitation->signed_at);
+    }
+
+    public function test_signing_without_a_drawn_signature_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $invitation = $this->makeInvitation($company);
+        $this->app->instance('currentCompany', $company);
+
+        Livewire::test(ViewInvoice::class, ['invitation' => $invitation])
+            ->call('sign')
+            ->assertHasErrors(['capturedSignature' => 'required'])
+            ->assertSet('justSigned', false);
+
+        $invitation->refresh();
+        $this->assertNull($invitation->signature);
+        $this->assertNull($invitation->signed_at);
+    }
+
+    public function test_signing_with_a_non_image_value_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $invitation = $this->makeInvitation($company);
+        $this->app->instance('currentCompany', $company);
+
+        Livewire::test(ViewInvoice::class, ['invitation' => $invitation])
+            ->set('capturedSignature', 'Jane Doe')
+            ->call('sign')
+            ->assertHasErrors(['capturedSignature' => 'starts_with'])
+            ->assertSet('justSigned', false);
+
+        $invitation->refresh();
+        $this->assertNull($invitation->signature);
+        $this->assertNull($invitation->signed_at);
+    }
+
+    public function test_a_signed_invoice_renders_the_signature_image_instead_of_raw_base64_text(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $invitation = $this->makeInvitation($company);
+        $signature = 'data:image/png;base64,'.base64_encode('fake-png-bytes');
+        $invitation->forceFill(['signature' => $signature, 'signed_at' => now()])->save();
+
+        $response = $this->get("http://acme.test/portal/{$invitation->key}")->assertOk();
+
+        $response->assertSee('src="'.$signature.'"', false);
+    }
+
+    public function test_a_legacy_plain_text_signature_still_renders_as_text(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $invitation = $this->makeInvitation($company);
+        $invitation->forceFill(['signature' => 'Jane Doe', 'signed_at' => now()])->save();
+
+        $this->get("http://acme.test/portal/{$invitation->key}")
+            ->assertOk()
+            ->assertSee('Jane Doe');
     }
 }
