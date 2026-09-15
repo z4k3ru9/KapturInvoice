@@ -4,6 +4,7 @@ namespace App\Actions\Sales;
 
 use App\Enums\SalesOrderStatus;
 use App\Models\SalesOrder;
+use App\Services\AuditLogger;
 use RuntimeException;
 
 /**
@@ -16,6 +17,8 @@ use RuntimeException;
  */
 class ApproveSalesOrder
 {
+    public function __construct(private AuditLogger $auditLogger) {}
+
     public function approve(SalesOrder $salesOrder): SalesOrder
     {
         if (! $salesOrder->status->canTransitionTo(SalesOrderStatus::Approved)) {
@@ -35,10 +38,20 @@ class ApproveSalesOrder
             );
         }
 
+        $before = ['status' => $salesOrder->status->value, 'approved_at' => null];
+
         $salesOrder->forceFill([
             'status' => SalesOrderStatus::Approved,
             'approved_at' => now(),
         ])->save();
+
+        $this->auditLogger->record(
+            $salesOrder->company,
+            'sales_order.approved',
+            $salesOrder,
+            $before,
+            ['status' => $salesOrder->status->value, 'approved_at' => $salesOrder->approved_at],
+        );
 
         return $salesOrder;
     }

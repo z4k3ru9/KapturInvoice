@@ -3,6 +3,8 @@
 namespace Tests\Feature\Filament;
 
 use App\Filament\Resources\Users\Pages\CreateUser;
+use App\Filament\Resources\Users\Pages\EditUser;
+use App\Filament\Resources\Users\RelationManagers\CompaniesRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Company;
 use App\Models\User;
@@ -65,5 +67,42 @@ class UsersTest extends TestCase
         $newUser = User::where('email', 'teammate@example.com')->firstOrFail();
 
         $this->assertTrue($this->company->users()->whereKey($newUser->id)->exists());
+    }
+
+    /**
+     * "Owner/Admin invite internal users" (FINALIZED-DECISIONS.md §12) —
+     * App\Policies\UserPolicy wires App\Policies\CompanyPolicy::manageMembership
+     * into the Users resource. Before this fix, User had no Policy at all
+     * (it doesn't use BelongsToCompany, so AppServiceProvider's
+     * Gate::before never covers it either) and any company member —
+     * Auditor included — could create/edit/delete Users.
+     */
+    public function test_a_staff_member_cannot_create_edit_or_delete_users(): void
+    {
+        $staff = User::factory()->create();
+        $this->company->users()->attach($staff, ['role' => 'staff']);
+        $this->actingAs($staff);
+        Filament::setTenant($this->company);
+
+        $this->assertFalse(UserResource::canCreate());
+        $this->assertFalse(UserResource::canEdit($staff));
+        $this->assertFalse(UserResource::canDelete($staff));
+    }
+
+    /** Same gap, one layer down: attaching/detaching company memberships from the Users→Companies relation manager. */
+    public function test_a_staff_member_cannot_manage_company_memberships(): void
+    {
+        $staff = User::factory()->create();
+        $this->company->users()->attach($staff, ['role' => 'staff']);
+        $this->actingAs($staff);
+        Filament::setTenant($this->company);
+
+        Livewire::test(CompaniesRelationManager::class, [
+            'ownerRecord' => $staff,
+            'pageClass' => EditUser::class,
+        ])
+            ->assertTableActionHidden('attach')
+            ->assertTableActionHidden('edit', $this->company)
+            ->assertTableActionHidden('detach', $this->company);
     }
 }

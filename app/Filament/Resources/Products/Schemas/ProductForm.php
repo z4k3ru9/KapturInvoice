@@ -47,7 +47,8 @@ class ProductForm
                     ->required(),
                 Select::make('default_tax_rate_id')
                     ->label('Default tax rate')
-                    ->relationship('defaultTaxRate', 'name'),
+                    ->relationship('defaultTaxRate', 'name')
+                    ->searchable(),
                 Toggle::make('stock_flag')
                     ->label('Normally stocked')
                     ->helperText('A label only — this company does not track real inventory/availability.'),

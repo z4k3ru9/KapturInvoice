@@ -16,6 +16,7 @@ class DashboardPeriod
     public const PERIODS = [
         'this_week' => 'This week',
         'this_month' => 'This month',
+        'this_quarter' => 'This quarter',
         'this_year' => 'This year',
         'last_year' => 'Last year',
         'custom' => 'Custom range',
@@ -31,11 +32,36 @@ class DashboardPeriod
 
         return match ($period) {
             'this_week' => self::range(now()->startOfWeek(), now()->endOfWeek(), 'day', 'This week'),
+            // A quarter (~90 days) follows the same >60-day rule as a long
+            // custom range: group by month, not day, so the trend chart
+            // doesn't render ~90 daily buckets.
+            'this_quarter' => self::range(now()->startOfQuarter(), now()->endOfQuarter(), 'month', 'This quarter'),
             'this_year' => self::range(now()->startOfYear(), now()->endOfYear(), 'month', 'This year'),
             'last_year' => self::range(now()->subYearNoOverflow()->startOfYear(), now()->subYearNoOverflow()->endOfYear(), 'month', 'Last year'),
             'custom' => self::custom($filters),
             default => self::range(now()->startOfMonth(), now()->endOfMonth(), 'day', 'This month'),
         };
+    }
+
+    /**
+     * The same-length window immediately preceding the given one, used to
+     * compute a period-over-period delta (RevenueOverview's "Total
+     * revenue" tile) — see 01-shell-dashboard.md D4. A plain day-count
+     * shift rather than a calendar-aware "previous quarter/year" so every
+     * period type (including a custom range) gets a comparable window of
+     * identical length.
+     *
+     * @param  array{start: Carbon, end: Carbon, group_by: string, label: string}  $period
+     * @return array{start: Carbon, end: Carbon}
+     */
+    public static function previous(array $period): array
+    {
+        $days = $period['start']->diffInDays($period['end']) + 1;
+
+        return [
+            'start' => $period['start']->copy()->subDays($days),
+            'end' => $period['start']->copy()->subDay()->endOfDay(),
+        ];
     }
 
     /**

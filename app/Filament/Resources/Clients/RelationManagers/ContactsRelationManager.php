@@ -18,6 +18,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -80,7 +81,7 @@ class ContactsRelationManager extends RelationManager
                 DeleteAction::make(),
                 Action::make('generatePortalLink')
                     ->label('Generate portal link')
-                    ->icon('heroicon-o-link')
+                    ->icon(Heroicon::OutlinedLink)
                     ->schema([
                         DatePicker::make('expires_at')
                             ->label('Expires at')

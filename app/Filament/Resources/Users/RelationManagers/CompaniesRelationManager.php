@@ -7,11 +7,13 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class CompaniesRelationManager extends RelationManager
 {
@@ -50,6 +52,7 @@ class CompaniesRelationManager extends RelationManager
             ])
             ->headerActions([
                 AttachAction::make()
+                    ->visible(fn () => static::canManageMembership())
                     ->schema(fn (AttachAction $action) => [
                         $action->getRecordSelect(),
                         Select::make('role')
@@ -59,13 +62,34 @@ class CompaniesRelationManager extends RelationManager
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
-                DetachAction::make(),
+                EditAction::make()->visible(fn () => static::canManageMembership()),
+                DetachAction::make()->visible(fn () => static::canManageMembership()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DetachBulkAction::make(),
+                    DetachBulkAction::make()->visible(fn () => static::canManageMembership()),
                 ]),
             ]);
+    }
+
+    /**
+     * Company-membership changes (attach/edit-role/detach) are Owner/Admin
+     * only — "Owner/Admin invite internal users"
+     * (docs/rebuild/specs/FINALIZED-DECISIONS.md §12) — reusing
+     * CompanyPolicy::manageMembership the same way App\Policies\UserPolicy
+     * does for the parent Users resource. Previously these actions had no
+     * authorization check at all: any company member, Auditor included,
+     * could attach/detach/re-role a company's users from here.
+     */
+    private static function canManageMembership(): bool
+    {
+        $user = Auth::user();
+        $tenant = Filament::getTenant();
+
+        if (! $user || ! $tenant) {
+            return false;
+        }
+
+        return $user->can('manageMembership', $tenant);
     }
 }

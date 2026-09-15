@@ -50,12 +50,6 @@ class EditClientPortalSettings extends Page
                         Toggle::make('portal_enabled')
                             ->label('Enable client portal')
                             ->helperText('When off, invitation links still exist but resolve to a disabled-portal message.'),
-                        Toggle::make('portal_allow_client_payments')
-                            ->label('Allow clients to pay from the portal'),
-                        Toggle::make('portal_show_tasks')
-                            ->label('Show tasks in the portal'),
-                        Toggle::make('portal_require_signature')
-                            ->label('Require signature on invoice approval'),
                     ]),
             ]);
     }
