@@ -39,7 +39,7 @@ The Sales Order / Job is the operational center. It connects the accepted commer
 - Invoices, tax calculation, pre-tax discounts, manual customer payments, proof uploads, verification, allocation, receipts, and statements.
 - Vendor POs, vendor bills, partial vendor payments, shared purchasing, job-cost allocation, and margin reporting.
 - Partial Delivery Orders, Service Reports (repair-to-report tracking: problem, diagnosis, action, result) for service jobs, conditional Handover Reports, A4 PDFs, Bahasa Indonesia document output, and English override.
-- Read-only client portal, company marketing site, role-aware Filament dashboards, reports, email delivery, and reminders.
+- Read-only client portal, company marketing site, role-aware admin dashboards, reports, email delivery, and reminders.
 - Idempotent InvoiceNinja 4/5 migration, exception quarantine, reconciliation, and cutover controls.
 
 ## Non-negotiable business rules
@@ -60,7 +60,7 @@ Owner has full company access and is the only role that can finalize an exceptio
 
 ## Experience and operations
 
-Use Filament for the internal job-centric workspace and TallStack UI for marketing and portal surfaces. The desktop experience leads; phone and tablet remain usable for monitoring and approvals. The system uses OS-driven light/dark mode, company identity themes, globally fixed status colors, draft-only autosave, A4-first documents, private evidence storage, database queues, cPanel cron, and daily backups with restore verification.
+Use TallStack UI (Livewire) for the internal job-centric workspace, marketing, and portal surfaces — the internal workspace was originally planned on Filament and was later rebuilt onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`, routed at `/tall/{company:slug}/...`; see `CLAUDE.md`'s "Stitch UI remake" / TallStackUI-migration notes). The desktop experience leads; phone and tablet remain usable for monitoring and approvals. The system uses OS-driven light/dark mode, company identity themes, globally fixed status colors, draft-only autosave, A4-first documents, private evidence storage, database queues, cPanel cron, and daily backups with restore verification.
 
 ## Release condition
 

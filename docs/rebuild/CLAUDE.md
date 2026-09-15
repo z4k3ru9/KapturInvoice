@@ -46,7 +46,7 @@ This directory is the approved renovation handoff. Keep it versioned with the im
 - Do not mix inclusive and exclusive taxable lines on one document. Apply discounts before tax. Use the approved two-decimal calculation and upward final-Rupiah rounding rule.
 - A payment is an event; allocations determine balances; one verified event produces one receipt. Post-receipt allocation changes create a linked receipt amendment instead of modifying history.
 - Use a Customer Order Confirmation when a customer accepts without providing a Customer PO.
-- Do not build deferred capabilities: online payment gateway, refunds, write-offs, full journal, inventory, recurring billing, generic projects/tasks, vendor login, client uploads, SSO, electronic signing, or central cross-server synchronization.
+- Do not build deferred capabilities: online payment gateway, refunds, write-offs, full journal, inventory, recurring billing, generic projects/tasks, vendor login, client uploads, SSO, or central cross-server synchronization. **Exception (ratified 2026-09-15):** client e-signing via `<x-signature>` was carved out of this deferred list and built on the invoice portal plus Delivery Order/Handover Report/Quotation portal pages — see `memory.md` "Current state" and the top-level `CLAUDE.md`'s Phase 06B section. Every other item above is still out of scope without a change request.
 
 ## End-of-session handoff
 

@@ -14,47 +14,60 @@ theme, or cleanup steps inside individual tests.
 
 ## Required structure
 
-Use this structure when Phase 06B adds Playwright:
+Phase 06B built this harness; the structure below is the real, live layout
+(`playwright.config.ts` at the repo root, `tests/browser/` — lowercase —
+not the `tests/Browser/` this section originally sketched):
 
 ```text
 playwright.config.ts
-tests/Browser/
-  fixtures/
-    auth.ts
-    company.ts
-    data.ts
-  helpers/
-    documents.ts
-    portal.ts
-    accessibility.ts
-  specs/
-    portal.spec.ts
-    documents.spec.ts
-    soa.spec.ts
-    dashboard.spec.ts
+tests/browser/
+  auth.setup.ts
+  support/
+    fixtures.ts
+    tenants.ts
+    diagnostics.ts
+  smoke/
+    homepage.spec.ts
+    admin-login.spec.ts
+  dashboard/
+    dashboard-scoping.spec.ts
+  documents/
     autosave.spec.ts
+    dynamic-rows.spec.ts
+    pdf-preview-download.spec.ts
+    soa.spec.ts
+  portal/
+    portal-journeys.spec.ts
+  ux/
     accessibility.spec.ts
-  state/
-    .gitignore
+    states.spec.ts
 ```
 
 Names may follow project conventions, but responsibilities must remain the
-same: fixtures create stable context, helpers express business actions, and
-specs assert outcomes.
+same: `support/` creates stable context (auth, tenants, diagnostics), and
+each domain folder's specs assert outcomes for that area.
 
 ## Configuration rules
 
 - Use one shared `playwright.config.ts`.
 - Use Chromium by default. Add other browsers only when a release requirement
   proves a compatibility risk.
-- Define projects for `karunia-light`, `karunia-dark`, `axen-light`, and
-  `axen-dark` through environment or project metadata, not duplicated config.
+- Define projects for both required system color schemes across viewports —
+  built as `desktop-light`, `desktop-dark`, `tablet-light`, and
+  `mobile-light` in `playwright.config.ts` (each project exercises both
+  seeded companies via `--host-resolver-rules`/tenant fixtures rather than
+  needing its own company-specific project) — through environment or
+  project metadata, not duplicated config.
 - Use `baseURL`; never hard-code full URLs in tests.
 - Use company host headers or approved local host aliases to simulate domains.
 - Set one bounded timeout policy. Avoid arbitrary per-test timeout increases.
 - Use `workers: 1` for database-mutating tests on the constrained local/CI
   environment unless isolated databases prove parallel execution safe.
-- Use `retries: 1` in CI only. A retry must not hide a deterministic failure.
+- Use a small, bounded retry count in CI only, never locally. A retry must
+  not hide a deterministic failure — `playwright.config.ts` currently uses
+  `retries: 2` in CI (raised from an initial `1`; see that file's own
+  comment for the real, observed transient dev-server-crash evidence behind
+  the change) and `0` locally.
 - Capture trace, screenshot, and video only on failure or first retry.
 - Reuse the browser process and fixtures. Do not launch a new browser per test.
 - Keep test artifacts outside the repository and exclude them from Git.
