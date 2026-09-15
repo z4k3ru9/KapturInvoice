@@ -22,7 +22,7 @@ use App\Models\JobVariation;
 use App\Models\PaymentMilestone;
 use App\Models\SalesOrder;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
@@ -121,11 +121,10 @@ class TallStackSalesOrder extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `salesOrder` happens before this mount() body
-        // runs and before Filament::setTenant() above activates
+        // runs and before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — cross-company access is checked
         // explicitly here, the same reasoning as
         // TallStackQuotationForm::mount().

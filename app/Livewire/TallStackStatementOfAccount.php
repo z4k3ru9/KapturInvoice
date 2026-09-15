@@ -8,7 +8,7 @@ use App\Models\Company;
 use App\Models\StatementOfAccount;
 use App\Services\BillingMailer;
 use App\Services\Reports\BuildStatementOfAccount;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -66,10 +66,9 @@ class TallStackStatementOfAccount extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
-        // Route binding happens before Filament::setTenant() above
+        // Route binding happens before app(Tenancy::class)->set() above
         // activates BelongsToCompany's scope — same explicit re-check
         // every other TALL-stack page uses for its own bound records.
         abort_unless($client->company_id === $company->id, 404);

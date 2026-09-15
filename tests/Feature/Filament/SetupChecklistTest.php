@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -63,6 +64,7 @@ class SetupChecklistTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         $this->assertTrue(SetupChecklistWidget::canView());
 

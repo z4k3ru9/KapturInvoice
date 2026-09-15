@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\PriceListItem;
 use App\Models\Product;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -42,6 +43,7 @@ class PriceListItemResourceTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     private function buildFixture(string $path): void

@@ -5,6 +5,7 @@ namespace Tests\Feature\Tenancy;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,10 +35,12 @@ class CompanyIsolationTest extends TestCase
         $this->actingAs($user);
 
         Filament::setTenant($companyA);
+        app(Tenancy::class)->set($companyA);
         $this->assertTrue(Client::query()->whereKey($clientA->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientB->id)->exists(), 'company A tenant scope must not see company B\'s client');
 
         Filament::setTenant($companyB);
+        app(Tenancy::class)->set($companyB);
         $this->assertTrue(Client::query()->whereKey($clientB->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientA->id)->exists(), 'company B tenant scope must not see company A\'s client');
     }

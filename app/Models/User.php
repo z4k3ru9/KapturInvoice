@@ -17,6 +17,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 
+/**
+ * Still implements Filament's FilamentUser/HasTenants — required for the
+ * still-installed `/admin` panel to authenticate and tenant-switch a user
+ * at all (confirmed empirically: removing these breaks every `/admin`
+ * request with a 403). Nothing outside app/Filament/** calls
+ * canAccessPanel()/getTenants() directly (grep-confirmed) — they exist
+ * purely to satisfy Filament's own contracts and are Phase B's to remove,
+ * alongside the panel itself. See the Filament-removal Phase A report for
+ * the full reasoning.
+ */
 #[Fillable(['name', 'email', 'password', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, HasTenants

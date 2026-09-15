@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderItem;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -37,11 +37,10 @@ class TallStackDeliveryOrder extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `deliveryOrder` happens before this mount()
-        // body runs, before Filament::setTenant() above activates
+        // body runs, before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — cross-company access is checked
         // explicitly here, same reasoning as TallStackSalesOrder::mount().
         abort_unless($deliveryOrder->company_id === $company->id, 404);

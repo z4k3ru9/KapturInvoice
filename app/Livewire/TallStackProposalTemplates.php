@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\ProposalSnippet;
 use App\Models\ProposalTemplate;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
@@ -71,8 +71,7 @@ class TallStackProposalTemplates extends Component
         // Same reasoning as every other TALL-stack page's mount() — kept
         // for parity even though nothing on this page calls
         // Resource::getUrl() today.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

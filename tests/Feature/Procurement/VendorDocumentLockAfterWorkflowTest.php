@@ -18,6 +18,7 @@ use App\Models\VendorBill;
 use App\Models\VendorBillItem;
 use App\Models\VendorPurchaseOrder;
 use App\Models\VendorPurchaseOrderItem;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -50,6 +51,7 @@ class VendorDocumentLockAfterWorkflowTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_vendor_po_items_cannot_be_edited_once_approved(): void

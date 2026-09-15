@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\TaxRate;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -57,8 +57,7 @@ class TallStackSettingsNumbering extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         $this->invoice_next_number = $company->invoice_next_number;
         $this->quote_next_number = $company->quote_next_number;

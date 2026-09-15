@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Credit;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -48,8 +48,7 @@ class TallStackCredits extends Component
         // Same reasoning as TallStackDashboard::mount() — kept for parity
         // with every other TALL-stack page even though nothing on this
         // page currently needs Resource::getUrl().
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

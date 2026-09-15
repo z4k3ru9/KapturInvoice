@@ -6,6 +6,7 @@ use App\Filament\Resources\PaymentGateways\Pages\ListPaymentGateways;
 use App\Models\Company;
 use App\Models\PaymentGateway;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -33,6 +34,7 @@ class PaymentGatewayActionsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_test_connection_action_reports_success(): void

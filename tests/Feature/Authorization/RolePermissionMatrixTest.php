@@ -11,6 +11,7 @@ use App\Filament\Resources\Clients\ClientResource;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -45,6 +46,7 @@ class RolePermissionMatrixTest extends TestCase
         $this->company->users()->attach($user, ['role' => $role]);
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         return $user;
     }
@@ -140,6 +142,7 @@ class RolePermissionMatrixTest extends TestCase
         $user = User::factory()->create(['is_super_admin' => true]);
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);
 

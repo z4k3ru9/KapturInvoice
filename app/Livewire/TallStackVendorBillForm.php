@@ -25,7 +25,7 @@ use App\Models\VendorPurchaseOrder;
 use App\Services\DocumentNumberGenerator;
 use App\Services\Procurement\VendorBillTotalsCalculator;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -144,8 +144,7 @@ class TallStackVendorBillForm extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         if ($vendorBill) {
             abort_unless($vendorBill->company_id === $company->id, 404);

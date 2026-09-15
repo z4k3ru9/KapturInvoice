@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\ProposalSnippet;
 use App\Models\ProposalTemplate;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
@@ -51,8 +51,7 @@ class TallStackProposalSnippets extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

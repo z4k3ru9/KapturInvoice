@@ -7,7 +7,7 @@ use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Proposal;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -49,8 +49,7 @@ class TallStackProposals extends Component
 
         // Same reasoning as TallStackQuotations::mount() — Resource::getUrl()
         // needs a resolved panel + tenant even outside a real panel request.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

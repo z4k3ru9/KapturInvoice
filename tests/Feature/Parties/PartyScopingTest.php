@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -53,10 +54,12 @@ class PartyScopingTest extends TestCase
         $this->assertNotSame($clientA->id, $clientB->id);
 
         Filament::setTenant($this->companyA);
+        app(Tenancy::class)->set($this->companyA);
         $this->assertTrue(Client::query()->whereKey($clientA->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientB->id)->exists());
 
         Filament::setTenant($this->companyB);
+        app(Tenancy::class)->set($this->companyB);
         $this->assertTrue(Client::query()->whereKey($clientB->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientA->id)->exists());
     }
@@ -69,10 +72,12 @@ class PartyScopingTest extends TestCase
         $this->assertNotSame($vendorA->id, $vendorB->id);
 
         Filament::setTenant($this->companyA);
+        app(Tenancy::class)->set($this->companyA);
         $this->assertTrue(Vendor::query()->whereKey($vendorA->id)->exists());
         $this->assertFalse(Vendor::query()->whereKey($vendorB->id)->exists());
 
         Filament::setTenant($this->companyB);
+        app(Tenancy::class)->set($this->companyB);
         $this->assertTrue(Vendor::query()->whereKey($vendorB->id)->exists());
         $this->assertFalse(Vendor::query()->whereKey($vendorA->id)->exists());
     }
@@ -85,10 +90,12 @@ class PartyScopingTest extends TestCase
         $this->assertNotSame($itemA->id, $itemB->id);
 
         Filament::setTenant($this->companyA);
+        app(Tenancy::class)->set($this->companyA);
         $this->assertTrue(Product::query()->whereKey($itemA->id)->exists());
         $this->assertFalse(Product::query()->whereKey($itemB->id)->exists());
 
         Filament::setTenant($this->companyB);
+        app(Tenancy::class)->set($this->companyB);
         $this->assertTrue(Product::query()->whereKey($itemB->id)->exists());
         $this->assertFalse(Product::query()->whereKey($itemA->id)->exists());
     }
