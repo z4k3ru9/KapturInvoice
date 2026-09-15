@@ -8,6 +8,7 @@ use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\JobType;
 use App\Enums\PricingMode;
 use App\Enums\QuotationStatus;
+use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Product;
@@ -24,6 +25,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use RuntimeException;
 use TallStackUi\Traits\Interactions;
 
@@ -46,7 +49,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackQuotationForm extends Component
 {
-    use Interactions;
+    use Interactions, ManagesDocuments, WithFileUploads;
 
     public Company $company;
 
@@ -98,6 +101,10 @@ class TallStackQuotationForm extends Component
     public ?string $customerPoNumber = null;
 
     public ?string $customerPoDate = null;
+
+    // Document attachment state — see App\Livewire\Concerns\ManagesDocuments.
+    /** @var TemporaryUploadedFile|null */
+    public $newDocument = null;
 
     public function mount(Company $company, ?Quotation $quotation = null): void
     {
@@ -457,6 +464,37 @@ class TallStackQuotationForm extends Component
         }
     }
 
+    // --- Documents ---------------------------------------------------------
+
+    public function uploadDocument(): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        $this->validate($this->documentUploadRules('newDocument'));
+
+        $this->storeUploadedDocument($this->quotation, $this->newDocument);
+
+        $this->reset('newDocument');
+        $this->toast()->success('Document uploaded.')->send();
+    }
+
+    public function deleteDocument(int $id): void
+    {
+        if (! $this->quotation) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        if ($this->deleteScopedDocument($this->quotation, $id)) {
+            $this->toast()->success('Document deleted.')->send();
+        }
+    }
+
     public function render(): View
     {
         $currency = $this->company->currency_code;
@@ -482,6 +520,7 @@ class TallStackQuotationForm extends Component
             'statusColor' => $this->quotation ? StatusColor::map($this->quotation->status->getColor()) : null,
             'subtotal' => $this->quotation ? Money::format((float) $this->quotation->subtotal, $currency) : Money::format(0, $currency),
             'total' => $this->quotation ? Money::format((float) $this->quotation->total, $currency) : Money::format(0, $currency),
+            'documents' => $this->quotation ? $this->documentRows($this->quotation) : collect(),
         ])->layoutData([
             'company' => $this->company,
             'active' => 'quotations',
