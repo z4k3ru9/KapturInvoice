@@ -176,7 +176,10 @@ class ClientPortalHomeTest extends TestCase
             'revoked_at' => now(),
         ]);
 
-        $this->get("http://{$company->domain}/portal/link/{$link->key}")->assertNotFound();
+        $this->get("http://{$company->domain}/portal/link/{$link->key}")
+            ->assertNotFound()
+            ->assertSee('This link is no longer available')
+            ->assertDontSee('Client Co');
     }
 
     public function test_an_expired_portal_link_404s(): void

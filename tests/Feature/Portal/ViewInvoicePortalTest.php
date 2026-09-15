@@ -76,7 +76,21 @@ class ViewInvoicePortalTest extends TestCase
         $other = Company::create(['name' => 'Other', 'slug' => 'other', 'domain' => 'other.test']);
         $invitation = $this->makeInvitation($owner);
 
-        $this->get("http://{$other->domain}/portal/{$invitation->key}")->assertNotFound();
+        $this->get("http://{$other->domain}/portal/{$invitation->key}")
+            ->assertNotFound()
+            ->assertSee('This link is no longer available')
+            ->assertDontSee($invitation->invoice->number)
+            ->assertDontSee('Client Co');
+    }
+
+    public function test_an_unknown_invitation_key_renders_the_calm_unavailable_page_instead_of_a_bare_404(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+
+        $this->get("http://{$company->domain}/portal/does-not-exist")
+            ->assertNotFound()
+            ->assertSee('This link is no longer available')
+            ->assertSee('Acme');
     }
 
     public function test_signing_records_the_signature_and_timestamp(): void
