@@ -11,6 +11,7 @@ use App\Actions\Procurement\ReverseVendorPayment;
 use App\Actions\Procurement\SubmitVendorBill;
 use App\Actions\Procurement\VerifyVendorPayment;
 use App\Enums\CompanyRole;
+use App\Enums\PaymentMethod;
 use App\Enums\VendorBillStatus;
 use App\Enums\VendorPurchaseOrderStatus;
 use App\Models\Company;
@@ -92,6 +93,20 @@ class TallStackVendorBillForm extends Component
     public bool $item_discount_is_percentage = false;
 
     public float $item_net_amount = 0;
+
+    /**
+     * Tracks whether the user has directly edited Net amount for the line
+     * currently open in the modal. While false, Net amount is kept in sync
+     * with `quantity * item_unit_cost` (the same "lineGross" convention
+     * App\Services\Procurement\VendorPurchaseOrderTotalsCalculator and the
+     * Invoice/Quotation totals calculators already use) whenever quantity,
+     * unit cost, or the selected product change — a reactive smart default,
+     * not a one-time fill. Once the user types into Net amount themselves,
+     * this flips true and the field is left alone: the vendor's actual
+     * bill is the source of truth and may legitimately differ from the
+     * naive product.
+     */
+    public bool $item_net_amount_touched = false;
 
     public float $item_tax_amount = 0;
 
@@ -252,6 +267,10 @@ class TallStackVendorBillForm extends Component
         $this->item_discount = (float) $item->discount;
         $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
         $this->item_net_amount = (float) $item->net_amount;
+        // Editing an already-saved line: its Net amount reflects the
+        // vendor's actual billed figure (which may not equal qty*unit_cost),
+        // so treat it as already "touched" and never silently overwrite it.
+        $this->item_net_amount_touched = true;
         $this->item_tax_amount = (float) $item->tax_amount;
         $this->showItemModal = true;
     }
@@ -265,7 +284,36 @@ class TallStackVendorBillForm extends Component
         if ($product = Product::query()->where('company_id', $this->company->id)->find($value)) {
             $this->item_title = $product->name;
             $this->item_unit_cost = (float) $product->unit_cost;
+            $this->applyNetAmountSmartDefault();
         }
+    }
+
+    public function updatedItemQuantity(): void
+    {
+        $this->applyNetAmountSmartDefault();
+    }
+
+    public function updatedItemUnitCost(): void
+    {
+        $this->applyNetAmountSmartDefault();
+    }
+
+    public function updatedItemNetAmount(): void
+    {
+        // Only a genuine client-originated edit reaches this hook —
+        // applyNetAmountSmartDefault() below sets the property directly in
+        // PHP, which never triggers Livewire's updated{Property} hooks.
+        $this->item_net_amount_touched = true;
+    }
+
+    /** Pre-fills Net amount from qty x unit cost until the user edits it directly — see $item_net_amount_touched's docblock. */
+    private function applyNetAmountSmartDefault(): void
+    {
+        if ($this->item_net_amount_touched) {
+            return;
+        }
+
+        $this->item_net_amount = round($this->item_quantity * $this->item_unit_cost, 2);
     }
 
     /** Vendor PO line options bounded to this bill's own PO's items — never an unbounded pluck. */
@@ -359,6 +407,7 @@ class TallStackVendorBillForm extends Component
         $this->item_discount = 0;
         $this->item_discount_is_percentage = false;
         $this->item_net_amount = 0;
+        $this->item_net_amount_touched = false;
         $this->item_tax_amount = 0;
     }
 
@@ -509,7 +558,7 @@ class TallStackVendorBillForm extends Component
         $data = $this->validate([
             'payment_amount' => ['required', 'numeric', 'min:0.01'],
             'payment_date' => ['nullable', 'date'],
-            'payment_method' => ['nullable', 'string'],
+            'payment_method' => ['nullable', 'in:'.implode(',', array_map(fn ($c) => $c->value, PaymentMethod::cases()))],
             'payment_reference' => ['nullable', 'string'],
             'payment_proof' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:10240'],
             'payment_notes' => ['nullable', 'string'],
@@ -713,7 +762,7 @@ class TallStackVendorBillForm extends Component
                 'number' => $p->receipt?->number ?? '—',
                 'amount' => Money::format((float) $p->amount, $currency),
                 'payment_date' => $p->payment_date?->format('d M Y') ?? '—',
-                'method' => $p->method ?? '—',
+                'method' => $p->method ? (PaymentMethod::tryFrom($p->method)?->getLabel() ?? $p->method) : '—',
                 'reference' => $p->reference ?? '—',
                 'status' => $p->status,
                 'status_label' => $p->status->getLabel(),
@@ -728,6 +777,7 @@ class TallStackVendorBillForm extends Component
             'products' => Product::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'items' => $items,
             'payments' => $payments,
+            'paymentMethods' => PaymentMethod::cases(),
             'currency' => $currency,
             'statusColor' => $this->bill ? StatusColor::map($this->bill->status->getColor()) : null,
             'total' => $this->bill ? Money::format((float) $this->bill->total, $currency) : Money::format(0, $currency),

@@ -135,15 +135,21 @@
             @endif
 
             <x-card>
-                <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Terms &amp; notes</span>
-                </x-slot:header>
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="20rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
-                    <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="20rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
-                </div>
+                {{-- Static text-only tab labels, no reactive right-slot badge — see
+                     tallstack-client-detail.blade.php's own warning: TallStackUI
+                     4.1's <x-tab.items> bakes a slot:right badge into a one-time
+                     Alpine x-init, so a Livewire re-render duplicates stale tab
+                     headers if one is used there. --}}
+                <x-tab selected="terms" scroll-on-mobile>
+                    <x-tab.items tab="terms" title="Terms">
+                        <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="20rem"
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                    </x-tab.items>
+                    <x-tab.items tab="notes" title="Notes">
+                        <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="20rem"
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                    </x-tab.items>
+                </x-tab>
             </x-card>
         </div>
 
