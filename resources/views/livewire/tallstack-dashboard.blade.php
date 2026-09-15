@@ -33,7 +33,26 @@
         that otherwise outranks these responsive classes at any width.
     --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 min-[1180px]:!grid-cols-5 gap-2.5">
-        <x-stats scope="compact" title="Total revenue" icon="banknotes" :increase="$stats['revenueUp'] && !$stats['revenueFlat']" :decrease="!$stats['revenueUp'] && !$stats['revenueFlat']">
+        {{--
+            The trend arrow used to sit via the stats component's own
+            increase/decrease slot, in the same tight flex row as the
+            Rupiah amount — that row's fixed content (icon square + a
+            ~13-character amount + the arrow) is wider than the card at
+            this density, and nothing in it shrinks, so the arrow spilled
+            out past the card's right edge instead of clipping to it.
+            Building the title line by hand instead — no `title` prop, no
+            increase/decrease — puts the arrow next to the much shorter
+            "Total revenue" label, where the row has real room to spare.
+        --}}
+        <x-stats scope="compact" icon="banknotes">
+            <div class="flex items-center gap-1">
+                <span class="dark:text-dark-300 text-xs text-gray-600">Total revenue</span>
+                @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
+                    <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
+                @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
+                    <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
+                @endif
+            </div>
             <span class="text-lg font-bold tabular-nums">{{ $stats['revenue'] }}</span>
             <x-slot:footer>{{ $periodLabel }}</x-slot:footer>
         </x-stats>
