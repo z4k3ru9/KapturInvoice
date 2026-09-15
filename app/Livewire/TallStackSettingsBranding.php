@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Company;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -66,8 +66,7 @@ class TallStackSettingsBranding extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         $this->primary_color = $company->primary_color;
         $this->secondary_color = $company->secondary_color;

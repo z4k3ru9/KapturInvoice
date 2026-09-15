@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\Invitation;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -57,8 +57,7 @@ class TallStackClientPortalInvitations extends Component
         // Same reasoning as TallStackCredits::mount() — kept for parity
         // with every other TALL-stack page even though nothing on this
         // page currently needs Resource::getUrl().
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

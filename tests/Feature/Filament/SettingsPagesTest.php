@@ -9,6 +9,7 @@ use App\Filament\Pages\Settings\EditNumberingSettings;
 use App\Filament\Resources\PaymentGateways\PaymentGatewayResource;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -37,6 +38,7 @@ class SettingsPagesTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_numbering_settings_page_renders_and_saves(): void

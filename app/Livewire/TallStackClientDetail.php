@@ -15,7 +15,7 @@ use App\Models\Invoice;
 use App\Models\PortalLink;
 use App\Models\Quotation;
 use App\Services\BillingMailer;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -114,10 +114,9 @@ class TallStackClientDetail extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
-        // Route binding for `client` happens before Filament::setTenant()
+        // Route binding for `client` happens before app(Tenancy::class)->set()
         // above activates BelongsToCompany's scope — same explicit guard
         // TallStackQuotationForm uses for its own record parameter.
         abort_unless($client->company_id === $company->id, 404);

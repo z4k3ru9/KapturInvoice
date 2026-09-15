@@ -20,6 +20,7 @@ use App\Models\Vendor;
 use App\Models\VendorBill;
 use App\Models\VendorBillItem;
 use App\Models\VendorPurchaseOrder;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -52,6 +53,7 @@ class ProcurementActionsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     private function draftPurchaseOrder(float $total = 1000): VendorPurchaseOrder

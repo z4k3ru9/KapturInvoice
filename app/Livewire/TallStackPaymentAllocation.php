@@ -13,7 +13,7 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -77,8 +77,7 @@ class TallStackPaymentAllocation extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding happens before BelongsToCompany's scope is active
         // for this outside-Filament-panel request — same explicit guard

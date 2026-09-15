@@ -52,6 +52,7 @@ use App\Models\Vendor;
 use App\Models\VendorBill;
 use App\Models\VendorContact;
 use App\Models\VendorPurchaseOrder;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
@@ -99,6 +100,7 @@ class FullResourceCoverageTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_every_resource_page_renders_for_a_real_record(): void

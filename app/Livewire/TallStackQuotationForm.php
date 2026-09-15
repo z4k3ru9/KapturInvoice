@@ -18,7 +18,7 @@ use App\Services\DocumentNumberGenerator;
 use App\Services\QuotationTotalsCalculator;
 use App\Services\Sales\QuotationMailer;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -105,11 +105,10 @@ class TallStackQuotationForm extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `quotation` happens before this mount() body
-        // runs and before Filament::setTenant() above activates
+        // runs and before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — so, exactly like
         // App\Http\Controllers\QuotationPdfController, cross-company
         // access is checked explicitly here rather than trusted to the

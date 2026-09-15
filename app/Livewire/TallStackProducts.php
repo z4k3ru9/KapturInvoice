@@ -10,7 +10,7 @@ use App\Models\Product;
 use App\Models\TaxRate;
 use App\Services\ProposalSnippetSync;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -102,8 +102,7 @@ class TallStackProducts extends Component
         // Same reasoning as every other TALL-stack page's mount() — kept
         // for parity even though nothing on this page calls
         // Resource::getUrl() today.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

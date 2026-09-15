@@ -8,6 +8,7 @@ use App\Filament\Resources\Users\RelationManagers\CompaniesRelationManager;
 use App\Filament\Resources\Users\UserResource;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -33,6 +34,7 @@ class UsersTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_resource_index_and_create_pages_render(): void
@@ -83,6 +85,7 @@ class UsersTest extends TestCase
         $this->company->users()->attach($staff, ['role' => 'staff']);
         $this->actingAs($staff);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         $this->assertFalse(UserResource::canCreate());
         $this->assertFalse(UserResource::canEdit($staff));
@@ -96,6 +99,7 @@ class UsersTest extends TestCase
         $this->company->users()->attach($staff, ['role' => 'staff']);
         $this->actingAs($staff);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         Livewire::test(CompaniesRelationManager::class, [
             'ownerRecord' => $staff,

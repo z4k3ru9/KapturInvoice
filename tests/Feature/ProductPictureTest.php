@@ -11,6 +11,7 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\User;
 use App\Services\ProposalSnippetSync;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -197,6 +198,7 @@ class ProductPictureTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         Livewire::test(ListProducts::class)
             ->assertCanRenderTableColumn('image_path')

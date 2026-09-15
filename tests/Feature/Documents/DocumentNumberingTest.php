@@ -11,6 +11,7 @@ use App\Models\NumberingSequence;
 use App\Models\User;
 use App\Services\DocumentNumberGenerator;
 use App\Services\InvoiceDuplicator;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -49,6 +50,7 @@ class DocumentNumberingTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     protected function tearDown(): void

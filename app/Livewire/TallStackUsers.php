@@ -7,7 +7,7 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\UserInvitation;
 use App\Services\CompanyMembershipService;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -95,8 +95,7 @@ class TallStackUsers extends Component
         // Filament panel's own tenant-gated request lifecycle.
         abort_unless(auth()->user()->can('manageMembership', $company), 403);
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function openInviteModal(): void
