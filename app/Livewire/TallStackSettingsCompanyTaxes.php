@@ -208,7 +208,7 @@ class TallStackSettingsCompanyTaxes extends Component
         return view('livewire.tallstack-settings-company-taxes')
             ->layoutData([
                 'company' => $this->company,
-                'active' => 'settings-company-taxes',
+                'active' => 'settings',
                 'title' => 'Company & Taxes',
             ]);
     }

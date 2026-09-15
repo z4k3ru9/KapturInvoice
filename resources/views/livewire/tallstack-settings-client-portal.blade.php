@@ -6,6 +6,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="client-portal">
     <x-card>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Client portal</span>
@@ -16,4 +17,5 @@
             <p class="text-[11px] text-gray-400 mt-1">When off, invitation links still exist but resolve to a disabled-portal message.</p>
         </div>
     </x-card>
+    </x-tallstack.settings-tabs>
 </div>

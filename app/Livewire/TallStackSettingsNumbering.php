@@ -123,7 +123,7 @@ class TallStackSettingsNumbering extends Component
         return view('livewire.tallstack-settings-numbering')
             ->layoutData([
                 'company' => $this->company,
-                'active' => 'settings-numbering',
+                'active' => 'settings',
                 'title' => 'Numbering',
             ]);
     }

@@ -6,6 +6,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="email">
     <x-card>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Templates</span>
@@ -72,4 +73,5 @@
             @endforeach
         </div>
     </x-card>
+    </x-tallstack.settings-tabs>
 </div>

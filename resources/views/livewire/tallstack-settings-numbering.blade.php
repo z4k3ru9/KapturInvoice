@@ -6,6 +6,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="numbering">
     <x-card>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Numbering sequences</span>
@@ -41,4 +42,5 @@
             </div>
         </div>
     </x-card>
+    </x-tallstack.settings-tabs>
 </div>

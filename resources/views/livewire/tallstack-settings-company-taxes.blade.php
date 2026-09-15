@@ -6,6 +6,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="company-and-taxes">
     <x-card>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Identity</span>
@@ -95,4 +96,5 @@
             @endif
         </div>
     </x-card>
+    </x-tallstack.settings-tabs>
 </div>

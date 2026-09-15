@@ -12,8 +12,14 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    <x-tallstack.settings-tabs :company="$company" active="lookups">
+
     {{-- Tab strip — mirrors the fetched "Settings — Tax Rates & Small
-         Lookups" Stitch mockup's own tab bar. --}}
+         Lookups" Stitch mockup's own tab bar. This is a SECOND, nested
+         level of tabs (tax-rates/expense-categories/task-statuses within
+         the outer "Tax Rates & Lookups" settings tab) — its own
+         server-driven wire:click="switchTab" mechanism, unrelated to and
+         untouched by the Phase 12 outer settings-tabs wrapper above. --}}
     <div class="flex items-center gap-1.5 border-b border-gray-200 dark:border-gray-800">
         @foreach ([
             'tax-rates' => 'Tax rates',
@@ -129,4 +135,5 @@
             <x-button text="Save" icon="document-check" color="blue" wire:click="saveTaskStatus" />
         </x-slot:footer>
     </x-modal>
+    </x-tallstack.settings-tabs>
 </div>
