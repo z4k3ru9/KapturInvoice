@@ -14,6 +14,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -77,7 +78,7 @@ class ClientsTable
     {
         return Action::make('previewStatementOfAccount')
             ->label('Preview Statement of Account')
-            ->icon('heroicon-o-eye')
+            ->icon(Heroicon::OutlinedEye)
             ->schema(static::statementOfAccountPeriodSchema())
             ->action(function (Client $record, array $data) {
                 $url = route('statement-of-accounts.preview', [
@@ -114,7 +115,7 @@ class ClientsTable
     {
         return Action::make('generateStatementOfAccount')
             ->label('Generate Statement of Account')
-            ->icon('heroicon-o-document-text')
+            ->icon(Heroicon::OutlinedDocumentText)
             ->schema(static::statementOfAccountPeriodSchema())
             ->action(function (Client $record, array $data) {
                 $statementOfAccount = app(GenerateStatementOfAccount::class)->generate(
