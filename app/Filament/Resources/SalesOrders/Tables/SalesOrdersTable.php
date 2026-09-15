@@ -24,6 +24,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
@@ -159,9 +160,55 @@ class SalesOrdersTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: same stock-ForceDeleteBulkAction
+     * gap already fixed on VendorBill — restricted here to a Draft,
+     * never-closed job with no invoices, delivery/handover/service
+     * records, cost allocations, or variations, so job history behind an
+     * invoice, delivery, or vendor cost can never be physically erased.
+     */
+    public static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some jobs were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft job with no invoices, delivery/handover/service records, cost allocations, or variations can be permanently deleted.")
+                        ->send();
+                }
+            });
+    }
+
+    public static function isSafeToForceDelete(SalesOrder $record): bool
+    {
+        return $record->status === SalesOrderStatus::Draft
+            && $record->operational_closed_at === null
+            && $record->financial_closed_at === null
+            && ! $record->invoices()->exists()
+            && ! $record->deliveryOrders()->exists()
+            && ! $record->handoverReports()->exists()
+            && ! $record->serviceReports()->exists()
+            && ! $record->jobCostAllocations()->exists()
+            && ! $record->variations()->exists();
     }
 }

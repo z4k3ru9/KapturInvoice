@@ -8,6 +8,7 @@ use App\Actions\Receivables\IssuePaymentReceipt;
 use App\Actions\Receivables\ReverseCustomerPayment;
 use App\Actions\Receivables\VerifyCustomerPayment;
 use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -29,6 +30,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
@@ -204,10 +206,51 @@ class PaymentsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: same stock-ForceDeleteBulkAction
+     * gap already fixed on VendorBill — restricted here to Pending,
+     * never-receipted, never-allocated payments only, so a verified
+     * payment's receipt/allocation history can never be physically
+     * erased.
+     */
+    public static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some payments were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Pending payment with no receipt, allocations, or verification events can be permanently deleted.")
+                        ->send();
+                }
+            });
+    }
+
+    public static function isSafeToForceDelete(Payment $record): bool
+    {
+        return $record->status === PaymentStatus::Pending
+            && ! $record->receipt()->exists()
+            && ! $record->allocations()->exists()
+            && ! $record->verificationEvents()->exists();
     }
 
     /** @return array<int, mixed> */

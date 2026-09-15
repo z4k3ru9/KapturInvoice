@@ -178,19 +178,22 @@ class ModalCreateEditTest extends TestCase
         $this->assertSame('12.000', (string) $taxRate->fresh()->rate);
     }
 
-    public function test_credit_create_modal_still_assigns_a_number_and_edit_modal_works(): void
+    /**
+     * "New credit-note creation ... remain deferred" —
+     * FINALIZED-DECISIONS.md §7. ListCredits no longer exposes a Create
+     * action at all (docs/REFACTOR_PLAN.md drift audit) — this now only
+     * proves the edit modal still works for an existing/legacy-imported
+     * credit, seeded directly rather than through the (removed) UI flow.
+     */
+    public function test_credit_has_no_create_action_but_its_edit_modal_still_works(): void
     {
         $this->assertNoCreateOrEditPage(CreditResource::class);
 
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Client Co']);
+        $credit = Credit::create(['company_id' => $this->company->id, 'client_id' => $client->id, 'amount' => 50]);
 
         Livewire::test(ListCredits::class)
-            ->callAction('create', data: ['client_id' => $client->id, 'amount' => 50])
-            ->assertHasNoActionErrors();
-
-        $credit = Credit::where('client_id', $client->id)->firstOrFail();
-        // "ACME-CR-{yearmonth}0001" — see App\Services\DocumentNumberGenerator.
-        $this->assertSame('ACME-CR-'.now()->format('Ym').'0001', $credit->number);
+            ->assertActionDoesNotExist('create');
 
         Livewire::test(ListCredits::class)
             ->callTableAction('edit', $credit, data: ['amount' => 75])

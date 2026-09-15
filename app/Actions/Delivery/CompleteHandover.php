@@ -3,6 +3,7 @@
 namespace App\Actions\Delivery;
 
 use App\Enums\CompanyRole;
+use App\Enums\JobType;
 use App\Models\HandoverReport;
 use App\Models\SalesOrder;
 use App\Models\User;
@@ -21,6 +22,13 @@ use RuntimeException;
  * gate is the Owner/Admin-only exception
  * (CompanyRole::jobVariationApprovalRoles(), the same "exception approval"
  * tier used for job variations).
+ *
+ * "Service jobs require Service Reports then handover" —
+ * FINALIZED-DECISIONS.md §10: for a Service job the completeness gate is
+ * `SalesOrder::isServiceReportsResolvedForHandover()`, not delivery
+ * quantities — a pure service visit may have nothing to physically
+ * deliver at all. Every other job type keeps the original
+ * `isFullyDelivered()` gate.
  */
 class CompleteHandover
 {
@@ -40,9 +48,11 @@ class CompleteHandover
             throw new RuntimeException('Only Staff and higher may record a handover.');
         }
 
-        if (! $override && ! $salesOrder->isFullyDelivered()) {
+        if (! $override && ! $this->meetsCompletenessGate($salesOrder)) {
             throw new RuntimeException(
-                'Handover requires all delivery items to be complete, or an Admin/Owner override with a reason.'
+                $salesOrder->job_type === JobType::Service
+                    ? 'Handover requires an approved, Resolved service report (with no approved report still Follow-up required), or an Admin/Owner override with a reason.'
+                    : 'Handover requires all delivery items to be complete, or an Admin/Owner override with a reason.'
             );
         }
 
@@ -79,5 +89,12 @@ class CompleteHandover
         );
 
         return $handoverReport;
+    }
+
+    private function meetsCompletenessGate(SalesOrder $salesOrder): bool
+    {
+        return $salesOrder->job_type === JobType::Service
+            ? $salesOrder->isServiceReportsResolvedForHandover()
+            : $salesOrder->isFullyDelivered();
     }
 }

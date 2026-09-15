@@ -30,6 +30,16 @@ class ProposalResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'title';
 
+    /**
+     * A separate formal proposal builder is deferred launch scope
+     * (docs/REFACTOR_PLAN.md §1.1, Specs.md §3) — kept intact for any
+     * already-created proposal, just out of the launch sidebar.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ProposalForm::configure($schema);

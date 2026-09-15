@@ -34,6 +34,15 @@ class ProposalTemplateResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * Follows ProposalResource: the formal proposal builder is deferred
+     * launch scope (docs/REFACTOR_PLAN.md §1.2) — hidden from the sidebar.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     // company_id is set automatically from the active Filament tenant
     // (ProposalTemplate::company()) — no field needed here.
     public static function form(Schema $schema): Schema

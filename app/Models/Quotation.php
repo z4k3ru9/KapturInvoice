@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\JobType;
 use App\Enums\PricingMode;
 use App\Enums\QuotationStatus;
 use App\Models\Concerns\BelongsToCompany;
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * bare `update(['status' => ...])` call.
  */
 #[Fillable([
-    'company_id', 'client_id', 'number', 'status', 'pricing_mode',
+    'company_id', 'client_id', 'number', 'status', 'pricing_mode', 'job_type',
     'discount', 'discount_is_percentage', 'quotation_date', 'valid_until',
     'customer_po_number', 'customer_po_date', 'customer_po_is_system_generated',
     'terms', 'notes', 'document_language',
@@ -37,6 +38,7 @@ class Quotation extends Model
         return [
             'status' => QuotationStatus::class,
             'pricing_mode' => PricingMode::class,
+            'job_type' => JobType::class,
             'discount' => 'decimal:2',
             'discount_is_percentage' => 'boolean',
             'subtotal' => 'decimal:2',

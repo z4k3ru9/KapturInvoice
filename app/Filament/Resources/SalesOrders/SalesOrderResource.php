@@ -8,6 +8,7 @@ use App\Filament\Resources\SalesOrders\RelationManagers\DeliveryOrdersRelationMa
 use App\Filament\Resources\SalesOrders\RelationManagers\HandoverReportsRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\MilestonesRelationManager;
+use App\Filament\Resources\SalesOrders\RelationManagers\ServiceReportsRelationManager;
 use App\Filament\Resources\SalesOrders\RelationManagers\VariationsRelationManager;
 use App\Filament\Resources\SalesOrders\Schemas\SalesOrderInfolist;
 use App\Filament\Resources\SalesOrders\Tables\SalesOrdersTable;
@@ -61,6 +62,7 @@ class SalesOrderResource extends Resource
             MilestonesRelationManager::class,
             VariationsRelationManager::class,
             DeliveryOrdersRelationManager::class,
+            ServiceReportsRelationManager::class,
             HandoverReportsRelationManager::class,
         ];
     }
