@@ -117,6 +117,38 @@
             @endif
 
             <x-textarea wire:model="private_notes" label="Private notes" rows="3" />
+
+            {{--
+                Documents — only reachable while editing (a Document needs
+                a real expense row to attach to). See
+                App\Livewire\Concerns\ManagesDocuments; same shape as the
+                Invoice/Quotation forms' own Documents card.
+            --}}
+            @if ($editingExpenseId)
+                <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Documents</h3>
+                    <div class="flex flex-col gap-3">
+                        <x-upload wire:model="newDocument" label="Attach a document" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
+                        <x-button text="Upload" icon="arrow-up-tray" color="blue" sm wire:click="uploadDocument" />
+
+                        <x-table :headers="[
+                            ['index' => 'filename', 'label' => 'Filename', 'sortable' => false],
+                            ['index' => 'size', 'label' => 'Size', 'sortable' => false],
+                            ['index' => 'uploaded_by', 'label' => 'Uploaded by', 'sortable' => false],
+                            ['index' => 'uploaded_at', 'label' => 'Uploaded at', 'sortable' => false],
+                            ['index' => 'actions', 'label' => '', 'sortable' => false],
+                        ]" :rows="$documents">
+                            @interact('column_actions', $row)
+                                <div class="flex items-center justify-end gap-2">
+                                    <x-button icon="arrow-down-tray" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('documents.download', $row['id']) }}" target="_blank" tooltip="Download" />
+                                    <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteDocument({{ $row['id'] }})" wire:confirm="Delete this document?" />
+                                </div>
+                            @endinteract
+                            <x-slot:empty>No documents attached yet.</x-slot:empty>
+                        </x-table>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <x-slot:footer>
