@@ -15,6 +15,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TagsInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -49,9 +50,17 @@ class QuotesTable
                     ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Draft ? 'Send' : 'Resend')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
-                    ->action(function (Invoice $record) {
+                    ->schema([
+                        TagsInput::make('cc')
+                            ->label('CC recipients')
+                            ->placeholder('Type an email and press enter')
+                            ->helperText('Optional — additional recipients for this send only.'),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
                         try {
-                            app(BillingMailer::class)->sendQuote($record);
+                            $cc = array_values(array_filter($data['cc'] ?? [], fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false));
+
+                            app(BillingMailer::class)->sendQuote($record, cc: $cc);
 
                             Notification::make()
                                 ->success()->seconds(4)
