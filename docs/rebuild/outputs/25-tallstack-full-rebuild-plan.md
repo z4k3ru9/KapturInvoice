@@ -67,15 +67,16 @@ Dashboard mockup comparison worked earlier this session.
 | Price List Items | "Price List Items — Vendor Catalog Reference" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\PriceListItems` |
 | Credits | "Credits — Register (Karunia Abadi Variant)" | `App\Filament\Resources\Credits` |
 | Recurring Invoices | "Recurring Invoices — Register & Schedule Editor" | `App\Filament\Resources\RecurringInvoices` |
-| Statement of Account | **not yet generated** — `generate_screen_from_text` was fired against prompt 17 in `26-stitch-missing-screens-prompts.md` (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) and timed out client-side at 60s twice across sessions; two follow-up `list_screens` checks (a few minutes apart) still show no matching screen, so this one did not complete server-side either. Needs a fresh `generate_screen_from_text` retry next time this area is picked up. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
+| Statement of Account | "Statement of Account — Document Preview & Issuance Ledger" (2 copies), "Statement of Accounts — Master Register (Karunia Abadi Variant)", "Statement of Account — Preview & Issuance Ledger" (+ "(Axen Technology Variant)") — confirmed present via `list_screens` on 2026-09-15. Three earlier `generate_screen_from_text` calls against prompt 17 (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) had each timed out client-side at 60s with no completion visible in a `list_screens` check shortly after; at least one of those calls evidently finished server-side sometime later, since these screens were already present before a fourth generation call was needed this session. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
 
 **Formerly "no dedicated Stitch screen found" for**: Clients, Users,
 Proposals/Proposal Templates/Snippets, Tax Rates, Expense Categories, Task
-Statuses, Price List Items, Credits, Recurring Invoices — all now have
-generated Stitch screens, listed in the table above. **Statement of
-Accounts is the one remaining gap** — see that table row. The
-ready-to-paste prompts for all nine areas (including the still-pending
-SOA one) live in
+Statuses, Price List Items, Credits, Recurring Invoices, Statement of
+Accounts — all now have generated Stitch screens, listed in the table
+above. Statement of Accounts was the last of the nine to be confirmed
+(2026-09-15) — the mockup existing is not the same as the screen being
+built in TallStackUI; see the status checklist below for that distinction.
+The prompts for all nine areas live in
 [`26-stitch-missing-screens-prompts.md`](26-stitch-missing-screens-prompts.md)
 (numbered 10-17, continuing the original project's own
 `kapturinvoice-stitch-prompts.md` 1-9).
@@ -105,20 +106,18 @@ confirm/adjust with the user before Phase 2 if anything looks off:
 12. **Phase 11 — Client portal restyle** (already Livewire; reskin to the
     "Client Read-Only Portal (TallStack UI)" mockup).
 13. **Phase 12 — Onboarding / zero-state**.
-14. **Deferred items** — updated: Tax Rates/Expense Categories/Task
-    Statuses are now built as part of Phase 9's Settings work (a tabbed
-    "lookups" page), no longer deferred. Proposals, Users, Price List
-    Items, Credits, Recurring Invoices all now have generated Stitch
-    screens (see the inventory table above) and are being built next,
-    reusing the established shell. **Statement of Accounts remains the
-    one item with no Stitch mockup** — three `generate_screen_from_text`
-    attempts across sessions have all timed out client-side with no
-    server-side completion confirmed via `list_screens`; when this item
-    is picked up, either retry generation once more or build it directly
-    against prompt 17's detailed spec in
-    `26-stitch-missing-screens-prompts.md` without a mockup, the same way
-    Clients/Products'/etc. own Filament source-of-truth was used before
-    any mockup existed for them.
+14. **Deferred items — all built except Statement of Accounts**: Tax
+    Rates/Expense Categories/Task Statuses shipped as part of Phase 9's
+    Settings work (a tabbed "lookups" page). Proposals, Users & roles,
+    Price List Items, Credits, and Recurring Invoices all now have
+    generated Stitch screens and are all built (see the status checklist
+    below for each). **Statement of Accounts is the sole remaining
+    item** — it now has a generated Stitch mockup ("Statement of Account
+    — Document Preview & Issuance Ledger" + variants, confirmed
+    2026-09-15 via `list_screens` after three earlier
+    `generate_screen_from_text` attempts had each timed out client-side
+    with no completion visible at the time — at least one apparently
+    finished server-side later) but is not yet built in TallStackUI.
 
 Only remove a Filament resource / drop the `filament/filament` package once
 **every** phase above is done and verified — that is a separate decision
@@ -455,8 +454,17 @@ status checklist.
       register instead shows a real Active/Ended status derived only
       from `recurring_end_date`, with a manual "Generate now" action and
       an on-page note that generation is manual-only for now.)
-- [ ] Deferred, blocked on a Stitch mockup: Statement of Accounts — see
-      the screen-inventory table's own row for the retry history.
+- [ ] Statement of Accounts — **no longer blocked on a Stitch mockup**: a
+      mockup ("Statement of Account — Document Preview & Issuance Ledger" /
+      "Statement of Accounts — Master Register (Karunia Abadi Variant)" /
+      "Statement of Account — Preview & Issuance Ledger" + Axen Technology
+      Variant) is confirmed present in the Stitch project as of 2026-09-15,
+      after three earlier `generate_screen_from_text` attempts timed out
+      client-side with no completion confirmed at the time — at least one
+      evidently finished server-side later. This entry only reflects the
+      mockup now existing — TallStackUI has not built this screen yet;
+      schedule it into a future phase against the mockup the same way the
+      phases above did.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
       **not started, not scheduled** until every phase above is verified;
       needs its own explicit go-ahead from the user
