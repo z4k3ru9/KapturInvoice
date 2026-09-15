@@ -250,7 +250,7 @@
                 </div>
                 <div class="flex-1"></div>
                 <div class="flex flex-col items-start sm:items-end gap-1">
-                    <x-button text="Generate & Issue" icon="document-check" color="green" wire:click="generateAndIssue" wire:confirm="Generate this Statement of Account? This becomes a permanent numbered record — cannot be un-generated." />
+                    <x-button text="Generate & Issue" icon="document-check" color="green" wire:click="generateAndIssue" wire:confirm="Generate this Statement of Account? This becomes a permanent numbered record — cannot be un-generated." loading="generateAndIssue" spinner="dots" />
                     <span class="text-xs text-gray-400">This becomes a permanent numbered record — cannot be un-generated.</span>
                 </div>
             </div>
@@ -258,7 +258,7 @@
             <div class="text-xs text-gray-400">This is a frozen, immutable snapshot — it cannot be edited or regenerated.</div>
             <div class="flex items-center gap-2">
                 <x-button text="Download PDF" icon="document-arrow-down" color="gray" href="{{ route('statement-of-accounts.pdf', $soa->id) }}" target="_blank" />
-                <x-button text="Email to client" icon="envelope" color="blue" wire:click="emailToClient" />
+                <x-button text="Email to client" icon="envelope" color="blue" wire:click="emailToClient" loading="emailToClient" spinner="dots" />
             </div>
         @endif
     </div>

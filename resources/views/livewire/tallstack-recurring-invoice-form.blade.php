@@ -15,11 +15,11 @@
                      App\Services\InvoiceDuplicator::generateRecurringInstance()
                      unmodified — the exact action the Filament table's own
                      "Generate now" row action calls. --}}
-                <x-button text="Generate now" icon="bolt" color="green" sm class="h-9" wire:click="generateNow" wire:confirm="Generate a new invoice from this schedule now?" />
+                <x-button text="Generate now" icon="bolt" color="green" sm class="h-9" wire:click="generateNow" wire:confirm="Generate a new invoice from this schedule now?" loading="generateNow" spinner="dots" />
             @endif
             {{-- color="blue" — see the Invoice form's own "Save" button for
                  the standardized general-action color reasoning. --}}
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" loading="save" spinner="dots" />
         </x-slot:actions>
     </x-tallstack.page-header>
 

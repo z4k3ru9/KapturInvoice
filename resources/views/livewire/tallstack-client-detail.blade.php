@@ -249,7 +249,7 @@
             <x-button text="Cancel" color="gray" wire:click="$set('showSoaModal', false)" />
             <x-button text="Preview" icon="eye" color="gray"
                 href="{{ route('tallstack.clients.statement-of-account', ['company' => $company, 'client' => $client, 'period_start' => $soaPeriodStart, 'period_end' => $soaPeriodEnd]) }}" />
-            <x-button text="Generate" color="green" wire:click="generateStatementOfAccount" />
+            <x-button text="Generate" color="green" wire:click="generateStatementOfAccount" loading="generateStatementOfAccount" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>

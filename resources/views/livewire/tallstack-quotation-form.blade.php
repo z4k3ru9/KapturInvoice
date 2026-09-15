@@ -29,7 +29,7 @@
             --}}
             {{-- icon="document-check" — closest available Heroicon to a
                  floppy-disk/save glyph; this set has no literal one. --}}
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" loading="save" spinner="dots" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -51,23 +51,23 @@
     @if ($quotation)
         <div class="flex flex-wrap items-center gap-2">
             @if ($quotation->status === \App\Enums\QuotationStatus::Draft)
-                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" />
+                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" loading="approve" spinner="dots" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Approved)
-                <x-button text="Send" icon="paper-airplane" color="blue" sm wire:click="send" />
+                <x-button text="Send" icon="paper-airplane" color="blue" sm wire:click="send" loading="send" spinner="dots" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Sent)
                 <x-button text="Accept" icon="check" color="green" sm wire:click="openAcceptModal" />
-                <x-button text="Reject" icon="x-mark" color="red" sm wire:click="reject" wire:confirm="Reject this quotation?" />
-                <x-button text="Mark expired" icon="clock" color="gray" sm wire:click="markExpired" wire:confirm="Mark this quotation expired?" />
+                <x-button text="Reject" icon="x-mark" color="red" sm wire:click="reject" wire:confirm="Reject this quotation?" loading="reject" spinner="dots" />
+                <x-button text="Mark expired" icon="clock" color="gray" sm wire:click="markExpired" wire:confirm="Mark this quotation expired?" loading="markExpired" spinner="dots" />
             @endif
             @if ($quotation->status === \App\Enums\QuotationStatus::Accepted && ! $quotation->salesOrder()->exists())
-                <x-button text="Create job" icon="briefcase" color="green" sm wire:click="createJob" wire:confirm="Create a job from this quotation?" />
+                <x-button text="Create job" icon="briefcase" color="green" sm wire:click="createJob" wire:confirm="Create a job from this quotation?" loading="createJob" spinner="dots" />
             @endif
             @if (! $quotation->status->isTerminal())
                 {{-- icon="document-minus" — closest available Heroicon to a
                      "broken/voided paper" glyph; this set has no literal one. --}}
-                <x-button text="Cancel quotation" icon="document-minus" color="red" sm wire:click="cancel" wire:confirm="Cancel this quotation?" />
+                <x-button text="Cancel quotation" icon="document-minus" color="red" sm wire:click="cancel" wire:confirm="Cancel this quotation?" loading="cancel" spinner="dots" />
             @endif
         </div>
     @endif
@@ -279,7 +279,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAcceptModal', false)" />
-            <x-button text="Accept" color="green" wire:click="accept" />
+            <x-button text="Accept" color="green" wire:click="accept" loading="accept" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>
