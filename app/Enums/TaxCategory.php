@@ -22,4 +22,21 @@ enum TaxCategory: string
             self::NonTaxable => 'Non-taxable',
         };
     }
+
+    /**
+     * A Filament-style semantic color, same convention as every status
+     * enum's own getColor() (gray/info/success/warning/danger) — resolve
+     * through App\Support\TallStack\StatusColor::map() before handing it
+     * to <x-badge>, exactly like a lifecycle status. Taxable is
+     * informational (blue), non-taxable is neutral (gray) — was
+     * previously a hardcoded ternary duplicated at its one call site
+     * (TallStackProducts).
+     */
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::StandardTaxable => 'info',
+            self::NonTaxable => 'gray',
+        };
+    }
 }

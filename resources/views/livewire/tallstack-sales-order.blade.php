@@ -215,7 +215,7 @@
                 ['index' => 'actions', 'label' => '', 'sortable' => false],
             ]" :rows="$invoices">
                 @interact('column_status', $row)
-                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
                 @endinteract
                 @interact('column_actions', $row)
                     <x-button icon="document-arrow-down" href="{{ $row['url'] }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />

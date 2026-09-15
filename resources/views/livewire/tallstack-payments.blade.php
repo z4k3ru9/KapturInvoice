@@ -69,7 +69,7 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$payments" paginate loading>
             @interact('column_status', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
 
             @interact('column_receipt_number', $row)
