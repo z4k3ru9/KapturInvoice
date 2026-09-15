@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Procurement\ApproveVendorBill;
+use App\Actions\Procurement\ForceDeleteVendorBill;
 use App\Actions\Procurement\SubmitVendorBill;
 use App\Enums\VendorBillStatus;
 use App\Models\Company;
@@ -88,6 +89,22 @@ class TallStackVendorBills extends Component
             $this->toast()->success('Vendor bill approved.')->send();
         } catch (RuntimeException $e) {
             $this->toast()->error('Could not approve vendor bill', $e->getMessage())->send();
+        }
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $bill = $this->findScoped($id);
+
+        if (! $bill) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteVendorBill::class)->forceDelete($bill, auth()->user());
+            $this->toast()->success('Vendor bill permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete vendor bill', $e->getMessage())->send();
         }
     }
 

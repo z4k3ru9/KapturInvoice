@@ -87,6 +87,16 @@
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    {{-- Only ever shown for a Draft row — the guard's full
+                         predicate (no payments/allocations/corrections) is
+                         still re-checked server-side by
+                         App\Actions\Billing\ForceDeleteInvoice, the real
+                         source of truth. --}}
+                    @if ($row['status'] === \App\Enums\InvoiceStatus::Draft)
+                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this invoice? This cannot be undone." />
+                        </x-dropdown>
+                    @endif
                 </div>
             @endinteract
 

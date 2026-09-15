@@ -85,14 +85,26 @@
                 <div class="flex items-center justify-end gap-2">
                     {{--
                         No TALL-stack detail page exists for a single
-                        Credit (this phase is the register only) — "View"
-                        opens the already-built, read-only Filament
-                        ViewCredit page instead of duplicating it, the same
-                        way this shell's own nav falls back to the admin
-                        panel for legacy "Quotes" (see app.blade.php's own
-                        $nav array comment on that entry).
+                        Credit (this phase is the register only) — the
+                        previous "View" link here pointed at
+                        `filament.admin.resources.credits.view`, a route
+                        that no longer exists now that Filament has been
+                        fully removed (a real, previously-unknown 500-on-
+                        every-row bug, found while wiring the Force delete
+                        action below — see the ForceDeleteCredit rollout
+                        report). Removed rather than left dead; the
+                        register table itself already shows every column
+                        this would have.
                     --}}
-                    <x-button icon="eye" href="{{ route('filament.admin.resources.credits.view', ['tenant' => $company, 'record' => $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="View" />
+                    {{-- Only ever shown for an unapplied credit — the
+                         guard's full predicate (balance still equals face
+                         amount) is still re-checked server-side by
+                         App\Actions\Billing\ForceDeleteCredit. --}}
+                    @if ($row['unapplied'])
+                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this credit? This cannot be undone." />
+                        </x-dropdown>
+                    @endif
                 </div>
             @endinteract
 

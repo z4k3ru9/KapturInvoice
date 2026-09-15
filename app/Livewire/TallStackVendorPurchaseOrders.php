@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
+use App\Actions\Procurement\ForceDeleteVendorPurchaseOrder;
 use App\Enums\VendorPurchaseOrderStatus;
 use App\Models\Company;
 use App\Models\VendorPurchaseOrder;
@@ -72,6 +73,22 @@ class TallStackVendorPurchaseOrders extends Component
             $this->toast()->success('Vendor purchase order approved.')->send();
         } catch (\RuntimeException $e) {
             $this->toast()->error('Could not approve vendor purchase order', $e->getMessage())->send();
+        }
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $po = $this->findScoped($id);
+
+        if (! $po) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteVendorPurchaseOrder::class)->forceDelete($po, auth()->user());
+            $this->toast()->success('Vendor purchase order permanently deleted.')->send();
+        } catch (\RuntimeException $e) {
+            $this->toast()->error('Could not delete vendor purchase order', $e->getMessage())->send();
         }
     }
 

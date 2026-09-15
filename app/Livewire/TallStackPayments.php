@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Receivables\ForceDeletePayment;
 use App\Actions\Receivables\IssuePaymentReceipt;
 use App\Actions\Receivables\RecordCustomerPayment;
 use App\Actions\Receivables\ReverseCustomerPayment;
@@ -241,6 +242,24 @@ class TallStackPayments extends Component
             $this->toast()->success('Payment reversed.')->send();
         } catch (RuntimeException $e) {
             $this->toast()->error('Could not reverse payment', $e->getMessage())->send();
+        }
+    }
+
+    // --- Force delete --------------------------------------------------------
+
+    public function forceDelete(int $id): void
+    {
+        $payment = $this->findScoped($id);
+
+        if (! $payment) {
+            return;
+        }
+
+        try {
+            app(ForceDeletePayment::class)->forceDelete($payment, auth()->user());
+            $this->toast()->success('Payment permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete payment', $e->getMessage())->send();
         }
     }
 
