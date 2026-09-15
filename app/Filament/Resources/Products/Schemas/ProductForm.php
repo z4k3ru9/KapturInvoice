@@ -13,6 +13,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 
 class ProductForm
 {
@@ -43,7 +44,9 @@ class ProductForm
                     ->panelAspectRatio('1:1')
                     ->panelLayout('compact')
                     ->directory('products')
-                    ->helperText('Optional. JPG, PNG, WEBP · max 2 MB. Shown as a thumbnail on quotation line items and reusable in proposal snippets.'),
+                    ->helperText('Optional. JPG, PNG, WEBP · max 2 MB.')
+                    ->hintIcon(Heroicon::OutlinedInformationCircle)
+                    ->hintIconTooltip('Shown as a thumbnail on quotation line items and reusable in proposal snippets.'),
                 TextInput::make('unit')
                     ->helperText('e.g. pcs, hour, package — not required for a service/labor line.'),
                 TextInput::make('unit_cost')
