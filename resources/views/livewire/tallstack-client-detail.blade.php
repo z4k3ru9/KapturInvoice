@@ -162,8 +162,9 @@
             ['index' => 'generated_at', 'label' => 'Generated'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$statements">
-            @interact('column_actions', $row)
-                <div class="flex items-center justify-end">
+            @interact('column_actions', $row, $company, $client)
+                <div class="flex items-center justify-end gap-1">
+                    <x-button icon="eye" href="{{ route('tallstack.clients.statement-of-account', ['company' => $company, 'client' => $client, 'statementOfAccount' => $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="View" />
                     <x-button icon="document-arrow-down" href="{{ route('statement-of-accounts.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
                 </div>
             @endinteract
@@ -246,8 +247,8 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showSoaModal', false)" />
-            <x-button text="Preview" icon="eye" color="gray" target="_blank"
-                href="{{ route('statement-of-accounts.preview', ['client' => $client->id, 'period_start' => $soaPeriodStart, 'period_end' => $soaPeriodEnd]) }}" />
+            <x-button text="Preview" icon="eye" color="gray"
+                href="{{ route('tallstack.clients.statement-of-account', ['company' => $company, 'client' => $client, 'period_start' => $soaPeriodStart, 'period_end' => $soaPeriodEnd]) }}" />
             <x-button text="Generate" color="green" wire:click="generateStatementOfAccount" />
         </x-slot:footer>
     </x-modal>

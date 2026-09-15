@@ -49,6 +49,7 @@ use App\Livewire\TallStackSettingsBranding;
 use App\Livewire\TallStackSettingsCompanyTaxes;
 use App\Livewire\TallStackSettingsEmail;
 use App\Livewire\TallStackSettingsLookups;
+use App\Livewire\TallStackStatementOfAccount;
 use App\Livewire\TallStackUsers;
 use App\Livewire\TallStackVendorBillForm;
 use App\Livewire\TallStackVendorBills;
@@ -316,6 +317,19 @@ Route::get('/tall/{company:slug}/clients', TallStackClients::class)
 Route::get('/tall/{company:slug}/clients/{client}', TallStackClientDetail::class)
     ->middleware('auth')
     ->name('tallstack.clients.show');
+
+// Statement of Accounts (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// last remaining status-checklist item) — the document view reached from
+// TallStackClientDetail's "Preview / Generate SOA" action and its
+// Statement of Accounts relation manager's row action. `statementOfAccount`
+// is nullable: absent means a live, never-persisted Preview for the given
+// `period_start`/`period_end` query string (defaults to the current
+// month), bound means the frozen Issued snapshot. Re-checks company/client
+// ownership explicitly in mount(), same reasoning as every other TALL-stack
+// detail route above.
+Route::get('/tall/{company:slug}/clients/{client}/statement-of-account/{statementOfAccount?}', TallStackStatementOfAccount::class)
+    ->middleware('auth')
+    ->name('tallstack.clients.statement-of-account');
 
 // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // Settings, TALL-stack-native alongside the Filament pages/resources they
