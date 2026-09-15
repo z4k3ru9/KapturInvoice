@@ -87,6 +87,10 @@ class TallStackVendorBillForm extends Component
 
     public float $item_unit_cost = 0;
 
+    public float $item_discount = 0;
+
+    public bool $item_discount_is_percentage = false;
+
     public float $item_net_amount = 0;
 
     public float $item_tax_amount = 0;
@@ -245,6 +249,8 @@ class TallStackVendorBillForm extends Component
         $this->item_description = $item->description;
         $this->item_quantity = (float) $item->quantity;
         $this->item_unit_cost = (float) $item->unit_cost;
+        $this->item_discount = (float) $item->discount;
+        $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
         $this->item_net_amount = (float) $item->net_amount;
         $this->item_tax_amount = (float) $item->tax_amount;
         $this->showItemModal = true;
@@ -279,6 +285,8 @@ class TallStackVendorBillForm extends Component
             'item_description' => ['nullable', 'string'],
             'item_quantity' => ['required', 'numeric', 'min:0.0001'],
             'item_unit_cost' => ['required', 'numeric', 'min:0'],
+            'item_discount' => ['numeric', 'min:0'],
+            'item_discount_is_percentage' => ['boolean'],
             'item_net_amount' => ['required', 'numeric', 'min:0'],
             'item_tax_amount' => ['required', 'numeric', 'min:0'],
         ]);
@@ -294,6 +302,8 @@ class TallStackVendorBillForm extends Component
             'description' => $data['item_description'],
             'quantity' => $data['item_quantity'],
             'unit_cost' => $data['item_unit_cost'],
+            'discount' => $data['item_discount'],
+            'discount_is_percentage' => $data['item_discount_is_percentage'],
             'net_amount' => $data['item_net_amount'],
             'tax_amount' => $data['item_tax_amount'],
         ];
@@ -346,6 +356,8 @@ class TallStackVendorBillForm extends Component
         $this->item_description = null;
         $this->item_quantity = 1;
         $this->item_unit_cost = 0;
+        $this->item_discount = 0;
+        $this->item_discount_is_percentage = false;
         $this->item_net_amount = 0;
         $this->item_tax_amount = 0;
     }
@@ -671,6 +683,9 @@ class TallStackVendorBillForm extends Component
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
+                'discount' => (float) $item->discount > 0
+                    ? ($item->discount_is_percentage ? $item->discount.'%' : Money::format((float) $item->discount, $currency))
+                    : null,
                 'net_amount' => Money::format((float) $item->net_amount, $currency),
                 'tax_amount' => Money::format((float) $item->tax_amount, $currency),
                 'line_total' => Money::format((float) $item->line_total, $currency),
