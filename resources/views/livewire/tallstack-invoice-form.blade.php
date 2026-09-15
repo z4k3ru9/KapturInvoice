@@ -28,7 +28,7 @@
             {{-- color="brand" — Primary role (AppServiceProvider::
                  registerActionColorPalette()'s docblock): the single main
                  commit action of this page. --}}
-            <x-button text="Save" icon="document-check" color="brand" sm class="h-9" wire:click="save" />
+            <x-button text="Save" icon="document-check" color="brand" sm class="h-9" wire:click="save" loading="save" spinner="dots" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -51,7 +51,7 @@
     @if ($invoice)
         <div class="flex flex-wrap items-center gap-2">
             @if (in_array($invoice->status, [\App\Enums\InvoiceStatus::Draft, \App\Enums\InvoiceStatus::Approved], true))
-                <x-button text="Issue" icon="check-circle" color="green" sm wire:click="issue" wire:confirm="Issue this invoice? This freezes its totals and assigns a permanent number." />
+                <x-button text="Issue" icon="check-circle" color="green" sm wire:click="issue" wire:confirm="Issue this invoice? This freezes its totals and assigns a permanent number." loading="issue" spinner="dots" />
             @endif
             <x-button text="{{ $invoice->status === \App\Enums\InvoiceStatus::Draft ? 'Send' : 'Resend' }}" icon="paper-airplane" color="blue" sm wire:click="openSendModal" />
             @if ($invoice->status->canTransitionTo(\App\Enums\InvoiceStatus::Amended))
@@ -356,7 +356,7 @@
             <x-button text="Cancel" color="gray" wire:click="$set('showSendModal', false)" />
             {{-- color="blue" — Info/communicate role, matching the status
                  bar's own "Send"/"Resend" trigger button above. --}}
-            <x-button text="Send" color="blue" wire:click="send" />
+            <x-button text="Send" color="blue" wire:click="send" loading="send" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -409,7 +409,7 @@
             {{-- Destructive (red) when voiding, otherwise Primary (brand)
                  — this modal's own single commit action either ends the
                  document or just corrects it. --}}
-            <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" />
+            <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" loading="submitCorrection" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 

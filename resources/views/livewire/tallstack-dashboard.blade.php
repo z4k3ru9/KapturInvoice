@@ -1,5 +1,8 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
+    {{-- Full-page overlay for the refresh icon button's wire:click="$refresh" below --}}
+    <x-loading loading="$refresh" delay="short" />
+
     {{--
         Shared page-header component — see its own docblock. "Dashboard"
         itself is a short, fixed title (unlike a record's name/number
