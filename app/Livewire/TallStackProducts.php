@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\CatalogItemType;
 use App\Enums\TaxCategory;
 use App\Models\Company;
+use App\Models\PriceListItem;
 use App\Models\Product;
 use App\Models\TaxRate;
 use App\Services\ProposalSnippetSync;
@@ -79,6 +80,17 @@ class TallStackProducts extends Component
 
     public ?string $description = null;
 
+    /**
+     * Shares one taxonomy with PriceListItem::category (repair plan Phase
+     * 10b / decision gate G3) via the same
+     * <x-tallstack.category-select> picker Phase 10a built for Price List
+     * Items — see render()'s $categories for how the shared option list is
+     * resolved. A Product linked via price_list_item_id gets this
+     * pre-filled once by App\Services\ProductSync at link time; it's a
+     * plain editable field here afterward, same as a hand-created Product.
+     */
+    public ?string $category = null;
+
     /** New picture staged for upload this save — null keeps the existing image_path untouched. */
     public mixed $photo = null;
 
@@ -144,6 +156,7 @@ class TallStackProducts extends Component
         $this->default_tax_rate_id = $product->default_tax_rate_id ? (string) $product->default_tax_rate_id : null;
         $this->stock_flag = (bool) $product->stock_flag;
         $this->description = $product->description;
+        $this->category = $product->category;
         $this->photo = null;
         $this->existingImagePath = $product->image_path;
         $this->existingImageDataUri = $product->getImageDataUri();
@@ -175,6 +188,7 @@ class TallStackProducts extends Component
             'default_tax_rate_id' => ['nullable', Rule::exists('tax_rates', 'id')->where('company_id', $this->company->id)],
             'stock_flag' => ['boolean'],
             'description' => ['nullable', 'string'],
+            'category' => ['nullable', 'string', 'max:255'],
             'photo' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -188,6 +202,7 @@ class TallStackProducts extends Component
             'default_tax_rate_id' => $data['default_tax_rate_id'],
             'stock_flag' => $this->stock_flag,
             'description' => $data['description'],
+            'category' => filled($data['category']) ? trim($data['category']) : null,
         ];
 
         // A newly staged photo always wins; otherwise keep whatever
@@ -280,6 +295,7 @@ class TallStackProducts extends Component
         $this->default_tax_rate_id = null;
         $this->stock_flag = false;
         $this->description = null;
+        $this->category = null;
         $this->photo = null;
         $this->existingImagePath = null;
         $this->existingImageDataUri = null;
@@ -339,6 +355,28 @@ class TallStackProducts extends Component
             'types' => CatalogItemType::cases(),
             'taxCategories' => TaxCategory::cases(),
             'taxRates' => TaxRate::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
+            // Powers <x-tallstack.category-select>'s picker with the SHARED
+            // taxonomy per decision gate G3 — every distinct category
+            // already used on this tenant's Products *and* its Price List
+            // Items, not just one table's own values (see
+            // resources/views/components/tallstack/category-select.blade.php's
+            // docblock and TallStackPriceListItems::render()'s equivalent
+            // query for the established pattern this mirrors).
+            'categories' => Product::query()
+                ->where('company_id', $this->company->id)
+                ->whereNotNull('category')
+                ->distinct()
+                ->pluck('category')
+                ->merge(
+                    PriceListItem::query()
+                        ->where('company_id', $this->company->id)
+                        ->whereNotNull('category')
+                        ->distinct()
+                        ->pluck('category')
+                )
+                ->unique()
+                ->sort()
+                ->values(),
             'currency' => $currency,
         ])->layoutData([
             'company' => $this->company,

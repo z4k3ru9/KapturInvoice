@@ -27,11 +27,14 @@ use Throwable;
  * — it is copied straight onto `invoice_items.unit_cost`, never treated as
  * a vendor cost), and `stock_flag` is a label only — it must never drive
  * an "in stock"/availability computation; full inventory is deferred
- * launch scope.
+ * launch scope. `category` (repair plan Phase 10b / decision gate G3)
+ * shares one taxonomy with `PriceListItem::category` — see
+ * App\Services\ProductSync for the one-time inheritance default applied
+ * when a Product is linked via `price_list_item_id`.
  */
 #[Fillable([
     'company_id', 'legacy_product_id', 'sku', 'image_path', 'name', 'type', 'unit', 'description',
-    'unit_cost', 'default_tax_rate_id', 'tax_category', 'stock_flag', 'price_list_item_id',
+    'unit_cost', 'default_tax_rate_id', 'tax_category', 'stock_flag', 'price_list_item_id', 'category',
 ])]
 class Product extends Model
 {

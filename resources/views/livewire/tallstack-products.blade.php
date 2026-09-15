@@ -153,6 +153,17 @@
                     :options="$taxRates->map(fn ($t) => ['label' => $t->name, 'value' => (string) $t->id])->all()" />
             </div>
 
+            {{-- Shares one taxonomy with Price List Items (repair plan
+                 Phase 10b / decision gate G3) — same
+                 <x-tallstack.category-select> searchable/inline-create
+                 picker Phase 10a built, sourced from every distinct
+                 category already used across this tenant's Products AND
+                 Price List Items (see TallStackProducts::render()'s
+                 $categories). A Product linked via price_list_item_id
+                 gets this pre-filled once at link time
+                 (App\Services\ProductSync); freely editable afterward. --}}
+            <x-tallstack.category-select wire:model="category" :options="$categories" />
+
             <div>
                 <x-toggle wire:model="stock_flag" label="Normally stocked" />
                 <p class="text-[11px] text-gray-400 mt-1">A label only — this company does not track real inventory/availability.</p>
