@@ -277,6 +277,61 @@ PR #4 ships `JobMarginReport` as a widget but no Reports page. DESIGN §2
 lists `Reports` in the shell. Decide: a Reports Filament page hosting
 existing widgets (small) vs. Phase 06 reporting scope (larger).
 
+### C6. Per-item discount missing on vendor-side documents (foundational, raise before PR #4 merges)
+
+**Confirmed working today, don't rebuild:** `invoice_items`, `quotation_items`,
+`sales_order_items` all carry `discount` (`decimal 13,2`) +
+`discount_is_percentage` (`boolean`), exposed via a `TextInput`+`Toggle`
+pair in every customer-side Items relation manager form, applied per line
+*before* the document-level discount and before tax
+(`InvoiceTotalsCalculator`/`QuotationTotalsCalculator::recalculate()`:
+`$discount = $item->discount_is_percentage ? $lineGross * ($item->discount
+/ 100) : $item->discount;`). This is the correct, established pattern —
+extend it, don't reinvent it.
+
+**Confirmed gap:** PR #4's `vendor_purchase_order_items` and
+`vendor_bill_items` tables (`VendorPurchaseOrder`/`VendorBill`, Phase 05)
+have **no discount column at all** — only `quantity`/`unit_cost`/
+`line_total` (`vendor_bill_items` additionally splits `net_amount`/
+`tax_amount`). A vendor trade/volume discount on one PO or bill line
+cannot be recorded today.
+
+**Why this is time-sensitive, unlike the rest of Track C:** these two
+tables are brand-new on PR #4 (not yet on `main`). Adding two columns now,
+before merge, costs nothing; adding them after merge means a follow-up
+migration plus reconciling whatever totals calculator PR #4 ships for
+these documents. Raise this on PR #4 directly (or as feedback before it
+merges) rather than waiting for Track B.
+
+**Implementation plan (mirrors `InvoiceTotalsCalculator` exactly):**
+1. Migration (additive, on both tables):
+   `$table->decimal('discount', 13, 2)->default(0);` +
+   `$table->boolean('discount_is_percentage')->default(false);`
+   — insert `after('unit_cost')`, matching the sales-side column order.
+2. `VendorPurchaseOrderItem`/`VendorBillItem` models: add both fields to
+   `#[Fillable([...])]`.
+3. Whatever totals-calculator service PR #4 ships for these documents
+   (check its name/location once merged — likely
+   `App\Services\VendorPurchaseOrderTotalsCalculator`/
+   `VendorBillTotalsCalculator`, or folded into the issuing Action): apply
+   the identical `$lineGross - ($percentage ? $lineGross * (discount/100) :
+   discount)` step before summing into the document subtotal. For
+   `vendor_bill_items`, decide whether the line discount applies to
+   `net_amount` only or to the combined pre-tax base — follow whatever
+   `net_amount`/`tax_amount` split rule PR #4 already established, don't
+   invent a new one.
+4. `VendorPurchaseOrders/RelationManagers/ItemsRelationManager.php` (or
+   equivalent) and `VendorBills/.../ItemsRelationManager.php`: add the
+   same `TextInput::make('discount')` + `Toggle::make('discount_is_percentage')
+   ->label('Discount is a percentage')` pair used on Invoices/Quotations.
+5. Test: mirror `InvoiceTotalsCalculatorTest`'s per-item-discount case for
+   both new calculators (line discount reduces the line before the
+   document total; percentage vs. flat-amount both covered).
+
+**Do not build this on `main` today** — the target tables don't exist
+there yet (confirmed: `find database/migrations -iname "*vendor_bill*"`
+returns nothing pre-merge). This is prep/scope only until PR #4 lands.
+
 ### C5. Dark-mode switcher
 DESIGN §1 says system-controlled, no manual toggle; Filament exposes a
 switcher in the user menu when dark mode is on. Hiding it via theme CSS is
