@@ -149,10 +149,9 @@ class DocumentNumberingTest extends TestCase
     }
 
     /**
-     * The legacy Filament CreateQuote page (App\Filament\Resources\Quotes,
-     * over `invoices`/`type=quote`) that this test used to exercise is
-     * gone without a TallStack replacement — per that resource's own
-     * docblock it only ever served already-imported legacy quotes going
+     * The legacy Filament CreateQuote page (over `invoices`/`type=quote`)
+     * that this test used to exercise is gone without a TallStack
+     * replacement — it only ever served already-imported legacy quotes going
      * forward, not new ones (the canonical replacement is
      * App\Models\Quotation, created via TallStackQuotationForm). Both
      * paths assign from the exact same `QUO` DocumentNumberGenerator

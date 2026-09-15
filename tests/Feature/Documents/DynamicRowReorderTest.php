@@ -28,9 +28,9 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Rebuilds the drag/keyboard reorder coverage that lived on
- * `tests/Feature/Filament/DynamicRowReorderTest.php` before the Filament
- * removal, against the plain TALL-stack forms' own `reorderItems()`
+ * Rebuilds the drag/keyboard reorder coverage that lived in the
+ * pre-TallStackUI Filament test suite before the Filament removal,
+ * against the plain TALL-stack forms' own `reorderItems()`
  * method (App\Livewire\Tallstack{Invoice,Quotation,VendorBill,
  * VendorPurchaseOrder}Form) — a clean 1:1 port of the persistence
  * contract, even though the UI trigger mechanism (native HTML5 drag and

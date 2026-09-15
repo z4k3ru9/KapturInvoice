@@ -29,9 +29,9 @@ use RuntimeException;
  * PR #4) — a direct call from anywhere (a console command, another
  * action, a future API) gets the same enforcement. Also scoped to a
  * plain, non-recurring Invoice row here — the `invoices` table also holds
- * type=Quote rows (App\Filament\Resources\Quotes) and `is_recurring`
- * template rows (App\Filament\Resources\RecurringInvoices), neither of
- * which should ever receive a number/tax snapshot/recap through this path
+ * type=Quote rows (the legacy/imported Quotes register) and `is_recurring`
+ * template rows (Recurring Invoices), neither of which should ever
+ * receive a number/tax snapshot/recap through this path
  * (another Codex finding on the same PR).
  */
 class IssueInvoice

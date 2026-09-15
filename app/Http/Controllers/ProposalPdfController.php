@@ -12,9 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
  * A Proposal's body is free-form HTML/CSS (App\Models\Proposal::$html/
  * $css), so the template just wraps it in a company header rather than
  * rendering a line-item table. Only pictures embedded as a base64 data
- * URI (e.g. via a product-derived Proposal Snippet — see
- * App\Filament\Resources\Products\Tables\ProductsTable's "Create proposal
- * snippet" action) are guaranteed to render: an arbitrary <img> uploaded
+ * URI (e.g. via a product-derived Proposal Snippet — see the Products
+ * list's "Create proposal snippet" action) are guaranteed to render: an
+ * arbitrary <img> uploaded
  * straight into the rich editor pointing at the `local` disk's
  * Storage::url() will not resolve for dompdf, same limitation noted on
  * Company::getLogoDataUri().

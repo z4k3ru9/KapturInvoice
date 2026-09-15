@@ -13,11 +13,11 @@ use Tests\TestCase;
  * The first-run setup checklist — see
  * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md O1.
  *
- * Ported from tests/Feature/Filament/SetupChecklistTest.php during the
+ * Ported from the pre-TallStackUI Filament admin's own test during the
  * Filament-removal Phase B — the pure SetupChecklist::for()/isComplete()
  * assertions only; that file's own Filament-widget render test is
- * dropped, since App\Filament\Widgets\SetupChecklistWidget no longer
- * exists (the TallStack dashboard renders the same checklist inline —
+ * dropped, since that widget no longer exists (the TallStack dashboard
+ * renders the same checklist inline —
  * see App\Livewire\TallStackDashboard).
  */
 class SetupChecklistTest extends TestCase

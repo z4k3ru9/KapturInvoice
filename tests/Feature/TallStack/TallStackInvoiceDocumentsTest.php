@@ -16,10 +16,9 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Ports the deleted app/Filament/RelationManagers/DocumentsRelationManager
- * coverage (tests/Feature/Filament/AttachmentUploadGuardsTest.php, removed
- * along with app/Filament — see git history, "Phase B of Filament
- * removal") onto its TALL-stack replacement,
+ * Ports the deleted pre-TallStackUI Filament admin's Documents relation
+ * manager coverage (removed along with app/Filament — see git history,
+ * "Phase B of Filament removal") onto its TALL-stack replacement,
  * App\Livewire\Concerns\ManagesDocuments as wired into
  * App\Livewire\TallStackInvoiceForm. Same three guards: the acting user is
  * recorded as uploader, a disallowed file type is rejected, and an

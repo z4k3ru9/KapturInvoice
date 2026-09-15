@@ -71,10 +71,9 @@ class Client extends Model
 
     /**
      * Every persisted (generated, never a preview) Statement of Account —
-     * see App\Models\StatementOfAccount's own docblock and
-     * App\Filament\Resources\Clients\RelationManagers\
-     * StatementOfAccountsRelationManager, the only place a previously
-     * generated one can be reopened from the UI.
+     * see App\Models\StatementOfAccount's own docblock; the Client page's
+     * Statement of Accounts list is the only place a previously generated
+     * one can be reopened from the UI.
      */
     public function statementOfAccounts(): HasMany
     {

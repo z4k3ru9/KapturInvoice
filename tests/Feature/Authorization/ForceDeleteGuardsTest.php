@@ -33,10 +33,11 @@ use RuntimeException;
 use Tests\TestCase;
 
 /**
- * Ported from the deleted `Tests\Feature\Filament\ForceDeleteGuardsTest`
- * (removed, unreplaced, when Filament was) — same 14 guard predicate
- * scenarios, now proven against the App\Actions\* Action-layer classes
- * that replaced each Filament Table's static `isSafeToForceDelete()`
+ * Ported from the deleted pre-TallStackUI Filament admin's own
+ * ForceDeleteGuardsTest (removed, unreplaced, when Filament was) — same
+ * 14 guard predicate scenarios, now proven against the App\Actions\*
+ * Action-layer classes that replaced each Filament Table's static
+ * `isSafeToForceDelete()`
  * guard, plus an authorization test proving
  * `App\Providers\AppServiceProvider::registerCompanyRoleGate()`'s
  * "physical deletion is Owner-only" rule holds through the new Action

@@ -11,8 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from tests/Feature/Filament/QuotesAndRecurringInvoicesTest.php
- * during the Filament-removal Phase B — these two tests exercise
+ * Ported from the pre-TallStackUI Filament test suite's quotes/recurring
+ * invoices coverage during the Filament-removal Phase B — these two tests exercise
  * App\Services\InvoiceDuplicator directly (no Filament UI involved).
  * tests/Feature/Documents/DocumentNumberingTest.php also calls these same
  * two methods, but only asserts the assigned document number — not item

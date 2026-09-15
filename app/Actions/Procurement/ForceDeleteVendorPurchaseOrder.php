@@ -14,9 +14,8 @@ use RuntimeException;
  * see App\Actions\Billing\ForceDeleteInvoice's docblock for the shared
  * rationale.
  *
- * Ported from `App\Filament\Resources\VendorPurchaseOrders\Tables\
- * VendorPurchaseOrdersTable::isSafeToForceDelete()` (dropped, unreplaced,
- * when Filament was removed).
+ * Ported from the equivalent table-level guard in the pre-TallStackUI
+ * Filament admin (dropped, unreplaced, when Filament was removed).
  */
 class ForceDeleteVendorPurchaseOrder
 {

@@ -11,8 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from tests/Feature/Filament/ExpensesTest.php during the
- * Filament-removal Phase B — this test exercises
+ * Ported from the pre-TallStackUI Filament test suite's expenses coverage
+ * during the Filament-removal Phase B — this test exercises
  * App\Services\ExpenseTotalsCalculator directly (no Filament UI involved)
  * and had no other coverage, so it's kept here rather than dropped along
  * with the rest of that file's genuinely Filament-UI-only tests.

@@ -11,8 +11,9 @@ use Tests\TestCase;
 
 /**
  * App\Livewire\TallStackRegisterCompany — the TallStackUI-native
- * replacement for App\Filament\Pages\Tenancy\RegisterCompany (Filament's
- * RegisterTenant page), the only path today that creates a new Company row
+ * replacement for the pre-TallStackUI Filament admin's RegisterCompany
+ * tenancy page (Filament's RegisterTenant page), the only path today that
+ * creates a new Company row
  * and attaches the creating user as owner. See that component's docblock
  * for why this stays a parallel, directly-reachable page rather than being
  * wired into Filament's own tenant-registration redirect this phase.

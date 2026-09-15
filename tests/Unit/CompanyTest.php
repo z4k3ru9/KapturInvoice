@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from tests/Feature/Filament/SettingsPagesTest.php during the
+ * Ported from a pre-TallStackUI Filament settings-page test during the
  * Filament-removal Phase B — App\Models\Company::getSignatureDataUri()
  * had no other coverage.
  */
