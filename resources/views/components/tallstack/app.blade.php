@@ -95,6 +95,11 @@
             ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
             ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
             ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
+            // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 20) — folded into this SAME 'Settings' key, never a
+            // second 'Settings' => [...] block (see this file's own
+            // duplicate-key warning above).
+            ['key' => 'payment-gateways', 'label' => 'Payment Gateways', 'route' => route('tallstack.payment-gateways', $company), 'icon' => 'credit-card'],
         ],
     ];
 @endphp
