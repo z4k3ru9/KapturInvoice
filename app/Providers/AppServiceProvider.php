@@ -166,6 +166,40 @@ class AppServiceProvider extends ServiceProvider
         // so the open list's text lines up exactly under the closed
         // trigger's text, and both match this app's other px-3 fields.
         TallStackUi::customize()->select('styled')->block('box.list.item.wrapper')->replace('px-2', 'px-3');
+
+        // Gives every <x-card> header a subtle depth cue against its own
+        // body — previously both shared the exact same flat background
+        // (parent 'wrapper.second' is bg-white/dark:bg-dark-800, and the
+        // header itself set no background of its own), so a page with
+        // several cards read as a stack of plain boxes with a label typed
+        // on top, no visual separation between "this is the section title"
+        // and "this is the content." Rather than a fixed accent color, this
+        // tints the header with the CURRENT TENANT's own brand color —
+        // `--ts-primary` (set inline on <html> per company in
+        // components/tallstack/app.blade.php: Karunia Abadi's red,
+        // Axen's blue, etc.) — via `color-mix(..., transparent)`. Mixing
+        // toward `transparent` (not a literal white/dark hex) means the
+        // result is a translucent brand wash that alpha-composites
+        // correctly over whatever sits behind it, so ONE class works in
+        // both light and dark mode without a separate `dark:` override.
+        // The header's outer wrapper has `overflow-hidden` (Card
+        // Component.php's 'wrapper.second'), so this tint is automatically
+        // clipped to the card's own rounded top corners.
+        TallStackUi::customize()->card()->block('header.wrapper.base')->append('bg-[color:color-mix(in_srgb,var(--ts-primary)_8%,transparent)]');
+        // The header's own bottom border ('header.wrapper.border') ships
+        // as 'dark:border-b-dark-600/50 border-b border-gray-100' — two
+        // separate light/dark colors. Replaced wholesale (not just the
+        // light half) with a single color-mix-toward-transparent class, at
+        // a stronger 20% mix than the background wash so the dividing
+        // line itself reads as "brand" — same reasoning as the background
+        // tint above: alpha-compositing over an already-tinted (light) or
+        // near-black (dark) background needs no separate `dark:` class,
+        // and leaving the old `dark:border-b-dark-600/50` in place would
+        // otherwise compete with this on the same element in dark mode.
+        TallStackUi::customize()->card()->block('header.wrapper.border')->replace(
+            'dark:border-b-dark-600/50 border-b border-gray-100',
+            'border-b border-[color:color-mix(in_srgb,var(--ts-primary)_20%,transparent)]'
+        );
     }
 
     /**
