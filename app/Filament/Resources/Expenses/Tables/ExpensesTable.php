@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Expenses\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -13,6 +14,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,6 +48,11 @@ class ExpensesTable
                     ->label('Category')
                     ->relationship('category', 'name')
                     ->searchable(),
+                TernaryFilter::make('should_be_invoiced')
+                    ->label('Rebill')
+                    ->placeholder('All expenses')
+                    ->trueLabel('Marked for rebill')
+                    ->falseLabel('Not rebilled'),
                 Filter::make('expense_date')
                     ->schema([
                         DatePicker::make('from'),
@@ -65,8 +72,10 @@ class ExpensesTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
