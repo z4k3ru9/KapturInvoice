@@ -1,0 +1,126 @@
+<div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+
+    {{-- Page header — mirrors tallstack-dashboard.blade.php's own header block. --}}
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-1.5 text-xs text-gray-400">
+                <span>{{ $company->name }}</span><span>/</span><span>Quotations</span>
+            </div>
+            <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">Quotations</h1>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <x-button text="New quotation" icon="plus" color="primary" sm class="h-9" href="{{ route('tallstack.quotations.create', $company) }}" />
+        </div>
+    </div>
+
+    {{-- Stat row — same "compact" x-stats scope as the Dashboard, matching the
+         Stitch mockup's four-card summary (Active quotations / Awaiting
+         decision / Expiring in 7 days / Acceptance rate), computed here from
+         real Quotation rows rather than any new stored aggregate. --}}
+    <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
+        <x-stats scope="compact" title="Active quotations" icon="document-text" color="blue">
+            <span class="text-lg font-bold tabular-nums">{{ $stats['active'] }}</span>
+            <x-slot:footer>Draft, approved or sent</x-slot:footer>
+        </x-stats>
+
+        <x-stats scope="compact" title="Awaiting decision" icon="clock" color="amber">
+            <span class="text-lg font-bold tabular-nums">{{ $stats['awaitingDecision'] }}</span>
+            <x-slot:footer>Sent to client</x-slot:footer>
+        </x-stats>
+
+        <x-stats scope="compact" title="Expiring in 7 days" icon="exclamation-triangle" color="red">
+            <span class="text-lg font-bold tabular-nums">{{ $stats['expiringSoon'] }}</span>
+            <x-slot:footer>Sent, valid until soon</x-slot:footer>
+        </x-stats>
+
+        <x-stats scope="compact" title="Acceptance rate" icon="check-circle" color="blue">
+            <span class="text-lg font-bold tabular-nums">{{ $stats['acceptanceRate'] === null ? '—' : $stats['acceptanceRate'].'%' }}</span>
+            <x-slot:footer>Of decided quotations</x-slot:footer>
+        </x-stats>
+    </div>
+
+    <x-card>
+        <x-slot:header>
+            <div class="flex flex-wrap items-center justify-between gap-3 w-full">
+                {{-- Status filter pills — every real QuotationStatus case, not
+                     an invented merged grouping, so this never implies a
+                     state the enum doesn't have. --}}
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" wire:click="filterStatus(null)"
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                        All
+                    </button>
+                    @foreach ($statuses as $case)
+                        <button type="button" wire:click="filterStatus('{{ $case->value }}')"
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            {{ $case->getLabel() }}
+                        </button>
+                    @endforeach
+                </div>
+
+                <div class="w-full sm:w-64">
+                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                </div>
+            </div>
+        </x-slot:header>
+
+        <x-table :headers="[
+            ['index' => 'number', 'label' => 'Number'],
+            ['index' => 'client', 'label' => 'Client'],
+            ['index' => 'quotation_date', 'label' => 'Date'],
+            ['index' => 'valid_until', 'label' => 'Valid until'],
+            ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
+            ['index' => 'status', 'label' => 'Status'],
+            ['index' => 'actions', 'label' => '', 'sortable' => false],
+        ]" :rows="$quotations" paginate loading>
+            @interact('column_status', $row)
+                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm />
+            @endinteract
+
+            @interact('column_actions', $row, $company)
+                <div class="flex items-center justify-end gap-2">
+                    <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
+                    <x-button icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" square sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                        @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
+                            <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
+                        @endif
+                        @if ($row['status'] === \App\Enums\QuotationStatus::Approved)
+                            <x-dropdown.items text="Send" icon="paper-airplane" wire:click="send({{ $row['id'] }})" />
+                        @endif
+                        @if ($row['status'] === \App\Enums\QuotationStatus::Sent)
+                            <x-dropdown.items text="Accept" icon="hand-thumb-up" wire:click="openAcceptModal({{ $row['id'] }})" />
+                            <x-dropdown.items text="Reject" icon="x-circle" wire:click="reject({{ $row['id'] }})" />
+                            <x-dropdown.items text="Mark expired" icon="clock" wire:click="markExpired({{ $row['id'] }})" />
+                        @endif
+                        @if ($row['status'] === \App\Enums\QuotationStatus::Accepted)
+                            <x-dropdown.items text="Create job" icon="briefcase" wire:click="createJob({{ $row['id'] }})" />
+                        @endif
+                        @if (! \App\Enums\QuotationStatus::from($row['status']->value)->isTerminal())
+                            <x-dropdown.items text="Cancel" icon="no-symbol" wire:click="cancel({{ $row['id'] }})" wire:confirm="Cancel this quotation?" />
+                        @endif
+                    </x-dropdown>
+                </div>
+            @endinteract
+
+            <x-slot:empty>No quotations found.</x-slot:empty>
+        </x-table>
+    </x-card>
+
+    {{-- Accept — the only status transition that needs input (an optional
+         customer PO number/date; blank generates a system Customer Order
+         Confirmation, exactly like AcceptQuotation itself decides — never
+         re-decided here). --}}
+    <x-modal wire="showAcceptModal" title="Accept quotation" center="sm">
+        <div class="flex flex-col gap-4">
+            <x-input wire:model="customerPoNumber" label="Customer PO number" hint="Leave blank to generate an internal Customer Order Confirmation instead." />
+            <x-date wire:model="customerPoDate" label="Customer PO date" />
+        </div>
+
+        <x-slot:footer>
+            <x-button text="Cancel" color="gray" wire:click="$set('showAcceptModal', false)" />
+            <x-button text="Accept" color="primary" wire:click="accept" />
+        </x-slot:footer>
+    </x-modal>
+</div>

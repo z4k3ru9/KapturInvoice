@@ -24,6 +24,8 @@ use App\Livewire\HomePage;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
+use App\Livewire\TallStackQuotationForm;
+use App\Livewire\TallStackQuotations;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -133,6 +135,25 @@ Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountP
 Route::get('/tall/{company:slug}/dashboard', TallStackDashboard::class)
     ->middleware('auth')
     ->name('tallstack.dashboard');
+
+// Phase 1 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Quotations register and its create/edit line editor, TALL-stack-native
+// alongside the Filament resource they mirror
+// (App\Filament\Resources\Quotations). `/create` is registered before
+// `/{quotation}/edit` so the literal segment binds first. Both components
+// re-check company ownership explicitly in mount() — see their own
+// docblocks for why the BelongsToCompany global scope can't be trusted at
+// route-binding time here the way it can inside a real Filament panel
+// request.
+Route::get('/tall/{company:slug}/quotations', TallStackQuotations::class)
+    ->middleware('auth')
+    ->name('tallstack.quotations');
+Route::get('/tall/{company:slug}/quotations/create', TallStackQuotationForm::class)
+    ->middleware('auth')
+    ->name('tallstack.quotations.create');
+Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotationForm::class)
+    ->middleware('auth')
+    ->name('tallstack.quotations.edit');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF

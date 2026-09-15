@@ -276,7 +276,19 @@ status checklist.
 ## Status checklist
 
 - [x] Phase 0 — Dashboard (`/tall/{company:slug}/dashboard`)
-- [ ] Phase 1 — Quotations
+- [x] Phase 1 — Quotations (`/tall/{company:slug}/quotations`,
+      `/tall/{company:slug}/quotations/create`,
+      `/tall/{company:slug}/quotations/{quotation}/edit` — register +
+      create/edit line editor; A4 PDF preview reuses the existing
+      `quotations.pdf` route/controller unchanged. See
+      `App\Livewire\TallStackQuotations`/`TallStackQuotationForm` for the
+      full pattern notes: company-ownership is re-checked explicitly in
+      `mount()` rather than trusted to `BelongsToCompany`'s scope, which
+      is inactive at route-binding time outside a real Filament panel
+      request; toast feedback uses TallStackUI's own `Interactions` trait
+      (`$this->toast()->success()/error()->send()`) with a single
+      `<x-toast />` host added to the shared shell — reuse both for every
+      later phase instead of a custom notify event.)
 - [ ] Phase 2 — Job workspace (SalesOrder)
 - [ ] Phase 3 — Invoices
 - [ ] Phase 4 — Payments & receipts

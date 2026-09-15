@@ -8,7 +8,7 @@
     $nav = [
         'Sales' => [
             ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => route('tallstack.dashboard', $company), 'icon' => 'squares-2x2'],
-            ['key' => 'quotations', 'label' => 'Quotations', 'route' => "{$adminBase}/quotations", 'icon' => 'document-text'],
+            ['key' => 'quotations', 'label' => 'Quotations', 'route' => route('tallstack.quotations', $company), 'icon' => 'document-text'],
             ['key' => 'jobs', 'label' => 'Jobs', 'route' => "{$adminBase}/sales-orders", 'icon' => 'briefcase'],
         ],
         'Billing' => [
@@ -223,6 +223,12 @@
         <span class="text-xs font-medium text-gray-600 dark:text-gray-300" x-text="online ? 'Online' : 'Offline'"></span>
     </div>
 </div>
+
+{{-- TallStackUI's own toast notification host — placed once here so every
+     TALL-stack page can call `$this->toast()->success(...)->send()`
+     (the package's Interactions trait) without re-declaring `<x-toast />`
+     itself. --}}
+<x-toast />
 
 @livewireScripts
 @tallStackUiScript
