@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Result (Resolved, Partially resolved, Follow-up required,
  * Unresolved)." — docs/rebuild/specs/FINALIZED-DECISIONS.md §10. Only
@@ -12,7 +9,7 @@ use Filament\Support\Contracts\HasLabel;
  * job's handover gate — see App\Models\SalesOrder::
  * isServiceReportsResolvedForHandover().
  */
-enum ServiceReportResult: string implements HasColor, HasLabel
+enum ServiceReportResult: string
 {
     case Resolved = 'resolved';
     case PartiallyResolved = 'partially_resolved';

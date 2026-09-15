@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Filament\Support\Money;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Currency;
@@ -12,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\TaxRate;
 use App\Models\Vendor;
 use App\Services\ExpenseTotalsCalculator;
+use App\Support\Dashboard\Money;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;

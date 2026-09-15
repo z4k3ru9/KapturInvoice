@@ -3,10 +3,10 @@
 namespace App\Livewire;
 
 use App\Enums\VendorBillStatus;
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Vendor;
 use App\Models\VendorBill;
+use App\Support\Dashboard\Money;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;

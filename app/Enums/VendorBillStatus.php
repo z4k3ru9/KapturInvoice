@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Vendor bills flow through Draft, Submitted, Approved, Partially Paid,
  * and Paid; Accountant and higher may self-approve with audit evidence." —
@@ -13,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * App\Services\Procurement\RecalculateVendorBillPayments as payments are
  * recorded, never by a direct transition.
  */
-enum VendorBillStatus: string implements HasColor, HasLabel
+enum VendorBillStatus: string
 {
     case Draft = 'draft';
     case Submitted = 'submitted';

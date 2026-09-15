@@ -2,16 +2,13 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * A Vendor PO's own lifecycle — deliberately simple (Specs.md only ever
  * refers to "the approved PO amount" as the payment ceiling, not a richer
  * state matrix). The PO's `total` is immutable once created; exceeding it
  * is handled by `App\Models\VendorPoVariance`, never by re-editing this.
  */
-enum VendorPurchaseOrderStatus: string implements HasColor, HasLabel
+enum VendorPurchaseOrderStatus: string
 {
     case Draft = 'draft';
     case Approved = 'approved';

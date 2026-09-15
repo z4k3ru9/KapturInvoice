@@ -3,9 +3,9 @@
 namespace App\Livewire;
 
 use App\Enums\ProposalStatus;
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Proposal;
+use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;

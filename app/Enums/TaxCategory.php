@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * A catalog item's tax classification, per
  * docs/rebuild/specs/FINALIZED-DECISIONS.md §3: Axen applies the approved
@@ -12,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * this value. Other tax brackets are explicitly deferred — do not add more
  * cases without a change-control note (Specs.md §19).
  */
-enum TaxCategory: string implements HasLabel
+enum TaxCategory: string
 {
     case StandardTaxable = 'standard_taxable';
     case NonTaxable = 'non_taxable';
