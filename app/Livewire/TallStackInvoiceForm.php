@@ -56,6 +56,32 @@ use TallStackUi\Traits\Interactions;
  * A brand-new invoice must exist before it can carry line items (same
  * reason as TallStackQuotationForm) — saving a brand-new invoice redirects
  * into its own edit route before the items table becomes available.
+ *
+ * **Also the edit page for a legacy `type = InvoiceType::Quote` row**
+ * (App\Livewire\TallStackQuotes, routed at `tallstack.quotes.edit`, same
+ * URL segment as `tallstack.invoices.edit` — see routes/web.php). This is
+ * a deliberate reuse, not a duplicate: the old Filament `QuoteResource`
+ * called `InvoiceForm::configure($schema)` directly with the exact same
+ * reasoning ("a quote is structurally identical to an invoice until it's
+ * converted") — see that resource's own docblock, retrievable from git
+ * history at the Filament-removal commit. There is never a "new quote"
+ * flow through this component (`mount()`'s `$invoice === null` branch
+ * always creates a real Invoice) — legacy quotes are import-only rows,
+ * per App\Livewire\TallStackQuotes's own docblock.
+ *
+ * `getIsQuoteProperty()` (`$this->isQuote` in the view) is the one
+ * branch point the header/action-bar markup and `send()` use to tell the
+ * two apart: a quote never shows Issue/Amend/Void/tax-recap (those stay
+ * gated to `InvoiceType::Invoice` inside their own Action classes too —
+ * App\Actions\Billing\IssueInvoice/AmendIssuedInvoice/
+ * VoidAndReissueInvoice — never only by hiding the button here), and
+ * `send()` dispatches through App\Services\BillingMailer::sendQuote()
+ * instead of `sendInvoice()`. Every other field, the line-item editor,
+ * document autosave (App\Livewire\Concerns\AutosavesDraft — the
+ * whitelisted fields are the same free-text header columns on both
+ * types), and document uploads (App\Livewire\Concerns\ManagesDocuments)
+ * work identically for either type, since both are the same `Invoice`
+ * row.
  */
 #[Layout('components.tallstack.app')]
 class TallStackInvoiceForm extends Component
@@ -169,7 +195,7 @@ class TallStackInvoiceForm extends Component
         // TallStackQuotationForm::mount() and the PDF controllers.
         if ($invoice) {
             abort_unless($invoice->company_id === $company->id, 404);
-            abort_unless($invoice->type === InvoiceType::Invoice, 404);
+            abort_unless(in_array($invoice->type, [InvoiceType::Invoice, InvoiceType::Quote], true), 404);
 
             $this->invoice = $invoice->loadMissing(['items.product', 'items.taxes', 'client', 'taxRecap', 'originalInvoice', 'correction', 'salesOrder']);
             $this->client_id = (string) $invoice->client_id;
@@ -193,6 +219,12 @@ class TallStackInvoiceForm extends Component
 
         $this->invoice_date = now()->toDateString();
         $this->currency_code = $company->currency_code;
+    }
+
+    /** Livewire computed property (`$this->isQuote` in the view) — see class docblock's "Also the edit page for a legacy type=Quote row" section. */
+    public function getIsQuoteProperty(): bool
+    {
+        return $this->invoice?->type === InvoiceType::Quote;
     }
 
     /** Same client-default-discount prefill as InvoiceForm's own afterStateUpdated(). */
@@ -480,6 +512,16 @@ class TallStackInvoiceForm extends Component
             return;
         }
 
+        // Belt-and-braces alongside App\Actions\Billing\IssueInvoice's own
+        // `type !== InvoiceType::Invoice` guard (the real source of
+        // truth) — never reachable via the view since the Issue button
+        // only renders for `! $this->isQuote`.
+        if ($this->getIsQuoteProperty()) {
+            $this->toast()->error('Could not issue invoice', 'A quote cannot be issued.')->send();
+
+            return;
+        }
+
         try {
             app(IssueInvoice::class)->issue($this->invoice, auth()->user());
             $this->invoice->refresh()->load(['items.product', 'items.taxes', 'taxRecap']);
@@ -497,8 +539,10 @@ class TallStackInvoiceForm extends Component
 
     /**
      * Same reasoning as TallStackQuotationForm::send() — App\Services\
-     * BillingMailer::sendInvoice() is called unmodified; this page never
-     * builds its own email path.
+     * BillingMailer::sendInvoice()/sendQuote() is called unmodified; this
+     * page never builds its own email path. Branches on `$this->isQuote`
+     * since these are the same underlying `Invoice` row, just a different
+     * template kind on BillingMailer's side.
      */
     public function send(): void
     {
@@ -514,12 +558,17 @@ class TallStackInvoiceForm extends Component
             ->values()
             ->all();
 
+        $isQuote = $this->getIsQuoteProperty();
+
         try {
-            app(BillingMailer::class)->sendInvoice($this->invoice, cc: $cc);
+            $isQuote
+                ? app(BillingMailer::class)->sendQuote($this->invoice, cc: $cc)
+                : app(BillingMailer::class)->sendInvoice($this->invoice, cc: $cc);
+
             $this->showSendModal = false;
-            $this->toast()->success('Invoice sent.')->send();
+            $this->toast()->success($isQuote ? 'Quote sent.' : 'Invoice sent.')->send();
         } catch (RuntimeException $e) {
-            $this->toast()->error('Could not send invoice', $e->getMessage())->send();
+            $this->toast()->error($isQuote ? 'Could not send quote' : 'Could not send invoice', $e->getMessage())->send();
         }
     }
 
@@ -527,7 +576,7 @@ class TallStackInvoiceForm extends Component
 
     public function openCorrectionModal(string $type): void
     {
-        if (! $this->invoice) {
+        if (! $this->invoice || $this->getIsQuoteProperty()) {
             return;
         }
 
@@ -732,7 +781,7 @@ class TallStackInvoiceForm extends Component
             'documents' => $this->invoice ? $this->documentRows($this->invoice) : collect(),
         ])->layoutData([
             'company' => $this->company,
-            'active' => 'invoices',
+            'active' => $this->getIsQuoteProperty() ? 'quotes' : 'invoices',
             'title' => $this->invoice ? $this->invoice->number : 'New invoice',
         ]);
     }

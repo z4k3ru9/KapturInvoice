@@ -48,6 +48,7 @@ use App\Livewire\TallStackProposalSnippets;
 use App\Livewire\TallStackProposalTemplates;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
+use App\Livewire\TallStackQuotes;
 use App\Livewire\TallStackRecurringInvoiceForm;
 use App\Livewire\TallStackRecurringInvoices;
 use App\Livewire\TallStackRegisterCompany;
@@ -275,6 +276,21 @@ Route::get('/tall/{company:slug}/invoices/create', TallStackInvoiceForm::class)
 Route::get('/tall/{company:slug}/invoices/{invoice}', TallStackInvoiceForm::class)
     ->middleware('auth')
     ->name('tallstack.invoices.edit');
+
+// Phase B of Filament removal gap — the legacy Quotes register
+// (`Invoice` rows with `type = InvoiceType::Quote`, same `invoices`
+// table, distinct from the canonical App\Models\Quotation the Quotations
+// routes above cover). See App\Livewire\TallStackQuotes's docblock for
+// why there is no `/create` route here (import-only rows) — the edit
+// route reuses TallStackInvoiceForm, the exact same component the plain
+// Invoices routes above use, since a quote and an invoice are the same
+// underlying `Invoice` row (see that component's own docblock).
+Route::get('/tall/{company:slug}/quotes', TallStackQuotes::class)
+    ->middleware('auth')
+    ->name('tallstack.quotes');
+Route::get('/tall/{company:slug}/quotes/{invoice}', TallStackInvoiceForm::class)
+    ->middleware('auth')
+    ->name('tallstack.quotes.edit');
 
 // Deferred-scope item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md
 // status checklist) — the Recurring Invoices register and its detail/
