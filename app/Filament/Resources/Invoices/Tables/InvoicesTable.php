@@ -22,6 +22,7 @@ use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -83,9 +84,17 @@ class InvoicesTable
                     ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Draft ? 'Send' : 'Resend')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
-                    ->action(function (Invoice $record) {
+                    ->schema([
+                        TagsInput::make('cc')
+                            ->label('CC recipients')
+                            ->placeholder('Type an email and press enter')
+                            ->helperText('Optional — additional recipients for this send only.'),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
                         try {
-                            app(BillingMailer::class)->sendInvoice($record);
+                            $cc = array_values(array_filter($data['cc'] ?? [], fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false));
+
+                            app(BillingMailer::class)->sendInvoice($record, cc: $cc);
 
                             Notification::make()
                                 ->success()->seconds(4)

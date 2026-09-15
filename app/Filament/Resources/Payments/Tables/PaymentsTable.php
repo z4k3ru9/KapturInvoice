@@ -23,6 +23,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -85,9 +86,17 @@ class PaymentsTable
                     ->label('Send receipt')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
-                    ->action(function (Payment $record) {
+                    ->schema([
+                        TagsInput::make('cc')
+                            ->label('CC recipients')
+                            ->placeholder('Type an email and press enter')
+                            ->helperText('Optional — additional recipients for this send only.'),
+                    ])
+                    ->action(function (Payment $record, array $data) {
                         try {
-                            app(BillingMailer::class)->sendPaymentReceipt($record);
+                            $cc = array_values(array_filter($data['cc'] ?? [], fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false));
+
+                            app(BillingMailer::class)->sendPaymentReceipt($record, cc: $cc);
 
                             Notification::make()
                                 ->success()->seconds(4)
