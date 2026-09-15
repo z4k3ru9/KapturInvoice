@@ -61,6 +61,17 @@
             // warning further down).
             ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
         ],
+        // Pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+        // prompt 22) — mirrors App\Filament\Resources\Documents\DocumentResource's
+        // own navigationGroup ('Documents', a group of its own, placed
+        // right after Catalog/before Reports in AdminPanelProvider's own
+        // pinned nav-group order) — a genuinely new top-level array entry,
+        // never folded into an existing group (see this file's own
+        // duplicate-key warning further down for why that distinction
+        // matters).
+        'Documents' => [
+            ['key' => 'documents', 'label' => 'Documents', 'route' => route('tallstack.documents', $company), 'icon' => 'paper-clip'],
+        ],
         // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
         // → Procurement → Delivery → Catalog → Reports → Settings) and the
