@@ -105,10 +105,20 @@ confirm/adjust with the user before Phase 2 if anything looks off:
 12. **Phase 11 — Client portal restyle** (already Livewire; reskin to the
     "Client Read-Only Portal (TallStack UI)" mockup).
 13. **Phase 12 — Onboarding / zero-state**.
-14. **Deferred, no Stitch mockup**: Proposals, Users, Tax Rates, Expense
-    Categories, Task Statuses, Price List Items, Credits, Recurring
-    Invoices, Statement of Accounts — build last, reusing the established
-    shell.
+14. **Deferred items** — updated: Tax Rates/Expense Categories/Task
+    Statuses are now built as part of Phase 9's Settings work (a tabbed
+    "lookups" page), no longer deferred. Proposals, Users, Price List
+    Items, Credits, Recurring Invoices all now have generated Stitch
+    screens (see the inventory table above) and are being built next,
+    reusing the established shell. **Statement of Accounts remains the
+    one item with no Stitch mockup** — three `generate_screen_from_text`
+    attempts across sessions have all timed out client-side with no
+    server-side completion confirmed via `list_screens`; when this item
+    is picked up, either retry generation once more or build it directly
+    against prompt 17's detailed spec in
+    `26-stitch-missing-screens-prompts.md` without a mockup, the same way
+    Clients/Products'/etc. own Filament source-of-truth was used before
+    any mockup existed for them.
 
 Only remove a Filament resource / drop the `filament/filament` package once
 **every** phase above is done and verified — that is a separate decision
@@ -367,9 +377,14 @@ status checklist.
       panel replaces the revenue trend chart specifically when a company
       has no clients/quotations yet. The mockup's CSV-import and payment-
       gateway-escrow steps were left out — deferred launch scope.)
-- [ ] Deferred (no Stitch mockup): Proposals, Users, Tax Rates, Expense
-      Categories, Task Statuses, Price List Items, Credits, Recurring
-      Invoices, Statement of Accounts
+- [x] Tax Rates / Expense Categories / Task Statuses — built as part of
+      Phase 9 (see above), no longer a separate deferred item.
+- [ ] Deferred, in progress: Proposals, Users & roles — dispatched to
+      subagents alongside Phase 6.
+- [ ] Deferred, not yet started: Price List Items, Credits, Recurring
+      Invoices — Stitch screens exist, not yet built.
+- [ ] Deferred, blocked on a Stitch mockup: Statement of Accounts — see
+      the screen-inventory table's own row for the retry history.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
       **not started, not scheduled** until every phase above is verified;
       needs its own explicit go-ahead from the user
