@@ -107,9 +107,18 @@ class RevenueOverview extends StatsOverviewWidget
 
     protected function openInvoicesQuery(): Builder
     {
+        // Sent/Viewed are pre-Phase-04 legacy-import statuses; Issued/
+        // Partial/Overdue are the real current billable states an invoice
+        // issued through App\Actions\Billing\IssueInvoice actually carries
+        // (App\Services\Receivables\RecalculateInvoiceReceivables::
+        // BILLABLE_STATES) — both populations of invoice coexist, so both
+        // status sets must count as "open" here.
         return Invoice::query()
             ->where('type', InvoiceType::Invoice)
-            ->whereIn('status', [InvoiceStatus::Sent, InvoiceStatus::Viewed, InvoiceStatus::Partial]);
+            ->whereIn('status', [
+                InvoiceStatus::Sent, InvoiceStatus::Viewed, InvoiceStatus::Partial,
+                InvoiceStatus::Issued, InvoiceStatus::Overdue,
+            ]);
     }
 
     /**
