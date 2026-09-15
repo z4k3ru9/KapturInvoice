@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\JobType;
 use App\Enums\SalesOrderStatus;
+use App\Enums\ServiceReportResult;
+use App\Enums\ServiceReportStatus;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +24,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 #[Fillable([
     'company_id', 'client_id', 'quotation_id', 'number', 'status',
-    'approved_value', 'source_snapshot', 'requires_handover', 'document_language',
+    'approved_value', 'source_snapshot', 'requires_handover', 'job_type', 'document_language',
 ])]
 class SalesOrder extends Model
 {
@@ -34,6 +37,7 @@ class SalesOrder extends Model
             'approved_value' => 'decimal:2',
             'source_snapshot' => 'array',
             'requires_handover' => 'boolean',
+            'job_type' => JobType::class,
             'approved_at' => 'datetime',
             'operational_closed_at' => 'datetime',
             'financial_closed_at' => 'datetime',
@@ -93,6 +97,12 @@ class SalesOrder extends Model
         return $this->hasMany(HandoverReport::class);
     }
 
+    /** Phase 05 (FINALIZED-DECISIONS.md §10, Service Report). */
+    public function serviceReports(): HasMany
+    {
+        return $this->hasMany(ServiceReport::class);
+    }
+
     public function jobCostAllocations(): HasMany
     {
         return $this->hasMany(JobCostAllocation::class);
@@ -127,6 +137,30 @@ class SalesOrder extends Model
         }
 
         return true;
+    }
+
+    /**
+     * "Handover on a service job is available only when at least one
+     * approved report is Resolved and no approved report remains
+     * Follow-up required." — FINALIZED-DECISIONS.md §10. The service-job
+     * counterpart to `isFullyDelivered()` — consulted by
+     * App\Actions\Delivery\CompleteHandover only when `job_type` is
+     * Service, before an Admin/Owner override.
+     */
+    public function isServiceReportsResolvedForHandover(): bool
+    {
+        $approved = $this->serviceReports()
+            ->where('status', ServiceReportStatus::Approved)
+            ->get();
+
+        if ($approved->isEmpty()) {
+            return false;
+        }
+
+        $hasResolved = $approved->contains(fn (ServiceReport $report) => $report->result === ServiceReportResult::Resolved);
+        $hasOpenFollowUp = $approved->contains(fn (ServiceReport $report) => $report->result === ServiceReportResult::FollowUpRequired);
+
+        return $hasResolved && ! $hasOpenFollowUp;
     }
 
     /**

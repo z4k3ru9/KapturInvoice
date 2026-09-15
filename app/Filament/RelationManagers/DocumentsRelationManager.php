@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -45,6 +46,8 @@ class DocumentsRelationManager extends RelationManager
             FileUpload::make('path')
                 ->label('File')
                 ->directory('documents')
+                ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                ->maxSize(10240)
                 ->required(),
         ]);
     }
@@ -57,10 +60,16 @@ class DocumentsRelationManager extends RelationManager
                 TextColumn::make('filename'),
                 TextColumn::make('size')
                     ->formatStateUsing(fn (?int $state) => $state ? number_format($state / 1024, 1).' KB' : '-'),
+                TextColumn::make('uploadedBy.name')->label('Uploaded by')->placeholder('-'),
                 TextColumn::make('created_at')->dateTime(),
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->mutateDataUsing(function (array $data): array {
+                        $data['uploaded_by_user_id'] = Auth::id();
+
+                        return $data;
+                    })
                     ->using(function (array $data): Model {
                         $path = $data['path'];
 
@@ -69,6 +78,7 @@ class DocumentsRelationManager extends RelationManager
                             'filename' => basename($path),
                             'mime_type' => Storage::disk('local')->mimeType($path) ?: null,
                             'size' => Storage::disk('local')->size($path),
+                            'uploaded_by_user_id' => $data['uploaded_by_user_id'],
                         ]);
                     }),
             ])

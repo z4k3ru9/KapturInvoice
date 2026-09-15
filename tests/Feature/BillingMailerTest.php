@@ -166,6 +166,49 @@ class BillingMailerTest extends TestCase
         app(BillingMailer::class)->sendInvoice($invoice);
     }
 
+    public function test_sending_prefers_the_billing_contact_over_the_primary_contact(): void
+    {
+        Mail::fake();
+
+        $billingContact = Contact::create([
+            'client_id' => $this->client->id,
+            'first_name' => 'Bill',
+            'last_name' => 'Ing',
+            'email' => 'billing@example.com',
+            'is_primary' => false,
+            'is_billing_contact' => true,
+        ]);
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0006',
+        ]);
+
+        app(BillingMailer::class)->sendInvoice($invoice);
+
+        Mail::assertSent(CompanyTemplatedMail::class, fn (CompanyTemplatedMail $mail) => $mail->hasTo($billingContact->email) && ! $mail->hasTo('jane@example.com'));
+    }
+
+    public function test_sending_an_invoice_ccs_the_given_recipients(): void
+    {
+        Mail::fake();
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0007',
+        ]);
+
+        app(BillingMailer::class)->sendInvoice($invoice, cc: ['extra@example.com']);
+
+        Mail::assertSent(CompanyTemplatedMail::class, fn (CompanyTemplatedMail $mail) => $mail->hasCc('extra@example.com'));
+    }
+
     public function test_sending_a_payment_receipt_uses_the_payment_template(): void
     {
         Mail::fake();

@@ -22,6 +22,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use RuntimeException;
 
@@ -126,10 +127,47 @@ class QuotationsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: same stock-ForceDeleteBulkAction
+     * gap already fixed on VendorBill — restricted here to Draft
+     * quotations with no Job created from them.
+     */
+    public static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some quotations were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft quotation with no job created from it can be permanently deleted.")
+                        ->send();
+                }
+            });
+    }
+
+    public static function isSafeToForceDelete(Quotation $record): bool
+    {
+        return $record->status === QuotationStatus::Draft
+            && ! $record->salesOrder()->exists();
     }
 
     private static function transition(Quotation $record, QuotationStatus $to): void
