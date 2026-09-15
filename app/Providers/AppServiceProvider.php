@@ -128,6 +128,45 @@ class AppServiceProvider extends ServiceProvider
             'icon.sizes.sm' => 'h-5 w-5',
         ]);
 
+        // Standalone <x-icon> usage (a bare icon, not a button/dropdown
+        // trigger's own icon slot — those are covered by the scopes above)
+        // ALWAYS carries its own `class="h-X w-X ..."` in this app rather
+        // than the component's `xs`/`sm`/`md`/… shorthand props, because
+        // TallStackUi\Components\Icon\Component::validate() treats the
+        // mere presence of a `class` attribute as "handmade" and disables
+        // shorthand sizing entirely — and nearly every standalone icon
+        // here also needs a color/dark-mode class, which forces `class=`
+        // regardless. A `customize()->icon(...)` block can't reach these
+        // for the same reason (the block only feeds the shorthand path),
+        // so consistency is enforced by convention/audit instead of a
+        // scope. Verified against every real usage in resources/views
+        // (icon-sizing audit) — the pixel values below are what's
+        // actually in use, not aspirational:
+        //   - 12px (h-3 w-3):  a stat card's inline trend arrow next to
+        //     its text-xs label, and a tiny glyph inside an 11px-text
+        //     compact chip/badge (e.g. a payment method tag, a
+        //     test-connection result line).
+        //   - 14px (h-3.5 w-3.5): a small inline icon next to a
+        //     text-xs (12px) label that ISN'T a chip/badge — a status
+        //     flag next to a badge, a linked-record glyph, a drag-handle/
+        //     reorder-arrow cluster.
+        //   - 16px (h-4 w-4, matches Icon::SIZES 'sm'): the default
+        //     "inline icon next to text" weight — nav items, header
+        //     toolbar controls (search/collapse/logout), a table cell's
+        //     small file/info icon.
+        //   - 20px (h-5 w-5, matches Icon::SIZES 'md'): a standalone
+        //     boolean/status icon filling a table column on its own (no
+        //     accompanying text), or a prominent inline icon in a
+        //     text-sm banner/alert — the same weight the icon-action/
+        //     row-action button icons above use.
+        //   - 24px (h-6 w-6, matches Icon::SIZES 'lg') inside a 48px
+        //     (h-12 w-12) circle: a section-level empty-state icon.
+        //   - 28px (h-7 w-7, matches Icon::SIZES 'xl') inside a 56px
+        //     (h-14 w-14) circle: a page-level/"hero" empty-state icon
+        //     (e.g. the dashboard's own zero-state) — deliberately
+        //     larger than a section empty-state, but at the same 50%
+        //     icon-to-circle ratio, not an arbitrary jump.
+
         // The package's default sideBar.separator "line" style uses its own
         // primary (indigo) brand color, clashing with the tenant's own
         // brand-red active-item color and the plain gray group labels the
