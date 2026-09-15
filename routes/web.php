@@ -26,6 +26,7 @@ use App\Livewire\Login;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackClientDetail;
+use App\Livewire\TallStackClientPortalInvitations;
 use App\Livewire\TallStackClients;
 use App\Livewire\TallStackCredits;
 use App\Livewire\TallStackDashboard;
@@ -499,6 +500,17 @@ Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
 Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
     ->middleware('auth')
     ->name('tallstack.credits');
+
+// Client Portal Invitations — pre-Filament-removal gap audit item
+// (docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt 21),
+// TALL-stack-native alongside the Filament resource it mirrors
+// (App\Filament\Resources\Invitations\InvitationResource). Read-mostly,
+// same reasoning as Credits above: invitations are generated
+// automatically when an invoice is sent, never created/edited/deleted
+// from this screen, so there is only this one route.
+Route::get('/tall/{company:slug}/client-portal-invitations', TallStackClientPortalInvitations::class)
+    ->middleware('auth')
+    ->name('tallstack.client-portal-invitations');
 
 // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // Financial Analytics & Tax Reports. Reuses the Dashboard's own revenue/
