@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Product;
@@ -10,8 +11,10 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\User;
 use App\Services\ProposalSnippetSync;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -177,5 +180,27 @@ class ProductPictureTest extends TestCase
 
         $this->assertSame($first->id, $second->id);
         $this->assertStringContainsString('999.00', $second->html);
+    }
+
+    /**
+     * Stitch gap analysis 06-products-settings-reports.md §1 item 10 — the
+     * thumbnail column must never have its own labeled header (DESIGN §15:
+     * "an image reads as identity, not data") and a stocked/non-stocked
+     * ternary filter must exist.
+     */
+    public function test_products_table_thumbnail_column_has_no_label_and_a_stocked_filter_exists(): void
+    {
+        $user = User::factory()->create();
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $company->users()->attach($user, ['role' => 'owner']);
+        $this->fakeProductImage($company);
+
+        $this->actingAs($user);
+        Filament::setTenant($company);
+
+        Livewire::test(ListProducts::class)
+            ->assertCanRenderTableColumn('image_path')
+            ->assertTableFilterExists('stock_flag')
+            ->assertDontSee('>Picture<', false);
     }
 }
