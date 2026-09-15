@@ -62,6 +62,14 @@ class AppServiceProvider extends ServiceProvider
             'icon' => 'h-5 w-5 shrink-0',
             'title' => 'dark:text-dark-300 text-xs text-gray-600',
             'number' => 'dark:text-dark-300 text-lg font-bold leading-none *:m-0',
+            // The increase/decrease trend arrow (Total revenue only)
+            // defaults to w-6 h-6 — visibly larger than every other icon
+            // on this dense card and, with no shrink-0 of its own, the
+            // thing eating into the card's right-hand margin rather than
+            // sitting inside it. Sized down to match and pinned so it
+            // can't crowd the edge.
+            'slots.right.increase.class' => 'h-4 w-4 shrink-0 text-green-500',
+            'slots.right.decrease.class' => 'h-4 w-4 shrink-0 text-red-500',
             'slots.footer.wrapper' => 'mx-3',
             'slots.footer.text' => 'dark:text-dark-300 p-1 text-[11px] text-gray-600',
         ]);
