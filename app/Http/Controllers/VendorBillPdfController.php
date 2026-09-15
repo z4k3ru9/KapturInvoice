@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VendorBill;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -22,7 +23,7 @@ class VendorBillPdfController extends Controller
 
         $vendorBill->loadMissing('vendor', 'company', 'vendorPurchaseOrder', 'items');
 
-        return Pdf::loadView('pdf.vendor-bill', ['vendorBill' => $vendorBill])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.vendor-bill', ['vendorBill' => $vendorBill]))
             ->stream("{$vendorBill->number}.pdf");
     }
 }

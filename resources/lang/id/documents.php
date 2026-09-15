@@ -134,4 +134,9 @@ return [
     'soa_no_activity' => 'Tidak ada aktivitas pada periode ini',
     'soa_generated_at' => 'Dibuat pada',
     'soa_preview' => 'PRATINJAU — BELUM DITERBITKAN',
+
+    // Phase 8 (PDF pagination footer) — shared across every printed
+    // document via resources/views/pdf/partials/page-footer.blade.php.
+    'page' => 'Halaman',
+    'of' => 'dari',
 ];

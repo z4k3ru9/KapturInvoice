@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HandoverReport;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class HandoverReportPdfController extends Controller
 
         $handoverReport->loadMissing('company', 'salesOrder.client');
 
-        return Pdf::loadView('pdf.handover-report', ['handoverReport' => $handoverReport])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.handover-report', ['handoverReport' => $handoverReport]))
             ->stream("{$handoverReport->number}.pdf");
     }
 }

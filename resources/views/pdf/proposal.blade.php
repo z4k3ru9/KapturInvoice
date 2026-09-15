@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>{{ $proposal->title }}</title>
     <style>
+        @include('pdf.partials.page-footer')
         {{-- dompdf has limited CSS support (no flexbox/grid) — plain
              block/table layout only, same as resources/views/pdf/invoice.blade.php. --}}
         body { font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #1f2937; }

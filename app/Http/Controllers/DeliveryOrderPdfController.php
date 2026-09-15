@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DeliveryOrder;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class DeliveryOrderPdfController extends Controller
 
         $deliveryOrder->loadMissing('company', 'salesOrder.client', 'items.salesOrderItem');
 
-        return Pdf::loadView('pdf.delivery-order', ['deliveryOrder' => $deliveryOrder])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.delivery-order', ['deliveryOrder' => $deliveryOrder]))
             ->stream("{$deliveryOrder->number}.pdf");
     }
 }

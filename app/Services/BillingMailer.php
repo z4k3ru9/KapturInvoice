@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\PortalLink;
 use App\Models\StatementOfAccount;
 use App\Services\Concerns\ResolvesBillingContact;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Mail;
@@ -132,7 +133,7 @@ class BillingMailer
             '{{closing_balance}}' => number_format((float) $statementOfAccount->closing_balance, 2),
         ];
 
-        $pdf = Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount])->output();
+        $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount]))->output();
 
         Mail::to($contact->email)->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
@@ -177,7 +178,7 @@ class BillingMailer
         // template. The same `pdf.invoice` view already prints either
         // document type correctly (InvoiceType::Invoice/Quote), since
         // both live on the same `invoices` table.
-        $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $invoice])->output();
+        $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.invoice', ['invoice' => $invoice]))->output();
 
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),

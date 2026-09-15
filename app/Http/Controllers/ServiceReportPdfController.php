@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceReport;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class ServiceReportPdfController extends Controller
 
         $serviceReport->loadMissing('company', 'salesOrder.client', 'technician');
 
-        return Pdf::loadView('pdf.service-report', ['serviceReport' => $serviceReport])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.service-report', ['serviceReport' => $serviceReport]))
             ->stream("{$serviceReport->number}.pdf");
     }
 }

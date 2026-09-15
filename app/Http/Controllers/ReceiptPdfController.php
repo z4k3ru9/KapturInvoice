@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Receipt;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,7 +24,7 @@ class ReceiptPdfController extends Controller
 
         $receipt->loadMissing('company', 'payment.client', 'payment.allocations.invoice');
 
-        return Pdf::loadView('pdf.receipt', ['receipt' => $receipt])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.receipt', ['receipt' => $receipt]))
             ->stream("{$receipt->number}.pdf");
     }
 }

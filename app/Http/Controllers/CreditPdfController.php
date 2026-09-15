@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Credit;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,7 +21,7 @@ class CreditPdfController extends Controller
 
         $credit->loadMissing('client', 'company');
 
-        return Pdf::loadView('pdf.credit', ['credit' => $credit])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.credit', ['credit' => $credit]))
             ->stream("{$credit->number}.pdf");
     }
 }

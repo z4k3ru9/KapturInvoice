@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StatementOfAccount;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +25,7 @@ class StatementOfAccountPdfController extends Controller
 
         $statementOfAccount->loadMissing('client', 'company');
 
-        return Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount]))
             ->stream(($statementOfAccount->number ?: 'SOA-preview').'.pdf');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TaxRecap;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +25,7 @@ class TaxRecapPdfController extends Controller
         $user = auth()->user();
         abort_unless($user && $user->canAccessTenant($taxRecap->invoice->company), 403);
 
-        return Pdf::loadView('pdf.tax-recap', ['taxRecap' => $taxRecap])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.tax-recap', ['taxRecap' => $taxRecap]))
             ->stream(($taxRecap->number ?? "tax-recap-{$taxRecap->id}").'.pdf');
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Proposal;
+use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -28,7 +29,7 @@ class ProposalPdfController extends Controller
 
         $proposal->loadMissing('client', 'company');
 
-        return Pdf::loadView('pdf.proposal', ['proposal' => $proposal])
+        return PageNumberFooter::apply(Pdf::loadView('pdf.proposal', ['proposal' => $proposal]))
             ->stream("proposal-{$proposal->id}.pdf");
     }
 }
