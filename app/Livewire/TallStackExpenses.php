@@ -13,6 +13,7 @@ use App\Models\TaxRate;
 use App\Models\Vendor;
 use App\Services\ExpenseTotalsCalculator;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
@@ -158,6 +159,8 @@ class TallStackExpenses extends Component
 
     public function save(): void
     {
+        $this->private_notes = app(RichTextSanitizer::class)->sanitize($this->private_notes);
+
         $data = $this->validate([
             'vendor_id' => ['nullable', 'integer'],
             'expense_category_id' => ['nullable', 'integer'],

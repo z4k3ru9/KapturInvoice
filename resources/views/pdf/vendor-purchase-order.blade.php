@@ -115,17 +115,18 @@
         </tr>
     </table>
 
+    {{-- terms/notes are sanitized HTML from <x-editor> — see resources/views/pdf/invoice.blade.php's note. --}}
     @if ($vendorPurchaseOrder->terms)
         <div class="notes">
             <h4>{{ __('documents.terms') }}</h4>
-            <div>{{ $vendorPurchaseOrder->terms }}</div>
+            <div>{!! $vendorPurchaseOrder->terms !!}</div>
         </div>
     @endif
 
     @if ($vendorPurchaseOrder->notes)
         <div class="notes">
             <h4>{{ __('documents.notes') }}</h4>
-            <div>{{ $vendorPurchaseOrder->notes }}</div>
+            <div>{!! $vendorPurchaseOrder->notes !!}</div>
         </div>
     @endif
 </body>

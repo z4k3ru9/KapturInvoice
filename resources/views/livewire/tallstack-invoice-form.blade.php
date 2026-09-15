@@ -162,10 +162,30 @@
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
-                    <x-textarea wire:model.live.debounce.1750ms="terms" label="Terms" rows="3" />
-                    <x-textarea wire:model.live.debounce.1750ms="public_notes" label="Public notes" rows="3" />
-                    <x-textarea wire:model.live.debounce.1750ms="private_notes" label="Private notes" rows="3" />
-                    <x-textarea wire:model.live.debounce.1750ms="footer" label="Footer" rows="3" />
+                    {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                         <x-editor> (it only checks for .live/.blur — see TallStackUI\Support\Blade\
+                         Wireable::entangle()), so autosave is wired the equivalent way the
+                         AutosavesDraft docblock anticipates: a plain deferred wire:model keeps the
+                         property entangled locally, and x-on:editor:change carries Alpine's own
+                         .debounce modifier to commit it to the server after the same 1750ms pause.
+                         $wire.updated{Field}() itself can't be called directly — Livewire refuses a
+                         direct call to a lifecycle-hook-named method ("Unable to call lifecycle
+                         method... directly") — so this calls $wire.$commit() instead, which pushes
+                         the already-entangled value to the server, where Livewire's own dirty-check
+                         then fires updated{Field}() automatically (sanitize + autosaveDraft()) exactly
+                         as it would for any other property change. --}}
+                    <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="18rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                    <x-editor wire:model="public_notes" label="Public notes" min-height="8rem" max-height="18rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                    <x-editor wire:model="private_notes" label="Private notes" min-height="8rem" max-height="18rem"
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
+                    <x-editor wire:model="footer" label="Footer" min-height="4rem" max-height="8rem"
+                        :toolbar="['bold', 'italic', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                 </div>
             </x-card>
         </div>
