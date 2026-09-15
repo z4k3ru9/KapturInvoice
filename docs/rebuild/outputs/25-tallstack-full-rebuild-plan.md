@@ -168,6 +168,107 @@ vendor/bin/pint --dirty --format agent
 npm run build
 ```
 
+## Subagent prompt template (reuse per phase)
+
+Use this to dispatch each phase to a subagent (Claude Code `Agent` tool)
+without it having to re-derive context from scratch. Fill in the bracketed
+parts from the phase table and screen inventory above.
+
+```
+Build Phase [N] of the KapturInvoice TallStackUI admin rebuild:
+[phase name, e.g. "Quotations — register, create/edit line editor, A4 PDF preview"].
+
+Read first, in order:
+1. docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md — the plan and
+   resume point for this whole rebuild. Read its "Established TallStackUI
+   patterns" section closely — it documents real bugs already hit and
+   fixed (cross-stylesheet Tailwind v4 cascade quirk, icon shrink-0,
+   @interact scoping, Filament-context requirement for URL generation,
+   the soft-customization scopes already registered in
+   AppServiceProvider). Reuse those, don't rediscover them.
+2. AGENTS.md's "Stitch UI remake" / TALL-stack dashboard entries — the
+   file history and specific fixes made building Phase 0 (the Dashboard).
+3. app/Livewire/TallStackDashboard.php and
+   resources/views/livewire/tallstack-dashboard.blade.php — the reference
+   implementation. Match this file's structure and conventions (mount()
+   sets Filament panel/tenant context, render() reuses domain
+   actions/services unmodified, #[Layout(...)] + ->layoutData([...])).
+4. resources/views/components/tallstack/app.blade.php — the shared shell.
+   Add this phase's page(s) to the $nav array in the correct nav group.
+   Do not fork or duplicate this file — every TALL-stack page shares it.
+5. docs/rebuild/DESIGN.md — this project's own canonical UI/UX contract
+   (not the Stitch-uploaded copy of the same filename).
+6. The relevant existing Filament resource under app/Filament/Resources/
+   (Schemas/, Tables/, Pages/) for [resource name] — this is the source
+   of truth for what fields/actions/authorization exist. Do not invent
+   fields or actions it doesn't have; do not drop any it does have.
+
+Fetch the Stitch mockup(s) for this phase via the Google Stitch MCP tools:
+projectId = 17287642508359312726 ("KapturInvoice Admin Workflow UI"),
+screen(s): [screen title(s) from the plan doc's table, e.g.
+"Quotations Register (Axen Technology Variant)"]. Use
+mcp__Google_Stich__get_screen for each screen's HTML/screenshot. Prefer
+the Axen Technology variant when both plain and Axen variants exist,
+matching this session's Dashboard precedent — but if a screen has no
+Axen variant, use what exists.
+
+Build:
+- A new App\Livewire\[ComponentName] full-page Livewire component,
+  #[Layout('components.tallstack.app')], routed at
+  /tall/{company:slug}/[path] in routes/web.php, middleware('auth'),
+  authorized via canAccessTenant() same as TallStackDashboard.
+- A resources/views/livewire/[view-name].blade.php content view using
+  real TallStackUI components (x-table, x-card, x-button, x-dropdown,
+  x-badge, x-stats, etc. as appropriate) — never invent new
+  hand-rolled equivalents when a package component exists for the job.
+- Reuse the EXACT SAME domain actions/services/policies/enums the
+  Filament resource already uses for every calculation, status
+  transition, numbering, or authorization check. This is a
+  presentation-layer swap only — zero business-logic changes. If
+  something needs new UI-only logic (formatting, a computed display
+  label), keep it in the Livewire component, never duplicate a
+  calculation that already lives in an Action/Service class.
+- Any new TallStackUI customization scope this phase's components need
+  (matching the "compact"/"toolbar"/"row-action"/"icon-action"/"nav"
+  pattern already in AppServiceProvider::registerTallStackUiCustomizations())
+  goes in that same method, with the same explanatory-comment
+  convention — do not scatter ad-hoc TallStackUi::customize() calls
+  elsewhere.
+
+Verify before considering this phase done:
+1. npm run build (Tailwind won't see new Blade files/classes otherwise —
+   confirm by the compiled CSS's byte size actually changing).
+2. php artisan view:clear && php artisan config:clear if any
+   TallStackUi::customize() call changed.
+3. A real dev server + Playwright screenshot of the new page(s), plus
+   actual computed-style/bounding-box measurements for anything you're
+   claiming is fixed or aligned — a screenshot alone missed several real
+   bugs this session (elements that looked right but measured wrong).
+4. php artisan test (compact) — must stay green, same count or higher,
+   no regressions to the Filament-side tests (Filament resource and its
+   tests are untouched by this work).
+5. vendor/bin/pint --dirty --format agent.
+6. Clean up every scratch/temp file (Playwright scripts, throwaway seed
+   commands) before finishing — none of that belongs in the commit.
+
+Do NOT touch app/Filament/** for this phase — Filament stays running in
+parallel per docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
+Do NOT change any financial calculation, numbering rule, status
+transition, or authorization rule — flag it instead if the Stitch mockup
+seems to imply one and ask before implementing it.
+
+Commit on the current branch (claude/invoiceninja-schema-reference-6s9aqc)
+with a clear message once verified. Do not push until asked, unless the
+session's standing instructions already say to push after every commit
+on this branch (they do — check CLAUDE.md/AGENTS.md's git
+instructions) [adjust this line if the branch's push policy differs].
+
+Report back: what was built (files, route, nav entry), what Stitch
+screen(s) it matches and how closely, test/build results, and the next
+unchecked task in docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+status checklist.
+```
+
 ## Status checklist
 
 - [x] Phase 0 — Dashboard (`/tall/{company:slug}/dashboard`)
