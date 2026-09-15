@@ -385,11 +385,17 @@
     </x-modal>
 
     {{--
-        Amend / Void & reissue modal — a required reason plus the full
+        Amend / Void & reissue slide-over — a required reason plus the full
         corrected line-item set, exactly
         InvoicesTable::correctionSchema()/mapItems()'s own shape. Prefilled
         from the current invoice's items so a reviewer only edits what's
         actually changing.
+
+        A <x-slide>, not a <x-modal>, is deliberate here — this is the one
+        content-heavy correction flow (a reason field plus a full re-entry
+        table of line items) that reads cramped centered and fits a tall
+        side panel instead; every other modal in this form stays a
+        <x-modal> (see the Send/tax-recap/item modals above/below).
 
         Wrapped in @unless ($this->isQuote) so a quote never even renders
         this markup (openCorrectionModal() already never sets
@@ -398,14 +404,14 @@
         HTML at all, not just behind a button that never shows).
     --}}
     @unless ($this->isQuote)
-    <x-modal wire="showCorrectionModal" :title="$correctionAction === 'void' ? 'Void & reissue invoice' : 'Amend invoice'" size="lg" scrollable>
+    <x-slide id="correction-slide" wire="showCorrectionModal" :title="$correctionAction === 'void' ? 'Void & reissue invoice' : 'Amend invoice'" size="xl">
         <div class="flex flex-col gap-4">
             <x-textarea wire:model="correctionReason" label="Reason" required rows="2" />
 
             <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between">
                     <span class="font-semibold text-sm text-gray-700 dark:text-gray-200">Corrected line items</span>
-                    {{-- color="gray" — Neutral role, not this modal's own
+                    {{-- color="gray" — Neutral role, not this panel's own
                          Primary/Destructive commit button below. --}}
                     <x-button text="Add row" icon="plus" color="gray" sm wire:click="addCorrectionItem" />
                 </div>
@@ -435,14 +441,14 @@
             </div>
         </div>
 
-        <x-slot:footer>
+        <x-slot:footer between>
             <x-button text="Cancel" color="gray" wire:click="$set('showCorrectionModal', false)" />
             {{-- Destructive (red) when voiding, otherwise Primary (brand)
-                 — this modal's own single commit action either ends the
+                 — this panel's own single commit action either ends the
                  document or just corrects it. --}}
             <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" loading="submitCorrection" spinner="dots" />
         </x-slot:footer>
-    </x-modal>
+    </x-slide>
     @endunless
 
     {{-- Tax recap file/adjust modal — mirrors InvoiceInfolist::fileOrAdjustTaxRecapAction(). --}}
