@@ -19,8 +19,8 @@ class ProposalSnippet extends Model
 
     /**
      * Set only for a snippet generated from a product's catalog picture
-     * (see App\Filament\Resources\Products\Tables\ProductsTable's "Create
-     * proposal snippet" action) — re-running that action on the same
+     * (see the Products list's "Create proposal snippet" action) —
+     * re-running that action on the same
      * product refreshes this same snippet instead of duplicating it, same
      * `product_id`-keyed upsert pattern as `products.price_list_item_id`.
      */

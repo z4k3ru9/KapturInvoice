@@ -7,10 +7,10 @@ import { loadFixtures } from '../support/fixtures';
  * Phase 06B Slice 5 (docs/rebuild/specs/06b-ux-browser-soa/Specs.md):
  * "Autosave success, failure, retry, stale conflict, and navigation
  * warning." Retry/failure are already thoroughly covered at the
- * Livewire-component level (tests/Feature/Filament/InvoiceAutosaveTest.php,
+ * Livewire-component level (tests/Feature/TallStack/TallStackInvoiceAutosaveTest.php,
  * which can force a real save-time failure); this proves the real
- * browser-rendered inline states — App\Filament\Concerns\AutosavesDraft
- * via resources/views/filament/components/autosave-status.blade.php.
+ * browser-rendered inline states — App\Livewire\Concerns\AutosavesDraft
+ * via resources/views/components/tallstack/autosave-status.blade.php.
  */
 const fixtures = loadFixtures();
 const company = COMPANIES.karunia;

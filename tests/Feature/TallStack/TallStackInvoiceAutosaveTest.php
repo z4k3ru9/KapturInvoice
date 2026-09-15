@@ -19,9 +19,8 @@ use Tests\TestCase;
  * "Autosave is draft-only, batched, debounced, conflict-aware, and never
  * performs a financial action... Add server version or equivalent
  * optimistic concurrency protection... Preserve local values after failed
- * save and expose explicit retry." Ported from the deleted
- * tests/Feature/Filament/InvoiceAutosaveTest.php (the old
- * App\Filament\Concerns\AutosavesDraft's own coverage) to exercise the
+ * save and expose explicit retry." Ported from the deleted pre-TallStackUI
+ * Filament admin's own AutosavesDraft coverage to exercise the
  * TALL-stack replacement, App\Livewire\TallStackInvoiceForm +
  * App\Livewire\Concerns\AutosavesDraft, the reference implementation for
  * this app's plain-Livewire form shape.

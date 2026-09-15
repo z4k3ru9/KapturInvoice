@@ -28,7 +28,7 @@ use RuntimeException;
  * "Unknown vendor cost" also gates the override — a Codex review finding
  * on PR #4: a job with zero outstanding customer balance but genuinely
  * unresolved purchasing cost still closed cleanly, so its margin
- * (App\Filament\Widgets\JobMarginReport) could be finalized on an
+ * (the Job Margin Report widget) could be finalized on an
  * unreliable number. Reuses that same widget's own "unallocated
  * purchasing cost" definition: the remainder of every VendorBillItem
  * touching this job (via at least one JobCostAllocation) that isn't yet

@@ -153,14 +153,13 @@ export async function getWithRetry(
 
 /**
  * Filament's `DateTimePicker` with `->native(false)` (used by every
- * period-range field in this app — see App\Filament\Resources\Clients\
- * Tables\ClientsTable's SOA actions) does NOT render a fillable text
- * input: the visible field is a `readonly` display span inside a
- * `<button>` that opens a calendar panel (vendor/filament/forms/src/
- * Components/DateTimePicker.php) — typing into it is not supported at
- * all, only navigating the calendar. `fieldLocator` is what
- * `getByLabel(...)` resolves to for such a field (the readonly display
- * input itself).
+ * period-range field in this app, including the Clients table's SOA
+ * actions) does NOT render a fillable text input: the visible field is a
+ * `readonly` display span inside a `<button>` that opens a calendar panel
+ * (vendor/filament/forms/src/Components/DateTimePicker.php) — typing into
+ * it is not supported at all, only navigating the calendar. `fieldLocator`
+ * is what `getByLabel(...)` resolves to for such a field (the readonly
+ * display input itself).
  */
 export async function pickDate(fieldLocator: Locator, isoDate: string): Promise<void> {
     const page = fieldLocator.page();

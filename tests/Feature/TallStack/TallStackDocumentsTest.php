@@ -14,10 +14,10 @@ use Tests\TestCase;
 
 /**
  * Covers the TALL-stack Documents register (App\Livewire\TallStackDocuments)
- * — same shape as tests/Feature/Filament/DocumentResourceTest.php (if any),
- * proving the page is company-scoped, search/type-filter work, and delete
- * reuses App\Models\Document's own delete() the same way
- * App\Filament\Resources\Documents\DocumentResource's DeleteAction does.
+ * — same shape as the pre-TallStackUI Filament admin's equivalent test (if
+ * any), proving the page is company-scoped, search/type-filter work, and
+ * delete reuses App\Models\Document's own delete() the same way that
+ * admin's Documents resource DeleteAction did.
  */
 class TallStackDocumentsTest extends TestCase
 {
