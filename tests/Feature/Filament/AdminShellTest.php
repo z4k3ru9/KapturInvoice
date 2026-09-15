@@ -27,9 +27,41 @@ class AdminShellTest extends TestCase
         );
 
         $this->assertSame(
-            ['Sales', 'Procurement', 'Delivery', 'Catalog', 'Reports', 'Settings'],
+            ['Sales', 'Billing', 'Procurement', 'Delivery', 'Clients', 'Catalog', 'Expenses', 'Documents', 'Reports', 'Team', 'Settings'],
             $groups
         );
+    }
+
+    /**
+     * The config-only assertion above previously passed even while the
+     * REAL rendered sidebar order was wrong: Filament does not push a
+     * group left out of ->navigationGroups() to the end — it keeps its
+     * own default (alphabetical) sort weight, which sorted "Billing"/
+     * "Clients"/"Documents"/"Expenses" ahead of "Sales" despite this
+     * array's intent. Only a real rendered-page check catches that class
+     * of bug, so this asserts every group appears in the sidebar HTML in
+     * the intended relative order.
+     */
+    public function test_the_rendered_sidebar_lists_navigation_groups_in_order(): void
+    {
+        $user = User::factory()->create();
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $company->users()->attach($user, ['role' => 'owner']);
+
+        $html = $this->actingAs($user)
+            ->get("/admin/{$company->slug}")
+            ->assertOk()
+            ->getContent();
+
+        $order = ['Sales', 'Billing', 'Procurement', 'Clients', 'Catalog', 'Expenses', 'Documents', 'Team', 'Settings'];
+        // The group heading's own visible text is bound reactively
+        // (Alpine/Livewire), never present as static ">Label<" HTML — the
+        // collapse toggle's aria-label is the one static, per-group
+        // marker present in every render.
+        $positions = array_map(fn (string $label) => strpos($html, 'aria-label="'.$label.'"'), $order);
+
+        $this->assertNotContains(false, $positions, 'Every navigation group label must appear in the rendered sidebar.');
+        $this->assertSame($positions, collect($positions)->sort()->values()->all(), 'Navigation groups did not render in the intended order: '.implode(' -> ', $order));
     }
 
     public function test_the_stock_account_widget_is_not_registered(): void

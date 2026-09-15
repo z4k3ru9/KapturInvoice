@@ -29,13 +29,19 @@ class SetupChecklistWidget extends Widget
     }
 
     /**
-     * @return array{steps: list<array{key: string, label: string, done: bool, url: string}>, done: int, total: int, progress: string}
+     * @return array{steps: list<array{key: string, label: string, done: bool, url: string}>, done: int, total: int, progress: string, firstIncompleteIndex: int|null}
      */
     protected function getViewData(): array
     {
         $company = Filament::getTenant();
         $checklist = $company ? SetupChecklist::for($company) : ['steps' => [], 'done' => 0, 'total' => 0];
 
-        return [...$checklist, 'progress' => "{$checklist['done']} of {$checklist['total']} completed"];
+        $firstIncompleteIndex = collect($checklist['steps'])->search(fn (array $step) => ! $step['done']);
+
+        return [
+            ...$checklist,
+            'progress' => "{$checklist['done']} of {$checklist['total']} completed",
+            'firstIncompleteIndex' => $firstIncompleteIndex === false ? null : $firstIncompleteIndex,
+        ];
     }
 }

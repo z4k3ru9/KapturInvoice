@@ -41,16 +41,24 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#E63934'),
             ])
             // Sidebar order per docs/rebuild/DESIGN.md §2 / the Stitch
-            // shell reference — groups not listed here render last, in
-            // whatever order Filament discovers them, which is how the
-            // legacy-only groups (Billing, Clients, Expenses, Documents,
-            // Team) still surface without needing to be named.
+            // shell reference. Filament does NOT push an unlisted group to
+            // the end — an unregistered group keeps its own default
+            // (alphabetical) sort weight, which sorted "Billing"/"Clients"/
+            // "Documents"/"Expenses" ahead of "Sales" here despite this
+            // array's intent (confirmed by rendering the panel). Every
+            // group actually in use must be listed explicitly to control
+            // the real order.
             ->navigationGroups([
                 NavigationGroup::make('Sales'),
+                NavigationGroup::make('Billing'),
                 NavigationGroup::make('Procurement'),
                 NavigationGroup::make('Delivery'),
+                NavigationGroup::make('Clients'),
                 NavigationGroup::make('Catalog'),
+                NavigationGroup::make('Expenses'),
+                NavigationGroup::make('Documents'),
                 NavigationGroup::make('Reports'),
+                NavigationGroup::make('Team'),
                 NavigationGroup::make('Settings'),
             ])
             // Each Company row is a billed entity (KapturInvoice runs at
