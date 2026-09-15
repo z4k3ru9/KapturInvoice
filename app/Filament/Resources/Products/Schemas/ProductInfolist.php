@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Product;
+use Filament\Facades\Filament;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ProductInfolist
@@ -14,14 +16,24 @@ class ProductInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('legacy_product_id')
-                    ->numeric()
-                    ->placeholder('-'),
+                // Import traceability only — mirrors ProductForm's own
+                // collapsed, conditional section (Stitch/§9 do not show
+                // this on the operational catalog view).
+                Section::make('Import traceability')
+                    ->collapsed()
+                    ->components([
+                        TextEntry::make('legacy_product_id')
+                            ->numeric()
+                            ->placeholder('-'),
+                    ])
+                    ->visible(fn (Product $record): bool => filled($record->legacy_product_id)),
                 TextEntry::make('sku')
                     ->label('SKU')
                     ->placeholder('-'),
                 ImageEntry::make('image_path')
                     ->label('Picture')
+                    ->imageSize(160)
+                    ->square()
                     ->visible(fn (Product $record): bool => filled($record->image_path)),
                 TextEntry::make('name'),
                 TextEntry::make('type')
@@ -33,7 +45,7 @@ class ProductInfolist
                     ->columnSpanFull(),
                 TextEntry::make('unit_cost')
                     ->label('Default price')
-                    ->money(),
+                    ->money(fn () => Filament::getTenant()->currency_code),
                 TextEntry::make('tax_category')
                     ->badge(),
                 TextEntry::make('defaultTaxRate.name')
