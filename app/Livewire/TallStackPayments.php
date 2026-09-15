@@ -12,6 +12,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Payment;
+use App\Services\BillingMailer;
 use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
@@ -211,6 +212,29 @@ class TallStackPayments extends Component
             $this->toast()->success('Receipt issued.', "Receipt #{$receipt->number}.")->send();
         } catch (RuntimeException $e) {
             $this->toast()->error('Could not issue receipt', $e->getMessage())->send();
+        }
+    }
+
+    /**
+     * Reconnects App\Services\BillingMailer::sendPaymentReceipt() to the
+     * UI — it existed but had no caller anywhere in the TallStackUI
+     * rebuild (flagged in CLAUDE.md's "Conventions" section). Mirrors
+     * TallStackInvoiceForm::send()'s try/catch shape, without a CC modal
+     * since a receipt resend has no established need for one yet.
+     */
+    public function sendReceipt(int $id): void
+    {
+        $payment = $this->findScoped($id);
+
+        if (! $payment || ! $payment->receipt) {
+            return;
+        }
+
+        try {
+            app(BillingMailer::class)->sendPaymentReceipt($payment);
+            $this->toast()->success('Receipt sent.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not send receipt', $e->getMessage())->send();
         }
     }
 
