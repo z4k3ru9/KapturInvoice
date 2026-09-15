@@ -2,11 +2,11 @@
 
 namespace App\Livewire;
 
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\PriceListItem;
 use App\Services\PriceListImporter;
 use App\Services\ProductSync;
+use App\Support\Dashboard\Money;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;

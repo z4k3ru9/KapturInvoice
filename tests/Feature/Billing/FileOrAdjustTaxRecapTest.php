@@ -6,7 +6,7 @@ use App\Actions\Billing\FileOrAdjustTaxRecap;
 use App\Actions\Billing\IssueInvoice;
 use App\Enums\PricingMode;
 use App\Enums\TaxCategory;
-use App\Filament\Resources\Invoices\Pages\ViewInvoice;
+use App\Livewire\TallStackInvoiceForm;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\CompanyTaxSetting;
@@ -14,7 +14,6 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use RuntimeException;
@@ -150,23 +149,26 @@ class FileOrAdjustTaxRecapTest extends TestCase
         app(FileOrAdjustTaxRecap::class)->file($invoice->taxRecap, ['manual_entry_status' => 'filed'], $staff);
     }
 
-    public function test_the_invoice_view_page_renders_with_the_tax_recap_section(): void
+    /**
+     * The Filament ViewInvoice Infolist this test used to exercise (and
+     * the real infinite-recursion bug it regression-tested, in
+     * App\Filament\Support\DownloadPdfAction::taxRecap() combined with a
+     * `->record()` override on that Infolist section — see that method's
+     * former docblock) is gone as of the Filament-removal Phase B. The
+     * TALL-stack replacement page (App\Livewire\TallStackInvoiceForm)
+     * never had that override pattern, so there is no equivalent bug to
+     * regression-test — this now just confirms the page renders the tax
+     * recap section for an issued taxable invoice.
+     */
+    public function test_the_invoice_edit_page_renders_with_the_tax_recap_section(): void
     {
-        // Also a regression check for a real, separate bug found and
-        // fixed while wiring this action: App\Filament\Support\
-        // DownloadPdfAction::taxRecap() combined with a `->record()`
-        // override on this Infolist section used to hang the entire page
-        // in infinite recursion for any issued taxable invoice (see that
-        // method's own docblock) — reproduced independent of this
-        // action, via a direct HTTP request, before being fixed.
         $invoice = $this->issuedTaxableInvoice();
         $accountant = $this->userWithRole('accountant');
 
         $this->actingAs($accountant);
-        Filament::setTenant($this->company);
         app(Tenancy::class)->set($this->company);
 
-        Livewire::test(ViewInvoice::class, ['record' => $invoice->id])
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
             ->assertSuccessful()
             ->assertSee($invoice->taxRecap->number);
     }

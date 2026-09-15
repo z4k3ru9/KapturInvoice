@@ -3,9 +3,8 @@
 namespace Tests\Feature\Reports;
 
 use App\Actions\Reports\GenerateStatementOfAccount;
-use App\Filament\Resources\Clients\Pages\ViewClient;
-use App\Filament\Resources\Clients\RelationManagers\StatementOfAccountsRelationManager;
 use App\Http\Controllers\StatementOfAccountPdfController;
+use App\Livewire\TallStackClientDetail;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\CompanySetting;
@@ -18,7 +17,6 @@ use App\Models\StatementOfAccount;
 use App\Models\User;
 use App\Services\Reports\BuildStatementOfAccount;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
@@ -505,9 +503,10 @@ class StatementOfAccountTest extends TestCase
         // of exposing a transient URL" — a repo-wide search found no
         // resource/relation manager/listing anywhere a previously
         // generated statement could be reopened from. Fixed via
-        // App\Models\Client::statementOfAccounts() +
-        // App\Filament\Resources\Clients\RelationManagers\
-        // StatementOfAccountsRelationManager.
+        // App\Models\Client::statementOfAccounts(), listed on the
+        // Filament ClientResource's own relation manager at the time
+        // (since removed — Filament-removal Phase B) and, unchanged,
+        // App\Livewire\TallStackClientDetail's own statements table.
         $company = $this->company();
         $client = $this->client($company);
         $user = User::factory()->create();
@@ -522,13 +521,10 @@ class StatementOfAccountTest extends TestCase
         $this->assertTrue($client->statementOfAccounts()->whereKey($statementOfAccount->id)->exists());
 
         $this->actingAs($user);
-        Filament::setTenant($company);
         app(Tenancy::class)->set($company);
 
-        Livewire::test(StatementOfAccountsRelationManager::class, [
-            'ownerRecord' => $client,
-            'pageClass' => ViewClient::class,
-        ])->assertCanSeeTableRecords([$statementOfAccount]);
+        Livewire::test(TallStackClientDetail::class, ['company' => $company, 'client' => $client])
+            ->assertSee($statementOfAccount->number);
     }
 
     public function test_preview_is_never_persisted(): void

@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Each quotation, invoice, and vendor bill selects one pricing mode:
  * tax-exclusive or tax-inclusive. Taxable lines within that document
@@ -13,7 +11,7 @@ use Filament\Support\Contracts\HasLabel;
  * (App\Services\TaxCalculationService); Phase 03 only records the
  * selection on `Quotation`.
  */
-enum PricingMode: string implements HasLabel
+enum PricingMode: string
 {
     case Exclusive = 'exclusive';
     case Inclusive = 'inclusive';

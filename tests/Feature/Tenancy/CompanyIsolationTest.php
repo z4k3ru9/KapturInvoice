@@ -6,8 +6,8 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 /**
@@ -34,12 +34,10 @@ class CompanyIsolationTest extends TestCase
         $user = User::factory()->create(['is_super_admin' => true]);
         $this->actingAs($user);
 
-        Filament::setTenant($companyA);
         app(Tenancy::class)->set($companyA);
         $this->assertTrue(Client::query()->whereKey($clientA->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientB->id)->exists(), 'company A tenant scope must not see company B\'s client');
 
-        Filament::setTenant($companyB);
         app(Tenancy::class)->set($companyB);
         $this->assertTrue(Client::query()->whereKey($clientB->id)->exists());
         $this->assertFalse(Client::query()->whereKey($clientA->id)->exists(), 'company B tenant scope must not see company A\'s client');
@@ -54,7 +52,7 @@ class CompanyIsolationTest extends TestCase
         $active->users()->attach($user, ['role' => 'owner']);
         $disabled->users()->attach($user, ['role' => 'owner']);
 
-        $tenants = $user->getTenants(Filament::getDefaultPanel());
+        $tenants = $this->tenantsFor($user);
 
         $this->assertTrue($tenants->contains('id', $active->id));
         $this->assertFalse($tenants->contains('id', $disabled->id));
@@ -75,7 +73,7 @@ class CompanyIsolationTest extends TestCase
         $disabled = Company::create(['name' => 'Disabled Co', 'slug' => 'disabled-co', 'currency_code' => 'USD', 'is_active' => false]);
 
         $this->assertFalse($user->canAccessTenant($disabled));
-        $this->assertFalse($user->getTenants(Filament::getDefaultPanel())->contains('id', $disabled->id));
+        $this->assertFalse($this->tenantsFor($user)->contains('id', $disabled->id));
     }
 
     public function test_disabled_membership_blocks_tenant_access_even_though_the_company_itself_is_active(): void
@@ -85,6 +83,24 @@ class CompanyIsolationTest extends TestCase
         $company->users()->attach($user, ['role' => 'owner', 'is_active' => false]);
 
         $this->assertFalse($user->canAccessTenant($company));
-        $this->assertFalse($user->getTenants(Filament::getDefaultPanel())->contains('id', $company->id));
+        $this->assertFalse($this->tenantsFor($user)->contains('id', $company->id));
+    }
+
+    /**
+     * The list of companies a user may act as tenant for — mirrors
+     * App\Livewire\Login's own "first active company" resolution (a super
+     * admin sees every active company, an ordinary user only their own
+     * active memberships in an active company). Filament's HasTenants
+     * contract required a User::getTenants() method before the
+     * Filament-removal Phase B; nothing in the app calls the full list
+     * today (only the "first one" a login redirects to), so this stays a
+     * local test helper rather than a real app method built for no
+     * current caller.
+     */
+    private function tenantsFor(User $user): Collection
+    {
+        return $user->is_super_admin
+            ? Company::query()->active()->get()
+            : $user->companies()->active()->wherePivot('is_active', true)->get();
     }
 }

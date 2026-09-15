@@ -148,7 +148,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500 dark:text-gray-400">Discount</span>
-                        <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Filament\Support\Money::format($discount, $currency) }}</span>
+                        <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500 dark:text-gray-400">Tax</span>

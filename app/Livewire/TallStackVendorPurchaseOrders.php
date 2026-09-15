@@ -4,9 +4,9 @@ namespace App\Livewire;
 
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
 use App\Enums\VendorPurchaseOrderStatus;
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\VendorPurchaseOrder;
+use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;

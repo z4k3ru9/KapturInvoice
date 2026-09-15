@@ -78,7 +78,7 @@
                 <x-table :headers="[
                     ['index' => 'invoice', 'label' => 'Invoice', 'sortable' => false],
                     ['index' => 'amount', 'label' => 'Allocated', 'sortable' => false, 'align' => 'right'],
-                ]" :rows="$payment->allocations->map(fn ($a) => ['invoice' => $a->invoice?->number ?? '—', 'amount' => \App\Filament\Support\Money::format((float) $a->amount, $currency)])">
+                ]" :rows="$payment->allocations->map(fn ($a) => ['invoice' => $a->invoice?->number ?? '—', 'amount' => \App\Support\Dashboard\Money::format((float) $a->amount, $currency)])">
                     <x-slot:empty>No invoices allocated yet.</x-slot:empty>
                 </x-table>
             @endif

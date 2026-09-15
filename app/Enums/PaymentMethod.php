@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Payment methods: bank transfer, cheque, manual." —
  * docs/rebuild/specs/04-billing-and-receivables/Specs.md. Stored in the
@@ -12,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * App\Actions\Receivables\RecordCustomerPayment always use one of these
  * values.
  */
-enum PaymentMethod: string implements HasLabel
+enum PaymentMethod: string
 {
     case BankTransfer = 'bank_transfer';
     case Cheque = 'cheque';

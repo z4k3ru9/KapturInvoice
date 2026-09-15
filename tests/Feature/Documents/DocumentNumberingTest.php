@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Documents;
 
-use App\Filament\Resources\Invoices\Pages\CreateInvoice;
-use App\Filament\Resources\Quotes\Pages\CreateQuote;
+use App\Livewire\TallStackInvoiceForm;
+use App\Livewire\TallStackQuotationForm;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -12,7 +12,6 @@ use App\Models\User;
 use App\Services\DocumentNumberGenerator;
 use App\Services\InvoiceDuplicator;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +48,6 @@ class DocumentNumberingTest extends TestCase
         $this->client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);
 
         $this->actingAs($user);
-        Filament::setTenant($this->company);
         app(Tenancy::class)->set($this->company);
     }
 
@@ -132,36 +130,45 @@ class DocumentNumberingTest extends TestCase
 
     public function test_creating_an_invoice_with_a_blank_number_auto_assigns_one(): void
     {
-        Livewire::test(CreateInvoice::class, ['tenant' => $this->company])
-            ->fillForm(['client_id' => $this->client->id])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company])
+            ->set('client_id', (string) $this->client->id)
+            ->call('save');
 
         $this->assertDatabaseHas('invoices', ['company_id' => $this->company->id, 'number' => 'ACM-INV-2026090001']);
     }
 
     public function test_creating_an_invoice_with_an_explicit_number_does_not_consume_the_sequence(): void
     {
-        Livewire::test(CreateInvoice::class, ['tenant' => $this->company])
-            ->fillForm(['client_id' => $this->client->id, 'number' => 'MANUAL-1'])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company])
+            ->set('client_id', (string) $this->client->id)
+            ->set('number', 'MANUAL-1')
+            ->call('save');
 
         $this->assertDatabaseHas('invoices', ['company_id' => $this->company->id, 'number' => 'MANUAL-1']);
         $this->assertNull(NumberingSequence::where('company_id', $this->company->id)->where('document_type', 'INV')->first());
     }
 
-    public function test_creating_a_quote_assigns_from_the_quote_sequence(): void
+    /**
+     * The legacy Filament CreateQuote page (App\Filament\Resources\Quotes,
+     * over `invoices`/`type=quote`) that this test used to exercise is
+     * gone without a TallStack replacement — per that resource's own
+     * docblock it only ever served already-imported legacy quotes going
+     * forward, not new ones (the canonical replacement is
+     * App\Models\Quotation, created via TallStackQuotationForm). Both
+     * paths assign from the exact same `QUO` DocumentNumberGenerator
+     * sequence, so this now proves that sequence via the canonical
+     * Quotation creation flow instead.
+     */
+    public function test_creating_a_quotation_assigns_from_the_quote_sequence(): void
     {
-        Livewire::test(CreateQuote::class, ['tenant' => $this->company])
-            ->fillForm(['client_id' => $this->client->id])
-            ->call('create')
-            ->assertHasNoFormErrors();
+        Livewire::test(TallStackQuotationForm::class, ['company' => $this->company])
+            ->set('client_id', (string) $this->client->id)
+            ->call('save');
 
-        $this->assertDatabaseHas('invoices', ['company_id' => $this->company->id, 'type' => 'quote', 'number' => 'ACM-QUO-2026090001']);
+        $this->assertDatabaseHas('quotations', ['company_id' => $this->company->id, 'number' => 'ACM-QUO-2026090001']);
         $this->assertNull(
             NumberingSequence::where('company_id', $this->company->id)->where('document_type', 'INV')->first(),
-            'quote creation must not touch the invoice sequence'
+            'quotation creation must not touch the invoice sequence'
         );
     }
 

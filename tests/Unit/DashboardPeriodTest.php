@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Filament\Support\DashboardPeriod;
+use App\Support\Dashboard\DashboardPeriod;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 

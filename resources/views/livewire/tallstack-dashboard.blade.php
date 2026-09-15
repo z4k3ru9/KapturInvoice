@@ -31,7 +31,7 @@
         Dashboard's own top section (same sidebar/header chrome, same
         page), not a standalone page — see
         docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md. Reuses
-        App\Filament\Support\SetupChecklist's exact five steps and "done"
+        App\Support\Dashboard\SetupChecklist's exact five steps and "done"
         logic unmodified; the mockup itself shows four Axen-specific steps
         (legal entity/tax registry, catalog, client+quotation, a bank
         escrow VA) plus CSV import and a "contact Axen Finance" card — all
@@ -39,8 +39,7 @@
         import) this project's own CLAUDE.md already excludes from launch
         scope, so only the layout language (a progress-badged step-card
         row) is carried over, never those specific steps or actions. The
-        panel hides itself once every step is done, exactly mirroring
-        App\Filament\Widgets\SetupChecklistWidget::canView().
+        panel hides itself once every step is done (`$showChecklist`).
     --}}
     @if ($showChecklist)
         <x-card>

@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * The job state matrix from docs/rebuild/specs/03-sales-and-job/Specs.md.
  * Progresses forward one step at a time; Cancelled is reachable from any
@@ -13,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * `operational_closed_at` and `financial_closed_at` are set, not a status
  * transition of its own — see App\Models\SalesOrder).
  */
-enum SalesOrderStatus: string implements HasColor, HasLabel
+enum SalesOrderStatus: string
 {
     case Draft = 'draft';
     case Approved = 'approved';
