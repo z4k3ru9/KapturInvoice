@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Console\Commands\Concerns\ImportsLegacyInvoiceNinja;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\MigrationBatchStatus;
+use App\Enums\MigrationExceptionSeverity;
 use App\Enums\PaymentStatus;
 use App\Models\Client;
 use App\Models\Company;
@@ -15,6 +17,8 @@ use App\Models\ExpenseCategory;
 use App\Models\Invitation;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\MigrationBatch;
+use App\Models\MigrationException;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Project;
@@ -25,8 +29,10 @@ use App\Models\Vendor;
 use App\Models\VendorContact;
 use App\Services\ExpenseTotalsCalculator;
 use App\Services\InvoiceTotalsCalculator;
+use App\Services\Migration\ReconciliationService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Imports a legacy InvoiceNinja **v4** MySQL/MariaDB dump (the classic
@@ -45,13 +51,32 @@ class ImportInvoiceNinjaV4 extends Command
     protected $signature = 'import:invoiceninja-v4
         {company : Target Company slug}
         {--legacy-account-id=1 : accounts.id in the source dump to import (a dump normally has exactly one)}
-        {--connection=legacy_v4 : Laravel DB connection name for the source dump}';
+        {--connection=legacy_v4 : Laravel DB connection name for the source dump}
+        {--resume : Skip steps already completed by the most recent Failed batch for this company/connection}';
 
     protected $description = 'Import a legacy InvoiceNinja v4 dump into one KapturInvoice Company';
+
+    /**
+     * The exact order every import step runs in — also the checkpoint
+     * sequence `--resume` walks: a batch's `last_completed_step` is
+     * always one of these names, and everything up to and including its
+     * index is skipped on resume (see rebuildMapsForStep()).
+     */
+    private const STEPS = [
+        'importTaxRates', 'importProducts', 'importClientsAndContacts',
+        'importVendorsAndContacts', 'importExpenseCategories', 'importProjects',
+        'importTaskStatuses', 'importTasks', 'importInvoices', 'importExpenses',
+        'importCredits', 'importPayments', 'finalizeInvoiceTotals',
+        'recomputeClientBalances', 'bumpNumberingSequences',
+    ];
+
+    private const SOURCE_SYSTEM = 'invoiceninja_v4';
 
     private string $conn;
 
     private int $accountId;
+
+    private MigrationBatch $batch;
 
     /** @var array<int, int> legacy products.id => new Product id */
     private array $productMap = [];
@@ -93,28 +118,162 @@ class ImportInvoiceNinjaV4 extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($company) {
-            $this->importTaxRates($company);
-            $this->importProducts($company);
-            $this->importClientsAndContacts($company);
-            $this->importVendorsAndContacts($company);
-            $this->importExpenseCategories($company);
-            $this->importProjects($company);
-            $this->importTaskStatuses($company);
-            $this->importTasks($company);
-            $this->importInvoices($company);
-            $this->importExpenses($company);
-            $this->importCredits($company);
-            $this->importPayments($company);
-            $this->finalizeInvoiceTotals();
-            $this->recomputeClientBalances($company);
-            $this->bumpNumberingSequences($company);
-        });
+        [$this->batch, $skipUpToIndex] = $this->prepareBatch($company);
+
+        $lastCompletedStep = null;
+
+        try {
+            foreach (self::STEPS as $index => $step) {
+                if ($index <= $skipUpToIndex) {
+                    // Already committed by a prior run this batch is
+                    // resuming from — don't re-import it, but the maps
+                    // it would have populated (clientMap, invoiceMap, ...)
+                    // are still needed by later steps in this same
+                    // process, so rebuild them from what's already in
+                    // the database instead of skipping silently.
+                    $this->rebuildMapsForStep($step, $company);
+                    $lastCompletedStep = $step;
+
+                    continue;
+                }
+
+                DB::transaction(function () use ($step, $company) {
+                    $this->{$step}($company);
+                });
+
+                $lastCompletedStep = $step;
+                $this->batch->forceFill([
+                    'last_completed_step' => $step,
+                    'stats' => $this->importStats,
+                ])->save();
+            }
+        } catch (Throwable $e) {
+            $this->batch->forceFill([
+                'status' => MigrationBatchStatus::Failed,
+                'error_message' => $e->getMessage(),
+                'failed_at' => now(),
+                'last_completed_step' => $lastCompletedStep,
+                'stats' => $this->importStats,
+            ])->save();
+
+            $this->error("Import failed (last completed step: [{$lastCompletedStep}]): {$e->getMessage()}");
+
+            return self::FAILURE;
+        }
+
+        $this->batch->forceFill([
+            'status' => MigrationBatchStatus::Completed,
+            'completed_at' => now(),
+        ])->save();
 
         $this->printStats();
         $this->reconcile($company);
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Starts (or, with `--resume`, reuses) the `MigrationBatch` row for
+     * this run. Returns the batch plus the STEPS index to skip up to and
+     * including — -1 when starting fresh, so nothing is skipped.
+     * `--resume` only reuses a *Failed* batch for this exact company +
+     * connection; without it a fresh batch is always started, even if a
+     * Failed one exists, so a resume is never silent/implicit.
+     *
+     * @return array{0: MigrationBatch, 1: int}
+     */
+    private function prepareBatch(Company $company): array
+    {
+        if ($this->option('resume')) {
+            $failed = MigrationBatch::query()
+                ->where('company_id', $company->id)
+                ->where('source_system', self::SOURCE_SYSTEM)
+                ->where('connection', $this->conn)
+                ->where('status', MigrationBatchStatus::Failed)
+                ->latest('id')
+                ->first();
+
+            if ($failed) {
+                $this->importStats = $failed->stats ?? [];
+
+                $failed->forceFill([
+                    'status' => MigrationBatchStatus::Running,
+                    'error_message' => null,
+                    'failed_at' => null,
+                ])->save();
+
+                $skipUpToIndex = $failed->last_completed_step
+                    ? array_search($failed->last_completed_step, self::STEPS, true)
+                    : false;
+
+                return [$failed, $skipUpToIndex === false ? -1 : $skipUpToIndex];
+            }
+        }
+
+        $batch = MigrationBatch::create([
+            'company_id' => $company->id,
+            'source_system' => self::SOURCE_SYSTEM,
+            'connection' => $this->conn,
+            'status' => MigrationBatchStatus::Running,
+            'started_at' => now(),
+        ]);
+
+        return [$batch, -1];
+    }
+
+    /**
+     * Rebuilds the in-memory legacy-id => new-id maps a skipped step
+     * would have populated, from what's already in the database (no
+     * legacy-source re-reads, no writes) — see the `--resume` loop above.
+     */
+    private function rebuildMapsForStep(string $step, Company $company): void
+    {
+        match ($step) {
+            'importProducts' => $this->productMap = Product::withTrashed()
+                ->where('company_id', $company->id)
+                ->whereNotNull('legacy_product_id')
+                ->pluck('id', 'legacy_product_id')
+                ->all(),
+            'importClientsAndContacts' => $this->rebuildClientAndContactMaps($company),
+            'importVendorsAndContacts' => $this->vendorMap = Vendor::withTrashed()
+                ->where('company_id', $company->id)
+                ->whereNotNull('legacy_vendor_id')
+                ->pluck('id', 'legacy_vendor_id')
+                ->all(),
+            'importProjects' => $this->projectMap = Project::withTrashed()
+                ->where('company_id', $company->id)
+                ->whereNotNull('legacy_project_id')
+                ->pluck('id', 'legacy_project_id')
+                ->all(),
+            'importTaskStatuses' => $this->taskStatusMap = TaskStatus::query()
+                ->where('company_id', $company->id)
+                ->whereNotNull('legacy_task_status_id')
+                ->pluck('id', 'legacy_task_status_id')
+                ->all(),
+            'importInvoices' => $this->invoiceMap = Invoice::withTrashed()
+                ->where('company_id', $company->id)
+                ->whereNotNull('legacy_invoice_id')
+                ->pluck('id', 'legacy_invoice_id')
+                ->all(),
+            default => null,
+        };
+    }
+
+    private function rebuildClientAndContactMaps(Company $company): void
+    {
+        $this->clientMap = Client::withTrashed()
+            ->where('company_id', $company->id)
+            ->whereNotNull('legacy_client_id')
+            ->pluck('id', 'legacy_client_id')
+            ->all();
+
+        $this->contactMap = $this->clientMap === []
+            ? []
+            : Contact::withTrashed()
+                ->whereIn('client_id', array_values($this->clientMap))
+                ->whereNotNull('legacy_contact_id')
+                ->pluck('id', 'legacy_contact_id')
+                ->all();
     }
 
     /**
@@ -154,13 +313,18 @@ class ImportInvoiceNinjaV4 extends Command
     private function importTaxRates(Company $company): void
     {
         foreach ($this->source('tax_rates')->get() as $row) {
-            TaxRate::create([
-                'company_id' => $company->id,
-                'legacy_tax_rate_id' => $row->id,
-                'name' => $row->name,
-                'rate' => $row->rate,
-                'is_inclusive' => (bool) $row->is_inclusive,
-            ]);
+            // Keyed on the legacy id (not `name`, the table's own unique
+            // column) so a re-run updates the same row instead of
+            // duplicating/erroring — see Phase 07's "no duplicates on
+            // re-run" requirement.
+            TaxRate::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_tax_rate_id' => $row->id],
+                [
+                    'name' => $row->name,
+                    'rate' => $row->rate,
+                    'is_inclusive' => (bool) $row->is_inclusive,
+                ],
+            );
             $this->bump('tax_rates');
         }
     }
@@ -168,14 +332,15 @@ class ImportInvoiceNinjaV4 extends Command
     private function importProducts(Company $company): void
     {
         foreach ($this->source('products')->where('is_deleted', 0)->get() as $row) {
-            $product = Product::create([
-                'company_id' => $company->id,
-                'legacy_product_id' => $row->id,
-                'sku' => $row->product_key ?: null,
-                'name' => $row->notes ?: ($row->product_key ?: 'Product'),
-                'description' => $row->notes,
-                'unit_cost' => $row->cost ?? 0,
-            ]);
+            $product = Product::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_product_id' => $row->id],
+                [
+                    'sku' => $row->product_key ?: null,
+                    'name' => $row->notes ?: ($row->product_key ?: 'Product'),
+                    'description' => $row->notes,
+                    'unit_cost' => $row->cost ?? 0,
+                ],
+            );
             $this->productMap[$row->id] = $product->id;
             $this->bump('products');
         }
@@ -184,40 +349,42 @@ class ImportInvoiceNinjaV4 extends Command
     private function importClientsAndContacts(Company $company): void
     {
         foreach ($this->source('clients')->get() as $row) {
-            $client = Client::create([
-                'company_id' => $company->id,
-                'legacy_client_id' => $row->id,
-                'name' => $row->name ?: 'Client #'.$row->id,
-                'currency_code' => $company->currency_code,
-                'phone' => $row->work_phone,
-                'website' => $row->website,
-                'address_line_1' => $row->address1,
-                'address_line_2' => $row->address2,
-                'city' => $row->city,
-                'state' => $row->state,
-                'postal_code' => $row->postal_code,
-                'tax_number' => $row->vat_number ?: null,
-                'id_number' => $row->id_number ?: null,
-                'balance' => $this->money($row->balance),
-                'paid_to_date' => $this->money($row->paid_to_date),
-                'notes' => trim(collect([$row->private_notes, $row->public_notes])->filter()->implode("\n\n")) ?: null,
-                'deleted_at' => $row->deleted_at ?? ($row->is_deleted ? $row->updated_at : null),
-            ]);
+            $client = Client::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_client_id' => $row->id],
+                [
+                    'name' => $row->name ?: 'Client #'.$row->id,
+                    'currency_code' => $company->currency_code,
+                    'phone' => $row->work_phone,
+                    'website' => $row->website,
+                    'address_line_1' => $row->address1,
+                    'address_line_2' => $row->address2,
+                    'city' => $row->city,
+                    'state' => $row->state,
+                    'postal_code' => $row->postal_code,
+                    'tax_number' => $row->vat_number ?: null,
+                    'id_number' => $row->id_number ?: null,
+                    'balance' => $this->money($row->balance),
+                    'paid_to_date' => $this->money($row->paid_to_date),
+                    'notes' => trim(collect([$row->private_notes, $row->public_notes])->filter()->implode("\n\n")) ?: null,
+                    'deleted_at' => $row->deleted_at ?? ($row->is_deleted ? $row->updated_at : null),
+                ],
+            );
             $this->clientMap[$row->id] = $client->id;
             $this->bump('clients');
 
             $primaryEmail = null;
 
             foreach ($this->source('contacts')->where('client_id', $row->id)->get() as $contactRow) {
-                $contact = Contact::create([
-                    'client_id' => $client->id,
-                    'legacy_contact_id' => $contactRow->id,
-                    'first_name' => $contactRow->first_name ?: 'Contact',
-                    'last_name' => $contactRow->last_name,
-                    'email' => $contactRow->email ?: null,
-                    'phone' => $contactRow->phone,
-                    'is_primary' => (bool) $contactRow->is_primary,
-                ]);
+                $contact = Contact::withTrashed()->updateOrCreate(
+                    ['client_id' => $client->id, 'legacy_contact_id' => $contactRow->id],
+                    [
+                        'first_name' => $contactRow->first_name ?: 'Contact',
+                        'last_name' => $contactRow->last_name,
+                        'email' => $contactRow->email ?: null,
+                        'phone' => $contactRow->phone,
+                        'is_primary' => (bool) $contactRow->is_primary,
+                    ],
+                );
                 $this->contactMap[$contactRow->id] = $contact->id;
                 $this->bump('contacts');
 
@@ -235,32 +402,34 @@ class ImportInvoiceNinjaV4 extends Command
     private function importVendorsAndContacts(Company $company): void
     {
         foreach ($this->source('vendors')->where('is_deleted', 0)->get() as $row) {
-            $vendor = Vendor::create([
-                'company_id' => $company->id,
-                'legacy_vendor_id' => $row->id,
-                'name' => $row->name ?: 'Vendor #'.$row->id,
-                'phone' => $row->work_phone,
-                'website' => $row->website,
-                'address_line_1' => $row->address1,
-                'address_line_2' => $row->address2,
-                'city' => $row->city,
-                'state' => $row->state,
-                'postal_code' => $row->postal_code,
-                'notes' => $row->private_notes,
-            ]);
+            $vendor = Vendor::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_vendor_id' => $row->id],
+                [
+                    'name' => $row->name ?: 'Vendor #'.$row->id,
+                    'phone' => $row->work_phone,
+                    'website' => $row->website,
+                    'address_line_1' => $row->address1,
+                    'address_line_2' => $row->address2,
+                    'city' => $row->city,
+                    'state' => $row->state,
+                    'postal_code' => $row->postal_code,
+                    'notes' => $row->private_notes,
+                ],
+            );
             $this->vendorMap[$row->id] = $vendor->id;
             $this->bump('vendors');
 
             foreach ($this->source('vendor_contacts')->where('vendor_id', $row->id)->get() as $contactRow) {
-                VendorContact::create([
-                    'vendor_id' => $vendor->id,
-                    'legacy_vendor_contact_id' => $contactRow->id,
-                    'first_name' => $contactRow->first_name ?: 'Contact',
-                    'last_name' => $contactRow->last_name,
-                    'email' => $contactRow->email ?: null,
-                    'phone' => $contactRow->phone,
-                    'is_primary' => (bool) $contactRow->is_primary,
-                ]);
+                VendorContact::withTrashed()->updateOrCreate(
+                    ['vendor_id' => $vendor->id, 'legacy_vendor_contact_id' => $contactRow->id],
+                    [
+                        'first_name' => $contactRow->first_name ?: 'Contact',
+                        'last_name' => $contactRow->last_name,
+                        'email' => $contactRow->email ?: null,
+                        'phone' => $contactRow->phone,
+                        'is_primary' => (bool) $contactRow->is_primary,
+                    ],
+                );
                 $this->bump('vendor_contacts');
             }
         }
@@ -269,11 +438,10 @@ class ImportInvoiceNinjaV4 extends Command
     private function importExpenseCategories(Company $company): void
     {
         foreach ($this->source('expense_categories')->where('is_deleted', 0)->get() as $row) {
-            ExpenseCategory::create([
-                'company_id' => $company->id,
-                'legacy_expense_category_id' => $row->id,
-                'name' => $row->name,
-            ]);
+            ExpenseCategory::updateOrCreate(
+                ['company_id' => $company->id, 'legacy_expense_category_id' => $row->id],
+                ['name' => $row->name],
+            );
             $this->bump('expense_categories');
         }
     }
@@ -281,16 +449,17 @@ class ImportInvoiceNinjaV4 extends Command
     private function importProjects(Company $company): void
     {
         foreach ($this->source('projects')->where('is_deleted', 0)->get() as $row) {
-            $project = Project::create([
-                'company_id' => $company->id,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'legacy_project_id' => $row->id,
-                'name' => $row->name ?: 'Project #'.$row->id,
-                'task_rate' => $row->task_rate,
-                'budgeted_hours' => $row->budgeted_hours,
-                'due_date' => $row->due_date,
-                'notes' => $row->private_notes,
-            ]);
+            $project = Project::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_project_id' => $row->id],
+                [
+                    'client_id' => $this->clientMap[$row->client_id] ?? null,
+                    'name' => $row->name ?: 'Project #'.$row->id,
+                    'task_rate' => $row->task_rate,
+                    'budgeted_hours' => $row->budgeted_hours,
+                    'due_date' => $row->due_date,
+                    'notes' => $row->private_notes,
+                ],
+            );
             $this->projectMap[$row->id] = $project->id;
             $this->bump('projects');
         }
@@ -299,12 +468,10 @@ class ImportInvoiceNinjaV4 extends Command
     private function importTaskStatuses(Company $company): void
     {
         foreach ($this->source('task_statuses')->get() as $row) {
-            $status = TaskStatus::create([
-                'company_id' => $company->id,
-                'legacy_task_status_id' => $row->id,
-                'name' => $row->name,
-                'sort_order' => $row->sort_order,
-            ]);
+            $status = TaskStatus::updateOrCreate(
+                ['company_id' => $company->id, 'legacy_task_status_id' => $row->id],
+                ['name' => $row->name, 'sort_order' => $row->sort_order],
+            );
             $this->taskStatusMap[$row->id] = $status->id;
             $this->bump('task_statuses');
         }
@@ -321,19 +488,20 @@ class ImportInvoiceNinjaV4 extends Command
         foreach ($this->source('tasks')->where('is_deleted', 0)->get() as $row) {
             [$startedAt, $stoppedAt] = $this->parseTimeLog($row->time_log);
 
-            Task::create([
-                'company_id' => $company->id,
-                'project_id' => $this->projectMap[$row->project_id] ?? null,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
-                'task_status_id' => $this->taskStatusMap[$row->task_status_id] ?? null,
-                'legacy_task_id' => $row->id,
-                'description' => $row->description,
-                'started_at' => $startedAt,
-                'stopped_at' => $stoppedAt,
-                'is_running' => (bool) $row->is_running,
-                'sort_order' => $row->task_status_sort_order,
-            ]);
+            Task::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_task_id' => $row->id],
+                [
+                    'project_id' => $this->projectMap[$row->project_id] ?? null,
+                    'client_id' => $this->clientMap[$row->client_id] ?? null,
+                    'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
+                    'task_status_id' => $this->taskStatusMap[$row->task_status_id] ?? null,
+                    'description' => $row->description,
+                    'started_at' => $startedAt,
+                    'stopped_at' => $stoppedAt,
+                    'is_running' => (bool) $row->is_running,
+                    'sort_order' => $row->task_status_sort_order,
+                ],
+            );
             $this->bump('tasks');
         }
     }
@@ -366,34 +534,35 @@ class ImportInvoiceNinjaV4 extends Command
             // real dump: type=1 rows carry the "KJA/INV/..." number prefix).
             $type = ((int) $row->invoice_type_id) === 2 ? InvoiceType::Quote : InvoiceType::Invoice;
 
-            $invoice = Invoice::create([
-                'company_id' => $company->id,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'legacy_invoice_id' => $row->id,
-                'type' => $type,
-                'status' => InvoiceStatus::Draft, // placeholder, set in finalizeInvoiceTotals()
-                'number' => $row->invoice_number,
-                'po_number' => $row->po_number,
-                'invoice_date' => $row->invoice_date,
-                'due_date' => $row->due_date,
-                'currency_code' => $company->currency_code,
-                'discount' => $row->discount ?? 0,
-                'discount_is_percentage' => ! (bool) $row->is_amount_discount,
-                'subtotal' => 0,
-                'tax_total' => 0,
-                'total' => 0,
-                'amount_paid' => 0,
-                'balance' => 0,
-                'partial_amount' => $row->partial ?? 0,
-                'partial_due_date' => $row->partial_due_date,
-                'terms' => $row->terms,
-                'public_notes' => $row->public_notes,
-                'private_notes' => $row->private_notes,
-                'footer' => $row->invoice_footer,
-                'is_recurring' => (bool) $row->is_recurring,
-                'auto_bill' => (bool) $row->auto_bill,
-                'deleted_at' => $row->deleted_at ?? ($row->is_deleted ? $row->updated_at : null),
-            ]);
+            $invoice = Invoice::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_invoice_id' => $row->id],
+                [
+                    'client_id' => $this->clientMap[$row->client_id] ?? null,
+                    'type' => $type,
+                    'status' => InvoiceStatus::Draft, // placeholder, set in finalizeInvoiceTotals()
+                    'number' => $row->invoice_number,
+                    'po_number' => $row->po_number,
+                    'invoice_date' => $row->invoice_date,
+                    'due_date' => $row->due_date,
+                    'currency_code' => $company->currency_code,
+                    'discount' => $row->discount ?? 0,
+                    'discount_is_percentage' => ! (bool) $row->is_amount_discount,
+                    'subtotal' => 0,
+                    'tax_total' => 0,
+                    'total' => 0,
+                    'amount_paid' => 0,
+                    'balance' => 0,
+                    'partial_amount' => $row->partial ?? 0,
+                    'partial_due_date' => $row->partial_due_date,
+                    'terms' => $row->terms,
+                    'public_notes' => $row->public_notes,
+                    'private_notes' => $row->private_notes,
+                    'footer' => $row->invoice_footer,
+                    'is_recurring' => (bool) $row->is_recurring,
+                    'auto_bill' => (bool) $row->auto_bill,
+                    'deleted_at' => $row->deleted_at ?? ($row->is_deleted ? $row->updated_at : null),
+                ],
+            );
             $this->invoiceMap[$row->id] = $invoice->id;
             $this->bump($type === InvoiceType::Quote ? 'quotes' : 'invoices');
 
@@ -402,28 +571,31 @@ class ImportInvoiceNinjaV4 extends Command
                 $discount = $itemRow->discount ?? 0;
                 $lineTotal = $this->money($lineGross - $discount);
 
-                $item = InvoiceItem::create([
-                    'invoice_id' => $invoice->id,
-                    'product_id' => $this->productMap[$itemRow->product_id] ?? null,
-                    'legacy_invoice_item_id' => $itemRow->id,
-                    'title' => $itemRow->product_key ?: 'Item',
-                    'description' => $itemRow->notes,
-                    'quantity' => $itemRow->qty ?: 1,
-                    'unit_cost' => $itemRow->cost ?? 0,
-                    'discount' => $discount,
-                    'discount_is_percentage' => false,
-                    'line_total' => $lineTotal,
-                ]);
+                $item = InvoiceItem::updateOrCreate(
+                    ['invoice_id' => $invoice->id, 'legacy_invoice_item_id' => $itemRow->id],
+                    [
+                        'product_id' => $this->productMap[$itemRow->product_id] ?? null,
+                        'title' => $itemRow->product_key ?: 'Item',
+                        'description' => $itemRow->notes,
+                        'quantity' => $itemRow->qty ?: 1,
+                        'unit_cost' => $itemRow->cost ?? 0,
+                        'discount' => $discount,
+                        'discount_is_percentage' => false,
+                        'line_total' => $lineTotal,
+                    ],
+                );
                 $this->bump('invoice_items');
 
                 foreach ([[$itemRow->tax_name1, $itemRow->tax_rate1], [$itemRow->tax_name2, $itemRow->tax_rate2]] as [$name, $rate]) {
                     if (filled($name) && (float) $rate > 0) {
-                        $item->taxes()->create([
-                            'tax_rate_id' => null,
-                            'name' => $name,
-                            'rate' => $rate,
-                            'amount' => $this->money($lineTotal * ($rate / 100)),
-                        ]);
+                        // Keyed on (name, rate) rather than a legacy id —
+                        // this pivot has none — which is a safe dedup key
+                        // since a line only ever carries tax_name1/2 once
+                        // each in the source schema.
+                        $item->taxes()->updateOrCreate(
+                            ['name' => $name, 'rate' => $rate],
+                            ['tax_rate_id' => null, 'amount' => $this->money($lineTotal * ($rate / 100))],
+                        );
                         $this->bump('invoice_item_taxes');
                     }
                 }
@@ -441,16 +613,17 @@ class ImportInvoiceNinjaV4 extends Command
                     continue;
                 }
 
-                Invitation::create([
-                    'invoice_id' => $invoice->id,
-                    'contact_id' => $this->contactMap[$inviteRow->contact_id],
-                    'legacy_invitation_id' => $inviteRow->id,
-                    'key' => $inviteRow->invitation_key,
-                    'sent_at' => $inviteRow->sent_date,
-                    'viewed_at' => $inviteRow->viewed_date,
-                    'signed_at' => $inviteRow->signature_date,
-                    'signature' => $inviteRow->signature_base64,
-                ]);
+                Invitation::updateOrCreate(
+                    ['invoice_id' => $invoice->id, 'legacy_invitation_id' => $inviteRow->id],
+                    [
+                        'contact_id' => $this->contactMap[$inviteRow->contact_id],
+                        'key' => $inviteRow->invitation_key,
+                        'sent_at' => $inviteRow->sent_date,
+                        'viewed_at' => $inviteRow->viewed_date,
+                        'signed_at' => $inviteRow->signature_date,
+                        'signature' => $inviteRow->signature_base64,
+                    ],
+                );
                 $this->bump('invitations');
 
                 if ($inviteRow->sent_date && (! $sentAt || $inviteRow->sent_date < $sentAt)) {
@@ -474,29 +647,28 @@ class ImportInvoiceNinjaV4 extends Command
     private function importExpenses(Company $company): void
     {
         foreach ($this->source('expenses')->where('is_deleted', 0)->get() as $row) {
-            $expense = Expense::create([
-                'company_id' => $company->id,
-                'vendor_id' => $this->vendorMap[$row->vendor_id] ?? null,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
-                'legacy_expense_id' => $row->id,
-                'expense_date' => $row->expense_date,
-                'currency_code' => $company->currency_code,
-                'exchange_rate' => $row->exchange_rate ?: 1,
-                'subtotal' => $this->money($row->amount),
-                'should_be_invoiced' => (bool) $row->should_be_invoiced,
-                'transaction_reference' => $row->transaction_reference,
-                'private_notes' => $row->private_notes,
-            ]);
+            $expense = Expense::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_expense_id' => $row->id],
+                [
+                    'vendor_id' => $this->vendorMap[$row->vendor_id] ?? null,
+                    'client_id' => $this->clientMap[$row->client_id] ?? null,
+                    'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
+                    'expense_date' => $row->expense_date,
+                    'currency_code' => $company->currency_code,
+                    'exchange_rate' => $row->exchange_rate ?: 1,
+                    'subtotal' => $this->money($row->amount),
+                    'should_be_invoiced' => (bool) $row->should_be_invoiced,
+                    'transaction_reference' => $row->transaction_reference,
+                    'private_notes' => $row->private_notes,
+                ],
+            );
 
             foreach ([[$row->tax_name1, $row->tax_rate1], [$row->tax_name2, $row->tax_rate2]] as [$name, $rate]) {
                 if (filled($name) && (float) $rate > 0) {
-                    $expense->taxes()->create([
-                        'tax_rate_id' => null,
-                        'name' => $name,
-                        'rate' => $rate,
-                        'amount' => $this->money($expense->subtotal * ($rate / 100)),
-                    ]);
+                    $expense->taxes()->updateOrCreate(
+                        ['name' => $name, 'rate' => $rate],
+                        ['tax_rate_id' => null, 'amount' => $this->money($expense->subtotal * ($rate / 100))],
+                    );
                 }
             }
 
@@ -505,21 +677,58 @@ class ImportInvoiceNinjaV4 extends Command
         }
     }
 
+    /**
+     * "Import confidently mapped historical credits as read-only records
+     * that reduce the applicable balance. Quarantine uncertain credits
+     * and exclude them from confirmed balances until Owner review."
+     * (Phase 07 Specs.md.) The credit itself is always created — never
+     * invented or silently dropped — but an unmapped client or a
+     * balance/amount data-integrity anomaly also raises a
+     * `MigrationException` for Owner review.
+     */
     private function importCredits(Company $company): void
     {
         foreach ($this->source('credits')->where('is_deleted', 0)->get() as $row) {
-            Credit::create([
-                'company_id' => $company->id,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'legacy_credit_id' => $row->id,
-                'number' => $row->credit_number,
-                'amount' => $this->money($row->amount),
-                'balance' => $this->money($row->balance),
-                'credit_date' => $row->credit_date,
-                'public_notes' => $row->public_notes,
-                'private_notes' => $row->private_notes,
-            ]);
+            $clientId = $this->clientMap[$row->client_id] ?? null;
+
+            Credit::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_credit_id' => $row->id],
+                [
+                    'client_id' => $clientId,
+                    'number' => $row->credit_number,
+                    'amount' => $this->money($row->amount),
+                    'balance' => $this->money($row->balance),
+                    'credit_date' => $row->credit_date,
+                    'public_notes' => $row->public_notes,
+                    'private_notes' => $row->private_notes,
+                ],
+            );
             $this->bump('credits');
+
+            $reasons = [];
+            $severity = null;
+
+            if ($clientId === null) {
+                $reasons[] = "Legacy client_id [{$row->client_id}] was never imported, so this credit cannot be confidently attached to a client.";
+                $severity = MigrationExceptionSeverity::High;
+            }
+
+            if ((float) $row->balance > (float) $row->amount) {
+                $reasons[] = "Remaining balance ({$row->balance}) exceeds the original amount ({$row->amount}) — a data-integrity anomaly.";
+                $severity ??= MigrationExceptionSeverity::Medium;
+            }
+
+            if ($reasons !== []) {
+                MigrationException::updateOrCreate(
+                    ['company_id' => $company->id, 'entity_type' => 'credit', 'source_id' => $row->id],
+                    [
+                        'migration_batch_id' => $this->batch->id,
+                        'severity' => $severity,
+                        'reason' => implode(' ', $reasons),
+                    ],
+                );
+                $this->bump('credit_exceptions');
+            }
         }
     }
 
@@ -529,22 +738,23 @@ class ImportInvoiceNinjaV4 extends Command
         $paymentTypeNames = DB::connection($this->conn)->table('payment_types')->pluck('name', 'id');
 
         foreach ($this->source('payments')->where('is_deleted', 0)->get() as $row) {
-            Payment::create([
-                'company_id' => $company->id,
-                'client_id' => $this->clientMap[$row->client_id] ?? null,
-                'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
-                'contact_id' => $this->contactMap[$row->contact_id] ?? null,
-                'legacy_payment_id' => $row->id,
-                'amount' => $this->money($row->amount),
-                'refunded_amount' => $this->money($row->refunded ?? 0),
-                'currency_code' => $company->currency_code,
-                'method' => $paymentTypeNames[$row->payment_type_id] ?? null,
-                'gateway_reference' => $row->transaction_reference,
-                'status' => $this->mapLegacyPaymentStatus($row->payment_status_id),
-                'last4' => $row->last4,
-                'payment_date' => $row->payment_date,
-                'notes' => $row->private_notes,
-            ]);
+            Payment::withTrashed()->updateOrCreate(
+                ['company_id' => $company->id, 'legacy_payment_id' => $row->id],
+                [
+                    'client_id' => $this->clientMap[$row->client_id] ?? null,
+                    'invoice_id' => $this->invoiceMap[$row->invoice_id] ?? null,
+                    'contact_id' => $this->contactMap[$row->contact_id] ?? null,
+                    'amount' => $this->money($row->amount),
+                    'refunded_amount' => $this->money($row->refunded ?? 0),
+                    'currency_code' => $company->currency_code,
+                    'method' => $paymentTypeNames[$row->payment_type_id] ?? null,
+                    'gateway_reference' => $row->transaction_reference,
+                    'status' => $this->mapLegacyPaymentStatus($row->payment_status_id),
+                    'last4' => $row->last4,
+                    'payment_date' => $row->payment_date,
+                    'notes' => $row->private_notes,
+                ],
+            );
             $this->bump('payments');
         }
     }
@@ -593,27 +803,30 @@ class ImportInvoiceNinjaV4 extends Command
 
     private function reconcile(Company $company): void
     {
-        $sourceTotal = $this->money($this->source('invoices')->sum('amount'));
-        $targetTotal = $this->money(Invoice::withTrashed()->where('company_id', $company->id)->sum('total'));
+        $sourceTotals = [
+            'clients' => $this->source('clients')->count(),
+            'vendors' => $this->source('vendors')->where('is_deleted', 0)->count(),
+            // A small gap against the target is expected here: totals are
+            // recomputed from items/discount (App\Services\
+            // InvoiceTotalsCalculator), not copied from the source's own
+            // `amount` column, so a handful of rows with idiosyncratic
+            // historical rounding won't match to the cent — this is
+            // exactly what ReconciliationService's 0.1% tolerance on this
+            // check absorbs.
+            'invoice_total' => $this->money($this->source('invoices')->sum('amount')),
+            'payment_total' => $this->money($this->source('payments')->where('is_deleted', 0)->sum('amount')),
+        ];
 
-        $sourcePayments = $this->money($this->source('payments')->where('is_deleted', 0)->sum('amount'));
-        $targetPayments = $this->money(Payment::query()->where('company_id', $company->id)->sum('amount'));
+        $run = app(ReconciliationService::class)->reconcile($company, $this->batch, $sourceTotals);
 
-        $this->info("Invoice+quote totals — source: {$sourceTotal}, recomputed from imported items: {$targetTotal}.");
-        $this->info("Payments — source: {$sourcePayments}, imported: {$targetPayments}.");
-
-        // A small gap is expected: totals are recomputed from items/discount
-        // (App\Services\InvoiceTotalsCalculator), not copied from the
-        // source's own `amount` column, so a handful of rows with
-        // idiosyncratic historical rounding won't match to the cent.
-        $tolerance = max(1.0, $sourceTotal * 0.001);
-
-        if (abs($sourceTotal - $targetTotal) > $tolerance) {
-            $this->warn('Invoice totals differ by more than 0.1% — investigate before trusting the import.');
+        $this->info("Reconciliation status: {$run->status->value}.");
+        foreach ($run->metrics['checks'] as $name => $check) {
+            if (! $check['within_tolerance']) {
+                $this->warn("{$name} differs beyond tolerance — source {$check['source']}, imported {$check['target']} (diff {$check['diff']}).");
+            }
         }
-
-        if (abs($sourcePayments - $targetPayments) > 1.0) {
-            $this->warn('Payment totals differ — investigate before trusting the import.');
+        if ($run->metrics['exceptions']['high_unresolved'] > 0) {
+            $this->warn("{$run->metrics['exceptions']['high_unresolved']} unresolved High-severity exception(s) — resolve before business sign-off.");
         }
     }
 }
