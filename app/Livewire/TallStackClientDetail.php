@@ -361,9 +361,19 @@ class TallStackClientDetail extends Component
             auth()->user(),
         );
 
-        $this->client->refresh()->load('statementOfAccounts.generatedBy');
         $this->showSoaModal = false;
         $this->toast()->success('Statement of Account generated', "Number: {$statementOfAccount->number}")->send();
+
+        // Redirect into the real document view (App\Livewire\
+        // TallStackStatementOfAccount) instead of staying on this page —
+        // per docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+        // Statement of Accounts item, "Generate" should land on the
+        // Issued document, not just toast a number.
+        $this->redirect(route('tallstack.clients.statement-of-account', [
+            'company' => $this->company,
+            'client' => $this->client,
+            'statementOfAccount' => $statementOfAccount,
+        ]), navigate: false);
     }
 
     public function render(): View
