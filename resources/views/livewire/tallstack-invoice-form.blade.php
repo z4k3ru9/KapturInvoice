@@ -2,8 +2,8 @@
 
     <x-tallstack.page-header
         :crumbs="[
-            ['label' => $company->name, 'url' => route('tallstack.invoices', $company)],
-            ['label' => 'Invoices', 'url' => route('tallstack.invoices', $company)],
+            ['label' => $company->name, 'url' => route($this->isQuote ? 'tallstack.quotes' : 'tallstack.invoices', $company)],
+            ['label' => $this->isQuote ? 'Quotes' : 'Invoices', 'url' => route($this->isQuote ? 'tallstack.quotes' : 'tallstack.invoices', $company)],
             ['label' => $invoice ? $invoice->number : 'New'],
         ]"
         :title="$invoice ? $invoice->number : 'New invoice'"
@@ -50,16 +50,20 @@
     --}}
     @if ($invoice)
         <div class="flex flex-wrap items-center gap-2">
-            @if (in_array($invoice->status, [\App\Enums\InvoiceStatus::Draft, \App\Enums\InvoiceStatus::Approved], true))
-                <x-button text="Issue" icon="check-circle" color="green" sm wire:click="issue" wire:confirm="Issue this invoice? This freezes its totals and assigns a permanent number." />
-            @endif
+            @unless ($this->isQuote)
+                @if (in_array($invoice->status, [\App\Enums\InvoiceStatus::Draft, \App\Enums\InvoiceStatus::Approved], true))
+                    <x-button text="Issue" icon="check-circle" color="green" sm wire:click="issue" wire:confirm="Issue this invoice? This freezes its totals and assigns a permanent number." />
+                @endif
+            @endunless
             <x-button text="{{ $invoice->status === \App\Enums\InvoiceStatus::Draft ? 'Send' : 'Resend' }}" icon="paper-airplane" color="blue" sm wire:click="openSendModal" />
-            @if ($invoice->status->canTransitionTo(\App\Enums\InvoiceStatus::Amended))
-                <x-button text="Amend" icon="document-duplicate" color="gray" sm wire:click="openCorrectionModal('amend')" />
-            @endif
-            @if ($invoice->status->canTransitionTo(\App\Enums\InvoiceStatus::Void))
-                <x-button text="Void & reissue" icon="no-symbol" color="red" sm wire:click="openCorrectionModal('void')" />
-            @endif
+            @unless ($this->isQuote)
+                @if ($invoice->status->canTransitionTo(\App\Enums\InvoiceStatus::Amended))
+                    <x-button text="Amend" icon="document-duplicate" color="gray" sm wire:click="openCorrectionModal('amend')" />
+                @endif
+                @if ($invoice->status->canTransitionTo(\App\Enums\InvoiceStatus::Void))
+                    <x-button text="Void & reissue" icon="no-symbol" color="red" sm wire:click="openCorrectionModal('void')" />
+                @endif
+            @endunless
         </div>
     @endif
 
@@ -333,7 +337,7 @@
 
     {{-- Send / Resend modal — always calls App\Services\BillingMailer::sendInvoice()
          unmodified, matching InvoicesTable's own "send"/"cc" schema. --}}
-    <x-modal wire="showSendModal" title="{{ $invoice && $invoice->status !== \App\Enums\InvoiceStatus::Draft ? 'Resend invoice' : 'Send invoice' }}" center="sm">
+    <x-modal wire="showSendModal" title="{{ $invoice && $invoice->status !== \App\Enums\InvoiceStatus::Draft ? ($this->isQuote ? 'Resend quote' : 'Resend invoice') : ($this->isQuote ? 'Send quote' : 'Send invoice') }}" center="sm">
         <div class="flex flex-col gap-4">
             <x-textarea wire:model="sendCc" label="CC recipients" rows="2" hint="Optional — one email per line or comma-separated, for this send only." />
         </div>
@@ -352,7 +356,14 @@
         InvoicesTable::correctionSchema()/mapItems()'s own shape. Prefilled
         from the current invoice's items so a reviewer only edits what's
         actually changing.
+
+        Wrapped in @unless ($this->isQuote) so a quote never even renders
+        this markup (openCorrectionModal() already never sets
+        showCorrectionModal true for one — this is belt-and-braces so
+        "Amend"/"Void & reissue" text never appears in a quote's rendered
+        HTML at all, not just behind a button that never shows).
     --}}
+    @unless ($this->isQuote)
     <x-modal wire="showCorrectionModal" :title="$correctionAction === 'void' ? 'Void & reissue invoice' : 'Amend invoice'" size="lg" scrollable>
         <div class="flex flex-col gap-4">
             <x-textarea wire:model="correctionReason" label="Reason" required rows="2" />
@@ -398,6 +409,7 @@
             <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" />
         </x-slot:footer>
     </x-modal>
+    @endunless
 
     {{-- Tax recap file/adjust modal — mirrors InvoiceInfolist::fileOrAdjustTaxRecapAction(). --}}
     <x-modal wire="showTaxRecapModal" title="{{ $taxRecapAlreadyFiled ? 'Adjust tax recap filing' : 'File tax recap' }}" center="sm" scrollable>
