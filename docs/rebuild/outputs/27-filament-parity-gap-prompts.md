@@ -232,5 +232,13 @@ validation-error visual pattern (not a toast, not a modal).
 
 Empty state: not applicable — this is always a fresh form.
 
-**Status**: generated — "Sign in — Standalone (KapturInvoice)". Build in
-progress.
+**Status**: built — App\Livewire\Login (`/login`, named `login`),
+App\Http\Controllers\LogoutController (`POST /logout`), and
+resources/views/livewire/login.blade.php. Built directly from this
+prompt's written spec and the sibling Company Registration screen's
+established visual pattern — `mcp__Google_Stich__list_screens` on this
+project (queried twice, ~10 minutes apart) did not list a "Sign in —
+Standalone (KapturInvoice)" screen despite the "generated" status noted
+above, so the mockup itself could not be fetched/compared pixel-for-pixel.
+If that screen exists under a different title or appears later, a follow-up
+visual diff against it is still worth doing.
