@@ -168,7 +168,13 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
 - **`@interact('column_name', $row, $extra1, $extra2, ...)`** for
   `<x-table>` custom columns — any outer Blade variable used inside the
   column (like `$company`) must be listed as an extra argument, or it's
-  `Undefined variable` — closures don't inherit scope automatically.
+  `Undefined variable` — closures don't inherit scope automatically. The
+  extra arguments compile straight into the closure's `use()` clause, so
+  they must each be a plain variable, never `$this` or any other
+  non-variable expression — `@interact('column_actions', $row, $this)`
+  is a fatal "Cannot use $this as lexical variable" (found fixing Phase
+  6's Vendor Bill detail page). Precompute what you need into a plain
+  `$variable` via `@php(...)` before the table and pass that instead.
 - **Cross-stylesheet Tailwind v4 cascade quirk**: TallStackUI's own
   compiled CSS (`@tallStackUiStyle`, loaded after `app.css`) redeclares
   bare `.hidden`/`.grid-cols-2`/etc. without every responsive variant this
@@ -345,7 +351,17 @@ status checklist.
       billing defaults, financial summary, Contacts/Portal Links/
       Statement of Accounts relation managers, Generate/Preview SOA.
       `App\Livewire\TallStackClients`/`TallStackClientDetail`.)
-- [ ] Phase 6 — Procurement (Vendors, Vendor Bills, Vendor POs)
+- [x] Phase 6 — Procurement (`/tall/{company:slug}/vendors`,
+      `/vendor-purchase-orders` (+ create/edit), `/vendor-bills` (+
+      create/edit) — Vendors register + modal create/edit, Vendor
+      Purchase Order line planning/Approve/variance recording, Vendor
+      Bill shared job-cost allocation + full vendor-payment lifecycle
+      (Record/Verify/Issue receipt/Amend/Reverse). `App\Livewire\
+      TallStackVendors`/`TallStackVendorPurchaseOrders(Form)`/
+      `TallStackVendorBills(Form)`. Every action reuses
+      `App\Actions\Procurement\*` unmodified, including the PO-wide
+      payment-ceiling check. Found a real `@interact` gotcha — see the
+      "Established TallStackUI patterns" section above.)
 - [x] Phase 7 — Delivery & handover (`/tall/{company:slug}/delivery-orders`
       (+ detail), `/tall/{company:slug}/handover-reports` — new top-level
       read/browse registers across all jobs, linking back to the owning
@@ -379,8 +395,22 @@ status checklist.
       gateway-escrow steps were left out — deferred launch scope.)
 - [x] Tax Rates / Expense Categories / Task Statuses — built as part of
       Phase 9 (see above), no longer a separate deferred item.
-- [ ] Deferred, in progress: Proposals, Users & roles — dispatched to
-      subagents alongside Phase 6.
+- [x] Proposals (`/tall/{company:slug}/proposals` (+ create/edit) —
+      register + full-page rich-text editor using TallStackUI's native
+      `<x-editor>`, snippet insertion, Preview PDF, Convert to Invoice.
+      `App\Livewire\TallStackProposals`/`TallStackProposalForm`. Reuses
+      `App\Services\ProposalConverter`/`ProposalSnippetSync` unmodified.)
+- [x] Users & roles (`/tall/{company:slug}/users` — register with a
+      role-boundary reference panel, Invite/Edit-role/Remove modals.
+      `App\Livewire\TallStackUsers`. Added `CompanyRole::description()`
+      as the single source of truth for each role's plain-language
+      boundary, grounded in the enum's own docblocks — no boundary logic
+      changed. Nav folded into the same 'Settings' array Phase 9 already
+      populates, not a second `'Settings' => [...]` key — PHP array
+      literals silently let a later duplicate key win, which would have
+      dropped Phase 9's four Settings pages entirely; watch for this
+      whenever two independently-built phases both want a "Settings" nav
+      group.)
 - [ ] Deferred, not yet started: Price List Items, Credits, Recurring
       Invoices — Stitch screens exist, not yet built.
 - [ ] Deferred, blocked on a Stitch mockup: Statement of Accounts — see
