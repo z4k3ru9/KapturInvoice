@@ -49,7 +49,20 @@ class AppServiceProvider extends ServiceProvider
     private function registerTallStackUiCustomizations(): void
     {
         TallStackUi::customize()->stats('compact')->block([
-            'wrapper.second' => 'mx-3 flex h-full items-center justify-center gap-3',
+            // gap-2, not gap-3: at this card width (~173px content area,
+            // minus the 36px icon box), the text column has ~125-129px to
+            // work with depending on title length. With gap-3 (12px) two
+            // of the five cards' natural title width ("Outstanding
+            // balance", and "Total revenue" once its trend arrow moved
+            // next to the title) came in a couple pixels over budget —
+            // the icon itself doesn't shrink (shrink-0 below), so the
+            // *row* overflowed by that couple of pixels and got centered
+            // (justify-center) with the overflow split across both ends,
+            // nudging those two cards' icons ~2px left of the other
+            // three's. gap-2 frees exactly enough room that every title
+            // this page uses fits without any card overflowing, so every
+            // icon square lands at the same offset from the card edge.
+            'wrapper.second' => 'mx-3 flex h-full items-center justify-center gap-2',
             'wrapper.second-no-header' => 'mt-3',
             'wrapper.second-no-footer' => 'mb-3',
             // shrink-0 on both: without it, the icon square is just
