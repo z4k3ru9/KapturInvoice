@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Product;
+use Filament\Facades\Filament;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -22,6 +23,8 @@ class ProductInfolist
                     ->placeholder('-'),
                 ImageEntry::make('image_path')
                     ->label('Picture')
+                    ->imageSize(160)
+                    ->square()
                     ->visible(fn (Product $record): bool => filled($record->image_path)),
                 TextEntry::make('name'),
                 TextEntry::make('type')
@@ -33,7 +36,7 @@ class ProductInfolist
                     ->columnSpanFull(),
                 TextEntry::make('unit_cost')
                     ->label('Default price')
-                    ->money(),
+                    ->money(fn () => Filament::getTenant()->currency_code),
                 TextEntry::make('tax_category')
                     ->badge(),
                 TextEntry::make('defaultTaxRate.name')
