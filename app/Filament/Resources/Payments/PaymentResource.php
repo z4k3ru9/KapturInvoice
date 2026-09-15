@@ -25,6 +25,8 @@ class PaymentResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Billing';
 
+    protected static ?string $recordTitleAttribute = 'reference';
+
     public static function form(Schema $schema): Schema
     {
         return PaymentForm::configure($schema);

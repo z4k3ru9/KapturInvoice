@@ -15,6 +15,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
@@ -161,7 +162,7 @@ class InvoiceInfolist
                         // own record), avoids it entirely.
                         Action::make('downloadTaxRecapPdf')
                             ->label('Download PDF')
-                            ->icon('heroicon-o-document-arrow-down')
+                            ->icon(Heroicon::OutlinedDocumentArrowDown)
                             ->url(fn (Invoice $record) => route('tax-recaps.pdf', $record->taxRecap))
                             ->openUrlInNewTab(),
                         static::fileOrAdjustTaxRecapAction(),
@@ -201,7 +202,7 @@ class InvoiceInfolist
             ->label(fn (Invoice $record) => $record->taxRecap?->filing_date || $record->taxRecap?->manual_entry_status === 'filed'
                 ? 'Adjust filing'
                 : 'File')
-            ->icon('heroicon-o-document-check')
+            ->icon(Heroicon::OutlinedDocumentCheck)
             ->schema(fn (Invoice $record) => [
                 TextInput::make('external_reference')
                     ->label('External tax-system reference')
