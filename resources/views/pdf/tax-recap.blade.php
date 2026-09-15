@@ -115,5 +115,18 @@
             <div>{{ $taxRecap->notes }}</div>
         </div>
     @endif
+
+    {{-- Reuses the parent Invoice's own terms field (G2, ratified) rather than
+         adding a new TaxRecap column — a tax recap has no terms of its own,
+         it inherits the invoice's. Rendered raw like invoice.blade.php's own
+         Terms block: public_notes/terms/footer are sanitized HTML from
+         <x-editor> (server-side via App\Support\Html\RichTextSanitizer on
+         save, plus the editor's own client-side sanitizer). --}}
+    @if ($invoice->terms)
+        <div class="notes">
+            <h4>{{ __('documents.terms') }}</h4>
+            <div>{!! $invoice->terms !!}</div>
+        </div>
+    @endif
 </body>
 </html>

@@ -217,6 +217,34 @@ class TaxRecapPdfTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_tax_recap_pdf_renders_the_parent_invoices_terms(): void
+    {
+        $company = $this->axenCompany();
+        $issued = $this->issuedTaxableInvoice($company);
+        $issued->forceFill(['terms' => '<p>Payment due within 30 days.</p>'])->save();
+
+        $taxRecap = $issued->taxRecap;
+        $taxRecap->loadMissing('invoice.client', 'invoice.company', 'invoice.taxSnapshot');
+
+        $html = view('pdf.tax-recap', ['taxRecap' => $taxRecap])->render();
+
+        $this->assertStringContainsString(__('documents.terms', [], 'id'), $html);
+        $this->assertStringContainsString('Payment due within 30 days.', $html);
+    }
+
+    public function test_tax_recap_pdf_omits_the_terms_section_when_the_invoice_has_no_terms(): void
+    {
+        $company = $this->axenCompany();
+        $issued = $this->issuedTaxableInvoice($company);
+
+        $taxRecap = $issued->taxRecap;
+        $taxRecap->loadMissing('invoice.client', 'invoice.company', 'invoice.taxSnapshot');
+
+        $html = view('pdf.tax-recap', ['taxRecap' => $taxRecap])->render();
+
+        $this->assertStringNotContainsString(__('documents.terms', [], 'id'), $html);
+    }
+
     public function test_non_taxable_invoice_never_creates_a_tax_recap(): void
     {
         $company = Company::create(['name' => 'Karunia Abadi', 'slug' => 'karunia-abadi', 'code' => 'KA', 'currency_code' => 'IDR']);
