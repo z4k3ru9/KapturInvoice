@@ -60,18 +60,25 @@ Dashboard mockup comparison worked earlier this session.
 | Client portal | "Client Read-Only Portal (TallStack UI - Axen Technology)" — literally already speccing TallStackUI, "Client Portal - Access Expired & Security Verification" | `App\Livewire\Portal\*` — **already Livewire, not Filament**, but restyle to match this mockup |
 | Onboarding | "First-Run & Zero-State Onboarding" | `App\Filament\Support\SetupChecklist` dashboard widget |
 | Assets | "KapturInvoice Logo", "Axen Technology Indonesia Logo" (SVG) | reference art, not a page |
+| Clients | "Clients — Register and Detail View" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\Clients` |
+| Users & roles | "Users & Roles — Company Permissions" | `App\Filament\Resources\Users` |
+| Proposals | "Proposals — Register & SOW Rich Editor" | `App\Filament\Resources\Proposals`/`ProposalTemplates`/`ProposalSnippets` |
+| Settings — small lookups | "Settings — Tax Rates & Small Lookups" (one representative screen covering Tax Rates, Expense Categories, Task Statuses per prompt 13's own scoping) | `App\Filament\Resources\TaxRates`/`ExpenseCategories`/`TaskStatuses` |
+| Price List Items | "Price List Items — Vendor Catalog Reference" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\PriceListItems` |
+| Credits | "Credits — Register (Karunia Abadi Variant)" | `App\Filament\Resources\Credits` |
+| Recurring Invoices | "Recurring Invoices — Register & Schedule Editor" | `App\Filament\Resources\RecurringInvoices` |
+| Statement of Account | **not yet generated** — `generate_screen_from_text` was fired against prompt 17 in `26-stitch-missing-screens-prompts.md` (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) and timed out client-side at 60s twice across sessions; two follow-up `list_screens` checks (a few minutes apart) still show no matching screen, so this one did not complete server-side either. Needs a fresh `generate_screen_from_text` retry next time this area is picked up. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
 
-**No dedicated Stitch screen found for**: Clients (list/detail), Users,
+**Formerly "no dedicated Stitch screen found" for**: Clients, Users,
 Proposals/Proposal Templates/Snippets, Tax Rates, Expense Categories, Task
-Statuses, Price List Items, Credits, Recurring Invoices, Statement of
-Accounts. **Update: ready-to-paste Stitch generation prompts for all of
-these now exist** — see
+Statuses, Price List Items, Credits, Recurring Invoices — all now have
+generated Stitch screens, listed in the table above. **Statement of
+Accounts is the one remaining gap** — see that table row. The
+ready-to-paste prompts for all nine areas (including the still-pending
+SOA one) live in
 [`26-stitch-missing-screens-prompts.md`](26-stitch-missing-screens-prompts.md)
 (numbered 10-17, continuing the original project's own
-`kapturinvoice-stitch-prompts.md` 1-9). Generate those screens (via
-Stitch directly, or `mcp__Google_Stich__generate_screen_from_text` with
-`projectId 17287642508359312726`) before building the corresponding
-phase below, the same way Phase 1 (Quotations) already had its screens.
+`kapturinvoice-stitch-prompts.md` 1-9).
 
 ## Phase order
 
