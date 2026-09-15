@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Company;
+use App\Models\CompanySetting;
 use App\Models\Contact;
 use App\Models\Credit;
 use App\Models\Invitation;
@@ -134,5 +135,107 @@ class PdfExportTest extends TestCase
         $html = view('pdf.invoice', ['invoice' => $invoice])->render();
 
         $this->assertStringContainsString('data:image/png;base64,', $html);
+    }
+
+    /**
+     * docs/rebuild/specs/06-documents-portal-reporting/Specs.md: "Printed
+     * documents default to Bahasa Indonesia with per-document English
+     * override." No CompanySetting row at all should still default to 'id'
+     * — see Invoice::resolveDocumentLanguage().
+     */
+    public function test_invoice_pdf_renders_bahasa_indonesia_labels_by_default_with_no_company_setting_row(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'due_date' => '2026-10-01',
+        ]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('Jatuh Tempo', $html);
+        $this->assertStringNotContainsString('>Due:', $html);
+    }
+
+    public function test_invoice_pdf_renders_bahasa_indonesia_labels_when_company_default_is_id(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        CompanySetting::create(['company_id' => $company->id, 'default_document_language' => 'id']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'due_date' => '2026-10-01',
+        ]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('Jatuh Tempo', $html);
+        $this->assertStringContainsString('FAKTUR', $html);
+    }
+
+    public function test_invoice_pdf_renders_english_labels_when_document_language_override_is_en(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        CompanySetting::create(['company_id' => $company->id, 'default_document_language' => 'id']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'due_date' => '2026-10-01',
+            'document_language' => 'en',
+        ]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('Due:', $html);
+        $this->assertStringContainsString('INVOICE', $html);
+        $this->assertStringNotContainsString('Jatuh Tempo', $html);
+    }
+
+    public function test_credit_pdf_renders_bahasa_indonesia_labels_by_default(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $credit = Credit::create(['company_id' => $company->id, 'client_id' => $client->id, 'number' => 'CRE-0001', 'amount' => 50]);
+        $credit->loadMissing('client', 'company');
+
+        $html = view('pdf.credit', ['credit' => $credit])->render();
+
+        $this->assertStringContainsString('NOTA KREDIT', $html);
+        $this->assertStringContainsString(__('documents.amount', [], 'id'), $html);
+    }
+
+    public function test_credit_pdf_renders_english_labels_when_document_language_override_is_en(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $credit = Credit::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'number' => 'CRE-0001',
+            'amount' => 50,
+            'document_language' => 'en',
+        ]);
+        $credit->loadMissing('client', 'company');
+
+        $html = view('pdf.credit', ['credit' => $credit])->render();
+
+        $this->assertStringContainsString('CREDIT', $html);
+        $this->assertStringNotContainsString('NOTA KREDIT', $html);
     }
 }

@@ -4,11 +4,13 @@ namespace App\Models;
 
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
+use App\Enums\PricingMode;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -19,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'terms', 'public_notes', 'private_notes', 'footer',
     'is_recurring', 'recurring_frequency', 'recurring_start_date', 'recurring_end_date',
     'recurring_template_id', 'auto_bill', 'converted_from_quote_id',
+    'sales_order_id', 'pricing_mode', 'original_invoice_id', 'void_reason', 'correction_reason',
+    'document_language',
 ])]
 class Invoice extends Model
 {
@@ -29,6 +33,7 @@ class Invoice extends Model
         return [
             'type' => InvoiceType::class,
             'status' => InvoiceStatus::class,
+            'pricing_mode' => PricingMode::class,
             'invoice_date' => 'date',
             'due_date' => 'date',
             'partial_due_date' => 'date',
@@ -37,6 +42,9 @@ class Invoice extends Model
             'recurring_last_sent_at' => 'datetime',
             'sent_at' => 'datetime',
             'viewed_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'issued_at' => 'datetime',
+            'voided_at' => 'datetime',
             'is_recurring' => 'boolean',
             'auto_bill' => 'boolean',
             'discount_is_percentage' => 'boolean',
@@ -108,5 +116,51 @@ class Invoice extends Model
     public function convertedInvoices(): HasMany
     {
         return $this->hasMany(self::class, 'converted_from_quote_id');
+    }
+
+    /** The Phase 03 Job this invoice bills against, when it has one. */
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class);
+    }
+
+    /** The invoice this one amends or reissues, if any — never edited itself. */
+    public function originalInvoice(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'original_invoice_id');
+    }
+
+    /** The amendment/reissue created against this invoice, if any. */
+    public function correction(): HasOne
+    {
+        return $this->hasOne(self::class, 'original_invoice_id');
+    }
+
+    public function taxSnapshot(): HasOne
+    {
+        return $this->hasOne(InvoiceTaxSnapshot::class);
+    }
+
+    public function taxRecap(): HasOne
+    {
+        return $this->hasOne(TaxRecap::class);
+    }
+
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
+    /**
+     * Printed-document language: this invoice's own override when set,
+     * otherwise the owning company's `default_document_language`, otherwise
+     * Bahasa Indonesia — see
+     * docs/rebuild/specs/06-documents-portal-reporting/Specs.md "Printed
+     * documents default to Bahasa Indonesia with per-document English
+     * override."
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }

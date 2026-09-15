@@ -20,11 +20,12 @@ sidebar order:
 
 | Group | Contents |
 |---|---|
-| **Sales** | Quotations ✅ (`QuotationResource`, Phase 03), Jobs ✅ (`SalesOrderResource`, Phase 03) |
+| **Sales** | Quotations ✅ (`QuotationResource`, Phase 03), Jobs ✅ (`SalesOrderResource`, Phase 03 + Phase 05 delivery/handover/closure) |
 | **Billing** | Invoices ✅, Recurring Invoices ✅, Quotes ✅ (legacy — see §2.0), Credits ✅, Payments ✅ |
 | **Clients** | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
 | **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
-| **Expenses** | Expenses ✅, Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Expenses** | Expenses ✅ (frozen non-job cost bucket, see §2.4/§2.9), Vendors ✅ (+ Vendor Contacts relation manager ✅), Expense Categories ✅ |
+| **Procurement** | Vendor Purchase Orders ✅ (`VendorPurchaseOrderResource`, Phase 05), Vendor Bills ✅ (`VendorBillResource`, Phase 05) |
 | **Projects** | ⚠️ hidden from navigation as of Phase 03 (`shouldRegisterNavigation() => false`) — frozen legacy data only, superseded by the Sales group's Jobs. See §2.0/§2.5. |
 | **Documents** | Documents ✅ (polymorphic: attached to an Invoice or an Expense) |
 | **Team** | Users ✅ (+ Companies relation manager ✅), (Roles/Permissions, if `filament-shield` is added) |
@@ -119,7 +120,38 @@ into `InvoiceDuplicator`'s two generated-invoice paths. An explicit manual
 `number` (e.g. importing historical data) is respected and does not
 consume the sequence — see `tests/Feature/Filament/DocumentNumberingTest.php`.
 
-**Credits** ✅ (now numbering-aware too), **Payments** ✅ — unchanged.
+**Credits** ✅ (now numbering-aware too) — unchanged.
+
+**Invoices — billing engine (Phase 04 — 04-billing-and-receivables)** ✅ —
+`InvoicesTable` gains three new row actions on top of the unchanged
+Send/Download PDF ones: **Issue** (Draft/Approved → Issued via
+`App\Actions\Billing\IssueInvoice`, writing an immutable tax snapshot),
+**Amend**, and **Void & reissue** (`App\Actions\Billing\
+AmendIssuedInvoice`/`VoidAndReissueInvoice` — each opens a modal with a
+required reason and a corrected-items repeater, creates a brand-new
+linked invoice, and leaves the original's own number/total/tax snapshot
+untouched). `InvoiceForm` gained a `pricing_mode` select; `InvoiceInfolist`
+gained a "Billing" section (job link, lifecycle timestamps, original/
+correction cross-links) and, once issued, "Tax snapshot"/"Tax recap"
+sections. `QuoteResource`/legacy `Invoice` rows (`type=invoice`, drafted
+before this phase) work exactly as before — nothing here is required to
+use the new actions until an invoice owner chooses to Issue it.
+
+**Payments — verification and receivables (Phase 04)** ✅ —
+`PaymentsTable` gains **Verify** (Owner/Admin/Accountant only,
+`App\Actions\Receivables\VerifyCustomerPayment` — a cheque requires a
+cleared-on date first), **Allocate**/**Amend allocation** (a repeater of
+invoice + amount rows, restricted to the payment's own client/company —
+`AllocateCustomerPayment`/`AmendPaymentAllocation`), **Issue receipt**
+(`IssuePaymentReceipt` — exactly one per verified payment), and
+**Reverse** (`ReverseCustomerPayment` — preserves the payment/receipt/
+allocation history rather than deleting anything). `PaymentForm` gained
+`proof_path` (file upload), `reference`, and `cheque_cleared_at`; its
+`status` default changed from Completed to Pending to match the new
+verify-before-receipt flow (a legacy imported row's `Completed` status
+is untouched). `PaymentInfolist` gained a "Verification & receivables"
+section surfacing the job link, verifier, receipt number, and any
+reversal reason.
 
 ### 2.2 Clients group
 
@@ -193,6 +225,13 @@ exactly).
 
 **Expense Categories** ✅ — simple resource (name only), grouped under
 Expenses rather than Settings.
+
+`Expense` itself is now a **frozen, non-job-linked cost bucket** as of
+Phase 05 (docs/rebuild/specs/05-procurement-and-delivery) — it stays
+exactly as-is (still fully usable for overhead/reimbursable costs), but
+any cost that needs a Vendor PO, partial payments, or job-cost allocation
+goes through the new **Procurement** group (§2.9) instead. See
+`docs/REFACTOR_PLAN.md` §2 risk #6 for the mapping decision.
 
 ### 2.5 Projects group ⚠️ (frozen and hidden from navigation as of Phase 03)
 
@@ -271,6 +310,70 @@ tenant's Team page auto-attaches them to that tenant (role: member).
 RBAC beyond super-admin/company-member is still deferred to
 `filament-shield` (spatie/laravel-permission) rather than reviving the
 legacy JSON `permissions` blob (schema §2.1).
+
+### 2.9 Procurement group ✅ (Phase 05 — 05-procurement-and-delivery)
+
+The vendor-purchasing side of the job-centric rebuild, built as a new
+aggregate beside the frozen `Expense`/`ExpenseCategory` resources (§2.4).
+
+**Vendor Purchase Orders** ✅ (`VendorPurchaseOrderResource`) — full
+create/edit/view/list pages.
+- Form: vendor select, `number` (blank = auto-assign `VPO` sequence),
+  `po_date`/`due_date`/`delivery_date`, terms/notes, a disabled `total`
+  (edit-only, recomputed by the Items relation manager).
+- **Items** relation manager — product picker (bounded/server-searched,
+  same convention as every other item picker in this app), quantity/
+  unit_cost/line_total; `App\Services\Procurement\
+  VendorPurchaseOrderTotalsCalculator` keeps `total` in sync.
+- **Variances** relation manager — read-only list
+  (`isReadOnly() => true`) plus a custom "Record variance" header action
+  (Owner/Admin only, via `App\Actions\Procurement\
+  ApproveVendorPoVariance`) — the exact `isReadOnly`-plus-custom-
+  `Action::make()` pattern `VariationsRelationManager` established in
+  Phase 03. The PO's own `total` is never touched by an approved
+  variance; only the effective payment ceiling
+  (`VendorPurchaseOrder::paymentCeiling()`) moves.
+- Table row action: **Approve** (Draft only).
+
+**Vendor Bills** ✅ (`VendorBillResource`) — full create/edit/view/list
+pages, always tied to one (ideally already-Approved) Vendor PO.
+- Form: vendor select, a PO select scoped to the chosen vendor's approved
+  POs, `number` (blank = auto-assign `VBL`), bill_date/due_date, notes,
+  disabled total/amount_paid/balance (edit-only).
+- **Items** relation manager — product/PO-item picker, net/tax amount
+  fields (`line_total` kept as their sum via `App\Services\Procurement\
+  VendorBillTotalsCalculator`), an "unallocated remainder" column
+  (`VendorBillItem::unallocatedAmount()`), and an **Allocate to job** row
+  action (via `App\Actions\Procurement\AllocateJobCost`) — one vendor
+  bill line can be split across several jobs, guarded against
+  over-allocation.
+- **Payments** relation manager — read-only list (recording happens via
+  the table action below, not a generic Create here). Row actions carry
+  the vendor payment's own parallel immutable event lifecycle
+  (FINALIZED-DECISIONS.md §7, added after Phase 05 shipped a simpler
+  direct-record model — see the corrective work folded into that phase's
+  checkpoint report): **Verify** (Pending only; Owner/Admin/Accountant;
+  requires proof already uploaded, and a cheque needs a cleared date),
+  **Issue receipt** (Verified, not yet receipted — assigns the `VPR`
+  number), **Amend** (already receipted — corrects the amount with a
+  reason, preserving the receipt), **Reverse** (Pending or Verified —
+  reason required, preserves the receipt/history). Only a Verified
+  payment counts toward the bill's `amount_paid`/status.
+- Table row actions: **Submit** (Draft), **Approve** (Submitted; Owner/
+  Admin/Accountant), **Record payment** (Approved/PartiallyPaid — proof
+  upload, method, reference; starts Pending, doesn't count until verified
+  above; blocked above the PO's payment ceiling — Pending and Verified
+  payments both count against it — until an Owner/Admin approves a
+  variance on the PO, per FINALIZED-DECISIONS.md §4).
+
+**Jobs** (`SalesOrderResource`, §2.0) gained two more relation managers
+this phase — **Delivery Orders** and **Handover Reports** — both
+read-only lists with one custom header action each ("Record delivery"/
+"Record handover", the latter with an Owner/Admin override toggle for a
+job that isn't yet fully delivered) — plus two new table row actions,
+**Close operationally** and **Close financially** (the latter's override
+path requires the acting user be exactly Owner, never Admin, per
+FINALIZED-DECISIONS.md §4's "Admin may prepare but cannot finalize").
 
 ---
 
@@ -489,6 +592,89 @@ Blade views, not a CRUD screen" (§2.9) — via
 - ⚠️ No PDF attached to the outbound emails yet (`BillingMailer`, §3.3)
   — the download links work, but `CompanyTemplatedMail` doesn't attach
   the PDF to the message itself. A natural next step once wanted.
+- ✅ **Bahasa Indonesia default / English override (Phase 06 —
+  06-documents-portal-reporting)** — both templates now resolve
+  `$invoice->resolveDocumentLanguage()`/`$credit->resolveDocumentLanguage()`
+  (a per-document `document_language` override, else the company's
+  `default_document_language`, else `'id'`) and render every label via
+  `__('documents.*')` (`resources/lang/{id,en}/documents.php`). ⚠️ The
+  Indonesian label set is a constructed best-effort, not a pre-existing
+  approved glossary — flagged in that file's own docblock; needs sign-off
+  from an Indonesian tax/accounting professional before production, per
+  `FINALIZED-DECISIONS.md` §6.
+- ✅ **Every remaining launch document type (Phase 06B Slice 1 —
+  06b-ux-browser-soa, in progress)** — the same localized-PDF pattern now
+  covers `Quotation` (`quotation.blade.php` — doubles as the printed
+  Customer Order Confirmation when `customer_po_is_system_generated`),
+  `SalesOrder`, `Receipt`, `VendorPurchaseOrder`, `VendorBill`,
+  `VendorPaymentReceipt`, `DeliveryOrder`, `HandoverReport`, `TaxRecap`,
+  and the new `StatementOfAccount`. Each gets its own "Download PDF" row
+  action on its table/relation manager (`App\Filament\Support\
+  DownloadPdfAction` grew one static method per type) and its own
+  auth-guarded controller/route, same pattern as Invoice/Credit above.
+  `ClientsTable` gains "Preview Statement of Account" (ad hoc, never
+  persisted) and "Generate Statement of Account" (numbered, immutable
+  snapshot) row actions.
+
+---
+
+## 7.05 Draft autosave and row reordering (Phase 06B Slice 3)
+
+- **Autosave** — `App\Filament\Concerns\AutosavesDraft`, wired onto
+  `EditInvoice` as the reference implementation. Every whitelisted field
+  (`po_number`, `invoice_date`, `due_date`, `currency_code`, `discount`,
+  `discount_is_percentage`, `terms`, `public_notes`, `private_notes`,
+  `footer`) gets `->live(debounce: '1750ms')` plus a shared
+  `afterStateUpdated` hook; a new `draft_version` column (never
+  `#[Fillable]`) is the optimistic-concurrency guard. Inline status
+  (Saving/Saved/Save failed+Retry/Conflict) renders via
+  `resources/views/filament/components/autosave-status.blade.php` — never
+  a toast. A conflict shows both sides' values with "Discard my
+  changes"/"Keep my changes anyway" choices; nothing is ever silently
+  merged or overwritten. Guarded to Draft status only — an Issued/Void/
+  Amended invoice's autosave hook becomes a structural no-op, so it can
+  never race an Issue/Amend/Void/Verify action.
+- **Row reordering** — `->reorderable('sort_order')` on the Invoice/
+  Quotation/VendorBill/VendorPurchaseOrder Items relation managers.
+  Filament's native drag handle persists the new order in one batched
+  write; every one of those models' `items()` relation (and its PDF view)
+  already orders by the same `sort_order` column, so a reorder changes
+  both the admin table and the printed document identically.
+- ⚠️ **Not built**: DESIGN.md §5's "add the next blank row after
+  meaningful content / remove an untouched blank row automatically /
+  confirm before removing a populated row" behavior. That's a live,
+  embedded Repeater UI — a different pattern from this project's
+  established RelationManager-plus-modal line editing (every resource
+  since Phase 02), not a drop-in addition. Flagged as an explicit,
+  undecided scope boundary rather than silently built or dropped.
+
+---
+
+## 7.1 Client portal — beyond one invoice (Phase 06)
+
+The per-invoice `Invitation`/`ViewInvoice` page (§2.2) stays exactly as
+it was — it's still how a single Send action shares one document. This
+phase adds a second, broader mechanism for "a billing contact can see
+their whole billing history":
+
+- **`App\Models\PortalLink`** — a contact-scoped link (`key` UUID,
+  `expires_at` default 30 days out, `revoked_at`), generated via a
+  **Generate portal link** row action on the Client resource's Contacts
+  relation manager (emails it via `BillingMailer::sendPortalLink()`) and
+  revoked via a new read-only **Portal Links** relation manager's
+  **Revoke** action.
+- **`App\Livewire\Portal\ClientPortalHome`** (`/portal/link/{portalLink:key}`,
+  same `ResolveCompanyFromDomain`-guarded group as the existing portal
+  routes) — a designated billing contact (`Contact::is_billing_contact`,
+  Phase 02) sees every one of the client's invoices; an ordinary contact
+  sees only the invoices they already have an explicit `Invitation` for
+  (no new "sharing" table — `Invitation` itself is the "explicitly
+  shared documents" record, per `FINALIZED-DECISIONS.md` §5). Never
+  shows vendor cost, margin, internal approval state, audit history, or
+  tax recap adjustments.
+- A revoked or expired link 404s exactly like a cross-company link does
+  — there is no "this link has expired" page that would itself leak
+  anything to someone probing a stale URL.
 
 ---
 
@@ -591,3 +777,25 @@ was always the point — see §5, item 10.
   attribute-bag bug, not something in this app's control). None of these
   three run expensive queries, so disabling lazy-loading has no real
   performance cost here — flagged in case a future widget does need it.
+  **Every `RelationManager` in the app gets the same `$isLazy = false`
+  treatment now too** (found via Phase 06B Slice 5 browser testing): the
+  SAME lazy-loading mechanism (`Filament\Support\Concerns\CanBeLazy`)
+  never actually initializes a relation manager tab on a genuine full
+  page load/refresh — only on Livewire's own `wire:navigate` soft
+  navigation — leaving the tab stuck on its "Loading..." placeholder
+  forever, with no Livewire request ever firing to mount it. This was a
+  real, previously-undiscovered production bug (any user bookmarking or
+  refreshing a resource's Edit/View page hit it), not just a Playwright
+  quirk — confirmed live via a bare `page.goto()` outside the test suite
+  before the fix, and again after.
+- **`JobMarginReport`** (`TableWidget`, Phase 06 —
+  06-documents-portal-reporting) — the job-cost/margin report deferred
+  from Phase 05's acceptance criteria. Lists every job with its sales
+  value (invoice totals excluding tax; Void/Amended/Cancelled invoices
+  excluded), allocated gross cost, margin, and unallocated purchasing
+  cost as four separate columns — the last two are never blended
+  together, per "job margin clearly distinguishes allocated gross cost
+  from unallocated purchasing cost." Company-scoped for free via
+  `SalesOrder`'s `BelongsToCompany` scope; registered the same way the
+  three widgets above are — dropped into `app/Filament/Widgets/` for
+  `AdminPanelProvider`'s `discoverWidgets()`, no `Dashboard.php` change.

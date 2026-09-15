@@ -69,13 +69,13 @@ class ProposalsTable
                             $invoice = app(ProposalConverter::class)->convertToInvoice($record);
 
                             Notification::make()
-                                ->success()
+                                ->success()->seconds(4)
                                 ->title('Converted to invoice')
                                 ->body("Created invoice {$invoice->number}.")
                                 ->send();
                         } catch (RuntimeException $e) {
                             Notification::make()
-                                ->danger()
+                                ->danger()->persistent()
                                 ->title('Could not convert')
                                 ->body($e->getMessage())
                                 ->send();

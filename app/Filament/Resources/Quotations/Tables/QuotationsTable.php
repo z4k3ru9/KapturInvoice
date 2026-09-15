@@ -78,9 +78,9 @@ class QuotationsTable
                                 filled($data['customer_po_date'] ?? null) ? Carbon::parse($data['customer_po_date']) : null,
                             );
 
-                            Notification::make()->success()->title('Quotation accepted')->send();
+                            Notification::make()->success()->seconds(4)->title('Quotation accepted')->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not accept quotation')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not accept quotation')->body($e->getMessage())->send();
                         }
                     }),
                 Action::make('reject')
@@ -114,12 +114,12 @@ class QuotationsTable
                             $salesOrder = app(CreateSalesOrderFromQuotation::class)->create($record);
 
                             Notification::make()
-                                ->success()
+                                ->success()->seconds(4)
                                 ->title('Job created')
                                 ->body("Created job #{$salesOrder->number}.")
                                 ->send();
                         } catch (RuntimeException $e) {
-                            Notification::make()->danger()->title('Could not create job')->body($e->getMessage())->send();
+                            Notification::make()->danger()->persistent()->title('Could not create job')->body($e->getMessage())->send();
                         }
                     }),
             ])
@@ -137,9 +137,9 @@ class QuotationsTable
         try {
             app(TransitionQuotationStatus::class)->transition($record, $to);
 
-            Notification::make()->success()->title('Quotation updated')->send();
+            Notification::make()->success()->seconds(4)->title('Quotation updated')->send();
         } catch (RuntimeException $e) {
-            Notification::make()->danger()->title('Could not update quotation')->body($e->getMessage())->send();
+            Notification::make()->danger()->persistent()->title('Could not update quotation')->body($e->getMessage())->send();
         }
     }
 }

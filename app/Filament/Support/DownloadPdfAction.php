@@ -3,18 +3,26 @@
 namespace App\Filament\Support;
 
 use App\Models\Credit;
+use App\Models\DeliveryOrder;
+use App\Models\HandoverReport;
 use App\Models\Invoice;
 use App\Models\Proposal;
 use App\Models\Quotation;
+use App\Models\SalesOrder;
+use App\Models\StatementOfAccount;
+use App\Models\TaxRecap;
+use App\Models\VendorBill;
+use App\Models\VendorPaymentReceipt;
+use App\Models\VendorPurchaseOrder;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 
 /**
  * Shared "Download PDF" table action for Invoices/Quotes/Recurring
- * Invoices/Credits, and the Phase 03 Quotation/Proposal resources — a
- * plain link to the (auth-guarded, outside the Filament panel) PDF route,
- * opened in a new tab, rather than a Filament action with its own
- * processing step.
+ * Invoices, Credits, Quotations, Proposals, Sales Orders, and Receipts
+ * (§7) — a plain link to the (auth-guarded, outside the Filament panel)
+ * PDF route, opened in a new tab, rather than a Filament action with its
+ * own processing step.
  */
 class DownloadPdfAction
 {
@@ -36,6 +44,29 @@ class DownloadPdfAction
             ->openUrlInNewTab();
     }
 
+    /**
+     * ⚠️ For a Table row whose own record genuinely IS a TaxRecap (this
+     * app has no such resource/table today — TaxRecap is only ever shown
+     * on an Invoice's Infolist). NEVER pair this with `->record(fn
+     * (Invoice $record): ?TaxRecap => $record->taxRecap)` to reuse it on
+     * an Invoice-bound schema — overriding an Infolist Section header
+     * action's own bound record that way hangs the whole page in
+     * infinite recursion (a real bug found and fixed on
+     * App\Filament\Resources\Invoices\Schemas\InvoiceInfolist's own Tax
+     * Recap section, which now builds its download action directly
+     * instead). Confirmed via a direct HTTP request to an issued taxable
+     * invoice's View page — reproduces independent of any Codex-review
+     * fix in this same PR.
+     */
+    public static function taxRecap(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (TaxRecap $record) => route('tax-recaps.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
     public static function quotation(): Action
     {
         return Action::make('downloadPdf')
@@ -51,6 +82,80 @@ class DownloadPdfAction
             ->label('Download PDF')
             ->icon(Heroicon::OutlinedDocumentArrowDown)
             ->url(fn (Proposal $record) => route('proposals.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function salesOrder(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (SalesOrder $record) => route('sales-orders.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    /** Surfaced from a Payment row once it has an issued Receipt — see PaymentsTable. */
+    public static function receipt(): Action
+    {
+        return Action::make('downloadReceiptPdf')
+            ->label('Download receipt PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->visible(fn ($record) => $record->receipt()->exists())
+            ->url(fn ($record) => route('receipts.pdf', $record->receipt))
+            ->openUrlInNewTab();
+    }
+
+    public static function vendorPurchaseOrder(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (VendorPurchaseOrder $record) => route('vendor-purchase-orders.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function vendorBill(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (VendorBill $record) => route('vendor-bills.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function vendorPaymentReceipt(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (VendorPaymentReceipt $record) => route('vendor-payment-receipts.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function deliveryOrder(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (DeliveryOrder $record) => route('delivery-orders.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function handoverReport(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (HandoverReport $record) => route('handover-reports.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function statementOfAccount(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (StatementOfAccount $record) => route('statement-of-accounts.pdf', $record))
             ->openUrlInNewTab();
     }
 }

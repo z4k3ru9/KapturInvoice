@@ -76,7 +76,7 @@ class PriceListItemsTable
                         $product = app(ProductSync::class)->createOrUpdateFromPriceListItem($record);
 
                         Notification::make()
-                            ->success()
+                            ->success()->seconds(4)
                             ->title($product->wasRecentlyCreated ? 'Product created' : 'Product updated')
                             ->body("Product #{$product->id} ({$product->sku}) is now linked to this pricelist row.")
                             ->send();

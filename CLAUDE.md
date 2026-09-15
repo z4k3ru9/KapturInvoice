@@ -322,6 +322,420 @@ Or just `composer setup` (runs the same steps via the composer script).
   a chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Renovation Phase 06B (UX, browser QA, and SOA completion — in
+  progress)** — per `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`,
+  added to `main` after Phase 06 shipped and making mandatory (not
+  optional) exactly what that phase scoped out: this **supersedes**
+  Phase 06's own "no browser suite" framing below. Required before Phase
+  07. Progress so far:
+  - **Slice 1 (every remaining launch document type + SOA)** — all 12
+    launch document types now render a localized A4 PDF: `Invoice`/
+    `Credit` (already Phase 06), plus new `Quotation` (also serves as the
+    printed Customer Order Confirmation when
+    `customer_po_is_system_generated`), `SalesOrder`, `Receipt`,
+    `VendorPurchaseOrder`, `VendorBill`, `VendorPaymentReceipt`,
+    `DeliveryOrder`, `HandoverReport`, `TaxRecap` (gains its own `number`/
+    `document_language` columns and a `TAX`-coded number assigned by
+    `IssueInvoice`), and the new **`App\Models\StatementOfAccount`**
+    (`App\Services\Reports\BuildStatementOfAccount` — pure computation,
+    no persistence; `App\Actions\Reports\GenerateStatementOfAccount` is
+    the only writer of a real numbered `SOA`-coded row with a frozen
+    `snapshot`; a preview calls the service directly and is never
+    persisted, via `Client` row actions on `ClientsTable`). Every new
+    model gets `document_language` + `resolveDocumentLanguage()`
+    mirroring `Invoice`'s. New translation keys live in
+    `resources/lang/{id,en}/documents.php` alongside the existing set —
+    see `docs/rebuild/outputs/22-phase-06b-terminology-sources.md` for
+    the now-complete source-backed terminology review (every `id` key
+    covered; one real error caught and fixed — `soa_title` was
+    `Rekening Koran`, which specifically means a *bank* statement, not a
+    client AR statement; corrected to `Laporan Piutang Pelanggan`).
+    Still needs an Indonesian tax/accounting professional's sign-off
+    before production, per `FINALIZED-DECISIONS.md` §6 — that release
+    gate is unaffected by this review being complete.
+  - **Slice 4 (Playwright foundation)** — `playwright.config.ts` +
+    `tests/browser/`, wired into `.github/workflows/tests.yml` as a
+    separate `browser-tests` job. Simulates both seeded company domains
+    via `--host-resolver-rules` (no real DNS needed) and runs both system
+    color schemes. This sandbox's pre-installed Chromium
+    (`/opt/pw-browsers/chromium`) is used directly when present; CI
+    installs its own via `npx playwright install --with-deps chromium`.
+    `scripts/browser-test-server.sh` runs the suite against a dedicated
+    `database/testing-browser.sqlite`, never the developer's own dev DB.
+  - **Slice 3 (draft autosave + dynamic rows)** — `App\Filament\Concerns\
+    AutosavesDraft` (a reusable trait for a Filament `EditRecord` page):
+    debounced (`->live(debounce: '1750ms')`, which Livewire also commits
+    on blur) autosave of an explicit field whitelist, guarded to
+    Draft-only and never touching `status`/`number`/derived totals — an
+    Issue/Amend/Void/Verify action stays entirely outside this trait's
+    reach structurally, not just by convention. Optimistic concurrency
+    via a new `draft_version` column (never `#[Fillable]` — written only
+    by this trait): a stale save is surfaced as an explicit conflict
+    (`resources/views/filament/components/autosave-status.blade.php` —
+    inline, never a toast, with Discard-mine/Keep-mine-anyway choices),
+    never silently merged or overwritten. A failed save preserves the
+    typed values and exposes Retry. Wired onto `EditInvoice` as the
+    reference implementation (`InvoiceAutosaveTest`) — Quotation/
+    VendorBill Edit pages can adopt the same trait later the same way.
+    Dynamic rows: `->reorderable('sort_order')` added to the Invoice/
+    Quotation/VendorBill/VendorPurchaseOrder Items relation managers —
+    Filament's native drag-reorder persists in one batched write (never
+    per keystroke), and every one of those models' `items()` relation
+    (and PDF view) already orders by this same column
+    (`DynamicRowReorderTest`). ⚠️ **Not built**: the "add the next blank
+    row after meaningful content / remove an untouched blank row
+    automatically / confirm before removing a populated row" behavior
+    DESIGN.md §5 describes literally requires an embedded, Alpine-driven
+    Repeater UI in place of this project's established RelationManager-
+    plus-modal line-editing pattern (used consistently since Phase 02) —
+    a genuine UI-pattern replacement across several resources, not a
+    slice-sized addition. Flagged here rather than silently built or
+    silently dropped; needs an explicit decision before undertaking it.
+  - **Slice 5 (full browser journeys and accessibility)** — the
+    remaining `tests/browser/` coverage beyond Slice 4's smoke tests:
+    portal journeys (billing/ordinary contact, cross-company/client,
+    expired/revoked/replaced links), A4 PDF preview/download in
+    Bahasa+English, SOA preview/generate/reconcile, autosave success/
+    stale-conflict, dynamic row reorder/delete-confirmation, dashboard/
+    report pagination+scoping, loading/empty/restricted/404 states,
+    toast timing, and axe-core WCAG 2.2 AA scans (dashboard, invoice
+    edit form, public portal) — green across all four projects
+    (`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`).
+    Building it surfaced three real, previously-unknown app bugs, now
+    fixed: every Filament `RelationManager`'s lazy loading never actually
+    initializes on a genuine full page load (only on `wire:navigate` soft
+    navigation), leaving a tab stuck on "Loading..." forever — same root
+    cause already documented above for the three dashboard widgets, same
+    fix (`$isLazy = false`) applied to all 17 relation managers; the
+    public portal's invoice status badges (TallStackUI's `<x-badge>`,
+    "solid" style) fail WCAG contrast for every named color at that
+    weight, fixed with a dedicated
+    `resources/views/components/portal/status-badge.blade.php`
+    (bg-100/text-800); the Invoice Items table's empty "Taxes" column
+    wrapped a clickable-row button with zero accessible text, fixed via
+    `getStateUsing()` rendering a real "No tax" `.fi-badge` pill (not
+    `->placeholder()`, which surfaced its own contrast failure via
+    Filament's `.fi-ta-placeholder` default); Playwright's real iPad/
+    iPhone device presets set `defaultBrowserType: 'webkit'`, which
+    combined with `playwright.config.ts`'s own `executablePath` override
+    (always a Chromium binary) to silently launch Chromium with webkit's
+    default args — missing `--no-sandbox`, crashing every single test on
+    the `tablet-light`/`mobile-light` projects — fixed by forcing
+    `browserName: 'chromium'` on both and adding `--no-sandbox`
+    explicitly; a plain `dark:bg-*`/`dark:text-*` Tailwind utility,
+    confirmed correctly compiled and correctly wrapped in
+    `@media (prefers-color-scheme: dark)`, still didn't reliably
+    override its light counterpart for one of two colored properties on
+    the same badge (an unexplained Tailwind v4/lightningcss cascade
+    quirk elsewhere in this build) — worked around with `!important` on
+    every dark: utility on the new status-badge component; both public
+    portal pages' horizontally-scrollable table wrapper had no keyboard
+    access on mobile viewports (axe: scrollable-region-focusable, real
+    app code) — fixed with `tabindex="0"`/`role="region"`/`aria-label`.
+    Flagged, not fixed (see `docs/testing-coverage.md`): toast
+    deduplication; Filament's stock 16x16px
+    `.fi-select-input-value-remove-btn`; the SAME scrollable-region-
+    focusable gap on a dashboard widget's table specifically (Filament's
+    own framework markup, only reproduces once genuinely overflowing at
+    tablet/mobile width) — all three need a custom Filament panel theme/
+    template override, out of scope this pass. The full four-project
+    suite (`desktop-light`/`desktop-dark`/`tablet-light`/`mobile-light`)
+    has one remaining known flake: `documents/autosave.spec.ts`'s
+    two-tab stale-conflict test occasionally exceeds even a 25s wait
+    when multiple Playwright projects run concurrently against this
+    app's single-threaded `php artisan serve` dev server, which queues
+    their requests behind each other — verified by re-running the file
+    under every combination of concurrently-running projects: any
+    project can be the one that times out (whichever one's request
+    happens to be queued behind another's), and every project passes
+    reliably when run alone against its own server instance. CI's own
+    `retries: 1` (already configured, unrelated to this finding) absorbs
+    it there. Slices 1-4 are done — Phase 06B is now complete per its
+    own hard completion gate.
+  - **Post-PR Codex review round** — an automated Codex review on the
+    branch's pull request raised 23 findings (mostly P1) across the
+    Phase 03-06B financial core; all confirmed real and fixed (412 tests,
+    up from 370): action-owned invoice/payment lifecycle states could be
+    set directly from the Filament forms, bypassing Issue/Verify entirely
+    (`InvoiceForm`/`PaymentForm` now `->disableOptionWhen()` those
+    options); `IssueInvoice` had no server-side role check and no
+    type/`is_recurring` scoping (now enforced inside the action itself,
+    not just table visibility — `CompanyRole::invoiceIssuanceRoles()`);
+    `AmendIssuedInvoice`/`VoidAndReissueInvoice` now require
+    `CompanyRole::documentAmendmentRoles()` and carry over the original's
+    document-level discount; invoice item reorder and Vendor Bill/PO item
+    edit/delete/reorder are now Draft-only; `ForceDeleteBulkAction` on
+    Vendor Bills/POs now skips any non-Draft or referenced row rather
+    than physically deleting it; `SendInvoiceReminders` now includes
+    `Issued` invoices and a suppression now lasts until its one covered
+    occurrence is actually consumed (`ReminderSuppression.consumed_at`)
+    rather than expiring on a fixed 24h window;
+    `DocumentNumberGenerator::next()` now takes the document's own date
+    so a backdated invoice's number/tax-recap period match its
+    `invoice_date`, not wall-clock "now"; `BuildStatementOfAccount` now
+    excludes Draft/Approved/Cancelled from the closing balance and
+    computes aging from `PaymentAllocation` history as of the period end
+    rather than each invoice's live `balance`; `CloseJobFinancially`'s
+    override gate now also covers unresolved/unallocated vendor cost, not
+    only customer AR; `VerifyCustomerPayment` now recalculates every
+    active-allocated invoice (closing the gap where a payment allocated
+    while still Pending never got recalculated once verified);
+    `AmendVendorPayment` now re-validates the PO-wide payment ceiling;
+    `ClientPortalHome` now merges legacy direct-linked payments with
+    allocation-based ones (`paymentEventsFor()`) instead of only the
+    former; `AutosavesDraft` now performs one atomic conditional UPDATE
+    (WHERE `draft_version` = known) instead of a separate read-then-write,
+    closing a lost-update race between concurrent autosaves; `Receipt`/
+    `VendorPaymentReceipt` now freeze a `snapshot` at issuance and render
+    from it, so a later allocation amendment or vendor-payment amendment
+    can no longer silently change an already-issued receipt's printed
+    content; the "Generate/Preview Statement of Account" actions now
+    surface a persistent, clickable notification action instead of a
+    4-second raw URL, and every generated one is listed and reopenable
+    from a new read-only `StatementOfAccountsRelationManager` on the
+    Client resource; `App\Actions\Billing\FileOrAdjustTaxRecap` (new) is
+    the first action that actually writes a `TaxRecap`'s filing/
+    adjustment fields (FINALIZED-DECISIONS.md §33's "adjustments require
+    reason and audit data" was previously unimplemented — the Infolist
+    was read-only). One further real bug was found (not from the Codex
+    review) while wiring that last action: reusing
+    `DownloadPdfAction::taxRecap()` with a `->record()` override on an
+    Infolist Section header action hangs the entire page in infinite
+    recursion for any issued taxable invoice — confirmed via a direct
+    HTTP request, independent of the new action. Fixed by building that
+    download action inline instead (deriving the TaxRecap through the
+    URL closure, never overriding the header action's own bound record);
+    see `DownloadPdfAction::taxRecap()`'s docblock for the warning. Three
+    further findings surfaced in a follow-up batch of review comments:
+    the Payment allocation Repeater silently kept only the last row for
+    a duplicate invoice selection instead of summing them
+    (`PaymentsTable::mapAllocations()`); `ClientPortalHome` had no status
+    filter at all, showing Draft/Approved (never issued to the customer)
+    and Cancelled/Void/Amended (stale/superseded) rows as apparently-
+    actionable invoices — now filtered to a client-visible status set;
+    `BuildStatementOfAccount::openingBalance()` summed only each
+    payment's *allocated* amount while the in-period `paymentRows()`
+    summed its *full* amount, so the same partially-allocated payment
+    reduced the balance differently depending only on which side of the
+    period boundary its `verified_at` fell — both now use the full
+    verified-payment-amount basis.
+- **Renovation Phase 06 (documents, portal, and reporting)** — per
+  `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
+  the backend-testable, high-value pieces; full visual QA/WCAG/browser
+  testing was deliberately NOT built — see
+  `docs/rebuild/outputs/21-phase-06-checkpoint-report.md` for why this
+  matches, rather than contradicts, this project's already-established
+  "no browser/E2E suite" policy (`docs/testing-coverage.md` "What's out
+  of scope").
+  - **Document localization** — `Invoice`/`Credit` gain a
+    `document_language` column (nullable; falls back to the new
+    `CompanySetting::default_document_language`, then `'id'`) and a
+    `resolveDocumentLanguage()` helper. `resources/lang/{id,en}/
+    documents.php` hold the printed-document label set — Bahasa
+    Indonesia is the default (`FINALIZED-DECISIONS.md`), English is a
+    per-document override. **No pre-existing approved Indonesian
+    glossary artifact exists in this repo** — the `id` values are a
+    constructed, standard-Indonesian-invoicing-terminology best effort,
+    flagged in that file's own docblock; have an Indonesian tax/
+    accounting professional validate the actual wording before
+    production, per `FINALIZED-DECISIONS.md` §6. `invoice.blade.php`/
+    `credit.blade.php` resolve the language and render every label via
+    `__('documents.*')` — the document-type word specifically (not
+    `InvoiceType::getLabel()`, which stays English-only for Filament's
+    own UI) comes from its own translation key.
+  - **`App\Models\PortalLink`** — a broader, contact-scoped, revocable/
+    expiring (30-day default) portal link, alongside (not replacing) the
+    existing per-invoice `Invitation`. `App\Actions\Portal\
+    GeneratePortalLink`/`RevokePortalLink` create/revoke it;
+    `App\Livewire\Portal\ClientPortalHome` (routed `/portal/link/
+    {portalLink:key}`, same `ResolveCompanyFromDomain` middleware group
+    as the existing portal routes) shows a designated billing contact
+    (`Contact::is_billing_contact`, Phase 02) every one of their client's
+    invoices, or an ordinary contact only the invoices they have an
+    explicit `Invitation` for — reusing `Invitation` as the "explicitly
+    shared documents" mechanism per `FINALIZED-DECISIONS.md` §5, rather
+    than building a separate sharing table. A revoked or expired link
+    404s exactly like a cross-company/nonexistent one — "cannot expose
+    disabled actions through stale links" is structural, not a
+    UI-level hide. Wired into `ClientResource`'s Contacts relation
+    manager ("Generate portal link" row action, emailed via
+    `BillingMailer::sendPortalLink()`) and a new read-only Portal Links
+    relation manager (a "Revoke" action).
+  - **`App\Actions\Billing\SuppressReminder`** — Owner/Admin/Accountant
+    only (`CompanyRole::paymentVerificationRoles()`, reused rather than a
+    new role helper), requires a reason, records an
+    `App\Models\ReminderSuppression` row and an audit event.
+    `SendInvoiceReminders` skips a tier for an invoice when a recent
+    suppression covers it — same one-send-per-day granularity the
+    command already documents as a known limitation, not a more elaborate
+    recurring-suppression model.
+  - **`App\Filament\Widgets\JobMarginReport`** — the job-cost/margin
+    report deferred from Phase 05's acceptance criteria ("Job margin
+    clearly distinguishes allocated gross cost from unallocated
+    purchasing cost"). A company-scoped, paginated `TableWidget` listing
+    every job's sales value (invoice totals excluding tax, Void/Amended/
+    Cancelled invoices excluded), allocated gross cost
+    (`SalesOrder::jobCostAllocations()`), margin, and unallocated
+    purchasing cost as four genuinely separate columns — never blended
+    into one number. Registered the same way the existing three
+    dashboard widgets already are: dropped into `app/Filament/Widgets/`
+    for `AdminPanelProvider`'s `discoverWidgets()` to pick up, no change
+    to `App\Filament\Pages\Dashboard` needed or made.
+  - Deliberately not built this phase: the Livewire tax scratchpad UI
+    (still Phase 04's own deferred item), a Statement of Account (`SOA`)
+    document type, autosave/Alpine dynamic-row work, company theme
+    tokens beyond what already exists, and any browser/visual-QA/WCAG
+    test suite — see the checkpoint report for the full reasoning.
+- **Renovation Phase 05 (procurement and delivery)** — connects vendor
+  purchasing and physical fulfillment to each job, per
+  `docs/rebuild/specs/05-procurement-and-delivery/Specs.md`. Resolves
+  `docs/REFACTOR_PLAN.md` §2 risk #6 (Expense vs. Vendor Bill): builds a
+  wholly new aggregate beside the legacy `Expense` model rather than
+  renaming/absorbing it — `Expense` doesn't map 1:1 to "a vendor payable
+  that may be paid in parts, tied to a job's cost" (no PO linkage, no
+  partial-payment tracking, no job-cost allocation), so it stays frozen
+  as a parallel non-job cost bucket, exactly the "new canonical classes
+  beside legacy" precedent `Quotation`/`SalesOrder` set in Phase 03:
+  - **`App\Models\VendorPurchaseOrder`/`VendorPurchaseOrderItem`**
+    (`App\Filament\Resources\VendorPurchaseOrders`, "Procurement" nav
+    group) — a Draft→Approved lifecycle
+    (`App\Enums\VendorPurchaseOrderStatus`); once created the PO's own
+    `total` is immutable — an over-budget bill is handled entirely by
+    `App\Models\VendorPoVariance` (append-only, Owner/Admin-only via
+    `App\Actions\Procurement\ApproveVendorPoVariance`,
+    `CompanyRole::vendorPoVarianceApprovalRoles()`), which raises the
+    effective payment ceiling
+    (`VendorPurchaseOrder::paymentCeiling()`) without ever touching the
+    PO.
+  - **`App\Models\VendorBill`/`VendorBillItem`**
+    (`App\Filament\Resources\VendorBills`) — always tied to one Vendor
+    PO; `App\Enums\VendorBillStatus` drives
+    `Draft → Submitted → Approved → PartiallyPaid → Paid`
+    (`App\Actions\Procurement\SubmitVendorBill`/`ApproveVendorBill`,
+    Owner/Admin/Accountant via `CompanyRole::vendorBillApprovalRoles()`).
+    Approving a bill never checks it against the PO ceiling — per
+    FINALIZED-DECISIONS.md §4 the block is entirely on *payment*:
+    `App\Actions\Procurement\RecordVendorPayment` sums every
+    non-reversed payment across every bill on the same PO and refuses to
+    exceed `paymentCeiling()`, naming the shortfall and requiring a
+    variance first. **Vendor payments are a parallel immutable event
+    model** (`FINALIZED-DECISIONS.md` §7, corrected after Phase 05
+    originally shipped a simpler direct-record `VendorPayment`): a
+    recorded payment starts `App\Enums\VendorPaymentStatus::Pending` and
+    only counts toward a bill once
+    `App\Actions\Procurement\VerifyVendorPayment` (Owner/Admin/
+    Accountant, proof required, cheque needs a cleared date) moves it to
+    `Verified` — `App\Services\Procurement\RecalculateVendorBillPayments`
+    is the only writer of a bill's `amount_paid`/`balance`/billable
+    status and sums only `Verified` rows (mirrors
+    `RecalculateInvoiceReceivables` from Phase 04, now exactly).
+    `App\Actions\Procurement\IssueVendorPaymentReceipt` issues exactly
+    one `App\Models\VendorPaymentReceipt` (the `VPR` launch code, moved
+    here from the payment's own record-time `number`) per verified
+    event; `ReverseVendorPayment`/`AmendVendorPayment` correct a payment
+    without mutating it, mirroring `ReverseCustomerPayment`/
+    `AmendPaymentAllocation`. Each `VendorBillItem` keeps net/tax/gross
+    components separately (`FINALIZED-DECISIONS.md` §3: "for Karunia,
+    vendor tax is permitted and treated as nonrecoverable gross cost" —
+    no input-tax-credit engine is built).
+  - **`App\Models\JobCostAllocation`** (append-only) — written only by
+    `App\Actions\Procurement\AllocateJobCost`, which splits one
+    `VendorBillItem`'s gross cost across one or more Jobs, guarded by
+    `VendorBillItem::unallocatedAmount()` so a source line is never
+    over-allocated. "One vendor purchase may serve multiple jobs" is
+    literal: the same item can be allocated to several `SalesOrder`s.
+  - **`App\Models\DeliveryOrder`/`DeliveryOrderItem`,
+    `App\Models\HandoverReport`** — recorded via
+    `App\Actions\Delivery\CompleteDelivery`/`CompleteHandover`
+    (`CompanyRole::deliveryAndHandoverRoles()`, i.e. everyone but
+    Auditor). A job may have multiple partial Delivery Orders.
+    `SalesOrder::requires_handover` (new column, default `true`) decides
+    whether `CompleteHandover` requires
+    `SalesOrder::isFullyDelivered()` first — Owner/Admin may override
+    with a reason.
+  - **`App\Actions\Sales\CloseJobOperationally`/`CloseJobFinancially`** —
+    operational closure needs a Handover Report for a job that
+    `requires_handover`, or just one recorded Delivery Order for a
+    goods-only job. Financial closure is blocked by any outstanding
+    invoice balance linked to the job (`Invoice::sales_order_id`) unless
+    the acting user's role is *exactly* Owner (never Admin — "Admin may
+    prepare but cannot finalize the override," FINALIZED-DECISIONS.md
+    §4) and supplies both a reason and an outstanding-balance summary.
+    `SalesOrder::isFullyClosed()` (Phase 03) is now actually meaningful:
+    true only once both actions have each run.
+  - Full Filament wiring: both new resources follow the established
+    full-page-plus-relation-managers shape; `SalesOrderResource` gains
+    `DeliveryOrdersRelationManager`/`HandoverReportsRelationManager`
+    (read-only lists, each with one custom "record" header action, the
+    same `isReadOnly()`-plus-custom-`Action::make()` pattern
+    `VariationsRelationManager` established in Phase 03) and two new
+    row actions (Close operationally/Close financially).
+  - Deliberately not built this phase (see
+    `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`): vendor PO/
+    bill PDF export, a dedicated job-cost/margin report, and any
+    attachment/evidence upload beyond the existing pattern — all
+    correctly Phase 06 (`documents-portal-reporting`) scope.
+- **Renovation Phase 04 (billing and receivables)** — authoritative
+  calculation and immutable customer receivables, per
+  `docs/rebuild/specs/04-billing-and-receivables/Specs.md`. Extends
+  (rather than replaces) the legacy `Invoice`/`InvoiceItem`/`Payment`
+  classes, per `docs/REFACTOR_PLAN.md`'s phase table — unlike
+  `Quotation`/`SalesOrder` in Phase 03, real invoice/payment history
+  already lives here:
+  - **`App\Services\Tax\TaxCalculationService`** — the pure, stateless
+    engine (no model writes): line subtotal → line discount → global
+    discount (deterministic largest-remainder allocation) → taxable base
+    → tax → total, per `FINALIZED-DECISIONS.md` §3. Karunia
+    (`CompanyTaxSetting::tax_enabled = false`) always returns zero tax;
+    Axen applies the approved 12% PPN / 11-12 DPP Nilai Lain factor only
+    to `TaxCategory::StandardTaxable` lines (`App\Models\InvoiceItem::
+    resolveTaxCategory()` falls back line → product → StandardTaxable).
+    The final payable total is rounded upward to a whole Rupiah, with
+    the pre-round amount and rounding adjustment kept alongside it.
+  - **`App\Actions\Billing\IssueInvoice`** — the only path from
+    `InvoiceStatus::Draft`/`Approved` to `Issued`: advances Draft→Approved
+    →Issued in one call, computes totals via `TaxCalculationService`,
+    and writes an immutable `App\Models\InvoiceTaxSnapshot` (plus an
+    `App\Models\TaxRecap` when the result is taxable) — never a bare
+    status/total edit. `App\Actions\Billing\AmendIssuedInvoice`/
+    `VoidAndReissueInvoice` are the only corrections to an issued
+    invoice: each creates a brand-new linked `Invoice` row (via
+    `original_invoice_id`) and flips the original to `Amended`/`Void`
+    with a required reason — the original's own number, total, and tax
+    snapshot are never touched. Amendments get their own `INV-A`
+    numbering sequence; a void-and-reissue gets a fresh plain `INV`
+    number.
+  - **`App\Actions\Receivables\*`** — `RecordCustomerPayment` (always
+    starts `PaymentStatus::Pending`, requires a `proof_path`),
+    `VerifyCustomerPayment` (Owner/Admin/Accountant only —
+    `CompanyRole::paymentVerificationRoles()` — and a cheque requires
+    `cheque_cleared_at` first), `AllocateCustomerPayment` (only across
+    invoices sharing the payment's own `company_id`/`client_id`, never
+    exceeding the payment's amount — an unallocated remainder is a
+    visible overpayment, not an error), `IssuePaymentReceipt` (exactly
+    one `App\Models\Receipt` per verified payment, DB-enforced via a
+    unique `payment_id`), `ReverseCustomerPayment` (preserves the
+    payment/receipt/allocation history — a reversed payment's
+    allocations simply stop counting toward any invoice's balance),
+    `AmendPaymentAllocation` (only once a receipt already exists;
+    preserves the receipt's own snapshot and records the before/after
+    split on a new `App\Models\ReceiptAmendment` row instead). No
+    invoice's `amount_paid`/`balance`/billable status is ever hand-set —
+    `App\Services\Receivables\RecalculateInvoiceReceivables` is the only
+    writer, summing only `is_active` allocations from `Verified`
+    payments.
+  - Full Filament wiring on the existing `InvoiceResource`/
+    `PaymentResource` tables (Issue/Amend/Void & reissue; Verify/
+    Allocate/Issue receipt/Reverse/Amend allocation), each action
+    catching `RuntimeException` into a danger `Notification` — see
+    `App\Filament\Resources\Invoices\Tables\InvoicesTable`/
+    `App\Filament\Resources\Payments\Tables\PaymentsTable`.
+  - Deliberately not built this phase (see
+    `docs/rebuild/outputs/18-phase-04-checkpoint-report.md` for the
+    full breakdown): the Livewire tax scratchpad UI, PDF rendering of
+    tax snapshots/recaps, `Credit`/`RecurringInvoice` nav deprecation,
+    and any procurement/job-cost/delivery work — all correctly Phase
+    05/06 scope.
 - **Renovation Phase 03 (sales and job)** — the job-centric aggregate
   from `docs/rebuild/specs/03-sales-and-job/Specs.md`, built as new
   canonical classes beside (not replacing) the legacy resources, per
@@ -420,7 +834,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 208 tests as of the milestone-percentage fix + product picture/Quotation+Proposal PDF slice — see docs/testing-coverage.md
+php artisan test      # 412 PHP tests + a Playwright browser suite (npm run test:browser) as of Phase 06B (complete) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 
