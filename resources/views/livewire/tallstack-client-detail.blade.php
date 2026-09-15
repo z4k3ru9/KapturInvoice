@@ -30,148 +30,156 @@
         </x-stats>
     </div>
 
-    {{-- Two-column info card — left: email/phone/website/tax number/id
-         number, right: address/currency — literally prompt 10's own
-         layout. --}}
-    <x-card>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div class="flex flex-col gap-3">
-                <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Contact</h3>
-                <dl class="flex flex-col gap-2 text-sm">
-                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Email</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->email ?: '—' }}</dd></div>
-                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Phone</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->phone ?: '—' }}</dd></div>
-                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Website</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->website ?: '—' }}</dd></div>
-                    <div class="flex justify-between gap-4"><dt class="text-gray-500">Tax number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->tax_number ?: '—' }}</dd></div>
-                    <div class="flex justify-between gap-4"><dt class="text-gray-500">ID number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->id_number ?: '—' }}</dd></div>
-                </dl>
-            </div>
-            <div class="flex flex-col gap-3">
-                <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Address &amp; currency</h3>
-                <div class="text-sm text-gray-900 dark:text-gray-100">
-                    @if ($client->address_line_1 || $client->address_line_2 || $client->city || $client->state || $client->postal_code)
-                        <p>{{ $client->address_line_1 }}</p>
-                        @if ($client->address_line_2)
-                            <p>{{ $client->address_line_2 }}</p>
-                        @endif
-                        <p>{{ collect([$client->city, $client->state, $client->postal_code])->filter()->implode(', ') }}</p>
-                        <p>{{ $client->country_code ?: '—' }}</p>
-                    @else
-                        <p class="text-gray-500">No address on file.</p>
-                    @endif
+    {{-- Tabbed body — client name + ledger stats above stay pinned outside
+         these tabs (see the header and stats strip above). Grouping mirrors
+         this page's actual sections (no Quotations/Jobs/Invoices lists live
+         here — those numbers are already summarized in the stats strip
+         above): Overview (contact/address/billing-default detail),
+         Contacts, Portal Links, and Statements of Account, one tab each for
+         what used to be four separately-stacked <x-card> sections. --}}
+    <x-tab selected="overview" scroll-on-mobile>
+        <x-tab.items tab="overview" title="Overview">
+            {{-- Two-column info card — left: email/phone/website/tax
+                 number/id number, right: address/currency — literally
+                 prompt 10's own layout. --}}
+            <x-card>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="flex flex-col gap-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Contact</h3>
+                        <dl class="flex flex-col gap-2 text-sm">
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Email</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->email ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Phone</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->phone ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Website</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->website ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Tax number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->tax_number ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500">ID number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->id_number ?: '—' }}</dd></div>
+                        </dl>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Address &amp; currency</h3>
+                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                            @if ($client->address_line_1 || $client->address_line_2 || $client->city || $client->state || $client->postal_code)
+                                <p>{{ $client->address_line_1 }}</p>
+                                @if ($client->address_line_2)
+                                    <p>{{ $client->address_line_2 }}</p>
+                                @endif
+                                <p>{{ collect([$client->city, $client->state, $client->postal_code])->filter()->implode(', ') }}</p>
+                                <p>{{ $client->country_code ?: '—' }}</p>
+                            @else
+                                <p class="text-gray-500">No address on file.</p>
+                            @endif
+                        </div>
+                        <div class="flex justify-between gap-4 text-sm">
+                            <span class="text-gray-500">Currency</span>
+                            <span class="text-gray-900 dark:text-gray-100">{{ $client->currency_code ?: '—' }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex justify-between gap-4 text-sm">
-                    <span class="text-gray-500">Currency</span>
-                    <span class="text-gray-900 dark:text-gray-100">{{ $client->currency_code ?: '—' }}</span>
-                </div>
-            </div>
-        </div>
-    </x-card>
+            </x-card>
 
-    {{-- Billing defaults — read-only helper text, per prompt 10: "not an
-         editable field on this read view." --}}
-    <x-card>
-        <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Billing defaults</span>
-        </x-slot:header>
-        <div class="flex items-center justify-between gap-4">
-            <div>
-                <div class="text-sm text-gray-900 dark:text-gray-100">
-                    Default discount:
-                    <span class="font-semibold tabular-nums">{{ number_format((float) $client->default_discount, 2) }}</span>
-                    <x-badge :text="$client->default_discount_is_percentage ? 'Percentage' : 'Fixed amount'" color="gray" sm />
+            {{-- Billing defaults — read-only helper text, per prompt 10:
+                 "not an editable field on this read view." --}}
+            <x-card class="mt-5">
+                <x-slot:header>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Billing defaults</span>
+                </x-slot:header>
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                            Default discount:
+                            <span class="font-semibold tabular-nums">{{ number_format((float) $client->default_discount, 2) }}</span>
+                            <x-badge :text="$client->default_discount_is_percentage ? 'Percentage' : 'Fixed amount'" color="gray" sm />
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Prefilled onto new invoices for this client — editable per invoice.</p>
+                    </div>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Prefilled onto new invoices for this client — editable per invoice.</p>
-            </div>
-        </div>
-    </x-card>
+            </x-card>
+        </x-tab.items>
 
-    {{-- Contacts relation manager. --}}
-    <x-card>
-        <x-slot:header>
-            <div class="flex items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Contacts</span>
+        {{-- Contacts relation manager. NOTE: deliberately no live-count
+             <x-slot:right> badge here — TallStackUI's <x-tab.items> bakes
+             its right-slot content into a one-time Alpine `x-init`
+             call (tabs.push(...)) that runs again, duplicating this tab's
+             header entry, whenever Livewire's morph sees that baked
+             content change between renders (verified live: adding/
+             deleting a contact changed this count and produced a second
+             "Contacts" tab header in the nav). Keep tab labels static;
+             counts belong on the stats strip above, not in a tab. --}}
+        <x-tab.items tab="contacts" title="Contacts">
+            <div class="flex items-center justify-end mb-4">
                 <x-button text="New contact" icon="plus" color="blue" sm class="h-9" wire:click="addContact" />
             </div>
-        </x-slot:header>
 
-        <x-table :headers="[
-            ['index' => 'name', 'label' => 'Name'],
-            ['index' => 'email', 'label' => 'Email'],
-            ['index' => 'phone', 'label' => 'Phone'],
-            ['index' => 'is_billing_contact', 'label' => 'Is billing contact'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$contacts">
-            @interact('column_is_billing_contact', $row)
-                <x-badge :text="$row['is_billing_contact'] ? 'Billing contact' : 'Ordinary'" :color="$row['is_billing_contact'] ? 'green' : 'gray'" sm />
-            @endinteract
+            <x-table :headers="[
+                ['index' => 'name', 'label' => 'Name'],
+                ['index' => 'email', 'label' => 'Email'],
+                ['index' => 'phone', 'label' => 'Phone'],
+                ['index' => 'is_billing_contact', 'label' => 'Is billing contact'],
+                ['index' => 'actions', 'label' => '', 'sortable' => false],
+            ]" :rows="$contacts">
+                @interact('column_is_billing_contact', $row)
+                    <x-badge :text="$row['is_billing_contact'] ? 'Billing contact' : 'Ordinary'" :color="$row['is_billing_contact'] ? 'green' : 'gray'" sm />
+                @endinteract
 
-            @interact('column_actions', $row)
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" wire:click="editContact({{ $row['id'] }})" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Generate portal link" icon="link" wire:click="generatePortalLink({{ $row['id'] }})" />
-                        <x-dropdown.items text="Delete" icon="trash" wire:click="deleteContact({{ $row['id'] }})" wire:confirm="Delete this contact?" />
-                    </x-dropdown>
-                </div>
-            @endinteract
+                @interact('column_actions', $row)
+                    <div class="flex items-center justify-end gap-2">
+                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" wire:click="editContact({{ $row['id'] }})" />
+                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                            <x-dropdown.items text="Generate portal link" icon="link" wire:click="generatePortalLink({{ $row['id'] }})" />
+                            <x-dropdown.items text="Delete" icon="trash" wire:click="deleteContact({{ $row['id'] }})" wire:confirm="Delete this contact?" />
+                        </x-dropdown>
+                    </div>
+                @endinteract
 
-            <x-slot:empty>No contacts yet — New contact to add one.</x-slot:empty>
-        </x-table>
-    </x-card>
+                <x-slot:empty>No contacts yet — New contact to add one.</x-slot:empty>
+            </x-table>
+        </x-tab.items>
 
-    {{-- Portal Links relation manager — read-only, "Revoke" for active
-         links only, same as PortalLinksRelationManager. --}}
-    <x-card>
-        <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Portal Links</span>
-        </x-slot:header>
+        {{-- Portal Links relation manager — read-only, "Revoke" for active
+             links only, same as PortalLinksRelationManager. --}}
+        <x-tab.items tab="portal-links" title="Portal Links">
+            <x-table :headers="[
+                ['index' => 'contact', 'label' => 'Contact'],
+                ['index' => 'created_at', 'label' => 'Created'],
+                ['index' => 'expires_at', 'label' => 'Expires'],
+                ['index' => 'status_label', 'label' => 'Status'],
+                ['index' => 'actions', 'label' => '', 'sortable' => false],
+            ]" :rows="$portalLinks">
+                @interact('column_status_label', $row)
+                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
+                @endinteract
 
-        <x-table :headers="[
-            ['index' => 'contact', 'label' => 'Contact'],
-            ['index' => 'created_at', 'label' => 'Created'],
-            ['index' => 'expires_at', 'label' => 'Expires'],
-            ['index' => 'status_label', 'label' => 'Status'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$portalLinks">
-            @interact('column_status_label', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
-            @endinteract
+                @interact('column_actions', $row)
+                    <div class="flex items-center justify-end">
+                        @unless ($row['revoked'])
+                            <x-button text="Revoke" color="red" scope="row-action" sm wire:click="revokePortalLink({{ $row['id'] }})" wire:confirm="Revoke this portal link?" />
+                        @endunless
+                    </div>
+                @endinteract
 
-            @interact('column_actions', $row)
-                <div class="flex items-center justify-end">
-                    @unless ($row['revoked'])
-                        <x-button text="Revoke" color="red" scope="row-action" sm wire:click="revokePortalLink({{ $row['id'] }})" wire:confirm="Revoke this portal link?" />
-                    @endunless
-                </div>
-            @endinteract
+                <x-slot:empty>No portal links generated yet.</x-slot:empty>
+            </x-table>
+        </x-tab.items>
 
-            <x-slot:empty>No portal links generated yet.</x-slot:empty>
-        </x-table>
-    </x-card>
+        {{-- Statements of Account relation manager — read-only, reopens
+             every previously generated one. --}}
+        <x-tab.items tab="statements" title="Statements of Account">
+            <x-table :headers="[
+                ['index' => 'number', 'label' => 'Number'],
+                ['index' => 'period', 'label' => 'Period'],
+                ['index' => 'generated_at', 'label' => 'Generated'],
+                ['index' => 'actions', 'label' => '', 'sortable' => false],
+            ]" :rows="$statements">
+                @interact('column_actions', $row, $company, $client)
+                    <div class="flex items-center justify-end gap-1">
+                        <x-button icon="eye" href="{{ route('tallstack.clients.statement-of-account', ['company' => $company, 'client' => $client, 'statementOfAccount' => $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="View" />
+                        <x-button icon="document-arrow-down" href="{{ route('statement-of-accounts.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
+                    </div>
+                @endinteract
 
-    {{-- Statements of Account relation manager — read-only, reopens every
-         previously generated one. --}}
-    <x-card>
-        <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Statements of Account</span>
-        </x-slot:header>
-
-        <x-table :headers="[
-            ['index' => 'number', 'label' => 'Number'],
-            ['index' => 'period', 'label' => 'Period'],
-            ['index' => 'generated_at', 'label' => 'Generated'],
-            ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$statements">
-            @interact('column_actions', $row, $company, $client)
-                <div class="flex items-center justify-end gap-1">
-                    <x-button icon="eye" href="{{ route('tallstack.clients.statement-of-account', ['company' => $company, 'client' => $client, 'statementOfAccount' => $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="View" />
-                    <x-button icon="document-arrow-down" href="{{ route('statement-of-accounts.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                </div>
-            @endinteract
-
-            <x-slot:empty>No statements generated yet.</x-slot:empty>
-        </x-table>
-    </x-card>
+                <x-slot:empty>No statements generated yet.</x-slot:empty>
+            </x-table>
+        </x-tab.items>
+    </x-tab>
 
     {{-- Edit client. --}}
     <x-modal wire="showClientModal" title="Edit client" center="lg">

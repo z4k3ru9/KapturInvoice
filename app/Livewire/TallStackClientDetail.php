@@ -36,6 +36,13 @@ use TallStackUi\Traits\Interactions;
  * themselves have no dedicated domain action layer in this app (the
  * Filament form/relation manager wrote to them with plain Eloquent
  * create/update, so this page does too).
+ *
+ * The view groups its Contacts/Portal Links/Statements of Account
+ * sections (formerly three separately-stacked <x-card> tables) into an
+ * <x-tab> layout (repair-plan Phase 07) — the client name and ledger
+ * stats stay pinned above the tabs, never buried inside one, per this
+ * project's own earlier QA note that the ledger needs to stay "shown
+ * clearly." No render()/mutation logic changed for this pass.
  */
 #[Layout('components.tallstack.app')]
 class TallStackClientDetail extends Component
