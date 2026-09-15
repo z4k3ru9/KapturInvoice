@@ -36,6 +36,10 @@ use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
+use App\Livewire\TallStackSettingsBranding;
+use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsEmail;
+use App\Livewire\TallStackSettingsLookups;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -237,6 +241,28 @@ Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::cl
 Route::get('/tall/{company:slug}/products', TallStackProducts::class)
     ->middleware('auth')
     ->name('tallstack.products');
+
+// Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Settings, TALL-stack-native alongside the Filament pages/resources they
+// mirror (App\Filament\Pages\Tenancy\EditCompanyProfile,
+// App\Filament\Pages\Settings\EditEmailSettings/EditBrandingSettings, and
+// the TaxRates/ExpenseCategories/TaskStatuses small-lookup resources).
+// Every component re-checks canAccessTenant() AND the same
+// CompanyPolicy::viewSettings() (Owner/Admin only) gate those Filament
+// pages already use, explicitly in mount() — same reasoning as every
+// other TALL-stack route.
+Route::get('/tall/{company:slug}/settings/company-and-taxes', TallStackSettingsCompanyTaxes::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.company-and-taxes');
+Route::get('/tall/{company:slug}/settings/email-and-reminders', TallStackSettingsEmail::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.email');
+Route::get('/tall/{company:slug}/settings/branding', TallStackSettingsBranding::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.branding');
+Route::get('/tall/{company:slug}/settings/lookups', TallStackSettingsLookups::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.lookups');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF

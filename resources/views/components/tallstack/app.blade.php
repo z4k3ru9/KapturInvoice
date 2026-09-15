@@ -35,6 +35,17 @@
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
         ],
+        // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order
+        // (... Reports → Settings, last) and the Stitch "Company & Taxes
+        // Settings"/"Settings — Tax Rates & Small Lookups" mockups' own
+        // sidebar, which both place this group last too.
+        'Settings' => [
+            ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
+            ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
+            ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
+            ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
+        ],
     ];
 @endphp
 
