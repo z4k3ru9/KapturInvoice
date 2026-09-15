@@ -17,12 +17,12 @@
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => route('tallstack.quotes', $company), 'icon' => 'document-duplicate'],
             ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
         ],
-        // Mirrors App\Filament\Resources\Proposals\ProposalResource's own
-        // navigationGroup ('Proposals', a group of its own rather than
-        // folded into Sales/Billing) — that resource's own
-        // shouldRegisterNavigation() is false so it never actually shows
-        // in the Filament sidebar, but this is still the grouping the
-        // resource itself declares.
+        // Mirrors the equivalent resource's own navigationGroup
+        // ('Proposals', a group of its own rather than folded into
+        // Sales/Billing) from the pre-TallStackUI Filament admin — that
+        // resource's own shouldRegisterNavigation() was false so it never
+        // actually showed in the Filament sidebar, but this is still the
+        // grouping the resource itself declared.
         'Proposals' => [
             ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
         ],
@@ -32,8 +32,9 @@
             ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
             // Pre-Filament-removal gap audit item
             // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-            // prompt 19) — mirrors App\Filament\Resources\Expenses\ExpenseResource's
-            // own navigationGroup ('Procurement'), folded into this SAME
+            // prompt 19) — mirrors the equivalent resource's own
+            // navigationGroup ('Procurement') from the pre-TallStackUI
+            // Filament admin, folded into this SAME
             // 'Procurement' key, never a second 'Procurement' => [...]
             // block (see this file's own duplicate-key warning further
             // down).
@@ -52,8 +53,9 @@
             ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
             // Pre-Filament-removal gap audit item
             // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-            // prompt 21) — mirrors App\Filament\Resources\Invitations\InvitationResource's
-            // own navigationGroup ('Clients'), folded into this SAME
+            // prompt 21) — mirrors the equivalent resource's own
+            // navigationGroup ('Clients') from the pre-TallStackUI
+            // Filament admin, folded into this SAME
             // 'Clients' key, never a second 'Clients' => [...] block (see
             // this file's own duplicate-key warning further down).
             ['key' => 'client-portal-invitations', 'label' => 'Portal Invitations', 'route' => route('tallstack.client-portal-invitations', $company), 'icon' => 'link'],
@@ -68,8 +70,8 @@
             ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
         ],
         // Pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-        // prompt 22) — mirrors App\Filament\Resources\Documents\DocumentResource's
-        // own navigationGroup ('Documents', a group of its own, placed
+        // prompt 22) — mirrors the equivalent resource's own
+        // navigationGroup ('Documents', a group of its own, placed
         // right after Catalog/before Reports in AdminPanelProvider's own
         // pinned nav-group order) — a genuinely new top-level array entry,
         // never folded into an existing group (see this file's own
@@ -95,9 +97,9 @@
         // (... Reports → Settings, last) and the Stitch "Company & Taxes
         // Settings"/"Settings — Tax Rates & Small Lookups" mockups' own
         // sidebar, which both place this group last too.
-        // "Users & Roles" is administrative/settings-adjacent (matches
-        // Filament's own UserResource, App\Filament\Resources\Users\
-        // UserResource, navigationGroup 'Team' — kept under this app's own
+        // "Users & Roles" is administrative/settings-adjacent (matches the
+        // equivalent resource's own navigationGroup 'Team' from the
+        // pre-TallStackUI Filament admin — kept under this app's own
         // "Settings" grouping here since a standalone one-item nav group
         // reads as noise at this sidebar width) — folded into the same
         // 'Settings' key as the Phase 9 pages below it. PHP array literals
