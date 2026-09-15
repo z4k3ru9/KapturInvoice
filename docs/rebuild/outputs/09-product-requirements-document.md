@@ -1,5 +1,12 @@
 # KapturInvoice Product Requirements Document
 
+> **⚠️ SUPERSEDED — early planning draft.** This early, detailed PRD is now
+> substantially superseded by the concise, currently-approved
+> [`docs/rebuild/PRD.md`](../PRD.md) and the detailed execution
+> requirements in [`docs/rebuild/Specs.md`](../Specs.md) — those are the
+> documents CLAUDE.md's reading order points to. Kept for historical
+> reference only; do not treat this file as the approved baseline.
+
 Status: Approved baseline
 Date: 2026-09-10
 Product: KapturInvoice

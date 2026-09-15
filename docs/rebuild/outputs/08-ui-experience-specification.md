@@ -1,5 +1,11 @@
 # KapturInvoice UI Experience Specification
 
+> **⚠️ SUPERSEDED — superseded by DESIGN.md.** This document itself already
+> says its execution-facing contract moved to
+> [`docs/rebuild/DESIGN.md`](../DESIGN.md), which now consolidates and
+> supersedes the flow/appearance/interaction/responsive/accessibility/QA
+> decisions below. Kept for historical reference only.
+
 Status: Approved through the UI/UX requirements grill
 Date: 2026-09-12
 

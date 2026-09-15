@@ -1,5 +1,13 @@
 # KapturInvoice Renovation Architecture Specification
 
+> **⚠️ SUPERSEDED — early planning draft.** This document's bounded
+> contexts and phase-lettered plan (Phase A-G) predate the actual phase
+> structure. It is now substantially superseded by
+> [`docs/rebuild/Specs.md`](../Specs.md) §5 (target architecture) and §16
+> (recoding order), which describe the phase structure actually used
+> (`docs/rebuild/specs/01-*` through `06b-*`). Kept for historical
+> reference only.
+
 Status: Approved direction derived from the PRD  
 Purpose: Guide database renovation and application restructuring before feature recoding
 

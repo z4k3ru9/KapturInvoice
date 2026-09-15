@@ -1,5 +1,11 @@
 # KapturInvoice Migration Execution Runbook
 
+> **⚠️ SUPERSEDED — early planning draft.** This is a pre-implementation
+> cutover runbook with no real numbers. It is now substantially superseded
+> by [`docs/rebuild/Specs.md`](../Specs.md) §14 (migration specification)
+> and, for the real verified reconciliation of the two actual companies,
+> `docs/data-import.md`. Kept for historical reference only.
+
 Status: Approved direction derived from the PRD  
 Sources: Company A InvoiceNinja 4, non-tax; Company B InvoiceNinja 5, tax-enabled
 

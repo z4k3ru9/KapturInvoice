@@ -1,5 +1,15 @@
 # KapturInvoice Localization and Terminology
 
+> **⚠️ SUPERSEDED — early planning draft.** The locale-behavior rules here
+> are now covered by [`docs/rebuild/Specs.md`](../Specs.md) §13. The
+> starting glossary below is an early draft and contains at least one
+> confirmed wrong term ("Statement of Account" → "Laporan Rekening",
+> which specifically means a *bank* statement — corrected to "Laporan
+> Piutang Pelanggan" during Phase 06B, see
+> `22-phase-06b-terminology-sources.md`). The actual, sourced-and-reviewed
+> glossary lives in `resources/lang/{id,en}/documents.php`. Kept for
+> historical reference only — do not copy terms from this file.
+
 ## Decision
 
 Generated and printed business documents must be available in Bahasa Indonesia when required. Bahasa Indonesia is the first required document locale and must use terminology aligned with Indonesian business practice.
