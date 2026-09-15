@@ -20,6 +20,15 @@
             ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => "{$adminBase}/vendor-bills", 'icon' => 'clipboard-document-list'],
             ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
         ],
+        // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order (Sales
+        // → Procurement → Delivery → Catalog → Reports → Settings) and the
+        // Stitch "Delivery Orders & Handover Register" mockup's own
+        // sidebar, which places this group in the same spot.
+        'Delivery' => [
+            ['key' => 'delivery-orders', 'label' => 'Delivery Orders', 'route' => route('tallstack.delivery-orders', $company), 'icon' => 'truck'],
+            ['key' => 'handover-reports', 'label' => 'Handover Reports', 'route' => route('tallstack.handover-reports', $company), 'icon' => 'document-check'],
+        ],
         'Clients' => [
             ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
         ],

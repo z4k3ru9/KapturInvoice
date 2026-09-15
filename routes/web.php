@@ -24,6 +24,9 @@ use App\Livewire\HomePage;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
+use App\Livewire\TallStackDeliveryOrder;
+use App\Livewire\TallStackDeliveryOrders;
+use App\Livewire\TallStackHandoverReports;
 use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackPaymentAllocation;
@@ -200,6 +203,29 @@ Route::get('/tall/{company:slug}/payments', TallStackPayments::class)
 Route::get('/tall/{company:slug}/payments/{payment}', TallStackPaymentAllocation::class)
     ->middleware('auth')
     ->name('tallstack.payments.allocate');
+
+// Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// standalone Delivery Orders/Handover Reports registers browsing across
+// ALL jobs, TALL-stack-native alongside the read-only relation managers
+// they mirror (App\Filament\Resources\SalesOrders\RelationManagers\
+// DeliveryOrdersRelationManager/HandoverReportsRelationManager). Neither
+// page duplicates the "Record delivery"/"Record handover" actions already
+// wired inline on App\Livewire\TallStackSalesOrder's Delivery tab — both
+// are read/browse surfaces that link back to the owning job's workspace
+// to complete an in-progress job. `/delivery-orders/{deliveryOrder}` is
+// registered after the bare `/delivery-orders` list so the literal
+// segment binds first, same ordering reasoning as the Quotations routes
+// above. Both components re-check company ownership explicitly in
+// mount() — same reasoning as every other TALL-stack route.
+Route::get('/tall/{company:slug}/delivery-orders', TallStackDeliveryOrders::class)
+    ->middleware('auth')
+    ->name('tallstack.delivery-orders');
+Route::get('/tall/{company:slug}/delivery-orders/{deliveryOrder}', TallStackDeliveryOrder::class)
+    ->middleware('auth')
+    ->name('tallstack.delivery-orders.show');
+Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::class)
+    ->middleware('auth')
+    ->name('tallstack.handover-reports');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
