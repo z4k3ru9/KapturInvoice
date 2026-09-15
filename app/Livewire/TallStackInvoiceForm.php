@@ -807,6 +807,21 @@ class TallStackInvoiceForm extends Component
         $taxRecapAlreadyFiled = $this->invoice?->taxRecap
             && (filled($this->invoice->taxRecap->filing_date) || $this->invoice->taxRecap->manual_entry_status === 'filed');
 
+        // Same Pending/Filed/Adjusted derivation and gray/green/blue-role
+        // coloring as TallStackReports::taxRecaps() — this badge previously
+        // only checked manual_entry_status === 'filed', so an adjusted
+        // recap (adjusted_at set, manual_entry_status left at 'filed')
+        // rendered as plain green "Filed" here while the Reports page
+        // correctly showed blue "Adjusted" for the same row.
+        $taxRecapStatusLabel = 'Pending';
+        $taxRecapStatusColor = 'amber';
+        if ($recap = $this->invoice?->taxRecap) {
+            $filed = filled($recap->filing_date) || $recap->manual_entry_status === 'filed';
+            $adjusted = filled($recap->adjusted_at);
+            $taxRecapStatusLabel = $adjusted ? 'Adjusted' : ($filed ? 'Filed' : 'Pending');
+            $taxRecapStatusColor = $adjusted ? 'blue' : ($filed ? 'green' : 'amber');
+        }
+
         return view('livewire.tallstack-invoice-form', [
             'clients' => Client::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'products' => Product::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
@@ -821,6 +836,8 @@ class TallStackInvoiceForm extends Component
             'amountPaid' => $this->invoice ? Money::format((float) $this->invoice->amount_paid, $currency) : Money::format(0, $currency),
             'balance' => $this->invoice ? Money::format((float) $this->invoice->balance, $currency) : Money::format(0, $currency),
             'taxRecapAlreadyFiled' => $taxRecapAlreadyFiled,
+            'taxRecapStatusLabel' => $taxRecapStatusLabel,
+            'taxRecapStatusColor' => $taxRecapStatusColor,
             'documents' => $this->invoice ? $this->documentRows($this->invoice) : collect(),
         ])->layoutData([
             'company' => $this->company,

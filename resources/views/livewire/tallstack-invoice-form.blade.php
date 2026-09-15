@@ -263,7 +263,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 dark:text-gray-400">Status</span>
-                            <x-badge text="{{ ucfirst($invoice->taxRecap->manual_entry_status ?? 'pending') }}" :color="$invoice->taxRecap->manual_entry_status === 'filed' ? 'green' : 'amber'" sm />
+                            <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 dark:text-gray-400">Filing date</span>

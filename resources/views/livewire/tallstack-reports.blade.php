@@ -84,7 +84,7 @@
                 </a>
             @endinteract
             @interact('column_status', $row)
-                <x-badge :text="$row['status']" :color="$row['status_color']" sm />
+                <x-badge :text="$row['status']" :color="$row['status_color']" sm light />
             @endinteract
             @interact('column_margin', $row)
                 <span class="tabular-nums {{ $row['margin_negative'] ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-green-600 dark:text-green-400' }}">
@@ -132,7 +132,7 @@
                 ['index' => 'actions', 'label' => ''],
             ]" :rows="$taxRecaps">
                 @interact('column_status_label', $row)
-                    <x-badge :text="$row['status_label']" :color="$row['status_color']" sm />
+                    <x-badge :text="$row['status_label']" :color="$row['status_color']" sm light />
                 @endinteract
                 @interact('column_actions', $row)
                     <div class="flex items-center justify-end">
