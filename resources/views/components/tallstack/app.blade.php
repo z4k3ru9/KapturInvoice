@@ -275,7 +275,45 @@
                     --}}
                     <x-button icon="plus" text="New" color="blue" sm class="h-9" />
                     <x-button icon="bell" color="gray" sm scope="icon-action" class="h-9 w-9" />
-                    <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
+                    {{--
+                        The only reachable "Log out" control anywhere in
+                        the TALL-stack shell — see App\Http\Controllers\LogoutController's
+                        docblock. A plain POST form inside the dropdown
+                        item's default slot rather than a Livewire action,
+                        so it works the same way regardless of which page
+                        component is currently rendering this shell.
+                    --}}
+                    <x-dropdown position="bottom-end">
+                        {{--
+                            A custom `action` slot (rather than the
+                            component's own `text`/`icon` props) renders
+                            with no click-toggle wiring at all — only the
+                            auto-generated trigger button gets
+                            `x-on:click="show = !show"` — so it has to be
+                            added here explicitly, same as the package's
+                            own "custom action trigger" doc example.
+                        --}}
+                        <x-slot:action>
+                            <div x-on:click="show = !show" class="cursor-pointer">
+                                <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
+                            </div>
+                        </x-slot:action>
+                        <x-slot:header>
+                            <div class="px-2 py-1">
+                                <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{{ auth()->user()->name }}</div>
+                                <div class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</div>
+                            </div>
+                        </x-slot:header>
+                        <x-dropdown.items separator>
+                            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center gap-2 text-left">
+                                    <x-icon name="arrow-right-on-rectangle" class="h-4 w-4" />
+                                    Log out
+                                </button>
+                            </form>
+                        </x-dropdown.items>
+                    </x-dropdown>
                 </div>
             </x-slot:right>
         </x-layout.header>
