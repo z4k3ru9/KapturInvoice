@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Company;
 use App\Models\NumberingSequence;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -46,9 +47,39 @@ class DocumentNumberGenerator
         // §2/§4) — and the Sales Order / Job aggregate itself.
         'coc' => 'COC',
         'sales_order' => 'SO',
+        // Phase 04 (docs/rebuild/specs/04-billing-and-receivables): a
+        // numbered receipt for one verified payment event, and an
+        // amendment invoice's own annual sequence — FINALIZED-DECISIONS.md
+        // §2: "Amendments use the original code plus -A and their own
+        // annual sequence, for example KA-INV-A-2026090001."
+        'receipt' => 'RCT',
+        'invoice_amendment' => 'INV-A',
+        // Phase 05 (docs/rebuild/specs/05-procurement-and-delivery):
+        // vendor purchase order, vendor bill, vendor payment receipt,
+        // delivery order, and handover report — FINALIZED-DECISIONS.md §2's
+        // launch document codes.
+        'vendor_purchase_order' => 'VPO',
+        'vendor_bill' => 'VBL',
+        'vendor_payment' => 'VPR',
+        'delivery_order' => 'DO',
+        'handover_report' => 'HOR',
+        'tax_recap' => 'TAX',
+        // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa): the read-only
+        // Statement of Account document.
+        'statement_of_account' => 'SOA',
     ];
 
-    public function next(Company $company, string $sequence): string
+    /**
+     * @param  \DateTimeInterface|null  $documentDate  The document's own
+     *                                                 official date (e.g. Invoice::invoice_date) — the year embedded in
+     *                                                 the number and the annual sequence it consumes are both derived
+     *                                                 from this, not from wall-clock "now", so a backdated document
+     *                                                 issued into an open prior month/year gets a number consistent
+     *                                                 with its own date rather than the day it happened to be issued.
+     *                                                 Falls back to `now()` only when the caller has no better date
+     *                                                 (e.g. a document type with no user-facing date field of its own).
+     */
+    public function next(Company $company, string $sequence, ?\DateTimeInterface $documentDate = null): string
     {
         if (! array_key_exists($sequence, self::DOCUMENT_TYPES)) {
             throw new InvalidArgumentException("Unknown numbering sequence [{$sequence}].");
@@ -61,7 +92,7 @@ class DocumentNumberGenerator
         }
 
         $documentType = self::DOCUMENT_TYPES[$sequence];
-        $now = now();
+        $now = $documentDate ? Carbon::instance($documentDate) : now();
         $year = $now->year;
 
         return DB::transaction(function () use ($company, $documentType, $year, $now) {

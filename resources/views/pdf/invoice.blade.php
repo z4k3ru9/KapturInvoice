@@ -1,8 +1,22 @@
+@php
+    // Printed documents default to Bahasa Indonesia with a per-document
+    // English override — see App\Models\Invoice::resolveDocumentLanguage()
+    // and docs/rebuild/specs/06-documents-portal-reporting/Specs.md.
+    app()->setLocale($invoice->resolveDocumentLanguage());
+
+    // App\Enums\InvoiceType::getLabel() stays English-only (Filament
+    // tables/forms rely on it) — the printed title uses its own
+    // translation keys instead.
+    $documentTypeLabel = match ($invoice->type) {
+        \App\Enums\InvoiceType::Invoice => __('documents.type_invoice'),
+        \App\Enums\InvoiceType::Quote => __('documents.type_quote'),
+    };
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ $invoice->type->getLabel() }} {{ $invoice->number }}</title>
+    <title>{{ $documentTypeLabel }} {{ $invoice->number }}</title>
     <style>
         {{-- dompdf has limited CSS support (no flexbox/grid) — plain
              block/table layout only, per docs/filament-admin-layout-design.md §7. --}}
@@ -43,27 +57,27 @@
                     <div class="muted">{{ $invoice->company->email }}</div>
                 @endif
                 @if ($invoice->company->tax_number)
-                    <div class="muted">Tax ID: {{ $invoice->company->tax_number }}</div>
+                    <div class="muted">{{ __('documents.tax_id') }}: {{ $invoice->company->tax_number }}</div>
                 @endif
             </td>
             <td width="50%">
-                <div class="doc-title">{{ strtoupper($invoice->type->getLabel()) }}</div>
+                <div class="doc-title">{{ strtoupper($documentTypeLabel) }}</div>
                 <div class="doc-meta">{{ $invoice->number }}</div>
                 @if ($invoice->invoice_date)
-                    <div class="doc-meta">Date: {{ $invoice->invoice_date->toFormattedDateString() }}</div>
+                    <div class="doc-meta">{{ __('documents.date') }}: {{ $invoice->invoice_date->toFormattedDateString() }}</div>
                 @endif
                 @if ($invoice->due_date)
-                    <div class="doc-meta">Due: {{ $invoice->due_date->toFormattedDateString() }}</div>
+                    <div class="doc-meta">{{ __('documents.due') }}: {{ $invoice->due_date->toFormattedDateString() }}</div>
                 @endif
                 @if ($invoice->po_number)
-                    <div class="doc-meta">PO: {{ $invoice->po_number }}</div>
+                    <div class="doc-meta">{{ __('documents.po') }}: {{ $invoice->po_number }}</div>
                 @endif
             </td>
         </tr>
     </table>
 
     <div>
-        <h4 class="muted" style="margin-bottom: 2px; text-transform: uppercase; font-size: 11px;">Billed to</h4>
+        <h4 class="muted" style="margin-bottom: 2px; text-transform: uppercase; font-size: 11px;">{{ __('documents.billed_to') }}</h4>
         <div style="font-weight: bold;">{{ $invoice->client->name }}</div>
         @if ($invoice->client->address_line_1)
             <div class="muted">{{ $invoice->client->address_line_1 }}</div>
@@ -72,17 +86,17 @@
             <div class="muted">{{ $invoice->client->email }}</div>
         @endif
         @if ($invoice->client->tax_number)
-            <div class="muted">Tax ID: {{ $invoice->client->tax_number }}</div>
+            <div class="muted">{{ __('documents.tax_id') }}: {{ $invoice->client->tax_number }}</div>
         @endif
     </div>
 
     <table class="items">
         <thead>
             <tr>
-                <th>Item</th>
-                <th class="text-right">Qty</th>
-                <th class="text-right">Unit price</th>
-                <th class="text-right">Total</th>
+                <th>{{ __('documents.item') }}</th>
+                <th class="text-right">{{ __('documents.qty') }}</th>
+                <th class="text-right">{{ __('documents.unit_price') }}</th>
+                <th class="text-right">{{ __('documents.total_column') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -104,12 +118,12 @@
 
     <table class="totals">
         <tr>
-            <td>Subtotal</td>
+            <td>{{ __('documents.subtotal') }}</td>
             <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->subtotal, 2) }}</td>
         </tr>
         @if ($invoice->discount > 0)
             <tr>
-                <td>Discount</td>
+                <td>{{ __('documents.discount') }}</td>
                 <td class="text-right">
                     -{{ $invoice->discount_is_percentage ? $invoice->discount.'%' : number_format($invoice->discount, 2) }}
                 </td>
@@ -117,17 +131,17 @@
         @endif
         @if ($invoice->tax_total > 0)
             <tr>
-                <td>Tax</td>
+                <td>{{ __('documents.tax') }}</td>
                 <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->tax_total, 2) }}</td>
             </tr>
         @endif
         <tr class="total">
-            <td>Total</td>
+            <td>{{ __('documents.total') }}</td>
             <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</td>
         </tr>
         @if ($invoice->balance != $invoice->total)
             <tr>
-                <td>Balance due</td>
+                <td>{{ __('documents.balance_due') }}</td>
                 <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</td>
             </tr>
         @endif
@@ -135,14 +149,14 @@
 
     @if ($invoice->public_notes)
         <div class="notes">
-            <h4>Notes</h4>
+            <h4>{{ __('documents.notes') }}</h4>
             <div>{{ $invoice->public_notes }}</div>
         </div>
     @endif
 
     @if ($invoice->terms)
         <div class="notes">
-            <h4>Terms</h4>
+            <h4>{{ __('documents.terms') }}</h4>
             <div>{{ $invoice->terms }}</div>
         </div>
     @endif

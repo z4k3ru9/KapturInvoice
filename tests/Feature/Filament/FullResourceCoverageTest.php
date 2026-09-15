@@ -24,6 +24,8 @@ use App\Filament\Resources\TaxRates\TaxRateResource;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\RelationManagers\CompaniesRelationManager;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Resources\VendorBills\VendorBillResource;
+use App\Filament\Resources\VendorPurchaseOrders\VendorPurchaseOrderResource;
 use App\Filament\Resources\Vendors\Pages\ViewVendor;
 use App\Filament\Resources\Vendors\RelationManagers\ContactsRelationManager as VendorContactsRelationManager;
 use App\Filament\Resources\Vendors\VendorResource;
@@ -47,7 +49,9 @@ use App\Models\TaskStatus;
 use App\Models\TaxRate;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorBill;
 use App\Models\VendorContact;
+use App\Models\VendorPurchaseOrder;
 use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
@@ -129,6 +133,22 @@ class FullResourceCoverageTest extends TestCase
         $otherUser = User::factory()->create();
         $this->company->users()->attach($otherUser, ['role' => 'member']);
 
+        $vendorPurchaseOrder = VendorPurchaseOrder::create([
+            'company_id' => $this->company->id,
+            'vendor_id' => $vendor->id,
+            'number' => 'ACME-VPO-0001',
+            'status' => 'draft',
+            'total' => 0,
+        ]);
+        $vendorBill = VendorBill::create([
+            'company_id' => $this->company->id,
+            'vendor_id' => $vendor->id,
+            'vendor_purchase_order_id' => $vendorPurchaseOrder->id,
+            'number' => 'ACME-VBL-0001',
+            'status' => 'draft',
+            'total' => 0,
+        ]);
+
         $cases = [
             [ClientResource::class, $client],
             [ProductResource::class, $product],
@@ -150,6 +170,8 @@ class FullResourceCoverageTest extends TestCase
             [PriceListItemResource::class, $priceListItem],
             [QuotationResource::class, $quotation],
             [SalesOrderResource::class, $salesOrder],
+            [VendorPurchaseOrderResource::class, $vendorPurchaseOrder],
+            [VendorBillResource::class, $vendorBill],
             [UserResource::class, $otherUser],
         ];
 

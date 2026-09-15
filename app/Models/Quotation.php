@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'company_id', 'client_id', 'number', 'status', 'pricing_mode',
     'discount', 'discount_is_percentage', 'quotation_date', 'valid_until',
     'customer_po_number', 'customer_po_date', 'customer_po_is_system_generated',
-    'terms', 'notes',
+    'terms', 'notes', 'document_language',
 ])]
 class Quotation extends Model
 {
@@ -77,5 +77,16 @@ class Quotation extends Model
     public function salesOrder(): HasOne
     {
         return $this->hasOne(SalesOrder::class);
+    }
+
+    /**
+     * Printed-document language: same resolution as
+     * `Invoice::resolveDocumentLanguage()` — this quotation's own override
+     * when set, otherwise the owning company's `default_document_language`,
+     * otherwise Bahasa Indonesia.
+     */
+    public function resolveDocumentLanguage(): string
+    {
+        return $this->document_language ?? $this->company->settings?->default_document_language ?? 'id';
     }
 }

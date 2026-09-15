@@ -66,4 +66,78 @@ enum CompanyRole: string
     {
         return [self::Owner, self::Admin];
     }
+
+    /**
+     * "Accountant and higher verify payments" —
+     * docs/rebuild/specs/04-billing-and-receivables/Specs.md.
+     *
+     * @return array<int, self>
+     */
+    public static function paymentVerificationRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
+
+    /**
+     * "Issue invoice: Accountant and higher after approval requirements." —
+     * docs/rebuild/Specs.md §10 (the same "Accountant and higher" tier as
+     * {@see paymentVerificationRoles()}). Enforced inside
+     * App\Actions\Billing\IssueInvoice itself, not only at the Filament
+     * table-action layer, so a direct call can't bypass it either.
+     *
+     * @return array<int, self>
+     */
+    public static function invoiceIssuanceRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
+
+    /**
+     * "Amend issued document: Admin/Owner for document edits; preserve
+     * original." — docs/rebuild/Specs.md §10. A strict subset of
+     * {@see invoiceIssuanceRoles()}, so an actor authorized to amend or
+     * void-and-reissue also satisfies the issuance check that
+     * App\Actions\Billing\IssueInvoice runs internally when it issues the
+     * replacement document.
+     *
+     * @return array<int, self>
+     */
+    public static function documentAmendmentRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
+
+    /**
+     * "Accountant and higher may self-approve" a vendor bill —
+     * docs/rebuild/specs/05-procurement-and-delivery/Specs.md.
+     *
+     * @return array<int, self>
+     */
+    public static function vendorBillApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin, self::Accountant];
+    }
+
+    /**
+     * Owner/Admin only — mirrors `jobVariationApprovalRoles()` for the
+     * equivalent vendor-side exception (FINALIZED-DECISIONS.md §4).
+     *
+     * @return array<int, self>
+     */
+    public static function vendorPoVarianceApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
+
+    /**
+     * "Staff and higher can record/approve delivery and handover" —
+     * every role except the read-only Auditor, i.e. the same set as
+     * {@see mutatingRoles()}.
+     *
+     * @return array<int, self>
+     */
+    public static function deliveryAndHandoverRoles(): array
+    {
+        return self::mutatingRoles();
+    }
 }

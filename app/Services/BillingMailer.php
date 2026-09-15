@@ -9,6 +9,7 @@ use App\Models\Contact;
 use App\Models\Invitation;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PortalLink;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
@@ -56,6 +57,34 @@ class BillingMailer
             '{{company_name}}' => $payment->company->name,
             '{{invoice_number}}' => $payment->invoice?->number ?? '',
             '{{amount}}' => number_format((float) $payment->amount, 2),
+        ];
+
+        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+            $this->renderer->render($subjectTemplate, $tokens),
+            $this->renderer->render($bodyTemplate, $tokens),
+        ));
+    }
+
+    /**
+     * Emails the broader, contact-scoped `PortalLink` (§5 of
+     * FINALIZED-DECISIONS.md) to its own contact — separate from
+     * `sendForInvoice()`'s `Invitation`-based flow above, since a portal
+     * link isn't tied to one invoice.
+     */
+    public function sendPortalLink(PortalLink $link): void
+    {
+        $link->loadMissing('client', 'contact', 'company.settings');
+
+        $contact = $this->resolveContact($link->contact, collect([$link->contact]));
+
+        [$subjectTemplate, $bodyTemplate] = $this->templateFor($link->company->settings, 'portal_link');
+
+        $tokens = [
+            '{{client_name}}' => $link->client->name,
+            '{{contact_name}}' => $contact->name,
+            '{{company_name}}' => $link->company->name,
+            '{{portal_link}}' => route('portal.client-home', $link),
+            '{{expires_at}}' => $link->expires_at?->toFormattedDateString() ?? 'never',
         ];
 
         Mail::to($contact->email)->send(new CompanyTemplatedMail(
@@ -137,6 +166,10 @@ class BillingMailer
             'payment' => [
                 $settings?->payment_email_subject ?: 'Payment received — {{invoice_number}}',
                 $settings?->payment_email_body ?: "Hi {{contact_name}},\n\nWe've received your payment of {{amount}} for invoice {{invoice_number}}. Thank you!\n\n{{company_name}}",
+            ],
+            'portal_link' => [
+                'Your billing portal link from {{company_name}}',
+                "Hi {{contact_name}},\n\nYou can view {{client_name}}'s billing history here:\n{{portal_link}}\n\nThis link expires on {{expires_at}}.\n\nThanks,\n{{company_name}}",
             ],
         };
     }

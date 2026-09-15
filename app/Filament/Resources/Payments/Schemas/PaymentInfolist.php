@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\Payment;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class PaymentInfolist
@@ -47,6 +48,19 @@ class PaymentInfolist
                 TextEntry::make('notes')
                     ->placeholder('-')
                     ->columnSpanFull(),
+
+                Section::make('Verification & receivables (Phase 04)')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('salesOrder.number')->label('Job')->placeholder('-'),
+                        TextEntry::make('reference')->placeholder('-'),
+                        TextEntry::make('cheque_cleared_at')->dateTime()->placeholder('-'),
+                        TextEntry::make('verified_at')->dateTime()->placeholder('-'),
+                        TextEntry::make('verifiedBy.name')->label('Verified by')->placeholder('-'),
+                        TextEntry::make('receipt.number')->label('Receipt')->placeholder('-'),
+                        TextEntry::make('reversal.reason')->label('Reversal reason')->placeholder('-')->columnSpanFull(),
+                    ]),
+
                 TextEntry::make('created_at')
                     ->dateTime()
                     ->placeholder('-'),
