@@ -688,8 +688,17 @@ class TallStackVendorBillForm extends Component
                 'net_amount' => Money::format((float) $item->net_amount, $currency),
                 'tax_amount' => Money::format((float) $item->tax_amount, $currency),
                 'line_total' => Money::format((float) $item->line_total, $currency),
-                'unallocated' => Money::format($item->unallocatedAmount(), $currency),
-                'unallocated_raw' => $item->unallocatedAmount(),
+                // Summed from the already-eager-loaded jobCostAllocations
+                // collection (mount()/refreshBill() load
+                // 'items.jobCostAllocations.salesOrder') instead of
+                // calling $item->unallocatedAmount(), which always issues
+                // its own jobCostAllocations()->sum('amount') query — a
+                // real N+1 across a bill's line items. The model method
+                // itself stays untouched: App\Actions\Procurement\
+                // AllocateJobCost needs it to read a fresh, uncached total
+                // for its over-allocation guard.
+                'unallocated' => Money::format(round((float) $item->line_total - (float) $item->jobCostAllocations->sum('amount'), 2), $currency),
+                'unallocated_raw' => round((float) $item->line_total - (float) $item->jobCostAllocations->sum('amount'), 2),
                 'allocations' => $item->jobCostAllocations->map(fn ($a) => [
                     'job' => $a->salesOrder?->number ?? '—',
                     'amount' => Money::format((float) $a->amount, $currency),

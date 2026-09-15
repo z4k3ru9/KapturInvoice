@@ -53,18 +53,28 @@ class TallStackDeliveryOrder extends Component
         $delivery = $this->deliveryOrder;
         $job = $delivery->salesOrder;
 
-        $items = $delivery->items->map(function (DeliveryOrderItem $item) use ($job) {
+        // Cumulative quantity delivered per job line, across every
+        // Delivery Order recorded for the job — one grouped query
+        // covering every line on this delivery instead of one query per
+        // line (a real N+1: this used to run its own
+        // ->sum('quantity_delivered') query inside the per-item map()
+        // below).
+        $lineIds = $delivery->items->pluck('sales_order_item_id')->filter()->values();
+
+        $deliveredTotals = $lineIds->isNotEmpty()
+            ? DeliveryOrderItem::query()
+                ->whereHas('deliveryOrder', fn ($q) => $q->where('sales_order_id', $job?->id))
+                ->whereIn('sales_order_item_id', $lineIds)
+                ->selectRaw('sales_order_item_id, sum(quantity_delivered) as total')
+                ->groupBy('sales_order_item_id')
+                ->pluck('total', 'sales_order_item_id')
+            : collect();
+
+        $items = $delivery->items->map(function (DeliveryOrderItem $item) use ($deliveredTotals) {
             $line = $item->salesOrderItem;
 
-            // Cumulative quantity delivered against this same job line
-            // across every Delivery Order recorded for the job — derived
-            // purely from existing DeliveryOrderItem rows, not a new
-            // stored figure.
             $deliveredToDate = $line
-                ? (float) DeliveryOrderItem::query()
-                    ->whereHas('deliveryOrder', fn ($q) => $q->where('sales_order_id', $job?->id))
-                    ->where('sales_order_item_id', $line->id)
-                    ->sum('quantity_delivered')
+                ? (float) ($deliveredTotals[$line->id] ?? 0)
                 : (float) $item->quantity_delivered;
 
             return [
