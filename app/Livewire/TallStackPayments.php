@@ -14,6 +14,7 @@ use App\Models\Company;
 use App\Models\Payment;
 use App\Services\BillingMailer;
 use App\Support\Dashboard\Money;
+use App\Support\Files\EncryptedFileStorage;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
@@ -144,7 +145,7 @@ class TallStackPayments extends Component
         }
 
         try {
-            $proofPath = $this->record_proof->store('payment-proofs');
+            $proofPath = app(EncryptedFileStorage::class)->store($this->record_proof, 'payment-proofs');
 
             app(RecordCustomerPayment::class)->record([
                 'company_id' => $this->company->id,

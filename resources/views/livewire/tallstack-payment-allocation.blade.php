@@ -106,7 +106,7 @@
                 @if ($payment->proof_path)
                     <div class="flex items-center justify-between">
                         <span class="text-gray-500 dark:text-gray-400">Proof of payment</span>
-                        <a href="{{ \Illuminate\Support\Facades\Storage::url($payment->proof_path) }}" target="_blank" class="text-[color:var(--ts-primary)] hover:underline">View</a>
+                        <a href="{{ route('payments.proof', $payment) }}" target="_blank" class="text-[color:var(--ts-primary)] hover:underline">View</a>
                     </div>
                 @endif
                 @if ($payment->notes)

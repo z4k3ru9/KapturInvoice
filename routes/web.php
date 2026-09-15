@@ -7,6 +7,7 @@ use App\Http\Controllers\HandoverReportPdfController;
 use App\Http\Controllers\InvoicePdfController;
 use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
+use App\Http\Controllers\PaymentProofController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
 use App\Http\Controllers\ProposalPdfController;
 use App\Http\Controllers\QuotationPdfController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\StatementOfAccountPdfController;
 use App\Http\Controllers\StatementOfAccountPreviewController;
 use App\Http\Controllers\TaxRecapPdfController;
 use App\Http\Controllers\VendorBillPdfController;
+use App\Http\Controllers\VendorPaymentProofController;
 use App\Http\Controllers\VendorPaymentReceiptPdfController;
 use App\Http\Controllers\VendorPurchaseOrderPdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
@@ -149,6 +151,19 @@ Route::get('/invitations/{token}', AcceptInvitation::class)->name('invitations.a
 Route::get('/documents/{document}/download', DocumentDownloadController::class)
     ->middleware('auth')
     ->name('documents.download');
+
+// Phase 15 file-encryption slice (G4) — payment-proof files are now
+// encrypted at rest (App\Support\Files\EncryptedFileStorage), so they can
+// no longer be served via a plain Storage::url() link to the local disk's
+// unauthenticated `storage/{path}` serve route. Same
+// outside-the-panel/explicit-tenant-check reasoning as documents.download
+// above.
+Route::get('/payments/{payment}/proof', PaymentProofController::class)
+    ->middleware('auth')
+    ->name('payments.proof');
+Route::get('/vendor-payments/{vendorPayment}/proof', VendorPaymentProofController::class)
+    ->middleware('auth')
+    ->name('vendor-payments.proof');
 
 // "Download PDF" table actions on Invoices/Quotes/Recurring Invoices and
 // Credits (§7) — same reasoning as documents.download: outside the

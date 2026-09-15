@@ -24,6 +24,7 @@ use App\Models\VendorPurchaseOrder;
 use App\Services\DocumentNumberGenerator;
 use App\Services\Procurement\VendorBillTotalsCalculator;
 use App\Support\Dashboard\Money;
+use App\Support\Files\EncryptedFileStorage;
 use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
@@ -517,7 +518,7 @@ class TallStackVendorBillForm extends Component
         $proofPath = null;
 
         if ($this->payment_proof instanceof UploadedFile) {
-            $proofPath = $this->payment_proof->store('vendor-payment-proofs');
+            $proofPath = app(EncryptedFileStorage::class)->store($this->payment_proof, 'vendor-payment-proofs');
         }
 
         try {
