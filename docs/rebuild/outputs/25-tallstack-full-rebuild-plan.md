@@ -513,6 +513,42 @@ status checklist.
       client-side with no completion confirmed at the time — at least one
       evidently finished server-side later. This was the last item in the
       phases above did.
+- [x] Filament-parity gap closure — pre-removal audit found 9 real gaps
+      (see `docs/rebuild/outputs/27-filament-parity-gap-prompts.md`).
+      Closing them one worktree-agent at a time (max 3 concurrent), each
+      built against its own generated Stitch mockup:
+      - [x] Company registration/onboarding (`/register-company`,
+            `App\Livewire\TallStackRegisterCompany`) — standalone,
+            `middleware('auth')` only.
+      - [x] Settings → Numbering (`tallstack.settings.numbering`).
+      - [x] Settings → Client Portal (`tallstack.settings.client-portal`).
+      - [x] Expenses (`/tall/{company:slug}/expenses`,
+            `App\Livewire\TallStackExpenses` — folded into the
+            `'Procurement'` nav group).
+      - [x] Payment Gateways (`/tall/{company:slug}/payment-gateways`,
+            `App\Livewire\TallStackPaymentGateways` — folded into the
+            `'Settings'` nav group, real "Test Connection" action wired
+            to `PaymentGatewayManager`). Fixed a real bug found during
+            verification: test-result banner overflowing its table cell
+            instead of wrapping.
+      - [ ] Login (`route('login')`, standalone) — build in progress,
+            aligning to the "Sign in — Standalone (KapturInvoice)" Stitch
+            mockup. **Blocking finding**: this app has no authentication
+            route/page outside Filament at all — every `middleware('auth')`
+            route currently has nowhere to redirect a signed-out visitor.
+            Must also add a logout control to the TallStack admin shell
+            header and confirm every `auth`-guarded route redirects here
+            (not to a Filament path, not a 500).
+      - [ ] Client Portal Invitations (admin-side register) — mockup
+            generated ("Portal Invitations — Invoice Magic Link Audit
+            Register"), not yet built.
+      - [ ] Documents (company-scoped file library) — mockup generated
+            ("Documents & File Library — Company Scoped Reference
+            Register"), not yet built.
+      - [ ] Proposal Templates & Snippets — mockup generated ("Proposal
+            Templates & Snippets Library"), not yet built.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
-      **not started, not scheduled** until every phase above is verified;
-      needs its own explicit go-ahead from the user
+      **not started, not scheduled** until every gap above (including
+      login) is closed and verified; the user has already given a
+      conditional go-ahead ("Yes, remove Filament now too") once that
+      holds.
