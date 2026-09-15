@@ -1,5 +1,7 @@
 # Phase 05: Procurement, Job Cost, Delivery, Service Reports, and Handover
 
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. `App\Models\VendorPurchaseOrder`/`VendorBill` exist and are wired. See `memory.md` "Current state" and `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`.
+
 ## Goal
 
 Connect vendor purchasing and physical fulfillment to each job without pretending the product has full inventory.

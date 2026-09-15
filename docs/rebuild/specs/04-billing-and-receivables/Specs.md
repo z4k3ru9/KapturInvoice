@@ -1,5 +1,7 @@
 # Phase 04: Billing, Tax, Payments, and Receipts
 
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state"/"Financial rules" and `docs/rebuild/outputs/18-phase-04-checkpoint-report.md`.
+
 ## Goal
 
 Implement authoritative financial calculations and immutable customer receivables.

@@ -1,5 +1,7 @@
 # Phase 02: Parties and Catalog
 
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" and `docs/rebuild/outputs/16-phase-02-checkpoint-report.md`.
+
 ## Goal
 
 Build company-scoped clients, contacts, vendors, catalog items, and prices that can feed quotations, jobs, invoices, and procurement.
