@@ -32,6 +32,7 @@ use App\Livewire\TallStackCredits;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackDeliveryOrder;
 use App\Livewire\TallStackDeliveryOrders;
+use App\Livewire\TallStackDocuments;
 use App\Livewire\TallStackExpenses;
 use App\Livewire\TallStackHandoverReports;
 use App\Livewire\TallStackInvoiceForm;
@@ -485,6 +486,18 @@ Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendo
 Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
     ->middleware('auth')
     ->name('tallstack.expenses');
+
+// Documents — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// prompt 22), TALL-stack-native alongside the Filament resource it
+// mirrors (App\Filament\Resources\Documents\DocumentResource). A flat,
+// company-scoped "every file we have" register/list-only page — no
+// create route, since a Document is always uploaded from its owning
+// record elsewhere in the app. Download reuses the existing
+// `documents.download` route/controller; re-checks company ownership
+// explicitly in mount(), same reasoning as every other TALL-stack page.
+Route::get('/tall/{company:slug}/documents', TallStackDocuments::class)
+    ->middleware('auth')
+    ->name('tallstack.documents');
 
 // Credits — register only (deferred-scope item, no earlier phase number;
 // see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's "Deferred"
