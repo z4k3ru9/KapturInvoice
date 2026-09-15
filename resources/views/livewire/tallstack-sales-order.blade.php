@@ -1,7 +1,7 @@
 @php
     $job = $salesOrder;
 @endphp
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5" x-data="{ tab: @entangle('activeTab') }">
+<div class="w-[90%] mx-auto py-6 flex flex-col gap-5" x-data="{ tab: @entangle('activeTab') }">
 
     <x-tallstack.page-header
         :crumbs="[

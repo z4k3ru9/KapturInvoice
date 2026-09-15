@@ -1,4 +1,4 @@
-<div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+<div class="w-[90%] mx-auto py-6 flex flex-col gap-5">
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Delivery Orders']]" title="Delivery Orders" />
 
