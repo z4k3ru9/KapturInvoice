@@ -6,7 +6,7 @@ import { loadFixtures } from '../support/fixtures';
  * Phase 06B Slice 5 (docs/rebuild/specs/06b-ux-browser-soa/Specs.md):
  * "Dynamic row add, blank-row cleanup, populated-row confirmation, drag
  * order, and keyboard reorder." Drag/keyboard reorder itself is already
- * proven at the Livewire level (tests/Feature/Filament/
+ * proven at the Livewire level (tests/Feature/Documents/
  * DynamicRowReorderTest.php) — this proves the real UI actually exposes
  * a reorder entry point and a delete confirmation for a populated row.
  *

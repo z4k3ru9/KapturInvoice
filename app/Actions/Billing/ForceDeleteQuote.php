@@ -10,15 +10,13 @@ use RuntimeException;
 
 /**
  * Permanently purges a Draft, never-converted legacy Quote row (an
- * `Invoice` with `type = InvoiceType::Quote` —
- * `App\Filament\Resources\Quotes`'s legacy/imported register, distinct
- * from the canonical `App\Models\Quotation`). See
+ * `Invoice` with `type = InvoiceType::Quote` — the legacy/imported Quotes
+ * register, distinct from the canonical `App\Models\Quotation`). See
  * App\Actions\Billing\ForceDeleteInvoice's docblock for the shared
  * rationale (this is the same narrow "never really issued" exception).
  *
- * Ported from `App\Filament\Resources\Quotes\Tables\
- * QuotesTable::isSafeToForceDelete()` (dropped, unreplaced, when Filament
- * was removed).
+ * Ported from the equivalent table-level guard in the pre-TallStackUI
+ * Filament admin (dropped, unreplaced, when Filament was removed).
  */
 class ForceDeleteQuote
 {

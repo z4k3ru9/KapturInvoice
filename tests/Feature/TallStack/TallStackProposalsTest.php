@@ -86,9 +86,9 @@ class TallStackProposalsTest extends TestCase
      * is a UI-only affordance on this page (the button itself is
      * disabled with a tooltip in the Blade view) — the underlying
      * App\Services\ProposalConverter::convertToInvoice(), and the
-     * Filament table's own "Convert to invoice" row action
-     * (App\Filament\Resources\Proposals\Tables\ProposalsTable), gate
-     * conversion only on "not already converted", never on status. This
+     * pre-TallStackUI Filament admin's own "Convert to invoice" row
+     * action gated conversion only on "not already converted", never on
+     * status. This
      * page's own convertToInvoice() method matches that exactly rather
      * than inventing a stricter server-side rule the Filament resource
      * doesn't enforce — see this method's own docblock.

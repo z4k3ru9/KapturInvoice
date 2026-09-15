@@ -150,11 +150,11 @@ class FileOrAdjustTaxRecapTest extends TestCase
     }
 
     /**
-     * The Filament ViewInvoice Infolist this test used to exercise (and
-     * the real infinite-recursion bug it regression-tested, in
-     * App\Filament\Support\DownloadPdfAction::taxRecap() combined with a
-     * `->record()` override on that Infolist section — see that method's
-     * former docblock) is gone as of the Filament-removal Phase B. The
+     * The pre-TallStackUI Filament admin's ViewInvoice Infolist this test
+     * used to exercise (and the real infinite-recursion bug it
+     * regression-tested, in that admin's DownloadPdfAction::taxRecap()
+     * combined with a `->record()` override on that Infolist section) is
+     * gone as of the Filament-removal Phase B. The
      * TALL-stack replacement page (App\Livewire\TallStackInvoiceForm)
      * never had that override pattern, so there is no equivalent bug to
      * regression-test — this now just confirms the page renders the tax

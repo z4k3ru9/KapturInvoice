@@ -279,8 +279,9 @@ class ClientPortalHomeTest extends TestCase
     }
 
     /**
-     * Ported from the Filament ContactsRelationManager's "Generate portal
-     * link" row action during the Filament-removal Phase B — the same
+     * Ported from the pre-TallStackUI Filament admin's Client Contacts
+     * relation manager's "Generate portal link" row action during the
+     * Filament-removal Phase B — the same
      * App\Actions\Portal\GeneratePortalLink call is now wired onto
      * App\Livewire\TallStackClientDetail::generatePortalLink() instead.
      */
@@ -306,8 +307,9 @@ class ClientPortalHomeTest extends TestCase
     }
 
     /**
-     * Ported from the Filament PortalLinksRelationManager's "Revoke" row
-     * action during the Filament-removal Phase B — the same
+     * Ported from the pre-TallStackUI Filament admin's Portal Links
+     * relation manager's "Revoke" row action during the
+     * Filament-removal Phase B — the same
      * App\Actions\Portal\RevokePortalLink call is now wired onto
      * App\Livewire\TallStackClientDetail::revokePortalLink() instead.
      */

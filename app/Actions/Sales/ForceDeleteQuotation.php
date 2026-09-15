@@ -14,9 +14,8 @@ use RuntimeException;
  * created from — see App\Actions\Billing\ForceDeleteInvoice's docblock
  * for the shared rationale.
  *
- * Ported from `App\Filament\Resources\Quotations\Tables\
- * QuotationsTable::isSafeToForceDelete()` (dropped, unreplaced, when
- * Filament was removed).
+ * Ported from the equivalent table-level guard in the pre-TallStackUI
+ * Filament admin (dropped, unreplaced, when Filament was removed).
  */
 class ForceDeleteQuotation
 {

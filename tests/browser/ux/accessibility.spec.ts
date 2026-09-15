@@ -17,8 +17,8 @@ const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async ({ page }) => {
     // A real, deterministic success notification: resending an already-
-    // issued invoice (App\Filament\Resources\Invoices\Tables\
-    // InvoicesTable — Notification::make()->success()->seconds(4)).
+    // issued invoice (the Invoices table's Resend action —
+    // Notification::make()->success()->seconds(4)).
     // Not the Statement of Account notifications: a Codex review finding
     // on this PR made both of those persistent with a clickable action
     // link instead of auto-dismissing (see documents/soa.spec.ts), so

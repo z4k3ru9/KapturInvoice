@@ -16,9 +16,9 @@ use RuntimeException;
  * never paid, and never corrected was never really "issued" in the first
  * place, so there is no history to protect.
  *
- * Ported from the Filament-era `App\Filament\Resources\Invoices\Tables\
- * InvoicesTable::isSafeToForceDelete()` static guard (dropped, unreplaced,
- * when Filament was removed) — same predicate, moved into the Action
+ * Ported from the equivalent static guard in the pre-TallStackUI Filament
+ * admin (dropped, unreplaced, when Filament was removed) — same
+ * predicate, moved into the Action
  * layer per this app's "financial logic belongs in tested domain actions,
  * not UI" rule, since that placement was itself a minor architecture
  * violation carried over from the legacy codebase.
