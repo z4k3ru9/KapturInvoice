@@ -130,6 +130,8 @@
                     @interact('column_line_total', $row)
                         <span class="tabular-nums">{{ number_format($row->line_total, 2) }}</span>
                     @endinteract
+
+                    <x-slot:empty>No items on this invoice.</x-slot:empty>
                 </x-table>
             </div>
 
