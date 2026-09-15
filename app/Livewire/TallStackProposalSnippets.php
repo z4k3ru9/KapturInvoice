@@ -10,7 +10,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithPagination;
 use TallStackUi\Traits\Interactions;
 
 /**
@@ -31,11 +30,9 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackProposalSnippets extends Component
 {
-    use Interactions, WithPagination;
+    use Interactions;
 
     public Company $company;
-
-    public string $search = '';
 
     public bool $showModal = false;
 
@@ -52,11 +49,6 @@ class TallStackProposalSnippets extends Component
         $this->company = $company;
 
         app(Tenancy::class)->set($company);
-    }
-
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
     }
 
     public function create(): void
@@ -155,10 +147,9 @@ class TallStackProposalSnippets extends Component
         $snippets = ProposalSnippet::query()
             ->where('company_id', $this->company->id)
             ->with('product')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
-            ->paginate(10)
-            ->through(fn (ProposalSnippet $snippet) => [
+            ->get()
+            ->map(fn (ProposalSnippet $snippet) => [
                 'id' => $snippet->id,
                 'name' => $snippet->name,
                 'html' => $snippet->html,
