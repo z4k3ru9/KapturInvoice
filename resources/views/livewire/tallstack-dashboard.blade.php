@@ -54,28 +54,47 @@
                 </div>
             </x-slot:header>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {{--
+                x-step's "panels" variation (TallStackUI's own Step/Panels
+                component) replaces the previous hand-rolled card grid. Each
+                step's full sentence-length SetupChecklist::for() label
+                (e.g. "Set up your company profile and numbering") is too
+                long for the panel nav strip's fixed-width title/badge row,
+                so only a short summary shows there — the original full
+                text moves into an <x-tooltip> in the step's own content
+                panel below instead of being dropped. Keyed by the step's
+                stable 'key' (SetupChecklist's own array key, not the
+                array's 0-based index) so this map doesn't depend on step
+                ordering.
+            --}}
+            @php
+                $stepSummaries = [
+                    'company_profile' => 'Company profile',
+                    'numbering' => 'Invoice numbering',
+                    'catalog' => 'Catalog',
+                    'client' => 'Clients',
+                    'quotation' => 'First quotation',
+                ];
+            @endphp
+            <x-step panels navigate :selected="$firstIncompleteStep + 1">
                 @foreach ($checklist['steps'] as $index => $step)
-                    <div class="rounded-lg border p-3 flex flex-col gap-2 {{ $step['done'] ? 'border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20' : 'border-gray-200 dark:border-gray-800' }}">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Step {{ $index + 1 }}</span>
+                    <x-step.items :step="$index + 1" :title="$stepSummaries[$step['key']] ?? $step['label']" :completed="$step['done']">
+                        <div class="flex items-center justify-between gap-3 p-4">
+                            <div class="flex items-center gap-2">
+                                <p class="text-sm font-medium {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
+                                    {{ $stepSummaries[$step['key']] ?? $step['label'] }}
+                                </p>
+                                <x-tooltip :text="$step['label']" />
+                            </div>
                             @if ($step['done'])
                                 <x-badge text="Done" color="green" sm icon="check" />
-                            @elseif ($index === $firstIncompleteStep)
-                                <x-badge text="Next" color="amber" sm />
                             @else
-                                <x-badge text="Pending" color="gray" sm />
+                                <x-button text="Go" icon="arrow-right" href="{{ $step['url'] }}" sm color="blue" />
                             @endif
                         </div>
-                        <p class="text-sm font-medium leading-snug {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
-                            {{ $step['label'] }}
-                        </p>
-                        @unless ($step['done'])
-                            <x-button text="Go" icon="arrow-right" href="{{ $step['url'] }}" sm color="blue" class="mt-auto self-start" />
-                        @endunless
-                    </div>
+                    </x-step.items>
                 @endforeach
-            </div>
+            </x-step>
         </x-card>
     @endif
 
