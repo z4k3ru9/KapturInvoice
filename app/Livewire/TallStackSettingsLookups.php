@@ -7,7 +7,7 @@ use App\Models\CompanyTaxSetting;
 use App\Models\ExpenseCategory;
 use App\Models\TaskStatus;
 use App\Models\TaxRate;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -84,8 +84,7 @@ class TallStackSettingsLookups extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         $this->taxEnabled = (bool) CompanyTaxSetting::query()
             ->where('company_id', $company->id)

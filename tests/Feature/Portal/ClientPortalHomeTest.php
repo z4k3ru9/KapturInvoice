@@ -18,6 +18,7 @@ use App\Models\PaymentAllocation;
 use App\Models\PortalLink;
 use App\Models\Receipt;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -292,6 +293,7 @@ class ClientPortalHomeTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         $this->assertSame(0, PortalLink::query()->count());
 
@@ -314,6 +316,7 @@ class ClientPortalHomeTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         Livewire::test(PortalLinksRelationManager::class, ['ownerRecord' => $client, 'pageClass' => ViewClient::class])
             ->callTableAction('revoke', $link);

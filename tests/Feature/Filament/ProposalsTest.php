@@ -13,6 +13,7 @@ use App\Models\Proposal;
 use App\Models\ProposalTemplate;
 use App\Models\User;
 use App\Services\ProposalConverter;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -42,6 +43,7 @@ class ProposalsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_resource_index_pages_render(): void

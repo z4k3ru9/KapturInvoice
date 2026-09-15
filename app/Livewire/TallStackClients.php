@@ -6,7 +6,7 @@ use App\Filament\Support\Money;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Currency;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -85,8 +85,7 @@ class TallStackClients extends Component
         // Gate::before (governs create/update/delete for every
         // BelongsToCompany model), which reads the active Filament tenant
         // rather than a route parameter.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

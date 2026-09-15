@@ -6,7 +6,7 @@ use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\Concerns\BelongsToCompany;
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(Tenancy::class);
     }
 
     /**
@@ -212,7 +212,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
-            $tenant = Filament::hasTenancy() ? Filament::getTenant() : null;
+            $tenant = app(Tenancy::class)->get();
 
             if (! $tenant instanceof Company) {
                 return null;

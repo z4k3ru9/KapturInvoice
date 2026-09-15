@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -43,6 +44,7 @@ class DashboardWidgetsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     protected function tearDown(): void

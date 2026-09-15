@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\CompanySetting;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -58,8 +58,7 @@ class TallStackSettingsEmail extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         $settings = CompanySetting::query()->firstOrCreate(['company_id' => $company->id]);
 

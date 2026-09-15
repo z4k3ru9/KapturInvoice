@@ -8,7 +8,7 @@ use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\VendorPurchaseOrder;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -45,8 +45,7 @@ class TallStackVendorPurchaseOrders extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

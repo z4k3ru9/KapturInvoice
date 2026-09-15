@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -39,6 +40,7 @@ class DynamicRowReorderTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         $invoice = Invoice::create([
             'company_id' => $company->id,
@@ -84,6 +86,7 @@ class DynamicRowReorderTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         $invoice = Invoice::create([
             'company_id' => $company->id,

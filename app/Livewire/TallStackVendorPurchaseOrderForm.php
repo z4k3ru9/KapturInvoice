@@ -15,7 +15,7 @@ use App\Models\VendorPurchaseOrderItem;
 use App\Services\DocumentNumberGenerator;
 use App\Services\Procurement\VendorPurchaseOrderTotalsCalculator;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -83,8 +83,7 @@ class TallStackVendorPurchaseOrderForm extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         if ($vendorPurchaseOrder) {
             abort_unless($vendorPurchaseOrder->company_id === $company->id, 404);

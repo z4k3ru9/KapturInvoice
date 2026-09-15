@@ -16,7 +16,7 @@ use App\Models\SalesOrder;
 use App\Models\TaxRecap;
 use App\Models\VendorBillItem;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -93,8 +93,7 @@ class TallStackReports extends Component
         // every other TALL-stack page sets panel/tenant context in
         // mount() for consistency and in case a future addition needs it
         // (e.g. linking a job-margin row to its Filament SalesOrder view).
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($this->company, isQuiet: true);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function updatingPeriod(): void

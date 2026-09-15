@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -44,6 +45,7 @@ class DeliveryHandoverClosureActionsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     private function jobWithOneItem(bool $requiresHandover = false): SalesOrder

@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\Document;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Layout;
@@ -55,8 +55,7 @@ class TallStackDocuments extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

@@ -17,6 +17,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -48,11 +49,18 @@ class TallStackDashboard extends Component
 
         $this->company = $company;
 
-        // ActionQueue::for() builds its item links via Filament resource
-        // URL generation (Resource::getUrl()), which needs a current
-        // panel + tenant even though this page itself is a plain
-        // Livewire route outside the panel — set both manually so those
-        // links resolve instead of throwing.
+        app(Tenancy::class)->set($company);
+
+        // ActionQueue::for() (app/Filament/Support, untouched this phase)
+        // builds its item links via Filament resource URL generation
+        // (Resource::getUrl()), which needs Filament's OWN current panel +
+        // tenant even though this page itself is a plain Livewire route
+        // outside the panel — confirmed empirically: without this, every
+        // Resource::getUrl() call inside ActionQueue::for() throws
+        // UrlGenerationException ("Missing required parameter [tenant]").
+        // This is the one remaining genuine (not just incidental) runtime
+        // dependency on the Filament facade left in app/Livewire — see the
+        // Filament-removal Phase A report.
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Filament::setTenant($company, isQuiet: true);
     }

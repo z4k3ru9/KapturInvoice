@@ -12,7 +12,7 @@ use App\Models\Invoice;
 use App\Models\TaxRate;
 use App\Models\Vendor;
 use App\Services\ExpenseTotalsCalculator;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Livewire\Attributes\Layout;
@@ -100,8 +100,7 @@ class TallStackExpenses extends Component
         // Same reasoning as TallStackClients::mount() — the create/update/
         // delete Gate::before in AppServiceProvider::registerCompanyRoleGate()
         // reads the active Filament tenant rather than a route parameter.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void

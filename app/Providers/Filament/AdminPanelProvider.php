@@ -6,6 +6,7 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Tenancy\EditCompanyProfile;
 use App\Filament\Pages\Tenancy\RegisterCompany;
 use App\Http\Middleware\ApplyCompanyBrand;
+use App\Http\Middleware\SyncFilamentTenant;
 use App\Models\Company;
 use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
@@ -70,7 +71,10 @@ class AdminPanelProvider extends PanelProvider
             ->tenantProfile(EditCompanyProfile::class)
             // Persistent so it also runs on tenant-scoped Livewire
             // component requests, not just the initial page load.
-            ->tenantMiddleware([ApplyCompanyBrand::class], isPersistent: true)
+            // SyncFilamentTenant (see its own docblock) bridges Filament's
+            // tenant resolution into App\Support\Tenancy\Tenancy, which is
+            // what BelongsToCompany/the company-role Gate now read.
+            ->tenantMiddleware([SyncFilamentTenant::class, ApplyCompanyBrand::class], isPersistent: true)
             // The company's own logo (falls back to the panel/brand name
             // when there's none) — Storage::url() doesn't work for the
             // `local` disk, hence the base64 data URI (same reason

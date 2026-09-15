@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Document;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -46,6 +47,7 @@ class AttachmentUploadGuardsTest extends TestCase
 
         $this->actingAs($this->user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_uploading_a_document_records_the_acting_user_as_uploader(): void

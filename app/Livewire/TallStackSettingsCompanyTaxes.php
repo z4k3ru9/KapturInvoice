@@ -4,7 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\CompanyTaxSetting;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -104,8 +104,7 @@ class TallStackSettingsCompanyTaxes extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         $this->name = $company->name;
         $this->slug = $company->slug;

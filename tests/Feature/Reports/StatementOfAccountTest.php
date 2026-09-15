@@ -17,6 +17,7 @@ use App\Models\Receipt;
 use App\Models\StatementOfAccount;
 use App\Models\User;
 use App\Services\Reports\BuildStatementOfAccount;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
@@ -522,6 +523,7 @@ class StatementOfAccountTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($company);
+        app(Tenancy::class)->set($company);
 
         Livewire::test(StatementOfAccountsRelationManager::class, [
             'ownerRecord' => $client,

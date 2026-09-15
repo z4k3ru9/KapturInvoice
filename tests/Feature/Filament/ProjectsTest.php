@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\Tenancy\Tenancy;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -31,6 +32,7 @@ class ProjectsTest extends TestCase
 
         $this->actingAs($user);
         Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
     }
 
     public function test_resource_index_pages_render(): void

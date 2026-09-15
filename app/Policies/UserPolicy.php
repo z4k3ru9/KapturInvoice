@@ -3,7 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 
 /**
  * Wires "Owner/Admin invite internal users" (FINALIZED-DECISIONS.md §12)
@@ -44,7 +44,7 @@ class UserPolicy
 
     private function canManageMembership(User $user): bool
     {
-        $tenant = Filament::hasTenancy() ? Filament::getTenant() : null;
+        $tenant = app(Tenancy::class)->get();
 
         if (! $tenant) {
             return false;

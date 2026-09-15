@@ -11,7 +11,7 @@ use App\Models\ProposalSnippet;
 use App\Models\ProposalTemplate;
 use App\Services\ProposalConverter;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -86,11 +86,10 @@ class TallStackProposalForm extends Component
 
         $this->company = $company;
 
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
 
         // Route binding for `proposal` happens before this mount() body
-        // runs and before Filament::setTenant() above activates
+        // runs and before app(Tenancy::class)->set() above activates
         // BelongsToCompany's scope — same explicit re-check every other
         // TALL-stack detail page uses since this route sits outside
         // Filament's own tenant-scoped binding.
