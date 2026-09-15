@@ -14,6 +14,18 @@
         <x-slot:badge>
             <x-badge text="{{ $job->status->getLabel() }}" :color="$statusColor" sm />
         </x-slot:badge>
+        {{--
+            Compact at-a-glance summary beside the badge — a job is
+            always an existing record (no create page), so the "Job
+            details" card below always mounts collapsed; this row is what
+            keeps client/type/source quotation visible without expanding
+            it back open.
+        --}}
+        <x-slot:meta>
+            <span><span class="text-gray-400 dark:text-gray-500">Client</span> {{ $job->client?->name ?? '—' }}</span>
+            <span><span class="text-gray-400 dark:text-gray-500">Job type</span> {{ $job->job_type->getLabel() }}</span>
+            <span><span class="text-gray-400 dark:text-gray-500">Source quotation</span> {{ $job->quotation?->number ?? '—' }}</span>
+        </x-slot:meta>
         <x-slot:actions>
             <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('sales-orders.pdf', $job) }}" target="_blank" color="gray" sm class="h-9" />
         </x-slot:actions>
@@ -101,8 +113,19 @@
 
     {{-- ============================= OVERVIEW ============================= --}}
     <div @if ($activeTab !== 'overview') hidden @endif class="flex flex-col gap-4">
-        <div class="grid lg:grid-cols-[1.6fr_1fr] gap-4 items-start">
-            <x-card>
+        {{--
+            "Job details" is the fillable/basic-info card here — a job is
+            always an existing record (created only from an accepted
+            quotation, never by hand), so it always mounts collapsed;
+            the page-header's own meta row above already surfaces
+            client/type/source quotation at a glance. "Fulfillment" stays
+            expanded — it's a live status summary, not reference-only
+            basic info. The job line items table below (already
+            full-width, outside this 2-col row) is the page's real
+            primary content and is unaffected either way.
+        --}}
+        <div class="grid lg:grid-cols-2 gap-4 items-start">
+            <x-card minimize="mount">
                 <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job details</span></x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4 text-sm">
                     <div><div class="text-gray-400 text-xs">Job number</div><div class="font-semibold">{{ $job->number }}</div></div>
