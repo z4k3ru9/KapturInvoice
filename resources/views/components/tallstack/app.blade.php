@@ -49,7 +49,7 @@
                 ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
                 ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
                 // Pre-Filament-removal gap audit item
-                // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
                 // prompt 19) — mirrors the equivalent resource's own
                 // navigationGroup ('Procurement') from the pre-TallStackUI
                 // Filament admin, folded into this SAME
@@ -59,7 +59,7 @@
                 ['key' => 'expenses', 'label' => 'Expenses', 'route' => route('tallstack.expenses', $company), 'icon' => 'receipt-refund'],
             ],
         ],
-        // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // Phase 7 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
         // → Procurement → Delivery → Catalog → Reports → Settings) and the
         // Stitch "Delivery Orders & Handover Register" mockup's own
@@ -76,7 +76,7 @@
             'items' => [
                 ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
                 // Pre-Filament-removal gap audit item
-                // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
                 // prompt 21) — mirrors the equivalent resource's own
                 // navigationGroup ('Clients') from the pre-TallStackUI
                 // Filament admin, folded into this SAME
@@ -90,14 +90,14 @@
             'items' => [
                 ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
                 // Deferred item, built alongside Products/Catalog
-                // (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+                // (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
                 // folded into this SAME 'Catalog' key, never a second
                 // 'Catalog' => [...] block (see this file's own duplicate-key
                 // warning further down).
                 ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
             ],
         ],
-        // Pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+        // Pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
         // prompt 22) — mirrors the equivalent resource's own
         // navigationGroup ('Documents', a group of its own, placed
         // right after Catalog/before Reports in AdminPanelProvider's own
@@ -111,7 +111,7 @@
                 ['key' => 'documents', 'label' => 'Documents', 'route' => route('tallstack.documents', $company), 'icon' => 'paper-clip'],
             ],
         ],
-        // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // Phase 10 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
         // → Procurement → Delivery → Catalog → Reports → Settings) and the
         // Stitch "Financial Analytics & Tax Reports" mockup's own sidebar,
@@ -126,7 +126,7 @@
                 ['key' => 'reports-financial', 'label' => 'Financial Analytics', 'route' => route('tallstack.reports', $company), 'icon' => 'chart-bar'],
             ],
         ],
-        // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // Phase 9 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order
         // (... Reports → Settings, last) and the Stitch "Company & Taxes
         // Settings"/"Settings — Tax Rates & Small Lookups" mockups' own
@@ -164,7 +164,7 @@
                 // strip would misrepresent what they are.
                 ['key' => 'settings', 'label' => 'Settings', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'cog-6-tooth'],
                 ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
-                // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // Pre-Filament-removal audit gap (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
                 // prompt 20) — folded into this SAME 'Settings' key, never a
                 // second 'Settings' => [...] block (see this file's own
                 // duplicate-key warning above).

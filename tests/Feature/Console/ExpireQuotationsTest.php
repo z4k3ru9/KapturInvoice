@@ -13,7 +13,7 @@ use Tests\TestCase;
 /**
  * App\Console\Commands\ExpireQuotations — closes the "no automatic
  * quotation expiry" gap from
- * docs/rebuild/outputs/17-phase-03-checkpoint-report.md.
+ * docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md.
  */
 class ExpireQuotationsTest extends TestCase
 {

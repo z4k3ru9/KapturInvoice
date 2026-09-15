@@ -104,7 +104,7 @@ the replacement") rather than extending or replacing them yet:
   mode per document," but the actual Indonesian PPN/DPP Nilai Lain
   formula against that mode is explicitly Phase 04 scope
   (`App\Services\TaxCalculationService`, per
-  `docs/rebuild/outputs/05-implementation-plan.md` Task 4).
+  `docs/rebuild/outputs/planning/05-implementation-plan.md` Task 4).
   `QuotationTotalsCalculator`'s `total` is therefore a pre-tax billable
   value — sufficient for this phase's job/milestone value checks, not a
   finished invoice-grade total. None of the Required Tests for this phase
@@ -197,4 +197,4 @@ Phase `04-billing-and-receivables` — the discount/tax calculation engine
 fix (`InvoiceTotalsCalculator`'s discount-before-tax order-of-operations,
 per `docs/REFACTOR_PLAN.md` §1.3), immutable numbering/issuance/
 amendments/PDFs, and payments/allocations/verification/receipts. Per
-`docs/rebuild/outputs/05-implementation-plan.md` Tasks 4–6.
+`docs/rebuild/outputs/planning/05-implementation-plan.md` Tasks 4–6.

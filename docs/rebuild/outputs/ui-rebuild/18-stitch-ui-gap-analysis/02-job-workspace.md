@@ -144,4 +144,4 @@ Stitch/DESIGN §4 put Items+Milestones+Variations *inside* Overview and Commerci
 9. Optional: snapshot `terms/notes/quotation_date/valid_until` in `CreateSalesOrderFromQuotation.php` + test update.
 10. `vendor/bin/pint --dirty`, `php artisan test tests/Feature/Sales`.
 
-Docs to touch after: `docs/rebuild/outputs/17-phase-03-checkpoint-report.md` (tab-order deviation), `memory.md` (decision: Commercial is an Overview section until Phase 05 tabs exist).
+Docs to touch after: `docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md` (tab-order deviation), `memory.md` (decision: Commercial is an Overview section until Phase 05 tabs exist).

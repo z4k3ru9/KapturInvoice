@@ -14,7 +14,7 @@ Status: **complete** — tests passing, migrations clean from a fresh database, 
 > payments to use the same parallel immutable event model as customer
 > payments. Phase 05's original `VendorPayment`/`RecordVendorPayment` did
 > not meet this — see the same note on
-> `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`, which was
+> `docs/rebuild/outputs/checkpoints/20-phase-05-checkpoint-report.md`, which was
 > corrected before Phase 06B started (`VendorPaymentStatus`,
 > `VerifyVendorPayment`, `IssueVendorPaymentReceipt`,
 > `ReverseVendorPayment`, `AmendVendorPayment`,
@@ -189,4 +189,4 @@ Phase `05-procurement-and-delivery` — resolve the Expense-vs-Vendor-Bill
 mapping decision first (`docs/REFACTOR_PLAN.md` risk #6), then build
 `vendor_purchase_orders`/`vendor_bills`/`job_cost_allocations`/
 `delivery_orders`/`handover_reports`. Per
-`docs/rebuild/outputs/05-implementation-plan.md` Tasks 7–9.
+`docs/rebuild/outputs/planning/05-implementation-plan.md` Tasks 7–9.

@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 /**
  * Covers the TALL-stack Payment Gateways page (App\Livewire\TallStackPaymentGateways)
- * — a pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+ * — a pre-Filament-removal audit gap (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
  * prompt 20), built as a pure UI swap over the existing
  * App\Services\PaymentGateways\PaymentGatewayManager/App\Models\PaymentGateway
  * unmodified. See App\Livewire\TallStackReports's own test for the

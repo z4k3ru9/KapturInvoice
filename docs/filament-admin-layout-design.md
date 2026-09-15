@@ -30,7 +30,7 @@ shows and how it's grouped. ✅ = built and covered by a feature test (see
 Filament's sidebar is organized into `navigationGroup`s. `AdminPanelProvider`
 pins the order of the six DESIGN.md §2/Stitch-shell groups via
 `->navigationGroups([...])` (Phase 06B/Stitch Track A1 — see
-`docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md` §0);
+`docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md` §0);
 every other group (Billing, Clients, Expenses, Documents, Team, Proposals)
 renders after them in whatever order Filament discovers it, since those are
 legacy-only groups this slice deliberately left unpinned:
@@ -41,7 +41,7 @@ legacy-only groups this slice deliberately left unpinned:
 | **Procurement** | Vendors ✅ (`VendorResource`, moved here from Billing/Expenses — Stitch Track A1), Vendor Purchase Orders ✅ (`VendorPurchaseOrderResource`, Phase 05), Vendor Bills ✅ (`VendorBillResource`, Phase 05) |
 | **Delivery** | ⚠️ no dedicated resources yet — Delivery Orders/Handover Reports are read-only relation managers on `SalesOrderResource` (Phase 05); a placeholder group in the pinned order for when/if they get their own top-level resources. |
 | **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
-| **Reports** | ⚠️ no dedicated Reports page yet — `JobMarginReport` ships as a dashboard widget (Phase 06); a placeholder group per DESIGN.md §2's shell contract (see `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md` Track C4). |
+| **Reports** | ⚠️ no dedicated Reports page yet — `JobMarginReport` ships as a dashboard widget (Phase 06); a placeholder group per DESIGN.md §2's shell contract (see `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md` Track C4). |
 | **Settings** | Company Profile ✅ (tenant profile page), Branding ✅ (logo/colors, also editable from Company Profile), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
 | **Billing** *(unpinned, legacy)* | Invoices ✅, Recurring Invoices ✅ (hidden from nav), Quotes ✅ (legacy — see §2.0), Credits ✅ (hidden from nav), Payments ✅ |
 | **Clients** *(unpinned)* | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
@@ -827,7 +827,7 @@ was always the point — see §5, item 10.
   no `?tableFilters=` deep link yet (that needs status-filter wiring on
   `InvoicesTable`/`QuotationsTable`/`SalesOrdersTable` this slice
   deliberately didn't touch, per
-  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
+  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
   Track A2/B1 split) — flagged as a Track B follow-up.
 - **`SetupChecklistWidget`** (`Widget`) + **`App\Filament\Support\
   SetupChecklist`** — the first-run zero-state (Stitch Track A2 O1): five

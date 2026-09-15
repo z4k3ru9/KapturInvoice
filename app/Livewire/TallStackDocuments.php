@@ -19,7 +19,7 @@ use TallStackUi\Traits\Interactions;
  * unmodified; a presentation-layer swap over the equivalent pre-TallStackUI
  * Filament documents resource.
  *
- * Per docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt 22,
+ * Per docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt 22,
  * this is a flat, company-scoped "every file we have" register — a
  * Document is always attached to an owning record (an invoice, expense,
  * etc.) elsewhere in the app via its `documentable` morph, uploaded from

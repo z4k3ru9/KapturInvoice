@@ -22,7 +22,7 @@ use TallStackUi\Traits\Interactions;
  * equivalent resource in the pre-TallStackUI Filament admin), per
  * the fetched Stitch mockup of the same title: "design ONE representative
  * screen... rather than three near-duplicate mockups"
- * (docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 13).
+ * (docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 13).
  * Reuses each model's real Fillable field set exactly — nothing invented
  * (e.g. no color column on task_statuses, so no swatch is rendered even
  * though the mockup sketches one; see the view's own comment).

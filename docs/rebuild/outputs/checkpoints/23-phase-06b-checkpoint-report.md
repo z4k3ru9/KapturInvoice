@@ -23,7 +23,7 @@ phase is `07-migration-and-cutover`.
   real numbered, immutable `StatementOfAccount` row.
 - **Slice 2 (language and terminology)** — every launch document's
   printed labels resolve through `resources/lang/{id,en}/documents.php`.
-  `docs/rebuild/outputs/22-phase-06b-terminology-sources.md` records a
+  `docs/rebuild/outputs/checkpoints/22-phase-06b-terminology-sources.md` records a
   complete, source-backed review of every `id` key (one real error caught
   and fixed: `soa_title` had been `Rekening Koran`, which specifically
   means a *bank* statement — corrected to `Laporan Piutang Pelanggan`).

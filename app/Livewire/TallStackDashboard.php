@@ -26,7 +26,7 @@ use Livewire\Component;
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
  * the Dashboard — see
- * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
+ * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
  * the visual-fidelity design this was built against. Reuses
  * DashboardPeriod/RevenueBuckets/ActionQueue/SetupChecklist
  * (App\Support\Dashboard) unmodified.

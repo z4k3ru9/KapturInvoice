@@ -18,7 +18,7 @@ use Livewire\Component;
  * the exact same fillable fields and the exact same `company_user` attach
  * call (`['role' => 'owner']`, `is_active` left to its DB default of
  * `true`) that RegisterCompany's `handleRegistration()` used. See
- * docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
+ * docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md.
  *
  * The Filament admin panel (and its own `->tenantRegistration()`
  * middleware) has since been fully removed — see the note near the top of

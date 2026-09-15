@@ -7,8 +7,9 @@ now complete.
 ## The TallStackUI rebuild finished — this file's old execution-tracking role is over
 
 Since the last resync, `main` moved 121 more commits and the full
-Filament→TallStackUI admin rebuild (`docs/rebuild/outputs/
-25-tallstack-full-rebuild-plan.md`) **completed**. Confirmed directly:
+Filament→TallStackUI admin rebuild
+(`docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md`)
+**completed**. Confirmed directly:
 
 - `app/Filament` **no longer exists in the repo** (`git ls-tree -d
   origin/main -- app` has no `Filament` entry). The parallel-Filament

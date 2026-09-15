@@ -28,7 +28,7 @@
                     <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
                     {{--
                         This app has no working password-reset flow yet
-                        (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                        (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
                         §24) — a clearly-labeled, disabled placeholder
                         rather than a link that goes nowhere.
                     --}}

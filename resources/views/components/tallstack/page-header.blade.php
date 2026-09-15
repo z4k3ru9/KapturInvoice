@@ -7,7 +7,7 @@
     (see that file's own comment: "mirrors tallstack-dashboard.blade.php's
     own header block") — pulled out here so the next phase reuses this
     instead of copying markup again, per
-    docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's "Established
+    docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's "Established
     TallStackUI patterns" section.
 
     $crumbs: array of ['label' => string, 'url' => string|null] — the last

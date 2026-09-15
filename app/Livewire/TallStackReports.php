@@ -25,7 +25,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 
 /**
- * Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+ * Phase 10 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
  * "Financial Analytics & Tax Reports", TALL-stack-native. There is no
  * dedicated Filament page for this area — the closest existing sources of
  * truth are the equivalent pre-TallStackUI Filament dashboard's own

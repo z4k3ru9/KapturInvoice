@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * Scheduled daily (see routes/console.php) to close the "no automatic
  * quotation expiry" gap flagged in
- * docs/rebuild/outputs/17-phase-03-checkpoint-report.md — until now,
+ * docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md — until now,
  * QuotationStatus::Expired was reachable only via a manual "Mark expired"
  * action. Only a Sent quotation past its valid_until date is eligible
  * (QuotationStatus::canTransitionTo() already refuses any other source
