@@ -84,7 +84,7 @@ class TallStackPaymentAllocation extends Component
         // TallStackQuotationForm::mount() uses.
         abort_unless($payment->company_id === $company->id, 404);
 
-        $this->payment = $payment->loadMissing(['client', 'receipt', 'allocations' => fn ($q) => $q->where('is_active', true)]);
+        $this->payment = $payment->loadMissing(['client', 'receipt', 'allocations' => fn ($q) => $q->where('is_active', true)->with('invoice')]);
 
         $this->resetAllocationRows();
     }
@@ -146,7 +146,7 @@ class TallStackPaymentAllocation extends Component
                 $this->toast()->success('Payment allocated.')->send();
             }
 
-            $this->payment->refresh()->load(['allocations' => fn ($q) => $q->where('is_active', true)]);
+            $this->payment->refresh()->load(['allocations' => fn ($q) => $q->where('is_active', true)->with('invoice')]);
             $this->resetAllocationRows();
             $this->showAllocationModal = false;
         } catch (RuntimeException $e) {

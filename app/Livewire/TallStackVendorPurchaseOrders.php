@@ -115,6 +115,7 @@ class TallStackVendorPurchaseOrders extends Component
 
         $pos = (clone $base)
             ->with('vendor')
+            ->withSum('variances', 'amount')
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->vendor, fn ($q) => $q->where('vendor_id', $this->vendor))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
@@ -129,7 +130,10 @@ class TallStackVendorPurchaseOrders extends Component
                 'vendor' => $po->vendor?->name ?? '—',
                 'po_date' => $po->po_date?->format('d M Y') ?? '—',
                 'total' => Money::format((float) $po->total, $currency),
-                'payment_ceiling' => Money::format($po->paymentCeiling(), $currency),
+                // withSum() above avoids paymentCeiling()'s own
+                // variances()->sum() query per row - same formula,
+                // round((float) $this->total + (float) variances sum, 2).
+                'payment_ceiling' => Money::format(round((float) $po->total + (float) ($po->variances_sum_amount ?? 0), 2), $currency),
                 'status' => $po->status,
                 'status_label' => $po->status->getLabel(),
                 'status_color' => StatusColor::map($po->status->getColor()),
