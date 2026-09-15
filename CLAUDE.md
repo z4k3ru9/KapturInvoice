@@ -240,10 +240,11 @@ Or just `composer setup` (runs the same steps via the composer script).
   Quotes, a row action on `TallStackQuotes`) and `TallStackClientDetail`'s
   "Send portal link" action. `App\Console\Commands\SendInvoiceReminders`
   (scheduled daily, `routes/console.php`) dispatches the `reminder1-4`
-  schedule the same way. ⚠️ `BillingMailer::sendPaymentReceipt()` exists
-  but nothing in `App\Livewire` calls it today — a genuine gap opened by
-  the TallStackUI rebuild (Filament's Payments table used to have a
-  Send-receipt action; it hasn't been reconnected).
+  schedule the same way. `BillingMailer::sendPaymentReceipt()` is wired
+  into a "Send receipt" row action on `TallStackPayments`
+  (`TallStackPayments::sendReceipt()`, shown for any payment with an
+  issued receipt) — reconnected after the TallStackUI rebuild left it
+  uncalled for a time.
 - **`App\Services\PaymentGateways`** is the driver abstraction for
   `PaymentGateway`: `PaymentGatewayDriver` (interface) +
   `PaymentGatewayManager` (resolves one by the gateway's `driver` column).
