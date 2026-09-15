@@ -24,6 +24,61 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    {{--
+        Phase 12 (onboarding/zero-state) — a dashboard panel, not a
+        separate route: the Stitch "First-Run & Zero-State Onboarding
+        (Axen Technology Variant)" mockup renders this content as the
+        Dashboard's own top section (same sidebar/header chrome, same
+        page), not a standalone page — see
+        docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md. Reuses
+        App\Filament\Support\SetupChecklist's exact five steps and "done"
+        logic unmodified; the mockup itself shows four Axen-specific steps
+        (legal entity/tax registry, catalog, client+quotation, a bank
+        escrow VA) plus CSV import and a "contact Axen Finance" card — all
+        deferred/out-of-scope features (payment gateway checkout, CSV
+        import) this project's own CLAUDE.md already excludes from launch
+        scope, so only the layout language (a progress-badged step-card
+        row) is carried over, never those specific steps or actions. The
+        panel hides itself once every step is done, exactly mirroring
+        App\Filament\Widgets\SetupChecklistWidget::canView().
+    --}}
+    @if ($showChecklist)
+        <x-card>
+            <x-slot:header>
+                <div class="flex flex-wrap items-center justify-between gap-2 w-full">
+                    <div>
+                        <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Workspace setup &amp; first-run guide</div>
+                        <div class="text-xs text-gray-400">Complete these steps to start issuing invoices.</div>
+                    </div>
+                    <x-badge text="{{ $checklist['done'] }} of {{ $checklist['total'] }} completed" color="blue" sm icon="clipboard-document-check" />
+                </div>
+            </x-slot:header>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                @foreach ($checklist['steps'] as $index => $step)
+                    <div class="rounded-lg border p-3 flex flex-col gap-2 {{ $step['done'] ? 'border-green-200 dark:border-green-900 bg-green-50/50 dark:bg-green-950/20' : 'border-gray-200 dark:border-gray-800' }}">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Step {{ $index + 1 }}</span>
+                            @if ($step['done'])
+                                <x-badge text="Done" color="green" sm icon="check" />
+                            @elseif ($index === $firstIncompleteStep)
+                                <x-badge text="Next" color="amber" sm />
+                            @else
+                                <x-badge text="Pending" color="gray" sm />
+                            @endif
+                        </div>
+                        <p class="text-sm font-medium leading-snug {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
+                            {{ $step['label'] }}
+                        </p>
+                        @unless ($step['done'])
+                            <x-button text="Go" icon="arrow-right" href="{{ $step['url'] }}" sm color="blue" class="mt-auto self-start" />
+                        @endunless
+                    </div>
+                @endforeach
+            </div>
+        </x-card>
+    @endif
+
     {{-- Stat row --}}
     {{--
         The `!` (important) modifiers on the wider breakpoints work around
@@ -78,30 +133,60 @@
         </x-stats>
     </div>
 
-    {{-- Trend chart --}}
-    <x-card>
-        <x-slot:header>
-            <div class="flex items-center justify-between w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Revenue &amp; cash inflow trend</span>
+    {{--
+        Phase 12: a company with no clients and no quotations yet has
+        nothing meaningful to chart (an all-zero flatline reads as broken,
+        not "new"), so it gets a deliberate welcome panel here instead of
+        the trend chart — matching the Stitch mockup's "No Active Jobs or
+        Commercial Invoices" placement (it replaces the main content area,
+        not just a table's own empty-row text). A populated company keeps
+        the existing chart unchanged.
+    --}}
+    @if ($isZeroState)
+        <x-card>
+            <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
+                <div class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-50 dark:bg-blue-950">
+                    <x-icon name="briefcase" class="h-7 w-7 text-blue-500" />
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900 dark:text-gray-100">No jobs or invoices yet</p>
+                    <p class="mx-auto mt-1 max-w-sm text-sm text-gray-400">
+                        Your transactional queue is clean. Add a client and send your first
+                        quotation — once it's accepted, it becomes a job ready to bill.
+                    </p>
+                </div>
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                    <x-button text="Create your first quotation" icon="plus" href="{{ route('tallstack.quotations.create', $company) }}" color="blue" sm />
+                    <x-button text="Add a client" icon="user-plus" href="/admin/{{ $company->slug }}/clients" color="gray" sm />
+                </div>
             </div>
-        </x-slot:header>
+        </x-card>
+    @else
+        {{-- Trend chart --}}
+        <x-card>
+            <x-slot:header>
+                <div class="flex items-center justify-between w-full">
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Revenue &amp; cash inflow trend</span>
+                </div>
+            </x-slot:header>
 
-        <x-chart
-            type="area"
-            :labels="$chartLabels"
-            :series="[
-                ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
-                ['name' => 'Cash collected', 'data' => $chartCollected],
-            ]"
-            :colors="['red', 'primary']"
-            legend
-            height="280"
-        />
+            <x-chart
+                type="area"
+                :labels="$chartLabels"
+                :series="[
+                    ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
+                    ['name' => 'Cash collected', 'data' => $chartCollected],
+                ]"
+                :colors="['red', 'primary']"
+                legend
+                height="280"
+            />
 
-        <x-slot:footer>
-            <button type="button" class="text-xs font-semibold text-[color:var(--ts-primary)]">View as accessible table</button>
-        </x-slot:footer>
-    </x-card>
+            <x-slot:footer>
+                <button type="button" class="text-xs font-semibold text-[color:var(--ts-primary)]">View as accessible table</button>
+            </x-slot:footer>
+        </x-card>
+    @endif
 
     {{-- Expiring quotations + action queue --}}
     <div class="grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
