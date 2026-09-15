@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\InvoiceStatus;
 use App\Enums\QuotationStatus;
 use App\Filament\Pages\Dashboard;
 use App\Models\Client;
@@ -98,6 +99,50 @@ class DashboardWidgetsTest extends TestCase
             ->assertSee('1');
     }
 
+    /**
+     * Regression: RevenueOverview's "Total revenue" and RevenueBuckets'
+     * chart data only checked PaymentStatus::Completed (a legacy-imported
+     * status) — a payment recorded and verified through the real Phase 04
+     * lifecycle (RecordCustomerPayment -> VerifyCustomerPayment) ends up
+     * Verified, not Completed, and was silently excluded from both.
+     */
+    public function test_a_verified_not_just_completed_payment_counts_toward_total_revenue(): void
+    {
+        $invoice = Invoice::create(['company_id' => $this->company->id, 'client_id' => $this->client->id, 'type' => 'invoice', 'status' => 'paid', 'number' => 'INV-0001']);
+        Payment::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id, 'invoice_id' => $invoice->id,
+            'amount' => 300, 'status' => 'verified', 'payment_date' => '2026-09-05',
+        ]);
+
+        Livewire::test(RevenueOverview::class, ['pageFilters' => ['period' => 'this_month']])
+            ->assertSee('Total revenue')
+            ->assertSee('US$300');
+    }
+
+    /**
+     * Regression: openInvoicesQuery() only recognized Sent/Viewed/Partial
+     * (pre-Phase-04 legacy-import statuses) as "open" — an invoice issued
+     * through the real App\Actions\Billing\IssueInvoice pipeline and never
+     * paid stays at InvoiceStatus::Issued forever
+     * (RecalculateInvoiceReceivables::BILLABLE_STATES), so it was
+     * completely invisible to "Outstanding balance"/"Overdue invoices"
+     * until a payment happened to touch it.
+     */
+    public function test_an_issued_and_unpaid_invoice_counts_as_outstanding_and_overdue(): void
+    {
+        $issued = Invoice::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'type' => 'invoice', 'status' => InvoiceStatus::Issued, 'number' => 'INV-0004', 'due_date' => '2026-09-01',
+        ]);
+        $issued->forceFill(['total' => 500, 'balance' => 500])->save();
+
+        Livewire::test(RevenueOverview::class, ['pageFilters' => ['period' => 'this_month']])
+            ->assertSee('Outstanding balance')
+            ->assertSee('US$500')
+            ->assertSee('Overdue invoices')
+            ->assertSee('US$500 overdue');
+    }
+
     public function test_revenue_trend_chart_and_table_share_the_same_buckets(): void
     {
         $invoiced = Invoice::create([
@@ -108,7 +153,13 @@ class DashboardWidgetsTest extends TestCase
         $invoiced->forceFill(['total' => 500])->save();
         Payment::create([
             'company_id' => $this->company->id, 'client_id' => $this->client->id,
-            'amount' => 150, 'status' => 'completed', 'payment_date' => '2026-09-10',
+            'amount' => 100, 'status' => 'completed', 'payment_date' => '2026-09-10',
+        ]);
+        // A Verified (not just Completed) payment on the same day must
+        // also count toward "collected" — same regression as above.
+        Payment::create([
+            'company_id' => $this->company->id, 'client_id' => $this->client->id,
+            'amount' => 50, 'status' => 'verified', 'payment_date' => '2026-09-10',
         ]);
 
         Livewire::test(RevenueTrendChart::class, ['pageFilters' => ['period' => 'this_month']])
