@@ -77,6 +77,7 @@
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-right">Qty</th>
                             <th class="px-3 py-2 text-right">Unit cost</th>
+                            <th class="px-3 py-2 text-right">Discount</th>
                             <th class="px-3 py-2 text-right">Line total</th>
                             <th class="px-3 py-2"></th>
                         </x-slot:head>
@@ -93,6 +94,7 @@
                                 <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['discount'] ?? '—' }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
                                 <td class="px-3 py-2">
                                     @if ($purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
@@ -177,6 +179,10 @@
             <div class="grid grid-cols-2 gap-4">
                 <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
                 <x-input wire:model="item_unit_cost" label="Unit cost" type="number" step="0.01" />
+                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
+                <div class="flex items-end pb-2">
+                    <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
+                </div>
             </div>
         </div>
 
