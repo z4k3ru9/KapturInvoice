@@ -108,7 +108,7 @@ class ActionQueue
             ->count();
 
         return [
-            'label' => "{$count} customer invoices overdue",
+            'label' => 'Customer invoices overdue',
             'count' => $count,
             'url' => InvoiceResource::getUrl('index'),
             'tone' => 'danger',
@@ -120,7 +120,7 @@ class ActionQueue
         $count = SalesOrder::query()->where('status', SalesOrderStatus::Draft)->count();
 
         return [
-            'label' => "{$count} jobs awaiting approval",
+            'label' => 'Jobs awaiting approval',
             'count' => $count,
             'url' => SalesOrderResource::getUrl('index'),
             'tone' => 'warning',
@@ -132,7 +132,7 @@ class ActionQueue
         $count = Quotation::query()->where('status', QuotationStatus::Sent)->count();
 
         return [
-            'label' => "{$count} quotations awaiting a customer decision",
+            'label' => 'Quotations awaiting a customer decision',
             'count' => $count,
             'url' => QuotationResource::getUrl('index'),
             'tone' => 'info',
@@ -144,7 +144,7 @@ class ActionQueue
         $count = VendorBill::query()->where('status', VendorBillStatus::Submitted)->count();
 
         return [
-            'label' => "{$count} vendor bills awaiting approval",
+            'label' => 'Vendor bills awaiting approval',
             'count' => $count,
             'url' => VendorBillResource::getUrl('index'),
             'tone' => 'warning',
@@ -156,7 +156,7 @@ class ActionQueue
         $count = Payment::query()->where('status', PaymentStatus::Pending)->count();
 
         return [
-            'label' => "{$count} payments awaiting verification",
+            'label' => 'Payments awaiting verification',
             'count' => $count,
             'url' => PaymentResource::getUrl('index'),
             'tone' => 'warning',
@@ -168,7 +168,7 @@ class ActionQueue
         $count = Quotation::query()->where('status', QuotationStatus::Draft)->count();
 
         return [
-            'label' => "{$count} draft quotations",
+            'label' => 'Draft quotations',
             'count' => $count,
             'url' => QuotationResource::getUrl('index'),
             'tone' => 'gray',
@@ -182,7 +182,7 @@ class ActionQueue
             ->count();
 
         return [
-            'label' => "{$count} jobs in progress",
+            'label' => 'Jobs in progress',
             'count' => $count,
             'url' => SalesOrderResource::getUrl('index'),
             'tone' => 'info',
@@ -194,7 +194,7 @@ class ActionQueue
         $count = SalesOrder::query()->where('status', SalesOrderStatus::InProgress)->count();
 
         return [
-            'label' => "{$count} jobs ready for delivery",
+            'label' => 'Jobs ready for delivery',
             'count' => $count,
             'url' => SalesOrderResource::getUrl('index'),
             'tone' => 'info',
@@ -206,7 +206,7 @@ class ActionQueue
         $count = SalesOrder::query()->where('status', SalesOrderStatus::Delivered)->count();
 
         return [
-            'label' => "{$count} jobs awaiting handover",
+            'label' => 'Jobs awaiting handover',
             'count' => $count,
             'url' => SalesOrderResource::getUrl('index'),
             'tone' => 'warning',

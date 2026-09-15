@@ -79,18 +79,23 @@ class RevenueOverview extends StatsOverviewWidget
             Stat::make('Total revenue', Money::format($revenue, $currency))
                 ->description($period['label'])
                 ->descriptionIcon($this->trendIcon($revenue, $previousRevenue))
+                ->icon(Heroicon::OutlinedBanknotes)
                 ->color($this->trendColor($revenue, $previousRevenue)),
             Stat::make('Outstanding balance', Money::format((clone $outstanding)->sum('balance'), $currency))
                 ->description((clone $outstanding)->count().' invoices')
+                ->icon(Heroicon::OutlinedClock)
                 ->color('warning'),
             Stat::make('Overdue invoices', (clone $overdue)->count())
                 ->description(Money::format((clone $overdue)->sum('balance'), $currency).' overdue')
+                ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->color('danger'),
             Stat::make('Open quotations', $openQuotations)
                 ->description('Approved or sent, awaiting a decision')
+                ->icon(Heroicon::OutlinedDocumentText)
                 ->color('info'),
             Stat::make('Active jobs', $activeJobs)
                 ->description('In progress toward delivery')
+                ->icon(Heroicon::OutlinedBriefcase)
                 ->color('info'),
         ];
     }

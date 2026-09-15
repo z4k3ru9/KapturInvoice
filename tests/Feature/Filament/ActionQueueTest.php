@@ -75,9 +75,14 @@ class ActionQueueTest extends TestCase
         $items = ActionQueue::for($owner, $this->company);
 
         $labels = array_column($items, 'label');
-        $this->assertStringContainsString('1 customer invoices overdue', implode(' ', $labels));
-        $this->assertStringContainsString('1 jobs awaiting approval', implode(' ', $labels));
-        $this->assertStringContainsString('1 quotations awaiting a customer decision', implode(' ', $labels));
+        $counts = array_column($items, 'count');
+        // The count is shown once, as the item's own badge - the label
+        // itself no longer repeats it (a duplicate "1 quotations awaiting..."
+        // caught via UI screenshot review, also grammatically wrong for n=1).
+        $this->assertStringContainsString('Customer invoices overdue', implode(' ', $labels));
+        $this->assertStringContainsString('Jobs awaiting approval', implode(' ', $labels));
+        $this->assertStringContainsString('Quotations awaiting a customer decision', implode(' ', $labels));
+        $this->assertContains(1, $counts);
 
         foreach ($items as $item) {
             $this->assertNotNull($item['url']);

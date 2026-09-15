@@ -44,7 +44,13 @@ class ExpiringQuotationsWidget extends TableWidget
                 TextColumn::make('client.name')->label('Client'),
                 TextColumn::make('valid_until')
                     ->label('Valid until')
-                    ->date()
+                    ->date(),
+                TextColumn::make('valid_until')
+                    ->label('Status')
+                    ->state(fn (Quotation $record) => $record->valid_until?->isPast()
+                        ? 'Expired '.$record->valid_until->diffForHumans(null, true).' ago'
+                        : 'Expiring in '.$record->valid_until?->diffForHumans(null, true))
+                    ->badge()
                     ->color(fn (Quotation $record) => $record->valid_until?->isPast() ? 'danger' : 'warning'),
                 TextColumn::make('total')->numeric(),
             ])
