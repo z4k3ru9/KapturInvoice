@@ -236,8 +236,8 @@ Route::post('/logout', LogoutController::class)
     ->middleware('auth')
     ->name('logout');
 
-// TallStackUI-native replacement for App\Filament\Pages\Tenancy\RegisterCompany
-// (Filament's RegisterTenant page) — the only path that creates a new
+// TallStackUI-native replacement for the tenant-registration page from the
+// pre-TallStackUI Filament admin (Filament's RegisterTenant page) — the only path that creates a new
 // Company row. Auth-only (no tenant to scope to yet): the component's own
 // mount() redirects a user who already has a company straight to its
 // dashboard instead. See App\Livewire\TallStackRegisterCompany's docblock
@@ -258,8 +258,8 @@ Route::get('/tall/{company:slug}/dashboard', TallStackDashboard::class)
 
 // Phase 1 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Quotations register and its create/edit line editor, TALL-stack-native
-// alongside the Filament resource they mirror
-// (App\Filament\Resources\Quotations). `/create` is registered before
+// alongside the equivalent resource from the pre-TallStackUI Filament
+// admin. `/create` is registered before
 // `/{quotation}/edit` so the literal segment binds first. Both components
 // re-check company ownership explicitly in mount() — see their own
 // docblocks for why the BelongsToCompany global scope can't be trusted at
@@ -277,8 +277,8 @@ Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotatio
 
 // Phase 2 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Job (SalesOrder) register and its 7-tab workspace, TALL-stack-native
-// alongside the Filament resource they mirror
-// (App\Filament\Resources\SalesOrders). Re-checks company ownership
+// alongside the equivalent resource from the pre-TallStackUI Filament
+// admin. Re-checks company ownership
 // explicitly in mount() — same reasoning as the Quotations routes above.
 Route::get('/tall/{company:slug}/jobs', TallStackSalesOrders::class)
     ->middleware('auth')
@@ -290,7 +290,7 @@ Route::get('/tall/{company:slug}/jobs/{salesOrder}', TallStackSalesOrder::class)
 // Phase 3 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Invoices register and its detail/edit page (line items + status
 // lifecycle + e-Faktur/Tax Recap issuance), TALL-stack-native alongside
-// the Filament resource they mirror (App\Filament\Resources\Invoices).
+// the equivalent resource from the pre-TallStackUI Filament admin.
 // `/create` is registered before `/{invoice}` so the literal segment
 // binds first, same ordering reasoning as the Quotations routes above.
 Route::get('/tall/{company:slug}/invoices', TallStackInvoices::class)
@@ -320,8 +320,8 @@ Route::get('/tall/{company:slug}/quotes/{invoice}', TallStackInvoiceForm::class)
 
 // Deferred-scope item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md
 // status checklist) — the Recurring Invoices register and its detail/
-// schedule-editor page, TALL-stack-native alongside the Filament resource
-// they mirror (App\Filament\Resources\RecurringInvoices). A recurring
+// schedule-editor page, TALL-stack-native alongside the equivalent
+// resource from the pre-TallStackUI Filament admin. A recurring
 // template is an App\Models\Invoice row (`is_recurring = true`), so these
 // components/routes mirror the plain Invoices ones above field-for-field
 // — see App\Livewire\TallStackRecurringInvoiceForm's docblock for what's
@@ -341,7 +341,7 @@ Route::get('/tall/{company:slug}/recurring-invoices/{invoice}/edit', TallStackRe
 
 // Phase 4 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Payments register and its allocation panel, TALL-stack-native alongside
-// the Filament resource they mirror (App\Filament\Resources\Payments).
+// the equivalent resource from the pre-TallStackUI Filament admin.
 // Both components re-check company ownership explicitly in mount() — same
 // reasoning as the Quotations routes above.
 Route::get('/tall/{company:slug}/payments', TallStackPayments::class)
@@ -353,9 +353,8 @@ Route::get('/tall/{company:slug}/payments/{payment}', TallStackPaymentAllocation
 
 // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // standalone Delivery Orders/Handover Reports registers browsing across
-// ALL jobs, TALL-stack-native alongside the read-only relation managers
-// they mirror (App\Filament\Resources\SalesOrders\RelationManagers\
-// DeliveryOrdersRelationManager/HandoverReportsRelationManager). Neither
+// ALL jobs, TALL-stack-native alongside the Job resource's own read-only
+// relation managers from the pre-TallStackUI Filament admin. Neither
 // page duplicates the "Record delivery"/"Record handover" actions already
 // wired inline on App\Livewire\TallStackSalesOrder's Delivery tab — both
 // are read/browse surfaces that link back to the owning job's workspace
@@ -375,8 +374,8 @@ Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::cl
     ->name('tallstack.handover-reports');
 
 // Phase 8 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
-// Products/Catalog register, TALL-stack-native alongside the Filament
-// resource it mirrors (App\Filament\Resources\Products). Create/Edit is a
+// Products/Catalog register, TALL-stack-native alongside the equivalent
+// resource from the pre-TallStackUI Filament admin. Create/Edit is a
 // modal on this same page, not a separate route — see
 // App\Livewire\TallStackProducts's docblock. Re-checks company ownership
 // explicitly in mount(), same reasoning as the other TALL-stack pages.
@@ -386,8 +385,8 @@ Route::get('/tall/{company:slug}/products', TallStackProducts::class)
 
 // Deferred item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // the vendor pricelist reference catalog register, TALL-stack-native
-// alongside the Filament resource it mirrors
-// (App\Filament\Resources\PriceListItems). Register/list only — browse
+// alongside the equivalent resource from the pre-TallStackUI Filament
+// admin. Register/list only — browse
 // the imported pricelist, import/refresh a sheet, and create/refresh a
 // real Product from a chosen row (App\Services\ProductSync); no
 // hand-edit-a-row form, matching the Stitch mockup. Re-checks company
@@ -399,7 +398,7 @@ Route::get('/tall/{company:slug}/price-list-items', TallStackPriceListItems::cla
 
 // Phase 5 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Clients register and detail view, TALL-stack-native alongside the
-// Filament resource they mirror (App\Filament\Resources\Clients).
+// equivalent resource from the pre-TallStackUI Filament admin.
 // `/clients` is registered before `/clients/{client}` so the literal
 // segment binds first. Both components re-check company ownership
 // explicitly in mount(), same reasoning as the Quotations routes above.
@@ -424,10 +423,10 @@ Route::get('/tall/{company:slug}/clients/{client}/statement-of-account/{statemen
     ->name('tallstack.clients.statement-of-account');
 
 // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
-// Settings, TALL-stack-native alongside the Filament pages/resources they
-// mirror (App\Filament\Pages\Tenancy\EditCompanyProfile,
-// App\Filament\Pages\Settings\EditEmailSettings/EditBrandingSettings, and
-// the TaxRates/ExpenseCategories/TaskStatuses small-lookup resources).
+// Settings, TALL-stack-native alongside the equivalent pages/resources
+// from the pre-TallStackUI Filament admin (the tenant-profile page, the
+// Email/Branding settings pages, and the TaxRates/ExpenseCategories/
+// TaskStatuses small-lookup resources).
 // Every component re-checks canAccessTenant() AND the same
 // CompanyPolicy::viewSettings() (Owner/Admin only) gate those Filament
 // pages already use, explicitly in mount() — same reasoning as every
@@ -503,8 +502,8 @@ Route::get('/tall/{company:slug}/users', TallStackUsers::class)
 
 // Phase 6 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // Procurement: Vendors, Vendor Purchase Orders, Vendor Bills, alongside
-// the Filament resources they mirror (App\Filament\Resources\{Vendors,
-// VendorPurchaseOrders,VendorBills}). `/create` is registered before the
+// the equivalent resources from the pre-TallStackUI Filament admin.
+// `/create` is registered before the
 // `/{record}/edit` routes so the literal segment binds first. All three
 // components re-check company ownership explicitly in mount() — same
 // reasoning as the Quotation components above.
@@ -533,8 +532,8 @@ Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendo
     ->name('tallstack.vendor-bills.edit');
 
 // Expenses — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-// prompt 19), TALL-stack-native alongside the Filament resource it
-// mirrors (App\Filament\Resources\Expenses). A plain non-job cost bucket,
+// prompt 19), TALL-stack-native alongside the equivalent resource from
+// the pre-TallStackUI Filament admin. A plain non-job cost bucket,
 // separate from Vendor Bills (which ARE tied to a job/PO) — register/list
 // + modal create/edit only, no separate route, matching this app's
 // small-resource convention (see Clients/Vendors) and the fetched Stitch
@@ -545,8 +544,8 @@ Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
     ->name('tallstack.expenses');
 
 // Documents — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-// prompt 22), TALL-stack-native alongside the Filament resource it
-// mirrors (App\Filament\Resources\Documents\DocumentResource). A flat,
+// prompt 22), TALL-stack-native alongside the equivalent resource from
+// the pre-TallStackUI Filament admin. A flat,
 // company-scoped "every file we have" register/list-only page — no
 // create route, since a Document is always uploaded from its owning
 // record elsewhere in the app. Download reuses the existing
@@ -573,8 +572,8 @@ Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
 
 // Client Portal Invitations — pre-Filament-removal gap audit item
 // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt 21),
-// TALL-stack-native alongside the Filament resource it mirrors
-// (App\Filament\Resources\Invitations\InvitationResource). Read-mostly,
+// TALL-stack-native alongside the equivalent resource from the
+// pre-TallStackUI Filament admin. Read-mostly,
 // same reasoning as Credits above: invitations are generated
 // automatically when an invoice is sent, never created/edited/deleted
 // from this screen, so there is only this one route.
@@ -584,8 +583,9 @@ Route::get('/tall/{company:slug}/client-portal-invitations', TallStackClientPort
 
 // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
 // Financial Analytics & Tax Reports. Reuses the Dashboard's own revenue/
-// outstanding/overdue aggregates, App\Filament\Widgets\JobMarginReport's
-// query/computation, and real App\Models\TaxRecap rows — introduces no
+// outstanding/overdue aggregates, the pre-TallStackUI Filament admin's
+// job-margin report widget's query/computation, and real
+// App\Models\TaxRecap rows — introduces no
 // new calculation of its own. Same explicit company-ownership re-check
 // pattern as every other TALL-stack register above.
 Route::get('/tall/{company:slug}/reports', TallStackReports::class)

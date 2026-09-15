@@ -56,8 +56,8 @@
          Three genuinely separate columns (sales value / allocated gross
          cost / unallocated purchasing cost) rather than one blended
          "cost" number — per FINALIZED-DECISIONS.md §3 and this project's
-         own standing rule, mirroring App\Filament\Widgets\JobMarginReport
-         exactly. --}}
+         own standing rule, mirroring the equivalent report widget from the
+         pre-TallStackUI Filament admin exactly. --}}
     <x-card>
         <x-slot:header>
             <div class="flex items-center justify-between w-full">
