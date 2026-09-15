@@ -3,28 +3,120 @@
 @php
     $primary = $company->primary_color ?: '#E63934';
     $logo = $company->getLogoDataUri();
-    $adminBase = "/admin/{$company->slug}";
 
     $nav = [
         'Sales' => [
             ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => route('tallstack.dashboard', $company), 'icon' => 'squares-2x2'],
             ['key' => 'quotations', 'label' => 'Quotations', 'route' => route('tallstack.quotations', $company), 'icon' => 'document-text'],
-            ['key' => 'jobs', 'label' => 'Jobs', 'route' => "{$adminBase}/sales-orders", 'icon' => 'briefcase'],
+            ['key' => 'jobs', 'label' => 'Jobs', 'route' => route('tallstack.jobs', $company), 'icon' => 'briefcase'],
         ],
         'Billing' => [
-            ['key' => 'invoices', 'label' => 'Invoices', 'route' => "{$adminBase}/invoices", 'icon' => 'document-currency-dollar'],
-            ['key' => 'payments', 'label' => 'Payments', 'route' => "{$adminBase}/payments", 'icon' => 'credit-card'],
-            ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
+            ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
+            ['key' => 'recurring-invoices', 'label' => 'Recurring Invoices', 'route' => route('tallstack.recurring-invoices', $company), 'icon' => 'arrow-path'],
+            ['key' => 'payments', 'label' => 'Payments', 'route' => route('tallstack.payments', $company), 'icon' => 'credit-card'],
+            ['key' => 'quotes', 'label' => 'Quotes', 'route' => route('tallstack.quotes', $company), 'icon' => 'document-duplicate'],
+            ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
+        ],
+        // Mirrors App\Filament\Resources\Proposals\ProposalResource's own
+        // navigationGroup ('Proposals', a group of its own rather than
+        // folded into Sales/Billing) — that resource's own
+        // shouldRegisterNavigation() is false so it never actually shows
+        // in the Filament sidebar, but this is still the grouping the
+        // resource itself declares.
+        'Proposals' => [
+            ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
         ],
         'Procurement' => [
-            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => "{$adminBase}/vendor-bills", 'icon' => 'clipboard-document-list'],
-            ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
+            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
+            ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
+            ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
+            // Pre-Filament-removal gap audit item
+            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 19) — mirrors App\Filament\Resources\Expenses\ExpenseResource's
+            // own navigationGroup ('Procurement'), folded into this SAME
+            // 'Procurement' key, never a second 'Procurement' => [...]
+            // block (see this file's own duplicate-key warning further
+            // down).
+            ['key' => 'expenses', 'label' => 'Expenses', 'route' => route('tallstack.expenses', $company), 'icon' => 'receipt-refund'],
+        ],
+        // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order (Sales
+        // → Procurement → Delivery → Catalog → Reports → Settings) and the
+        // Stitch "Delivery Orders & Handover Register" mockup's own
+        // sidebar, which places this group in the same spot.
+        'Delivery' => [
+            ['key' => 'delivery-orders', 'label' => 'Delivery Orders', 'route' => route('tallstack.delivery-orders', $company), 'icon' => 'truck'],
+            ['key' => 'handover-reports', 'label' => 'Handover Reports', 'route' => route('tallstack.handover-reports', $company), 'icon' => 'document-check'],
         ],
         'Clients' => [
-            ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
+            ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
+            // Pre-Filament-removal gap audit item
+            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 21) — mirrors App\Filament\Resources\Invitations\InvitationResource's
+            // own navigationGroup ('Clients'), folded into this SAME
+            // 'Clients' key, never a second 'Clients' => [...] block (see
+            // this file's own duplicate-key warning further down).
+            ['key' => 'client-portal-invitations', 'label' => 'Portal Invitations', 'route' => route('tallstack.client-portal-invitations', $company), 'icon' => 'link'],
         ],
         'Catalog' => [
-            ['key' => 'products', 'label' => 'Products', 'route' => "{$adminBase}/products", 'icon' => 'cube'],
+            ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
+            // Deferred item, built alongside Products/Catalog
+            // (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+            // folded into this SAME 'Catalog' key, never a second
+            // 'Catalog' => [...] block (see this file's own duplicate-key
+            // warning further down).
+            ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
+        ],
+        // Pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+        // prompt 22) — mirrors App\Filament\Resources\Documents\DocumentResource's
+        // own navigationGroup ('Documents', a group of its own, placed
+        // right after Catalog/before Reports in AdminPanelProvider's own
+        // pinned nav-group order) — a genuinely new top-level array entry,
+        // never folded into an existing group (see this file's own
+        // duplicate-key warning further down for why that distinction
+        // matters).
+        'Documents' => [
+            ['key' => 'documents', 'label' => 'Documents', 'route' => route('tallstack.documents', $company), 'icon' => 'paper-clip'],
+        ],
+        // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order (Sales
+        // → Procurement → Delivery → Catalog → Reports → Settings) and the
+        // Stitch "Financial Analytics & Tax Reports" mockup's own sidebar,
+        // which places this group in the same spot, right before Settings.
+        // This key did not exist before this phase, so it's a genuinely
+        // new top-level array entry — not a fold into an existing group
+        // (see this file's own duplicate-key warning further down for why
+        // that distinction matters).
+        'Reports' => [
+            ['key' => 'reports-financial', 'label' => 'Financial Analytics', 'route' => route('tallstack.reports', $company), 'icon' => 'chart-bar'],
+        ],
+        // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order
+        // (... Reports → Settings, last) and the Stitch "Company & Taxes
+        // Settings"/"Settings — Tax Rates & Small Lookups" mockups' own
+        // sidebar, which both place this group last too.
+        // "Users & Roles" is administrative/settings-adjacent (matches
+        // Filament's own UserResource, App\Filament\Resources\Users\
+        // UserResource, navigationGroup 'Team' — kept under this app's own
+        // "Settings" grouping here since a standalone one-item nav group
+        // reads as noise at this sidebar width) — folded into the same
+        // 'Settings' key as the Phase 9 pages below it. PHP array literals
+        // silently let a later duplicate key overwrite an earlier one, so
+        // these MUST stay merged into one array, never split into two
+        // 'Settings' => [...] entries again.
+        'Settings' => [
+            ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
+            ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
+            ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
+            ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
+            ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
+            ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
+            ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
+            // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 20) — folded into this SAME 'Settings' key, never a
+            // second 'Settings' => [...] block (see this file's own
+            // duplicate-key warning above).
+            ['key' => 'payment-gateways', 'label' => 'Payment Gateways', 'route' => route('tallstack.payment-gateways', $company), 'icon' => 'credit-card'],
         ],
     ];
 @endphp
@@ -76,7 +168,39 @@
 
 <x-layout>
     <x-slot:menu>
-        <x-side-bar collapsible thin-scroll>
+        {{--
+            `navigate` (not `navigate-hover`): every item below binds
+            `:route`, not `:href` — TallStackUI's own item.blade.php only
+            ever attaches `wire:navigate`/`wire:navigate.hover` when
+            `$href` is null (vendor/tallstackui/tallstackui/src/resources/
+            views/components/layout/sidebar/item.blade.php), so `href`
+            would have silently made this a no-op. `navigate-hover`
+            (prefetch-on-hover) was deliberately skipped: this app's dev
+            server is a single-threaded `php artisan serve`
+            (docs/rebuild/specs/06b-ux-browser-soa/... already documents
+            this queuing real requests behind each other), so an eager
+            hover-prefetch competing with an actual click's request is
+            more request-queuing risk than the prefetch is worth; plain
+            `navigate` (fires only on an actual click) was verified stable
+            across 8+ page-to-page navigations, including 5 rapid clicks
+            in a row, in both companies and both color schemes — see this
+            audit's report.
+
+            `smart` is deliberately NOT set here — every item's
+            `current` is instead computed explicitly per page (each
+            TallStack*.php Livewire component passes its own `active`
+            key to this layout). `smart`'s own `matches()` (vendor
+            Component.php) does an exact current-URL-vs-route-URL string
+            compare, which cannot express "this nested edit/detail page
+            still highlights its parent list item" (e.g. a Quotation edit
+            page must keep "Quotations" active, not go dark) — and one
+            page (TallStackInvoiceForm) picks between two DIFFERENT nav
+            keys ('quotes' vs 'invoices') from the record's own `type`
+            column, not from the route at all. Both are real requirements
+            `smart`/`match` cannot express; the explicit per-page `active`
+            key was verified correct instead.
+        --}}
+        <x-side-bar collapsible thin-scroll navigate>
             <x-slot:brand>
                 <div class="flex items-center gap-3 px-1">
                     @if ($logo)
@@ -121,14 +245,32 @@
                         current route reads in the tenant's brand color,
                         matching the Stitch mockup's muted/active contrast.
                     --}}
+                    {{--
+                        `:route`, not `:href` — see this file's own
+                        `navigate` comment above on <x-side-bar>: only
+                        `route` lets the vendor item template attach
+                        `wire:navigate`. Both props render an identical
+                        `href="..."` attribute value either way (vendor
+                        Component.php resolves `route ?? href`), and
+                        `smart` stays off (see above), so `current` below
+                        is still the only thing that decides highlighting
+                        — this swap changes no visible behavior beyond
+                        enabling SPA navigation.
+                    --}}
                     <x-side-bar.item
                         :text="$item['label']"
-                        :href="$item['route']"
+                        :route="$item['route']"
                         :current="$active === $item['key']"
                         :class="$active === $item['key'] ? '' : '!text-gray-600 dark:!text-gray-300'"
                     >
+                        {{--
+                            16px (w-4 h-4), matching this shell's other
+                            chrome icons (sidebar toggle/search/logout,
+                            below) — this app's standard "inline icon next
+                            to text" size, not an arbitrary one-off value.
+                        --}}
                         <x-slot:icon>
-                            <x-icon :name="$item['icon']" class="w-[18px] h-[18px]" />
+                            <x-icon :name="$item['icon']" class="w-4 h-4" />
                         </x-slot:icon>
                     </x-side-bar.item>
                 @endforeach
@@ -200,7 +342,45 @@
                     --}}
                     <x-button icon="plus" text="New" color="blue" sm class="h-9" />
                     <x-button icon="bell" color="gray" sm scope="icon-action" class="h-9 w-9" />
-                    <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
+                    {{--
+                        The only reachable "Log out" control anywhere in
+                        the TALL-stack shell — see App\Http\Controllers\LogoutController's
+                        docblock. A plain POST form inside the dropdown
+                        item's default slot rather than a Livewire action,
+                        so it works the same way regardless of which page
+                        component is currently rendering this shell.
+                    --}}
+                    <x-dropdown position="bottom-end">
+                        {{--
+                            A custom `action` slot (rather than the
+                            component's own `text`/`icon` props) renders
+                            with no click-toggle wiring at all — only the
+                            auto-generated trigger button gets
+                            `x-on:click="show = !show"` — so it has to be
+                            added here explicitly, same as the package's
+                            own "custom action trigger" doc example.
+                        --}}
+                        <x-slot:action>
+                            <div x-on:click="show = !show" class="cursor-pointer">
+                                <x-avatar text="{{ collect(explode(' ', auth()->user()->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}" color="gray" sm class="h-9 w-9" />
+                            </div>
+                        </x-slot:action>
+                        <x-slot:header>
+                            <div class="px-2 py-1">
+                                <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{{ auth()->user()->name }}</div>
+                                <div class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</div>
+                            </div>
+                        </x-slot:header>
+                        <x-dropdown.items separator>
+                            <form method="POST" action="{{ route('logout') }}" class="w-full">
+                                @csrf
+                                <button type="submit" class="flex w-full items-center gap-2 text-left">
+                                    <x-icon name="arrow-right-on-rectangle" class="h-4 w-4" />
+                                    Log out
+                                </button>
+                            </form>
+                        </x-dropdown.items>
+                    </x-dropdown>
                 </div>
             </x-slot:right>
         </x-layout.header>

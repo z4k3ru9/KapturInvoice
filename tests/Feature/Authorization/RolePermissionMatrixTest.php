@@ -2,16 +2,10 @@
 
 namespace Tests\Feature\Authorization;
 
-use App\Filament\Pages\Settings\EditBrandingSettings;
-use App\Filament\Pages\Settings\EditClientPortalSettings;
-use App\Filament\Pages\Settings\EditEmailSettings;
-use App\Filament\Pages\Settings\EditNumberingSettings;
-use App\Filament\Pages\Tenancy\EditCompanyProfile;
-use App\Filament\Resources\Clients\ClientResource;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\User;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
@@ -44,7 +38,7 @@ class RolePermissionMatrixTest extends TestCase
         $user = User::factory()->create();
         $this->company->users()->attach($user, ['role' => $role]);
         $this->actingAs($user);
-        Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         return $user;
     }
@@ -87,7 +81,7 @@ class RolePermissionMatrixTest extends TestCase
         $user = $this->userWithRole('auditor');
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);
 
-        $this->get(ClientResource::getUrl('index', tenant: $this->company))
+        $this->get(route('tallstack.clients', $this->company))
             ->assertOk()
             ->assertSee('Test Client');
     }
@@ -105,33 +99,43 @@ class RolePermissionMatrixTest extends TestCase
         }
     }
 
-    /** @return array<string, array{class-string}> */
+    /**
+     * Every TallStack settings route delegates to the same
+     * App\Policies\CompanyPolicy::viewSettings gate (see e.g.
+     * App\Livewire\TallStackSettingsBranding::mount()); the Filament
+     * settings Pages this test used to enumerate
+     * (EditBrandingSettings::canAccess() etc.) are gone as of the
+     * Filament-removal Phase B, so this now hits each TallStack route
+     * directly instead.
+     *
+     * @return array<string, array{string}>
+     */
     public static function settingsPagesProvider(): array
     {
         return [
-            'branding' => [EditBrandingSettings::class],
-            'client portal' => [EditClientPortalSettings::class],
-            'email' => [EditEmailSettings::class],
-            'numbering' => [EditNumberingSettings::class],
-            'company profile' => [EditCompanyProfile::class],
+            'branding' => ['tallstack.settings.branding'],
+            'client portal' => ['tallstack.settings.client-portal'],
+            'email' => ['tallstack.settings.email'],
+            'numbering' => ['tallstack.settings.numbering'],
+            'company profile' => ['tallstack.settings.company-and-taxes'],
         ];
     }
 
     #[DataProvider('settingsPagesProvider')]
-    public function test_owner_and_admin_can_access_every_settings_page(string $page): void
+    public function test_owner_and_admin_can_access_every_settings_page(string $route): void
     {
         foreach (['owner', 'admin'] as $role) {
             $this->userWithRole($role);
-            $this->assertTrue($page::canAccess(), "role [{$role}] should be able to access {$page}");
+            $this->get(route($route, $this->company))->assertOk();
         }
     }
 
     #[DataProvider('settingsPagesProvider')]
-    public function test_auditor_and_other_non_settings_roles_cannot_access_settings_pages(string $page): void
+    public function test_auditor_and_other_non_settings_roles_cannot_access_settings_pages(string $route): void
     {
         foreach (['accountant', 'sales', 'staff', 'auditor'] as $role) {
             $this->userWithRole($role);
-            $this->assertFalse($page::canAccess(), "role [{$role}] must not be able to access {$page}");
+            $this->get(route($route, $this->company))->assertForbidden();
         }
     }
 
@@ -139,12 +143,12 @@ class RolePermissionMatrixTest extends TestCase
     {
         $user = User::factory()->create(['is_super_admin' => true]);
         $this->actingAs($user);
-        Filament::setTenant($this->company);
+        app(Tenancy::class)->set($this->company);
 
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);
 
         $this->assertTrue($user->can('create', Client::class));
         $this->assertTrue($user->can('forceDelete', $client));
-        $this->assertTrue(EditBrandingSettings::canAccess());
+        $this->get(route('tallstack.settings.branding', $this->company))->assertOk();
     }
 }

@@ -4,14 +4,15 @@ namespace App\Livewire;
 
 use App\Actions\Sales\AcceptQuotation;
 use App\Actions\Sales\CreateSalesOrderFromQuotation;
+use App\Actions\Sales\ForceDeleteQuotation;
 use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\QuotationStatus;
-use App\Filament\Support\Money;
 use App\Models\Company;
 use App\Models\Quotation;
 use App\Services\Sales\QuotationMailer;
+use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
-use Filament\Facades\Filament;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
@@ -51,6 +52,21 @@ class TallStackQuotations extends Component
 
     public ?string $customerPoDate = null;
 
+    /**
+     * The row currently shown in the "View signature" modal — a client
+     * e-signature captured on the public portal link
+     * (App\Livewire\Portal\SignQuotation).
+     */
+    public ?int $viewingSignatureId = null;
+
+    public bool $showSignatureModal = false;
+
+    public function viewSignature(int $id): void
+    {
+        $this->viewingSignatureId = $id;
+        $this->showSignatureModal = true;
+    }
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -62,8 +78,7 @@ class TallStackQuotations extends Component
         // the rest of the TALL-stack pages so a future addition doesn't
         // silently need this again) needs a resolved panel + tenant even
         // outside a real panel request.
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($company, isQuiet: true);
+        app(Tenancy::class)->set($company);
     }
 
     public function updatingSearch(): void
@@ -184,6 +199,22 @@ class TallStackQuotations extends Component
         }
     }
 
+    public function forceDelete(int $id): void
+    {
+        $quotation = $this->findScoped($id);
+
+        if (! $quotation) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteQuotation::class)->forceDelete($quotation, auth()->user());
+            $this->toast()->success('Quotation permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete quotation', $e->getMessage())->send();
+        }
+    }
+
     private function applyTransition(int $id, QuotationStatus $to): void
     {
         $quotation = $this->findScoped($id);
@@ -243,6 +274,11 @@ class TallStackQuotations extends Component
                 'status' => $quotation->status,
                 'status_label' => $quotation->status->getLabel(),
                 'status_color' => StatusColor::map($quotation->status->getColor()),
+                'portal_key' => $quotation->portal_key,
+                'signed_at' => $quotation->signed_at?->format('d M Y H:i'),
+                'signed_by_name' => $quotation->signed_by_name,
+                'signature' => $quotation->signature,
+                'has_signature_image' => $quotation->hasSignatureImage(),
             ]);
 
         $counts = (clone $base)
@@ -270,8 +306,13 @@ class TallStackQuotations extends Component
             ? round(((int) ($counts[QuotationStatus::Accepted->value] ?? 0) / $decided) * 100, 1)
             : null;
 
+        $viewingSignature = $this->viewingSignatureId
+            ? collect($quotations->items())->firstWhere('id', $this->viewingSignatureId)
+            : null;
+
         return view('livewire.tallstack-quotations', [
             'quotations' => $quotations,
+            'viewingSignature' => $viewingSignature,
             'statuses' => QuotationStatus::cases(),
             'stats' => [
                 'active' => $active,

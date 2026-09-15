@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "It follows the Delivery Order pattern: multiple per job, Draft ->
  * Submitted -> Approved with Cancelled from any non-approved state, Staff
@@ -14,7 +11,7 @@ use Filament\Support\Contracts\HasLabel;
  * App\Enums\VendorBillStatus's `allowedNextStates()`/`canTransitionTo()`
  * shape.
  */
-enum ServiceReportStatus: string implements HasColor, HasLabel
+enum ServiceReportStatus: string
 {
     case Draft = 'draft';
     case Submitted = 'submitted';

@@ -147,22 +147,26 @@
         @endif
     </table>
 
+    {{-- public_notes/terms/footer are sanitized HTML from <x-editor> (server-side
+         via App\Support\Html\RichTextSanitizer on save, plus the editor's own
+         client-side sanitizer) — rendered raw so the formatting the user typed
+         (bold, lists, links) survives into the printed PDF. --}}
     @if ($invoice->public_notes)
         <div class="notes">
             <h4>{{ __('documents.notes') }}</h4>
-            <div>{{ $invoice->public_notes }}</div>
+            <div>{!! $invoice->public_notes !!}</div>
         </div>
     @endif
 
     @if ($invoice->terms)
         <div class="notes">
             <h4>{{ __('documents.terms') }}</h4>
-            <div>{{ $invoice->terms }}</div>
+            <div>{!! $invoice->terms !!}</div>
         </div>
     @endif
 
     @if ($invoice->footer)
-        <div class="notes muted">{{ $invoice->footer }}</div>
+        <div class="notes muted">{!! $invoice->footer !!}</div>
     @endif
 </body>
 </html>
