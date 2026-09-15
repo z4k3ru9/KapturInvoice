@@ -33,7 +33,7 @@
             ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
         ],
         'Catalog' => [
-            ['key' => 'products', 'label' => 'Products', 'route' => "{$adminBase}/products", 'icon' => 'cube'],
+            ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
         ],
     ];
 @endphp
