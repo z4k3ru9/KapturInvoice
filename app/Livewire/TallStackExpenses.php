@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Currency;
@@ -15,8 +16,11 @@ use App\Support\Dashboard\Money;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use TallStackUi\Traits\Interactions;
 
@@ -43,7 +47,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackExpenses extends Component
 {
-    use Interactions, WithPagination;
+    use Interactions, ManagesDocuments, WithFileUploads, WithPagination;
 
     public Company $company;
 
@@ -90,6 +94,13 @@ class TallStackExpenses extends Component
     public float $tax_total = 0;
 
     public float $total = 0;
+
+    // Document attachment state — see App\Livewire\Concerns\ManagesDocuments.
+    // Only reachable while editing an existing expense (a Document needs a
+    // real documentable row to attach to), same restriction the Invoice/
+    // Quotation forms apply.
+    /** @var TemporaryUploadedFile|null */
+    public $newDocument = null;
 
     public function mount(Company $company): void
     {
@@ -226,6 +237,50 @@ class TallStackExpenses extends Component
         $this->private_notes = null;
         $this->tax_total = 0;
         $this->total = 0;
+        $this->newDocument = null;
+    }
+
+    // --- Documents ---------------------------------------------------------
+
+    public function uploadDocument(): void
+    {
+        $expense = $this->findScoped($this->editingExpenseId);
+
+        if (! $expense) {
+            return;
+        }
+
+        $this->authorize('update', $expense);
+
+        $this->validate($this->documentUploadRules('newDocument'));
+
+        $this->storeUploadedDocument($expense, $this->newDocument);
+
+        $this->reset('newDocument');
+        $this->toast()->success('Document uploaded.')->send();
+    }
+
+    public function deleteDocument(int $id): void
+    {
+        $expense = $this->findScoped($this->editingExpenseId);
+
+        if (! $expense) {
+            return;
+        }
+
+        $this->authorize('update', $expense);
+
+        if ($this->deleteScopedDocument($expense, $id)) {
+            $this->toast()->success('Document deleted.')->send();
+        }
+    }
+
+    /** @return Collection<int, array<string, mixed>> */
+    public function editingExpenseDocuments()
+    {
+        $expense = $this->findScoped($this->editingExpenseId);
+
+        return $expense ? $this->documentRows($expense) : collect();
     }
 
     /** Never trust a bare `Expense::find()` — always re-check company ownership explicitly, same guard every other TALL-stack page uses. */
@@ -292,6 +347,7 @@ class TallStackExpenses extends Component
             'invoiceOptions' => $invoiceOptions,
             'taxRates' => TaxRate::query()->where('company_id', $this->company->id)->orderBy('name')->pluck('name', 'id'),
             'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
+            'documents' => $this->editingExpenseId ? $this->editingExpenseDocuments() : collect(),
         ])->layoutData([
             'company' => $this->company,
             'active' => 'expenses',
