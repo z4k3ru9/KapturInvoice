@@ -84,6 +84,8 @@
             ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
             ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
             ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
+            ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
+            ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
             ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
         ],
     ];
