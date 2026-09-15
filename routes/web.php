@@ -26,6 +26,7 @@ use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
+use App\Livewire\TallStackUsers;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -154,6 +155,16 @@ Route::get('/tall/{company:slug}/quotations/create', TallStackQuotationForm::cla
 Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotationForm::class)
     ->middleware('auth')
     ->name('tallstack.quotations.edit');
+
+// "Users & roles" (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// "Deferred, no Stitch mockup" list — a mockup was generated later, see
+// docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 11).
+// canAccessTenant() plus the Owner/Admin-only CompanyPolicy::manageMembership
+// check both happen in the component's mount(), same pattern as every
+// other TALL-stack page.
+Route::get('/tall/{company:slug}/users', TallStackUsers::class)
+    ->middleware('auth')
+    ->name('tallstack.users');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
