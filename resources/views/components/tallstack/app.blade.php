@@ -51,6 +51,13 @@
         ],
         'Clients' => [
             ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
+            // Pre-Filament-removal gap audit item
+            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 21) — mirrors App\Filament\Resources\Invitations\InvitationResource's
+            // own navigationGroup ('Clients'), folded into this SAME
+            // 'Clients' key, never a second 'Clients' => [...] block (see
+            // this file's own duplicate-key warning further down).
+            ['key' => 'client-portal-invitations', 'label' => 'Portal Invitations', 'route' => route('tallstack.client-portal-invitations', $company), 'icon' => 'link'],
         ],
         'Catalog' => [
             ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
