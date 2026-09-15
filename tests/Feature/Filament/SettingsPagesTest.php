@@ -73,12 +73,12 @@ class SettingsPagesTest extends TestCase
         $this->get(EditClientPortalSettings::getUrl(tenant: $this->company))->assertOk();
 
         Livewire::test(EditClientPortalSettings::class)
-            ->set('data.portal_require_signature', true)
+            ->set('data.portal_enabled', false)
             ->call('save');
 
         $this->assertDatabaseHas('company_settings', [
             'company_id' => $this->company->id,
-            'portal_require_signature' => true,
+            'portal_enabled' => false,
         ]);
     }
 
@@ -97,6 +97,40 @@ class SettingsPagesTest extends TestCase
         $this->assertSame('#112233', $company->primary_color);
         $this->assertNotNull($company->logo_path);
         Storage::disk(config('filesystems.default'))->assertExists($company->logo_path);
+    }
+
+    public function test_branding_settings_page_saves_signatory_and_banking_fields(): void
+    {
+        Storage::fake(config('filesystems.default'));
+
+        Livewire::test(EditBrandingSettings::class)
+            ->set('data.signatory_name', 'Jane Doe')
+            ->set('data.signatory_title', 'Finance Director')
+            ->set('data.signature_image_path', UploadedFile::fake()->image('signature.png'))
+            ->set('data.bank_name', 'Bank Central Asia')
+            ->set('data.bank_account_number', '1234567890')
+            ->set('data.bank_account_name', 'Acme Pte Ltd')
+            ->set('data.payment_instructions', 'Transfer to the account above and email proof of payment.')
+            ->call('save');
+
+        $company = $this->company->fresh();
+
+        $this->assertSame('Jane Doe', $company->signatory_name);
+        $this->assertSame('Finance Director', $company->signatory_title);
+        $this->assertSame('Bank Central Asia', $company->bank_name);
+        $this->assertSame('1234567890', $company->bank_account_number);
+        $this->assertSame('Acme Pte Ltd', $company->bank_account_name);
+        $this->assertSame('Transfer to the account above and email proof of payment.', $company->payment_instructions);
+        $this->assertNotNull($company->signature_image_path);
+        Storage::disk(config('filesystems.default'))->assertExists($company->signature_image_path);
+
+        $this->assertNotNull($company->getSignatureDataUri());
+        $this->assertStringStartsWith('data:image/png;base64,', $company->getSignatureDataUri());
+    }
+
+    public function test_get_signature_data_uri_is_null_when_unset(): void
+    {
+        $this->assertNull($this->company->getSignatureDataUri());
     }
 
     public function test_payment_gateway_resource_index_page_renders(): void
