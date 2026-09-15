@@ -26,6 +26,8 @@ use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
+use App\Livewire\TallStackSalesOrder;
+use App\Livewire\TallStackSalesOrders;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -154,6 +156,18 @@ Route::get('/tall/{company:slug}/quotations/create', TallStackQuotationForm::cla
 Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotationForm::class)
     ->middleware('auth')
     ->name('tallstack.quotations.edit');
+
+// Phase 2 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Job (SalesOrder) register and its 7-tab workspace, TALL-stack-native
+// alongside the Filament resource they mirror
+// (App\Filament\Resources\SalesOrders). Re-checks company ownership
+// explicitly in mount() — same reasoning as the Quotations routes above.
+Route::get('/tall/{company:slug}/jobs', TallStackSalesOrders::class)
+    ->middleware('auth')
+    ->name('tallstack.jobs');
+Route::get('/tall/{company:slug}/jobs/{salesOrder}', TallStackSalesOrder::class)
+    ->middleware('auth')
+    ->name('tallstack.jobs.show');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
