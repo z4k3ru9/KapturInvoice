@@ -315,17 +315,58 @@ status checklist.
       (`$this->toast()->success()/error()->send()`) with a single
       `<x-toast />` host added to the shared shell — reuse both for every
       later phase instead of a custom notify event.)
-- [ ] Phase 2 — Job workspace (SalesOrder)
-- [ ] Phase 3 — Invoices
-- [ ] Phase 4 — Payments & receipts
-- [ ] Phase 5 — Clients
+- [x] Phase 2 — Job (SalesOrder) workspace (`/tall/{company:slug}/jobs`,
+      `/tall/{company:slug}/jobs/{salesOrder}` — register + 7-tab
+      workspace: Overview/Activity/Billing/Commercial/Delivery/
+      Procurement/Margin. Every status transition/action reuses the same
+      `App\Actions\Sales\*`/`App\Actions\Delivery\*` classes the Filament
+      resource uses. `App\Livewire\TallStackSalesOrders`/`TallStackSalesOrder`.)
+- [x] Phase 3 — Invoices (`/tall/{company:slug}/invoices`,
+      `/tall/{company:slug}/invoices/create`,
+      `/tall/{company:slug}/invoices/{invoice}` — register + detail/edit
+      with line items, Issue/Amend/Void & reissue/Send, e-Faktur/Tax Recap
+      issuance. `App\Livewire\TallStackInvoices`/`TallStackInvoiceForm`.)
+- [x] Phase 4 — Payments & receipts (`/tall/{company:slug}/payments`,
+      `/tall/{company:slug}/payments/{payment}` — register + allocation
+      panel: Verify/Allocate/Amend allocation/Issue receipt/Reverse.
+      `App\Livewire\TallStackPayments`/`TallStackPaymentAllocation`.)
+- [x] Phase 5 — Clients (`/tall/{company:slug}/clients`,
+      `/tall/{company:slug}/clients/{client}` — register + detail:
+      billing defaults, financial summary, Contacts/Portal Links/
+      Statement of Accounts relation managers, Generate/Preview SOA.
+      `App\Livewire\TallStackClients`/`TallStackClientDetail`.)
 - [ ] Phase 6 — Procurement (Vendors, Vendor Bills, Vendor POs)
-- [ ] Phase 7 — Delivery & handover
-- [ ] Phase 8 — Products/Catalog
-- [ ] Phase 9 — Settings
+- [x] Phase 7 — Delivery & handover (`/tall/{company:slug}/delivery-orders`
+      (+ detail), `/tall/{company:slug}/handover-reports` — new top-level
+      read/browse registers across all jobs, linking back to the owning
+      job's workspace to record a delivery/handover rather than
+      duplicating those actions. `App\Livewire\TallStackDeliveryOrders`/
+      `TallStackDeliveryOrder`/`TallStackHandoverReports`.)
+- [x] Phase 8 — Products/Catalog (`/tall/{company:slug}/products` —
+      register + modal create/edit, picture upload, "Create proposal
+      snippet". `App\Livewire\TallStackProducts`. Found and fixed a real
+      bug: TallStackUI's global `img{max-width:100%}` silently shrinks a
+      thumbnail inside a `<td>` with no explicit column width unless
+      wrapped in a fixed-size block-level div.)
+- [x] Phase 9 — Settings (`/tall/{company:slug}/settings/company-and-taxes`,
+      `/settings/email-and-reminders`, `/settings/branding`,
+      `/settings/lookups` — Company & Taxes, Email & Reminders, Branding,
+      and a tabbed Tax Rates/Expense Categories/Task Statuses page.
+      `App\Livewire\TallStackSettingsCompanyTaxes`/`TallStackSettingsEmail`/
+      `TallStackSettingsBranding`/`TallStackSettingsLookups`. The Company &
+      Taxes Stitch mockup sketches a DJP/e-Faktur-gateway/digital-
+      certificate/banking-webhook surface with no backing model anywhere
+      in this codebase — only its card-grid visual language was borrowed,
+      every built field maps to a real column.)
 - [ ] Phase 10 — Reports
 - [ ] Phase 11 — Client portal restyle
-- [ ] Phase 12 — Onboarding/zero-state
+- [x] Phase 12 — Onboarding/zero-state (a Dashboard panel, not a separate
+      route/page — matches the Stitch mockup's own placement. Reuses
+      `App\Filament\Support\SetupChecklist`'s real 5-step data/completion
+      logic unmodified; hides itself once complete. A zero-state welcome
+      panel replaces the revenue trend chart specifically when a company
+      has no clients/quotations yet. The mockup's CSV-import and payment-
+      gateway-escrow steps were left out — deferred launch scope.)
 - [ ] Deferred (no Stitch mockup): Proposals, Users, Tax Rates, Expense
       Categories, Task Statuses, Price List Items, Credits, Recurring
       Invoices, Statement of Accounts
