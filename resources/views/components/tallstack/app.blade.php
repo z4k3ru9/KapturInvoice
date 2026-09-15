@@ -49,11 +49,21 @@
         // (... Reports → Settings, last) and the Stitch "Company & Taxes
         // Settings"/"Settings — Tax Rates & Small Lookups" mockups' own
         // sidebar, which both place this group last too.
+        // "Users & Roles" is administrative/settings-adjacent (matches
+        // Filament's own UserResource, App\Filament\Resources\Users\
+        // UserResource, navigationGroup 'Team' — kept under this app's own
+        // "Settings" grouping here since a standalone one-item nav group
+        // reads as noise at this sidebar width) — folded into the same
+        // 'Settings' key as the Phase 9 pages below it. PHP array literals
+        // silently let a later duplicate key overwrite an earlier one, so
+        // these MUST stay merged into one array, never split into two
+        // 'Settings' => [...] entries again.
         'Settings' => [
             ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
             ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
             ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
             ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
+            ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
         ],
     ];
 @endphp
