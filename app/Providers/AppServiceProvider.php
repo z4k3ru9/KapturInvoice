@@ -167,15 +167,13 @@ class AppServiceProvider extends ServiceProvider
         //     larger than a section empty-state, but at the same 50%
         //     icon-to-circle ratio, not an arbitrary jump.
 
-        // The package's default sideBar.separator "line" style uses its own
-        // primary (indigo) brand color, clashing with the tenant's own
-        // brand-red active-item color and the plain gray group labels the
-        // rest of the sidebar uses — restyled to match instead of standing
-        // out as a different brand.
-        TallStackUi::customize()->sideBar('separator', 'nav')->block([
-            'line.border' => 'border-gray-200 dark:border-dark-700 w-full border-t',
-            'line.base' => 'dark:bg-dark-800 text-gray-400 bg-white px-3 text-[11px] font-semibold uppercase tracking-wide whitespace-nowrap overflow-hidden transition-all duration-150',
-        ]);
+        // sideBar('separator', 'nav') customization removed here — Phase 2
+        // sidebar repair (see resources/views/components/tallstack/app.blade.php)
+        // replaced the flat `<x-side-bar.separator>` group-label list with
+        // real `<x-side-bar.item>` groups (nested items), which don't use
+        // `<x-side-bar.separator>` at all. Confirmed via grep that no other
+        // view references it before removing.
+        $this->registerSideBarItemCustomization();
 
         // The package's own default "input.base" class
         // (TallStackUi\Components\Traits\FormDefaultInputClasses::input())
@@ -252,6 +250,193 @@ class AppServiceProvider extends ServiceProvider
 
         $this->registerActionColorPalette();
         $this->registerTallStackUiGlobals();
+    }
+
+    /**
+     * Phase 2 sidebar repair — three real, live-verified problems with the
+     * package's own `sideBar.item` defaults, all fixed here rather than
+     * per-instance (the component is used only from
+     * resources/views/components/tallstack/app.blade.php, so this has no
+     * blast radius elsewhere):
+     *
+     * 1. Bigger tap targets: both the leaf item link and the group header
+     *    button ship with `p-2` (8px) padding around their icon — bumped
+     *    to `p-2.5` (10px) so the collapsed rail's icon squares read as a
+     *    clearly bigger click target, matching this shell's other
+     *    icon-only controls (the h-9 w-9 header buttons).
+     *
+     * 2. Contrast: a GROUP header (button) can't take a per-instance
+     *    `class` override at all — confirmed by reading the vendor
+     *    item.blade.php, its `<button>` never merges `$attributes` (see
+     *    app.blade.php's own comment at the sidebar's `@foreach` loop) —
+     *    so its default `text-primary-500`/`dark:text-white` colored
+     *    EVERY group icon/label the tenant's own brand color all the
+     *    time, not just the active one, which is what a prior QA pass
+     *    flagged as "icons render as very light gray" (the far more washed
+     *    out failure mode once dark mode's cascade bug, fixed below,
+     *    compounded it: brand-red text ended up paired with a dark-mode
+     *    gray/white swap that never actually applied against a
+     *    still-light background). Recolored to a neutral gray, matching
+     *    this shell's original flat `<x-side-bar.separator>` design where
+     *    group LABELS were always plain gray and only the active LEAF
+     *    item took the brand color.
+     *
+     * 3. Dark mode: `item.state.current` (the ACTIVE leaf item's own
+     *    highlight — `dark:bg-dark-700`/`dark:text-white`, applied with no
+     *    per-instance override since the active item's own `class` prop is
+     *    deliberately left empty in app.blade.php) and the two group
+     *    colors above all collide with the SAME cross-stylesheet cascade
+     *    bug documented at length on `<body>`'s own `dark:bg-gray-950!` in
+     *    app.blade.php: vendor/tallstackui/tallstackui/dist/tallstackui.css
+     *    (loaded after app.css) independently compiles unconditional,
+     *    non-important `.bg-dark-700`/`.text-white` rules of its own (some
+     *    other bundled component uses them without a `dark:` prefix), which
+     *    beat this app's own `dark:`-gated versions at equal specificity
+     *    regardless of the visitor's actual color-scheme preference.
+     *    `!important` on every `dark:` color block below is the same
+     *    minimal fix, confirmed against that same compiled file rather than
+     *    applied blindly.
+     */
+    private function registerSideBarItemCustomization(): void
+    {
+        TallStackUi::customize()->sideBar('item')->block([
+            // Leaf item link — padding bump only; its text/icon color is
+            // already fully controlled per-instance from app.blade.php
+            // (`!text-gray-600 dark:!text-gray-300` on every non-current
+            // item), so this class list doesn't need a color fix itself.
+            'item.state.base' => 'group flex items-center rounded-md p-2.5 text-sm font-semibold transition-all',
+            // The ACTIVE leaf item's own highlight — no per-instance
+            // override reaches this one (see class docblock above), so it
+            // needs the dark-mode fix directly. `dark:bg-gray-800!`, not
+            // the vendor's own `dark:bg-dark-700` — see
+            // `registerAppShellDarkModeFix()`'s docblock below for why a
+            // package-specific `dark-*` token can't be used here at all,
+            // important or not.
+            'item.state.current' => 'text-primary-500 bg-primary-50 dark:bg-gray-800! dark:text-white!',
+            // Group header button — padding bump + neutral gray (was
+            // `text-primary-500 ... dark:text-white`, permanently
+            // brand-colored, see docblock point 2) + the same dark-mode
+            // fix (point 3). Hover tint left as the vendor's own
+            // `dark:hover:bg-dark-600/50` — unlike the STATIC colors this
+            // whole block replaces, that one substring is byte-for-byte
+            // identical to the vendor's own default, so it's still served
+            // by tallstackui.css's own pre-built rule for it and doesn't
+            // hit the "can't compile a new dark-* utility" problem below
+            // (nothing "new" about it).
+            'group.button' => 'text-gray-600! hover:bg-primary-50/50 dark:text-gray-300! dark:hover:bg-dark-600/50 flex w-full items-center rounded-md p-2.5 text-left text-sm font-semibold transition-all cursor-pointer',
+            'group.icon.base' => 'text-gray-600! dark:text-gray-300! h-6 w-6 shrink-0',
+            // The expand/collapse chevron (only ever visible when the
+            // sidebar is NOT railed, i.e. never subject to the collapsed
+            // rail's own contrast complaint) — recolored to match the
+            // group button/icon above instead of the brand color, and
+            // muted one step further (gray-400/500, not -600/-300) since
+            // it's a secondary affordance, not the group's own identity.
+            'group.icon.collapse.base' => 'text-gray-400! dark:text-gray-500! ml-auto h-4 w-4 shrink-0 transition-all',
+            'group.icon.collapse.rotate' => 'text-gray-400! dark:text-gray-500! rotate-180',
+            // The floating panel a collapsed (railed) group opens on
+            // hover/click — a NEW surface introduced by this same repair
+            // (switching from a flat separator list to real groups, see
+            // app.blade.php), so it needs the same dark-mode fix rather
+            // than shipping a fresh gap. Its own defaults
+            // (vendor Component.php's `flyout.wrapper`/`flyout.header`)
+            // are the Floating component's base classes plus this
+            // component's own header styling, both built from the same
+            // `dark-*` package tokens as everything else fixed in this
+            // method — same `!important`-plus-standard-gray treatment,
+            // values otherwise copied verbatim from the live-rendered
+            // default so only the color tokens change.
+            'group.flyout.wrapper' => 'dark:bg-gray-900! border-gray-200 dark:border-gray-800! absolute z-50 rounded-lg border bg-white w-60 overflow-hidden',
+            'group.flyout.header' => 'dark:bg-gray-900! text-gray-500 dark:text-gray-400! sticky top-0 -mx-2 bg-white px-2 pt-2 pb-1 text-xs font-semibold tracking-wide uppercase',
+        ]);
+
+        $this->registerAppShellDarkModeFix();
+    }
+
+    /**
+     * Phase 2 sidebar repair's dark-mode investigation traced the "sidebar
+     * icons go light-gray, sidebar background stays white" combination
+     * (an even worse contrast failure than the flat "everything is brand
+     * red" bug fixed above) to its actual source: the sidebar RAIL and the
+     * top header bar's own background never switch to dark at all, even
+     * though `prefers-color-scheme: dark` is genuinely active and their own
+     * `dark:bg-dark-800` class is present — while the item/group text
+     * colors fixed above DO correctly switch, leaving a
+     * light-on-light-container mismatch that reads exactly like the
+     * original "icons render as very light gray" complaint.
+     *
+     * Confirmed live: with `prefers-color-scheme: dark` forced on and
+     * `window.matchMedia('(prefers-color-scheme: dark)').matches` verified
+     * true, `getComputedStyle()` on the sidebar rail
+     * (`desktop.wrapper.second`) and the header bar (`layout.header`'s
+     * `wrapper.base`) both still resolved to `rgb(255, 255, 255)` — plain
+     * white — despite carrying `dark:bg-dark-800`.
+     *
+     * Root cause has TWO parts, both confirmed by reading the compiled CSS
+     * byte-for-byte rather than guessed:
+     *
+     * 1. `dark-700`/`dark-800` are the PACKAGE's own custom color tokens
+     *    (`--color-dark-700` etc., defined only inside
+     *    vendor/tallstackui/tallstackui's OWN theme, never imported into
+     *    this app's resources/css/app.css). Tailwind can only generate a
+     *    utility for a color it knows about, so ANY class using a
+     *    `dark-*` token — including a brand new `!important` variant of
+     *    one — can only ever come from tallstackui.css, never from this
+     *    app's own compiled app.css, no matter what string
+     *    `TallStackUi::customize()` is given (confirmed: appending `!`
+     *    to `dark:bg-dark-800` produced a class that appears in neither
+     *    compiled stylesheet — app.css can't generate an unknown-token
+     *    utility, and tallstackui.css was frozen at package-publish time
+     *    with no `!important` variant of it).
+     *
+     * 2. Worse, tallstackui.css's OWN `dark:` variant is compiled as
+     *    `:where(.dark, .dark *)` — a literal `.dark` CSS CLASS on an
+     *    ancestor — not `@media (prefers-color-scheme: dark)` at all
+     *    (confirmed: zero `prefers-color-scheme` occurrences anywhere in
+     *    that 384KB file, vs. exactly one such block in this app's own
+     *    app.css). This app never adds a `.dark` class to anything — no
+     *    theme toggle, no `data-theme` attribute, nothing — so EVERY
+     *    `dark:` utility whose only compiled source is tallstackui.css
+     *    (any package-default styling built from a `dark-*` token, per
+     *    point 1) is structurally inert here regardless of the visitor's
+     *    actual OS color-scheme preference. This is separate from — and
+     *    strictly worse than — the ordering/`!important` collision
+     *    documented on `<body>`'s own `dark:bg-gray-950!` fix in
+     *    app.blade.php, where BOTH stylesheets at least agreed on the
+     *    color and the fix was just winning the cascade.
+     *
+     * The only fix that actually works within this app's own build is
+     * avoiding the package's `dark-*` tokens entirely for anything that
+     * needs to visibly react to dark mode, in favor of STANDARD Tailwind
+     * colors (`gray-*`) that app.css's own media-query-based `dark:`
+     * variant CAN compile — `!important` still required for the same
+     * cross-stylesheet collision reason as `<body>`. `gray-900`
+     * (oklch 21% lightness) and `gray-800` (oklch 27.8%) below are chosen
+     * as the closest standard-palette match to the vendor's own
+     * `--color-dark-800` (oklch 18.5%) and `--color-dark-700` (oklch
+     * 25.3%) respectively — visually near-identical, not an exact
+     * token-for-token swap.
+     *
+     * This same `dark-*`-token pattern is the package's default for EVERY
+     * `<x-card>`, every dropdown panel, and other chrome across the whole
+     * admin panel — not just this sidebar/header — confirmed via a live
+     * DOM sweep that found the identical failure on dashboard cards.
+     * Fixing every one of those is real, page-content-wide scope well
+     * beyond "sidebar & app shell" (this task's actual boundary) and was
+     * deliberately left alone here — flagged back to the dispatching
+     * session as a separate follow-up rather than silently expanded into.
+     * Only the two wrapper backgrounds that are structurally part of THIS
+     * shell (the sidebar rail, the header bar) are fixed here.
+     */
+    private function registerAppShellDarkModeFix(): void
+    {
+        TallStackUi::customize()->sideBar()->block([
+            'desktop.wrapper.second' => 'dark:bg-gray-900! dark:border-gray-800! flex grow flex-col border-r border-gray-200 bg-white pb-4 transition-[width] duration-300',
+            'mobile.wrapper.fourth' => 'dark:bg-gray-900! flex grow flex-col bg-white pb-4',
+        ]);
+
+        TallStackUi::customize()->layout('header')->block([
+            'wrapper.base' => 'dark:bg-gray-900! dark:border-gray-800! sticky top-0 z-40 flex shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 sm:gap-x-6 sm:px-6 lg:px-8 tsui-scrollbar-bleed',
+        ]);
     }
 
     /**
