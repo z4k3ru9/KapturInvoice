@@ -9,10 +9,12 @@ UI"** (`projectId 17287642508359312726`), continuing the numbering from
 These cover the areas a pre-Filament-removal gap audit found still
 missing a TallStackUI page: `App\Filament\Pages\Tenancy\RegisterCompany`,
 `Expenses`, `PaymentGateways`, `Invitations`, `Documents`,
-`ProposalTemplates`/`ProposalSnippets`. (Settings → Numbering/Client
-Portal are two small field additions to the already-mockup-covered
-"Company & Taxes Settings"/"Settings — Tax Rates & Small Lookups" screens
-and don't need their own new mockup.)
+`ProposalTemplates`/`ProposalSnippets` — plus, discovered later, that
+this app has **no login page outside Filament at all**, so prompt 24
+covers that too. (Settings → Numbering/Client Portal are two small field
+additions to the already-mockup-covered "Company & Taxes Settings"/
+"Settings — Tax Rates & Small Lookups" screens and don't need their own
+new mockup.)
 
 Same shared visual system as every earlier prompt: Karunia Abadi red
 `#E63934` on near-black `#050708`; Axen Technology Indonesia blue
@@ -46,6 +48,9 @@ this company."
 
 Empty state: not applicable — this is always a fresh form.
 
+**Status**: generated — "Create Company — Standalone (Zero Companies
+State)". Built into `App\Livewire\TallStackRegisterCompany`.
+
 ---
 
 ## 19. Expenses — register and detail
@@ -70,6 +75,9 @@ Private notes (textarea). Tax total/Total shown as read-only computed
 fields below the form once subtotal is entered.
 
 Empty state: "No expenses recorded yet — New expense to add one."
+
+**Status**: generated — "Expenses Register & Edit Modal (Karunia
+Abadi)". Build in progress.
 
 ---
 
@@ -97,6 +105,9 @@ the error message) rather than a separate page.
 Empty state: "No payment gateways configured yet — New gateway to add
 your first one."
 
+**Status**: generated — "Payment Gateways — Infrastructure & Driver
+Config". Build in progress.
+
 ---
 
 ## 21. Client Portal Invitations — register (admin-side, read-mostly)
@@ -119,6 +130,9 @@ compact search box (invoice number/contact name/email) and a "Viewed" /
 automatically when an invoice is sent, never created by hand here).
 
 Empty state: "No portal invitations sent yet."
+
+**Status**: generated — "Portal Invitations — Invoice Magic Link Audit
+Register". Not yet built.
 
 ---
 
@@ -144,6 +158,9 @@ than looking unfinished: a small muted info line under the title,
 or client) and listed here for reference."
 
 Empty state: "No documents uploaded yet."
+
+**Status**: generated — "Documents & File Library — Company Scoped
+Reference Register". Not yet built.
 
 ---
 
@@ -181,3 +198,39 @@ Empty state (Templates): "No proposal templates yet — New template to
 get started." Empty state (Snippets): "No snippets yet — snippets are
 created from a product's own 'Create proposal snippet' action, or built
 here directly."
+
+**Status**: generated — "Proposal Templates & Snippets Library". Not yet
+built.
+
+---
+
+## 24. Login
+
+Standalone, NOT inside the admin shell — reached by a signed-out
+visitor, so there is no tenant to render a sidebar/brand for and no
+company logo to show. A simple centered card on a plain neutral
+background (same "no sidebar, no top bar" treatment as prompt 18's
+Company Registration screen, since both are pre-tenant-context pages),
+KapturInvoice's own generic mark at the top.
+
+**Form fields**: Email, Password, a "Remember me" checkbox, a "Forgot
+password?" text link (right-aligned, same row as a "Password" label —
+this app doesn't have a working password-reset flow yet, so this link
+can go to a plain "not yet available" placeholder, or simply be omitted
+if that reads better — your call, note which you did). A single "Log in"
+primary button below the form, full-width.
+
+Below the card, small print: "Need a company? [Log in], then you'll be
+guided to create one." (Referencing the fact this app's Company
+Registration screen, prompt 18, is reached automatically after a
+successful login for a user with no company yet — not a separate
+"sign up" flow from this screen.)
+
+Error state: a red inline banner above the form fields, "These
+credentials do not match our records," matching this app's established
+validation-error visual pattern (not a toast, not a modal).
+
+Empty state: not applicable — this is always a fresh form.
+
+**Status**: generated — "Sign in — Standalone (KapturInvoice)". Build in
+progress.
