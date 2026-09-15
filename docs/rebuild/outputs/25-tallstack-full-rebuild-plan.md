@@ -437,8 +437,24 @@ status checklist.
       the primary flow. `App\Livewire\TallStackPriceListItems`. Folded
       into the existing `'Catalog'` nav-group array (not a second
       `'Catalog' => [...]` block).)
-- [ ] Deferred, not yet started: Credits, Recurring Invoices — Stitch
-      screens exist, not yet built.
+- [x] Credits (`/tall/{company:slug}/credits` — register-only, read-only:
+      Number/Client/Related invoice/Amount/Credit date, View row action
+      only, no create/edit/delete. Matches the approved deferred-scope
+      decision (FINALIZED-DECISIONS §7 — credit creation stays disabled)
+      and the mockup's own "absent button + explanation" pattern rather
+      than a disabled/greyed-out one. `App\Livewire\TallStackCredits`.)
+- [x] Recurring Invoices (`/tall/{company:slug}/recurring-invoices` (+
+      create/edit) — register + schedule/line-item editor.
+      `App\Livewire\TallStackRecurringInvoices`/
+      `TallStackRecurringInvoiceForm`. Confirmed there is no separate
+      RecurringInvoice model — it's `Invoice` with `is_recurring=true` —
+      and reused `InvoiceForm`'s fields, `InvoiceTotalsCalculator`, and
+      `InvoiceDuplicator::generateRecurringInstance()` unmodified. No
+      Pause/Resume action or automatic generation scheduler exists
+      anywhere in this codebase yet, so neither was invented here — the
+      register instead shows a real Active/Ended status derived only
+      from `recurring_end_date`, with a manual "Generate now" action and
+      an on-page note that generation is manual-only for now.)
 - [ ] Deferred, blocked on a Stitch mockup: Statement of Accounts — see
       the screen-inventory table's own row for the retry history.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
