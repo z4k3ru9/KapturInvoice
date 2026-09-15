@@ -1,5 +1,17 @@
 # KapturInvoice Admin Panel — Layout Design
 
+> **⚠️ HISTORICAL — pre-TallStackUI-rebuild architecture.** This document
+> describes the **Filament 5 admin panel**, which has since been fully
+> replaced by a hand-built TallStackUI/Livewire admin (`app/Livewire/TallStack*`,
+> routed at `/tall/{company:slug}/...`) — `app/Filament` no longer exists in
+> this codebase. It is kept for reference only: its nav-group grouping and
+> per-domain layout reasoning informed the TallStackUI rebuild, and several
+> other docs (`CLAUDE.md`, `docs/data-import.md`) still link into specific
+> sections here by number (e.g. §1, §8, §9). Do not use this document as a
+> guide to the current admin UI, its routes, or its test coverage — see
+> `README.md`'s Architecture section and `routes/web.php` for what's actually
+> live today.
+
 Draft layout for **every domain catalogued in
 [`invoiceninja-v4-schema-reference.md`](invoiceninja-v4-schema-reference.md)**,
 covering both record-style Resources (Clients, Invoices, …) and the

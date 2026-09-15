@@ -5,7 +5,7 @@ stack** (Tailwind, Alpine, Laravel, Livewire), replacing legacy InvoiceNinja
 v4/v5 installs for two real IT/security-integrator businesses. See:
 
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
-- [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — full admin panel navigation/page layout this README summarizes.
+- [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — **historical**: the original Filament admin panel's navigation/page layout, superseded by the TallStackUI admin this README now describes, kept for its still-referenced nav-group reasoning.
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — what the test suite actually verifies, domain by domain, and what's deliberately out of scope.
 - [`docs/rebuild/CLAUDE.md`](docs/rebuild/CLAUDE.md) — the approved renovation handoff (product/architecture decisions, phase order, guardrails) for the job-centric rebuild summarized below.
 - [`CLAUDE.md`](CLAUDE.md) — the full phase-by-phase build log, read this for implementation detail beyond this summary.
@@ -15,9 +15,9 @@ v4/v5 installs for two real IT/security-integrator businesses. See:
 | Layer | Choice |
 |---|---|
 | Framework | Laravel 13 |
-| Admin/billing dashboard | Filament 5 (multi-tenant) |
+| Admin/billing dashboard | Hand-built TallStackUI/Livewire admin, multi-tenant by URL (`/tall/{company:slug}/...`) |
 | Frontend | Livewire 4 + Alpine.js (bundled with Livewire) + Tailwind CSS 4 |
-| Component library | [TallStackUI](https://tallstackui.com) 4 (public site/portal) |
+| Component library | [TallStackUI](https://tallstackui.com) 4 (admin panel, public site, portal) |
 | Dev database | SQLite (swap to MySQL — see `.env.example` — for parity with the legacy MariaDB dump) |
 | Browser testing | Playwright (`npm run test:browser`) |
 
@@ -50,64 +50,62 @@ InvoiceNinja v4 source, non-tax) and **PT. Axen Technology Indonesia**
 Companies are isolated deployments at launch — no cross-company records,
 files, portal access, or financial synchronization.
 
-- **`app/Models/Company`** is the Filament tenant model — one row per
-  entity, each with its own public-homepage domain, branding, numbering
-  sequences, and tax settings. A user can belong to (and switch between)
-  more than one company via the `company_user` pivot, with a per-company
-  role (`App\Enums\CompanyRole`: Owner, Admin, Accountant, Sales, Staff,
+- **`app/Models/Company`** is the tenant model — one row per entity, each
+  with its own public-homepage domain, branding, numbering sequences, and
+  tax settings. A user can belong to (and switch between) more than one
+  company via the `company_user` pivot, with a per-company role
+  (`App\Enums\CompanyRole`: Owner, Admin, Accountant, Sales, Staff,
   Auditor) gating what they can do.
-- **Admin/billing panel** (`/admin`) — Filament, tenant-scoped by URL
-  (`/admin/{company-slug}/...`), organized into nav groups:
-  - **Sales** — Quotations (own lifecycle: Draft → Approved → Sent →
+- **Admin/billing panel** (`/tall/{company-slug}/...`) — a hand-built
+  TallStackUI/Livewire admin (`App\Livewire\TallStack*` components, see
+  `routes/web.php`; no Filament dependency remains in this codebase),
+  tenant-scoped by URL path, organized into nav groups:
+  - **Sales** — Dashboard (the panel's default landing page: revenue
+    overview, a trend chart, an expiring/overdue-quotes list, and a job
+    margin report — allocated gross cost vs. unallocated purchasing cost
+    vs. sales value, kept as separate columns — all sharing one period
+    filter), Quotations (own lifecycle: Draft → Approved → Sent →
     Accepted/Rejected/Expired, generates a Customer Order Confirmation
     when accepted without a supplied customer PO), Sales Orders / **Jobs**
     (created only from an Accepted quotation; milestones, job variations,
     delivery orders, service reports, handover reports, and job-cost
-    allocations all live as relation managers on one Job page).
+    allocations all live as tabs on one Job workspace page).
   - **Billing** — Invoices (line items, tax snapshots, Issue/Amend/
-    Void-and-reissue actions, draft autosave), legacy Quotes/Recurring
-    Invoices (filtered views over the same underlying table, kept for
-    already-imported/legacy data), Credits (read/edit only — new
-    credit-note creation is deferred scope), Payments (verify, allocate
-    across invoices/jobs for the same client, issue one receipt per
-    verified event, reverse/amend an allocation without mutating history).
-  - **Procurement** — Vendor Purchase Orders (Draft → Approved, an
-    immutable ceiling once created), Vendor Bills (Draft → Submitted →
-    Approved → Partially Paid → Paid; vendor payments are a parallel
-    immutable event model with their own verification and receipt).
-  - **Clients** — Clients (Contacts relation manager, per-client default
-    discount, billing-contact flag for portal scoping), Client Portal
-    Invitations.
-  - **Catalog** — Products (type: product/service/labor/other), Tax
-    Rates, Price List (vendor Hikvision/HiLook/Ruijie/Reyee pricelist
-    reference catalog, self-service "Import pricelist" upload — see
+    Void-and-reissue actions, draft autosave), Recurring Invoices and
+    legacy Quotes (filtered views over the same underlying `invoices`
+    table, kept for already-imported/legacy data), Credits (read only —
+    new credit-note creation is deferred scope), Payments (verify,
+    allocate across invoices/jobs for the same client, issue one receipt
+    per verified event, reverse/amend an allocation without mutating
+    history).
+  - **Proposals** — a separate formal-proposal (SOW cover-letter) builder
+    with its own template/snippet library, kept apart from Quotations.
+  - **Procurement** — Vendor Bills (Draft → Submitted → Approved →
+    Partially Paid → Paid; vendor payments are a parallel immutable event
+    model with their own verification and receipt), Vendor Purchase
+    Orders (Draft → Approved, an immutable ceiling once created), Vendors,
+    Expenses (non-job cost bucket, kept parallel to Vendor Bills rather
+    than merged into them).
+  - **Delivery** — Delivery Orders and Handover Reports, browsable across
+    every job (also reachable inline from a Job's own Delivery tab).
+  - **Clients** — Clients (Contacts tab, per-client default discount,
+    billing-contact flag for portal scoping, Statement of Account
+    preview/generate), Client Portal Invitations.
+  - **Catalog** — Products (type: product/service/labor/other), Price List
+    (vendor Hikvision/HiLook/Ruijie/Reyee pricelist reference catalog,
+    self-service "Import pricelist" upload — see
     [`docs/price-list-import.md`](docs/price-list-import.md)).
-  - **Expenses** — Vendors (Contacts relation manager), Expenses (non-job
-    cost bucket, kept parallel to Vendor Bills rather than merged into
-    them), Expense Categories.
   - **Documents** — cross-cutting browse/download over every file
     attached to an Invoice, Quotation, or Expense (polymorphic
     `documentable`).
-  - **Team** — Users (Companies relation manager for per-tenant role
-    membership).
-  - **Dashboard** (the panel's default landing page) — revenue overview,
-    a trend chart, an expiring/overdue-quotes list, and a job margin
-    report (allocated gross cost vs. unallocated purchasing cost vs.
-    sales value, kept as separate columns), all sharing one period
-    filter.
-  - **Settings** — Branding, Invoice & Numbering, Email & Reminders,
-    Client Portal (singleton pages backed by `Company`/`CompanySetting`),
-    Payment Gateways (hidden from the launch sidebar — see below).
-  - Hidden from the launch sidebar but still fully functional for
-    already-imported/legacy data: **Projects/Task Statuses** (the
-    job-centric Sales Order/Job aggregate replaces generic project/task
-    tracking — see `App\Models\Project`'s own docblock),
-    **Recurring Invoices**, **Payment Gateways** (no checkout flow calls
-    `charge()` from the UI yet), and **Proposals**/**Proposal
-    Templates**/**Proposal Snippets** (a separate formal-proposal
-    builder, deferred launch scope).
+  - **Reports** — financial analytics and tax reports, reusing the
+    Dashboard's own revenue/outstanding/overdue aggregates and the job
+    margin report's query.
+  - **Settings** — Company & Taxes, Email & Reminders, Branding, Tax Rates
+    & Lookups, Numbering, Client Portal, Users & Roles (per-tenant role
+    membership), Payment Gateways.
 - **Public homepage** (`/`) — plain Livewire (`App\Livewire\HomePage`),
-  entirely separate from the Filament panel. Which company's homepage
+  entirely separate from the admin panel. Which company's homepage
   renders is resolved by **domain**, not URL path:
   `App\Http\Middleware\ResolveCompanyFromDomain` matches the request's
   `Host` header against `companies.domain`. In local/testing
@@ -137,7 +135,8 @@ files, portal access, or financial synchronization.
   (`LocalApiPaymentGatewayDriver`, real HTTP calls, `Http::fake()`-
   testable) with a Test Connection action and a CSRF-exempt webhook
   receiver. Deferred launch scope — no checkout flow calls `charge()`
-  from the UI, and the resource is hidden from the sidebar.
+  from the UI, even though the Payment Gateways settings page itself is
+  reachable from the nav.
 - **PDF export** — `barryvdh/laravel-dompdf` renders a bilingual
   (Bahasa Indonesia default, per-document English override) A4 PDF for
   every launch document type: Invoice, Credit, Quotation, Sales Order,
@@ -145,7 +144,7 @@ files, portal access, or financial synchronization.
   Delivery Order, Handover Report, Service Report, Tax Recap, and
   Statement of Account — each behind an auth + tenant-membership guarded
   controller under `app/Http/Controllers/`, with a "Download PDF" action
-  on the relevant resource/relation manager.
+  on the relevant TallStack page.
 - **Numbering** — `App\Services\DocumentNumberGenerator` assigns
   `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ` numbers (annual sequence per company
   and document type, transactional) for every launch document code:
@@ -153,11 +152,13 @@ files, portal access, or financial synchronization.
   `HOR`, `SOA`, `TAX`. An amendment uses the original code plus `-A` with
   its own annual sequence.
 - **`App\Models\Concerns\BelongsToCompany`** — applied to every directly
-  tenant-owned model. Filament only auto-scopes a Resource's own listing
-  query to the active tenant; this trait additionally scopes
-  `Select::relationship()` picker options and auto-fills `company_id` on
-  create. A few models scoped only indirectly (`Invitation`, `User`)
-  disable Filament's automatic tenant scope and apply an explicit
+  tenant-owned model. Neither the admin panel's own pages nor a manual
+  query auto-scope to the active tenant on their own; this trait adds a
+  global scope (active once `App\Support\Tenancy\Tenancy` has a tenant set
+  for the request) and auto-fills `company_id` on create, so every model
+  using it — and every relationship picker built on it — is scoped/
+  assigned consistently without repeating the logic on each page. A few
+  models scoped only indirectly (`Invitation`, `User`) apply an explicit
   `whereHas()` scope instead.
 
 ## Financial rules (binding, see `docs/rebuild/specs/FINALIZED-DECISIONS.md`)
@@ -205,8 +206,9 @@ back to the source dump during import.
 Settings that are one row per tenant (email templates/reminders, client
 portal toggles, tax settings) live in `company_settings` rather than
 growing the `companies` table further — see
-`docs/filament-admin-layout-design.md` §3 for why these are Filament
-**Pages**, not Resources.
+`docs/filament-admin-layout-design.md` §3 for the (historical, Filament-era)
+reasoning behind that split; today these are singleton
+`App\Livewire\TallStackSettings*` pages under the Settings nav group.
 
 ## Local setup
 
@@ -230,7 +232,11 @@ php artisan serve
 
 `migrate --seed` creates a super-admin user — **`test@example.com` /
 `password`** (Laravel's stock `UserFactory` default) — attached as owner
-to both companies. Log in at `/admin`. To load either one's real
+to both companies. Log in at `/login`; a successful login lands you on
+your first active company's dashboard at
+`/tall/{company-slug}/dashboard` (`karunia-abadi` or
+`axen-technology-indonesia`) — visit the other company's URL directly to
+switch, since this user belongs to both. To load either one's real
 historical invoices/clients/payments, see
 [`docs/data-import.md`](docs/data-import.md).
 
@@ -241,7 +247,8 @@ To see the public homepage for a specific entity locally, either point
 curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/
 ```
 
-The admin panel is always at `/admin` regardless of host.
+The admin panel itself is not domain-resolved — it's always reached at
+`/tall/{company-slug}/...` regardless of which host you're on.
 
 ## Tests
 
