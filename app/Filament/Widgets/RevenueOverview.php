@@ -48,13 +48,18 @@ class RevenueOverview extends StatsOverviewWidget
         $period = DashboardPeriod::resolve($this->pageFilters);
         $previous = DashboardPeriod::previous($period);
 
+        // Completed = a legacy-imported payment already reconciled in the
+        // source system; Verified = the real Phase 04 lifecycle every
+        // payment recorded through RecordCustomerPayment/
+        // VerifyCustomerPayment ends up at. Both represent money actually
+        // received — a Pending payment doesn't count until verified.
         $revenue = (float) Payment::query()
-            ->where('status', PaymentStatus::Completed)
+            ->whereIn('status', [PaymentStatus::Completed, PaymentStatus::Verified])
             ->whereBetween('payment_date', [$period['start']->toDateString(), $period['end']->toDateString()])
             ->sum('amount');
 
         $previousRevenue = (float) Payment::query()
-            ->where('status', PaymentStatus::Completed)
+            ->whereIn('status', [PaymentStatus::Completed, PaymentStatus::Verified])
             ->whereBetween('payment_date', [$previous['start']->toDateString(), $previous['end']->toDateString()])
             ->sum('amount');
 
