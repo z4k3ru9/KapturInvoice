@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * A catalog item's kind — `Product` (see docs/rebuild/specs/02-parties-and-catalog/Specs.md)
  * now models any sellable line a quotation/invoice can pull from, not just
@@ -13,7 +10,7 @@ use Filament\Support\Contracts\HasLabel;
  * `App\Enums\TaxCategory` (the tax classification is a separate axis from
  * this type).
  */
-enum CatalogItemType: string implements HasColor, HasLabel
+enum CatalogItemType: string
 {
     case Product = 'product';
     case Service = 'service';

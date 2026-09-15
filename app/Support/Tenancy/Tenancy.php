@@ -5,24 +5,22 @@ namespace App\Support\Tenancy;
 use App\Models\Company;
 
 /**
- * The app-owned replacement for the tenant-storage role of the Filament
- * facade (its `setTenant()`/`getTenant()`/`hasTenancy()` methods). Registered
- * as a singleton (see `App\Providers\AppServiceProvider::register()`), so
- * it holds exactly one "current company" for the life of a request —
- * plain in-memory state, nothing Filament-specific about the storage
- * itself.
+ * The app's own tenant-context holder — originally introduced (Phase A of
+ * the Filament removal) as the app-owned replacement for the
+ * tenant-storage role the Filament facade used to play (its
+ * `setTenant()`/`getTenant()`/`hasTenancy()` methods, still bridged from
+ * the Filament admin panel at the time). Registered as a singleton (see
+ * `App\Providers\AppServiceProvider::register()`), so it holds exactly one
+ * "current company" for the life of a request — plain in-memory state.
  *
  * Every `App\Livewire\TallStack*` page's `mount()` calls `set()` once it
  * resolves the company from the route; `App\Models\Concerns\
  * BelongsToCompany`, the `Gate::before` company-role check in
  * `AppServiceProvider`, `App\Policies\UserPolicy`, and every public
- * PDF/download controller read it via `get()`/`has()` instead of the
- * Filament facade. The still-installed `/admin` Filament panel keeps its
- * own internal tenant resolution (still read via the Filament facade) — see
- * `App\Providers\Filament\AdminPanelProvider`'s tenant middleware for the
- * one bridge that copies Filament's resolved tenant into this class, so
- * company scoping keeps working there too until the panel itself is
- * removed.
+ * PDF/download controller read it via `get()`/`has()`. As of the
+ * Filament-removal Phase B, the Filament admin panel (and its own
+ * tenant-resolution bridge) is gone entirely — this is now the only
+ * tenant-context mechanism in the app.
  */
 class Tenancy
 {

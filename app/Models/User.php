@@ -5,9 +5,6 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\CompanyRole;
 use Database\Factories\UserFactory;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasTenants;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,21 +12,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 
-/**
- * Still implements Filament's FilamentUser/HasTenants — required for the
- * still-installed `/admin` panel to authenticate and tenant-switch a user
- * at all (confirmed empirically: removing these breaks every `/admin`
- * request with a 403). Nothing outside app/Filament/** calls
- * canAccessPanel()/getTenants() directly (grep-confirmed) — they exist
- * purely to satisfy Filament's own contracts and are Phase B's to remove,
- * alongside the panel itself. See the Filament-removal Phase A report for
- * the full reasoning.
- */
 #[Fillable(['name', 'email', 'password', 'is_super_admin'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, HasTenants
+class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -53,20 +39,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->belongsToMany(Company::class)
             ->withPivot('role')
             ->withTimestamps();
-    }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        // Every registered user may access the admin panel; per-tenant
-        // access is then governed by canAccessTenant() below.
-        return true;
-    }
-
-    public function getTenants(Panel $panel): Collection
-    {
-        return $this->is_super_admin
-            ? Company::query()->active()->get()
-            : $this->companies()->active()->wherePivot('is_active', true)->get();
     }
 
     public function canAccessTenant(Model $tenant): bool

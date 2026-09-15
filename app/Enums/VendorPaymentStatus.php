@@ -2,9 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasColor;
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * "Vendor payments use a parallel immutable event model: proof is
  * required before verification, allocations may be partial, one verified
@@ -16,7 +13,7 @@ use Filament\Support\Contracts\HasLabel;
  * App\Actions\Procurement\RecordVendorPayment and only reaches Verified
  * through App\Actions\Procurement\VerifyVendorPayment.
  */
-enum VendorPaymentStatus: string implements HasColor, HasLabel
+enum VendorPaymentStatus: string
 {
     case Pending = 'pending';
     case Verified = 'verified';

@@ -4,10 +4,8 @@ namespace Tests\Feature\Portal;
 
 use App\Actions\Portal\GeneratePortalLink;
 use App\Actions\Portal\RevokePortalLink;
-use App\Filament\Resources\Clients\Pages\ViewClient;
-use App\Filament\Resources\Clients\RelationManagers\ContactsRelationManager;
-use App\Filament\Resources\Clients\RelationManagers\PortalLinksRelationManager;
 use App\Livewire\Portal\ClientPortalHome;
+use App\Livewire\TallStackClientDetail;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Contact;
@@ -19,7 +17,6 @@ use App\Models\PortalLink;
 use App\Models\Receipt;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
-use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
@@ -281,7 +278,13 @@ class ClientPortalHomeTest extends TestCase
             ->assertSee('Client Co');
     }
 
-    public function test_generating_a_portal_link_via_the_filament_action_creates_a_usable_link(): void
+    /**
+     * Ported from the Filament ContactsRelationManager's "Generate portal
+     * link" row action during the Filament-removal Phase B — the same
+     * App\Actions\Portal\GeneratePortalLink call is now wired onto
+     * App\Livewire\TallStackClientDetail::generatePortalLink() instead.
+     */
+    public function test_generating_a_portal_link_from_the_client_detail_page_creates_a_usable_link(): void
     {
         Mail::fake();
 
@@ -292,20 +295,23 @@ class ClientPortalHomeTest extends TestCase
         $contact = Contact::create(['client_id' => $client->id, 'first_name' => 'Jane', 'email' => 'jane@example.com', 'is_billing_contact' => true]);
 
         $this->actingAs($user);
-        Filament::setTenant($company);
         app(Tenancy::class)->set($company);
 
         $this->assertSame(0, PortalLink::query()->count());
 
-        Livewire::test(ContactsRelationManager::class, ['ownerRecord' => $client, 'pageClass' => ViewClient::class])
-            ->callTableAction('generatePortalLink', $contact, data: [
-                'expires_at' => now()->addDays(30)->toDateString(),
-            ]);
+        Livewire::test(TallStackClientDetail::class, ['company' => $company, 'client' => $client])
+            ->call('generatePortalLink', $contact->id);
 
         $this->assertSame(1, PortalLink::query()->where('contact_id', $contact->id)->count());
     }
 
-    public function test_revoking_a_portal_link_via_the_filament_action_sets_revoked_at_and_the_link_then_404s(): void
+    /**
+     * Ported from the Filament PortalLinksRelationManager's "Revoke" row
+     * action during the Filament-removal Phase B — the same
+     * App\Actions\Portal\RevokePortalLink call is now wired onto
+     * App\Livewire\TallStackClientDetail::revokePortalLink() instead.
+     */
+    public function test_revoking_a_portal_link_from_the_client_detail_page_sets_revoked_at_and_the_link_then_404s(): void
     {
         $user = User::factory()->create();
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
@@ -315,11 +321,10 @@ class ClientPortalHomeTest extends TestCase
         $link = app(GeneratePortalLink::class)->generate($contact);
 
         $this->actingAs($user);
-        Filament::setTenant($company);
         app(Tenancy::class)->set($company);
 
-        Livewire::test(PortalLinksRelationManager::class, ['ownerRecord' => $client, 'pageClass' => ViewClient::class])
-            ->callTableAction('revoke', $link);
+        Livewire::test(TallStackClientDetail::class, ['company' => $company, 'client' => $client->fresh(['portalLinks'])])
+            ->call('revokePortalLink', $link->id);
 
         $link->refresh();
         $this->assertNotNull($link->revoked_at);

@@ -168,7 +168,7 @@
                     <tbody>
                         <tr class="border-b border-gray-200">
                             <td colspan="5" class="py-2 pr-2 font-bold">{{ __('documents.soa_opening_balance') }}</td>
-                            <td class="py-2 pl-2 text-right font-bold tabular-nums">{{ \App\Filament\Support\Money::format($openingBalance, $currency) }}</td>
+                            <td class="py-2 pl-2 text-right font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($openingBalance, $currency) }}</td>
                         </tr>
                         @forelse ($ledgerRows as $row)
                             <tr class="border-b border-gray-100">
@@ -181,9 +181,9 @@
                                     @endif
                                 </td>
                                 <td class="py-2 pr-2 text-gray-500">{{ $row['description'] }}</td>
-                                <td class="py-2 px-2 text-right tabular-nums">{{ $row['debit'] > 0 ? \App\Filament\Support\Money::format($row['debit'], $currency) : '' }}</td>
-                                <td class="py-2 px-2 text-right tabular-nums">{{ $row['credit'] > 0 ? \App\Filament\Support\Money::format($row['credit'], $currency) : '' }}</td>
-                                <td class="py-2 pl-2 text-right tabular-nums">{{ \App\Filament\Support\Money::format($row['balance'], $currency) }}</td>
+                                <td class="py-2 px-2 text-right tabular-nums">{{ $row['debit'] > 0 ? \App\Support\Dashboard\Money::format($row['debit'], $currency) : '' }}</td>
+                                <td class="py-2 px-2 text-right tabular-nums">{{ $row['credit'] > 0 ? \App\Support\Dashboard\Money::format($row['credit'], $currency) : '' }}</td>
+                                <td class="py-2 pl-2 text-right tabular-nums">{{ \App\Support\Dashboard\Money::format($row['balance'], $currency) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -195,7 +195,7 @@
                              prompt 17. --}}
                         <tr class="border-t-2 border-gray-800">
                             <td colspan="5" class="py-2 pr-2 font-bold">{{ __('documents.soa_closing_balance') }}</td>
-                            <td class="py-2 pl-2 text-right font-bold tabular-nums">{{ \App\Filament\Support\Money::format($closingBalance, $currency) }}</td>
+                            <td class="py-2 pl-2 text-right font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($closingBalance, $currency) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -211,30 +211,30 @@
                 <div class="grid grid-cols-5 gap-2 text-right text-sm border border-gray-200 rounded-md overflow-hidden">
                     <div class="bg-gray-50 p-2">
                         <div class="text-xs text-gray-400">{{ __('documents.soa_aging_current') }}</div>
-                        <div class="font-bold tabular-nums">{{ \App\Filament\Support\Money::format($aging['current'] ?? 0, $currency) }}</div>
+                        <div class="font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($aging['current'] ?? 0, $currency) }}</div>
                     </div>
                     <div class="bg-gray-50 p-2">
                         <div class="text-xs text-gray-400">{{ __('documents.soa_aging_1_30') }}</div>
-                        <div class="font-bold tabular-nums">{{ \App\Filament\Support\Money::format($aging['1_30'] ?? 0, $currency) }}</div>
+                        <div class="font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($aging['1_30'] ?? 0, $currency) }}</div>
                     </div>
                     <div class="bg-gray-50 p-2">
                         <div class="text-xs text-gray-400">{{ __('documents.soa_aging_31_60') }}</div>
-                        <div class="font-bold tabular-nums">{{ \App\Filament\Support\Money::format($aging['31_60'] ?? 0, $currency) }}</div>
+                        <div class="font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($aging['31_60'] ?? 0, $currency) }}</div>
                     </div>
                     <div class="bg-gray-50 p-2">
                         <div class="text-xs text-gray-400">{{ __('documents.soa_aging_61_90') }}</div>
-                        <div class="font-bold tabular-nums">{{ \App\Filament\Support\Money::format($aging['61_90'] ?? 0, $currency) }}</div>
+                        <div class="font-bold tabular-nums">{{ \App\Support\Dashboard\Money::format($aging['61_90'] ?? 0, $currency) }}</div>
                     </div>
                     <div class="bg-red-50 p-2">
                         <div class="text-xs text-red-500">{{ __('documents.soa_aging_over_90') }}</div>
-                        <div class="font-bold tabular-nums text-red-700">{{ \App\Filament\Support\Money::format($aging['over_90'] ?? 0, $currency) }}</div>
+                        <div class="font-bold tabular-nums text-red-700">{{ \App\Support\Dashboard\Money::format($aging['over_90'] ?? 0, $currency) }}</div>
                     </div>
                 </div>
             </div>
 
             @if ($unresolvedExceptionsTotal > 0)
                 <div class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
-                    {{ __('documents.soa_unresolved_exceptions_total') }}: {{ \App\Filament\Support\Money::format($unresolvedExceptionsTotal, $currency) }}
+                    {{ __('documents.soa_unresolved_exceptions_total') }}: {{ \App\Support\Dashboard\Money::format($unresolvedExceptionsTotal, $currency) }}
                 </div>
             @endif
         </div>

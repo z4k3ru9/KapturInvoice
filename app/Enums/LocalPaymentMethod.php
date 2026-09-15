@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Filament\Support\Contracts\HasLabel;
-
 /**
  * The payment methods the Indonesian in-house payment API (see
  * docs/filament-admin-layout-design.md §3.4 and
@@ -11,7 +9,7 @@ use Filament\Support\Contracts\HasLabel;
  * to support — a `local_api` gateway's `config.methods` selects among
  * these.
  */
-enum LocalPaymentMethod: string implements HasLabel
+enum LocalPaymentMethod: string
 {
     case VirtualAccount = 'virtual_account';
     case Qris = 'qris';
