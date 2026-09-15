@@ -125,7 +125,7 @@ class TallStackQuotationForm extends Component
         if ($quotation) {
             abort_unless($quotation->company_id === $company->id, 404);
 
-            $this->quotation = $quotation->loadMissing(['items.product', 'client']);
+            $this->quotation = $quotation->loadMissing(['items.product', 'client', 'salesOrder.invoices']);
             $this->client_id = (string) $quotation->client_id;
             $this->number = $quotation->number;
             $this->pricing_mode = $quotation->pricing_mode->value;
@@ -548,6 +548,24 @@ class TallStackQuotationForm extends Component
             ])->values()
             : collect();
 
+        // "Billed as" cross-reference — a Job (SalesOrder) can carry
+        // multiple invoices (SalesOrder::invoices() is hasMany), so this
+        // walks Quotation::salesOrder() -> SalesOrder::invoices() rather
+        // than assuming any direct link on Quotation itself. Empty until
+        // the quotation is accepted and a job with billed invoices exists.
+        $billedInvoices = $this->quotation?->salesOrder?->invoices
+            ->map(fn ($invoice) => [
+                'id' => $invoice->id,
+                'number' => $invoice->number ?? '—',
+                'status_label' => $invoice->status->getLabel(),
+                'status_color' => StatusColor::map($invoice->status->getColor()),
+                'date' => $invoice->invoice_date?->format('d M Y') ?? '—',
+                'total' => Money::format((float) $invoice->total, $currency),
+                'balance' => Money::format((float) $invoice->balance, $currency),
+                'edit_url' => route('tallstack.invoices.edit', [$this->company, $invoice]),
+            ])
+            ->values() ?? collect();
+
         return view('livewire.tallstack-quotation-form', [
             'clients' => Client::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'products' => Product::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
@@ -559,6 +577,7 @@ class TallStackQuotationForm extends Component
             'subtotal' => $this->quotation ? Money::format((float) $this->quotation->subtotal, $currency) : Money::format(0, $currency),
             'total' => $this->quotation ? Money::format((float) $this->quotation->total, $currency) : Money::format(0, $currency),
             'documents' => $this->quotation ? $this->documentRows($this->quotation) : collect(),
+            'billedInvoices' => $billedInvoices,
         ])->layoutData([
             'company' => $this->company,
             'active' => 'quotations',
