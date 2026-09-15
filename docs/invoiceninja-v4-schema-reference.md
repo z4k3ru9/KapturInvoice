@@ -3,9 +3,14 @@
 Source: `chronopr_ninj226.sql` (phpMyAdmin dump, MariaDB 10.5, InvoiceNinja **v4**
 schema — the classic Laravel 5-era Eloquent/Omnipay codebase, not the v5 rewrite).
 73 tables. This document distills that schema into something usable as a design
-reference for the KapturInvoice rebuild (TALL stack: Tailwind, Alpine, Laravel,
-Livewire, with **Filament** as the admin/billing dashboard) and as a map for
-writing the data-import scripts.
+reference for the KapturInvoice rebuild (TALL stack: Tailwind, Alpine,
+Laravel, Livewire) and as a map for writing the data-import scripts. **§4
+below was written when the admin/billing dashboard was planned on Filament;
+the app has since fully migrated off Filament onto a hand-built
+TallStackUI/Livewire admin (`app/Filament` no longer exists) — §4 has been
+rewritten to describe the real current approach. See CLAUDE.md's
+"TallStackUI + Livewire 4, not Filament" conventions for the authoritative
+current shape.**
 
 It is **not** a 1:1 spec to copy — InvoiceNinja v4 carries a lot of SaaS-hosting
 and legacy baggage that KapturInvoice almost certainly doesn't need. Each
@@ -180,48 +185,73 @@ erDiagram
 
 ---
 
-## 4. Notes for the KapturInvoice rebuild (TALL + Filament, 2 domains)
+## 4. Notes for the KapturInvoice rebuild (TALL stack, 2 domains)
 
-Given the plan is:
+This section originally sketched a Filament-based rebuild plan; it has been
+rewritten below to describe the real, current implementation. The overall
+shape is:
 
-- **Filament admin panel** for internal billing/project management (the
-  "invoicing app" side — this is the direct analog of the InvoiceNinja
-  schema above), and
-- **A separate public homepage/marketing site** on the root domain, built
-  with the same TALL stack, that talks to a **second entity/domain** (i.e.
-  two distinct businesses share this codebase/infra, each presumably needing
-  its own branding, client list, invoice numbering, and possibly its own
-  custom domain),
+- A hand-built **TallStackUI/Livewire admin workspace** for internal
+  billing/project management (the "invoicing app" side — this is the direct
+  analog of the InvoiceNinja schema above), routed under
+  `/tall/{company:slug}/...` (one route set handles both companies via a
+  single route-model-bound `Company` param, not two separate panels), and
+- A **separate public homepage/marketing site** resolved by the request's
+  `Host` header (`App\Http\Middleware\ResolveCompanyFromDomain`), built with
+  the same TALL stack, on each company's own domain (`karuniaabadi.id` /
+  `axentechnology.web.id` — two distinct real businesses share this
+  codebase/infra, each with its own branding, client list, and invoice
+  numbering).
 
-a few concrete mappings:
+Concrete mappings, as actually built:
 
-- **`accounts` → your tenant model.** Since there are two separate entities,
-  model each as a `Company`/`Tenant` record (Filament ships first-class
-  **multi-tenancy** support — `Filament\Facades\Filament::getTenant()` — which
-  maps almost 1:1 onto what `accounts` + the `account_id` column-on-everything
-  pattern was doing by hand in InvoiceNinja v4). Let Filament's tenancy layer
-  do the scoping instead of remembering `account_id` on every query.
-- **Per-tenant custom domain** (accounts.subdomain / accounts.domain_id here)
-  → Filament supports tenant-aware routing; for two *fully separate* public
-  domains, plan on Laravel route groups keyed by `Illuminate\Http\Request`
-  host (or two separate Filament panels) rather than trying to force one
-  Filament panel to serve two unrelated domains' homepages — keep the public
-  marketing homepage as plain TALL (Livewire/Volt) routes outside the
-  Filament panel entirely, and reserve Filament for the authenticated
-  billing/admin side.
+- **`accounts` → `App\Models\Company`.** Each of the two businesses is a
+  `Company` row. Tenancy is **not** Filament's multi-tenancy layer — it's a
+  plain app-owned singleton, `App\Support\Tenancy\Tenancy` (`set()`/`get()`/
+  `has()`, registered in `AppServiceProvider`), holding one "current company"
+  per request. Every `TallStack*` Livewire component's `mount()` resolves
+  `Company` from the route (`{company:slug}` route-model binding) and calls
+  `app(Tenancy::class)->set($company)`; `App\Models\Concerns\
+  BelongsToCompany` (applied to every tenant-owned model), the
+  `Gate::before` company-role check in `AppServiceProvider`, and every public
+  PDF/download controller all read it back via `get()`/`has()` — this plays
+  the role `account_id`-on-everything played by hand in InvoiceNinja v4, and
+  the role `Filament::getTenant()` would have played in the originally
+  planned design.
+- **Per-tenant custom domain** (`accounts.subdomain`/`accounts.domain_id`
+  here) → each `Company` has its own real domain column, matched by
+  `ResolveCompanyFromDomain` against the inbound `Host` header — this
+  middleware group serves the public homepage (`/`) and the unauthenticated
+  client portal (`/portal/{invitation:key}`, `/portal/link/
+  {portalLink:key}`) on the company's own domain; an unmatched host falls
+  back to the first company in local/testing envs. The authenticated admin
+  workspace is separate: plain `auth`-protected routes under
+  `/tall/{company:slug}/...`, with `App\Models\User::canAccessTenant()`
+  gating access to a given company rather than domain matching.
 - **Numbering counters/patterns** (`invoice_number_counter`/`_prefix`/
-  `_pattern` etc.) — reimplement as a small service/observer keyed by tenant
-  (and possibly by entity, if the two businesses must not share a numbering
-  sequence), not raw columns copied verbatim — but the column shapes above
-  are a solid starting point for the settings table.
+  `_pattern` etc.) → `App\Services\DocumentNumberGenerator`, a
+  transactional (`lockForUpdate()`'d) service keyed by `Company`'s own
+  prefix/next_number columns, invoked whenever a document is created with a
+  blank `number` — not raw columns copied verbatim, but the same shape the
+  legacy columns suggested.
 - **Client portal** (`contacts.password`/`contact_key`, `invitations`,
-  `security_codes`) — if KapturInvoice's homepage is also where clients view/
-  pay invoices, this is the piece that becomes public-facing Livewire
-  components (magic-link via `invitation_key`, not a full login by default,
-  matching the legacy UX) rather than part of the Filament panel.
-- **Payment gateway config** (`account_gateways.config`) — use Laravel's
-  encrypted casts / a proper secrets table from day one; don't carry over
-  plaintext storage.
+  `security_codes`) → became `App\Livewire\Portal\ViewInvoice`
+  (`/portal/{invitation:key}`, the unguessable `invitations.key` UUID *is*
+  the credential — no password) plus the broader, contact-scoped
+  `App\Models\PortalLink`/`App\Livewire\Portal\ClientPortalHome`
+  (`/portal/link/{portalLink:key}`, revocable/expiring) for a designated
+  billing contact to see all of a client's invoices. Both are plain public
+  Livewire components behind `ResolveCompanyFromDomain`, not part of any
+  admin panel.
+- **RBAC** — not Filament Shield/`spatie/permission`: a plain `company_user`
+  pivot role column, checked via `App\Models\User::canAccessTenant()` and a
+  `Gate::before` company-role check in `AppServiceProvider` (see
+  `App\Enums\CompanyRole`'s role-set helpers, e.g.
+  `paymentVerificationRoles()`, referenced throughout `CLAUDE.md`).
+- **Payment gateway config** (`account_gateways.config`) — `PaymentGateway::
+  config` is `encrypted:array` (Laravel's encrypted cast), not plaintext —
+  the "use encrypted casts" guidance held, just without a Filament settings
+  page around it.
 
 ## 5. Import-mapping checklist
 
