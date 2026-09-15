@@ -20,9 +20,9 @@ use TallStackUi\Traits\Interactions;
  * docblock for the established pattern this follows. Reuses
  * App\Models\Invoice filtered to `is_recurring = true` — the recurring
  * *template* rows, not their generated instances — exactly the same
- * scope App\Filament\Resources\RecurringInvoices\RecurringInvoiceResource::
- * getEloquentQuery() applies. This is a presentation-layer swap only; no
- * new column, Action, or Service was added for this page.
+ * scope the equivalent pre-TallStackUI Filament recurring invoice
+ * resource's own query applied. This is a presentation-layer swap only;
+ * no new column, Action, or Service was added for this page.
  *
  * ⚠️ Deliberately does NOT ship a Pause/Resume action. The Filament
  * resource has no pause/resume mechanism today: `RecurringInvoicesTable`'s

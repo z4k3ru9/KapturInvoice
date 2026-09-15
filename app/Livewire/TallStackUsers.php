@@ -29,9 +29,9 @@ use TallStackUi\Traits\Interactions;
  * different role in each company they belong to, so this is never a
  * global user list. Reuses App\Services\CompanyMembershipService::invite()/
  * disable()/reenable() unmodified for every membership-lifecycle mutation
- * — this component only ever performs the same raw pivot `role` update
- * Filament's own App\Filament\Resources\Users\RelationManagers\
- * CompaniesRelationManager's EditAction already performs (there is no
+ * — this component only ever performs the same raw pivot `role` update the
+ * equivalent pre-TallStackUI Filament users resource's Companies relation
+ * manager EditAction already performed (there is no
  * dedicated domain Action class for a bare role change), and both are
  * gated by the exact same App\Policies\CompanyPolicy::manageMembership
  * check (Owner/Admin only, via App\Enums\CompanyRole::settingsRoles()).
@@ -87,8 +87,8 @@ class TallStackUsers extends Component
 
         $this->company = $company;
 
-        // Same "Owner/Admin only" boundary as
-        // App\Filament\Resources\Users\UserResource — checked via the
+        // Same "Owner/Admin only" boundary as the equivalent
+        // pre-TallStackUI Filament users resource — checked via the
         // exact same CompanyPolicy::manageMembership ability rather than
         // a re-derived role list, and re-checked here (not just relied on
         // via a hidden nav item) since this route sits outside the

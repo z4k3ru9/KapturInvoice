@@ -21,9 +21,9 @@ use TallStackUi\Traits\Interactions;
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
  * the Invoices register — see App\Livewire\TallStackQuotations's docblock
  * for the established pattern this follows. Reuses App\Models\Invoice and
- * App\Enums\InvoiceStatus exactly as
- * App\Filament\Resources\Invoices\Tables\InvoicesTable does; every status
- * transition/mutation lives on the detail page
+ * App\Enums\InvoiceStatus exactly as the equivalent pre-TallStackUI
+ * Filament invoices table did; every status transition/mutation lives on
+ * the detail page
  * (App\Livewire\TallStackInvoiceForm) via the same App\Actions\Billing\*
  * classes, never reimplemented here.
  *

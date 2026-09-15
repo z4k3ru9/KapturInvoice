@@ -30,14 +30,13 @@ use TallStackUi\Traits\Interactions;
  * the Expenses register — see App\Livewire\TallStackClients's docblock for
  * the established pattern this follows. Reuses App\Models\Expense and
  * App\Services\ExpenseTotalsCalculator unmodified — this is a
- * presentation-layer swap only, mirroring
- * App\Filament\Resources\Expenses\{ExpenseResource,Schemas\ExpenseForm,Tables\ExpensesTable}
- * field-for-field: no field is added or dropped, `tax_rate_ids` stays a
- * virtual field synced through ExpenseTotalsCalculator::syncTaxes()
- * exactly like CreateExpense/EditExpense's own handleRecordCreation()/
- * handleRecordUpdate() do.
+ * presentation-layer swap only, mirroring the equivalent pre-TallStackUI
+ * Filament expense resource's form and table field-for-field: no field is
+ * added or dropped, `tax_rate_ids` stays a virtual field synced through
+ * ExpenseTotalsCalculator::syncTaxes() exactly like that resource's own
+ * Create/Edit pages did.
  *
- * Unlike the Filament resource (which keeps full Create/Edit/View pages),
+ * Unlike the Filament resource (which kept full Create/Edit/View pages),
  * this page follows this app's small-resource TALL-stack convention (see
  * TallStackClients/TallStackVendors) with an in-page create/edit modal
  * rather than separate routes — per the build prompt's own instruction to

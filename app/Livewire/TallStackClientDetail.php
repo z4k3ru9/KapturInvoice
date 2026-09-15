@@ -26,17 +26,15 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack client detail page — the sibling page to
- * App\Livewire\TallStackClients. Mirrors
- * App\Filament\Resources\Clients\{Schemas\ClientInfolist,
- * RelationManagers\ContactsRelationManager,
- * RelationManagers\PortalLinksRelationManager,
- * RelationManagers\StatementOfAccountsRelationManager} field-for-field —
- * no field or action is added or dropped. Every mutation goes through the
- * exact same domain classes those relation managers already call
+ * App\Livewire\TallStackClients. Mirrors the equivalent pre-TallStackUI
+ * Filament client resource's infolist plus its Contacts, Portal Links,
+ * and Statement of Accounts relation managers field-for-field — no field
+ * or action is added or dropped. Every mutation goes through the exact
+ * same domain classes those relation managers already called
  * (App\Actions\Portal\GeneratePortalLink/RevokePortalLink,
  * App\Actions\Reports\GenerateStatementOfAccount) — Client/Contact
  * themselves have no dedicated domain action layer in this app (the
- * Filament form/relation manager write to them with plain Eloquent
+ * Filament form/relation manager wrote to them with plain Eloquent
  * create/update, so this page does too).
  */
 #[Layout('components.tallstack.app')]

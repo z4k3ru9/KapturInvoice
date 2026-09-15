@@ -24,8 +24,8 @@ use TallStackUi\Traits\Interactions;
  * Vendor is one of the 14 modal-based resources (CLAUDE.md "Modal-based
  * Create/Edit") — VendorResource registers no dedicated create/edit page,
  * so this mirrors that with an in-page create/edit modal rather than a
- * separate route, matching App\Filament\Resources\Vendors\Schemas\VendorForm
- * field-for-field.
+ * separate route, matching the equivalent pre-TallStackUI Filament vendor
+ * form field-for-field.
  */
 #[Layout('components.tallstack.app')]
 class TallStackVendors extends Component

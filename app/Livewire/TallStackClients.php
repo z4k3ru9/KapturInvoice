@@ -17,9 +17,8 @@ use TallStackUi\Traits\Interactions;
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
  * the Clients register — see App\Livewire\TallStackQuotations's docblock
  * for the established pattern this follows. Reuses App\Models\Client
- * unmodified, and mirrors
- * App\Filament\Resources\Clients\{ClientResource,Schemas\ClientForm,Tables\ClientsTable}
- * field-for-field: no field is added or dropped.
+ * unmodified, and mirrors the equivalent pre-TallStackUI Filament client
+ * resource's form and table field-for-field: no field is added or dropped.
  *
  * Client keeps Filament's own "no dedicated Create/Edit page" convention
  * (docs/filament-admin-layout-design.md §8 — one of the 14 modal-based

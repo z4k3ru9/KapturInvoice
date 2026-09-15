@@ -16,12 +16,12 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack "Company & Taxes" settings screen — see
  * App\Livewire\TallStackQuotations's docblock for the established pattern
- * this follows (presentation-layer swap only). Mirrors
- * App\Filament\Pages\Tenancy\EditCompanyProfile's "Identity"/"Branding"/
+ * this follows (presentation-layer swap only). Mirrors the equivalent
+ * pre-TallStackUI Filament company-profile page's "Identity"/"Branding"/
  * "Document numbering" sections field-for-field, plus
  * App\Models\CompanyTaxSetting's tax_enabled/standard_tax_rate/
  * dpp_factor_numerator/dpp_factor_denominator fields — no Filament page
- * edits CompanyTaxSetting today, so this is the first UI (admin or
+ * ever edited CompanyTaxSetting, so this is the first UI (admin or
  * TALL-stack) that does.
  *
  * The fetched Stitch mockup ("Company & Taxes Settings — Axen Technology

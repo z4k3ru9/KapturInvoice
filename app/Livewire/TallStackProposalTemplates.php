@@ -20,9 +20,9 @@ use TallStackUi\Traits\Interactions;
  * App\Livewire\TallStackProposals's header (previously a placeholder
  * link straight to the Filament admin resource — now this page).
  *
- * Reuses App\Models\ProposalTemplate unmodified; matches
- * App\Filament\Resources\ProposalTemplates\ProposalTemplateResource's own
- * field set exactly (name/html/css — the legacy import id is
+ * Reuses App\Models\ProposalTemplate unmodified; matches the equivalent
+ * pre-TallStackUI Filament proposal template resource's own field set
+ * exactly (name/html/css — the legacy import id is
  * traceability-only metadata, not shown on this screen, same reasoning
  * App\Livewire\TallStackProposalForm already applies to Proposal's own
  * legacy field). No dedicated Policy exists for ProposalTemplate — its

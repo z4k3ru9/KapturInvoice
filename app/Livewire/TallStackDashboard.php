@@ -145,11 +145,11 @@ class TallStackDashboard extends Component
         $periodLabel = DashboardPeriod::resolve(['period' => $this->period])['label'];
 
         // Phase 12 (onboarding/zero-state) — reuses
-        // App\Filament\Support\SetupChecklist unmodified (same "what
-        // counts as done" logic as App\Filament\Widgets\SetupChecklistWidget),
-        // this is a presentation-layer port only. The panel hides itself
-        // once every step is done, exactly mirroring the Filament
-        // widget's own canView() rule.
+        // App\Support\Dashboard\SetupChecklist unmodified (same "what
+        // counts as done" logic as the pre-TallStackUI Filament setup
+        // checklist widget), this is a presentation-layer port only. The
+        // panel hides itself once every step is done, exactly mirroring
+        // that widget's own canView() rule.
         $checklist = SetupChecklist::for($this->company);
         $firstIncomplete = collect($checklist['steps'])->search(fn (array $step) => ! $step['done']);
         $clientStep = collect($checklist['steps'])->firstWhere('key', 'client');
