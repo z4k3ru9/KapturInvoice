@@ -32,13 +32,10 @@ use Tests\TestCase;
  * Draft), so this proves the guard through those methods instead.
  *
  * The Filament-only force-delete-bulk-action tests this file used to
- * carry (Draft/unreferenced-only "physically remove" guard on the
- * Filament ForceDeleteBulkAction) are dropped, not ported: force-delete
- * itself was a Filament admin-panel-only capability with no TallStack
- * equivalent — nothing in app/Livewire exposes it, consistent with
- * FINALIZED-DECISIONS.md's "issued documents ... never physically
- * deleted" (the soft-deletable Draft/unreferenced exception that feature
- * carved out simply isn't rebuilt).
+ * carry were later rebuilt as a real TallStack row action
+ * (`App\Actions\Procurement\ForceDeleteVendorBill`/
+ * `ForceDeleteVendorPurchaseOrder`) and their coverage now lives in
+ * `Tests\Feature\Authorization\ForceDeleteGuardsTest`, not here.
  */
 class VendorDocumentLockAfterWorkflowTest extends TestCase
 {

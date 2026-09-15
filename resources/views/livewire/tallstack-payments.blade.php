@@ -91,6 +91,14 @@
                         @if (in_array($row['status'], [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Verified], true))
                             <x-dropdown.items text="Reverse" icon="no-symbol" wire:click="openReverseModal({{ $row['id'] }})" />
                         @endif
+                        {{-- Only ever shown for a Pending row — the guard's
+                             full predicate (no receipt/allocations/
+                             verification history) is still re-checked
+                             server-side by
+                             App\Actions\Receivables\ForceDeletePayment. --}}
+                        @if ($row['status'] === \App\Enums\PaymentStatus::Pending)
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this payment? This cannot be undone." />
+                        @endif
                     </x-dropdown>
                 </div>
             @endinteract

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Billing\ForceDeleteInvoice;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Company;
@@ -13,6 +14,8 @@ use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use RuntimeException;
+use TallStackUi\Traits\Interactions;
 
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
@@ -25,15 +28,19 @@ use Livewire\WithPagination;
  * classes, never reimplemented here.
  *
  * Scoped to `type = InvoiceType::Invoice` rows only — the `invoices` table
- * also holds legacy type=Quote rows (App\Filament\Resources\Quotes) and
- * `is_recurring` template rows (App\Filament\Resources\RecurringInvoices),
- * which are separate Filament resources/nav entries and stay there for
- * this phase; do not conflate them into this register.
+ * also holds legacy type=Quote rows (no rebuilt TallStack register — see
+ * memory.md) and `is_recurring` template rows
+ * (App\Livewire\TallStackRecurringInvoices), which stay out of this
+ * register; do not conflate them into it.
+ *
+ * The row-level "Force delete" action (Draft rows only) delegates its
+ * guard/authorization entirely to App\Actions\Billing\ForceDeleteInvoice —
+ * see that class's docblock for why this narrow capability exists at all.
  */
 #[Layout('components.tallstack.app')]
 class TallStackInvoices extends Component
 {
-    use WithPagination;
+    use Interactions, WithPagination;
 
     public Company $company;
 
@@ -63,6 +70,38 @@ class TallStackInvoices extends Component
     {
         $this->status = $status;
         $this->resetPage();
+    }
+
+    public function forceDelete(int $id): void
+    {
+        $invoice = $this->findScoped($id);
+
+        if (! $invoice) {
+            return;
+        }
+
+        try {
+            app(ForceDeleteInvoice::class)->forceDelete($invoice, auth()->user());
+            $this->toast()->success('Invoice permanently deleted.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not delete invoice', $e->getMessage())->send();
+        }
+    }
+
+    /** Never trust a bare `Invoice::find()` here — always re-check company ownership. */
+    private function findScoped(?int $id): ?Invoice
+    {
+        if (! $id) {
+            return null;
+        }
+
+        $invoice = Invoice::find($id);
+
+        if (! $invoice || $invoice->company_id !== $this->company->id || $invoice->type !== InvoiceType::Invoice) {
+            return null;
+        }
+
+        return $invoice;
     }
 
     public function render(): View
