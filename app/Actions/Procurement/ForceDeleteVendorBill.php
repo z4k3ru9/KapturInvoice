@@ -14,9 +14,8 @@ use RuntimeException;
  * App\Actions\Billing\ForceDeleteInvoice's docblock for the shared
  * rationale.
  *
- * Ported from `App\Filament\Resources\VendorBills\Tables\
- * VendorBillsTable::isSafeToForceDelete()` (dropped, unreplaced, when
- * Filament was removed).
+ * Ported from the equivalent table-level guard in the pre-TallStackUI
+ * Filament admin (dropped, unreplaced, when Filament was removed).
  */
 class ForceDeleteVendorBill
 {

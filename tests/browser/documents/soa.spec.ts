@@ -33,9 +33,8 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // The success notification is persistent (a Codex review finding
         // on PR #4: a raw URL in a 4-second-then-gone notification body
         // made the user manually copy it before it vanished) and carries
-        // a real clickable "Open PDF" action instead — see
-        // App\Filament\Resources\Clients\Tables\
-        // ClientsTable::generateStatementOfAccountAction().
+        // a real clickable "Open PDF" action instead — see the Clients
+        // table's "Generate Statement of Account" action.
         const notification = page.locator('[role="alert"], .fi-no-notification').filter({ hasText: 'Statement of Account generated' });
         // A real dompdf PDF render is one of the heavier requests this
         // suite makes — a generous window avoids a false failure under a

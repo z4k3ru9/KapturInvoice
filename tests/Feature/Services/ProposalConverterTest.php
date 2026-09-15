@@ -10,8 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from tests/Feature/Filament/ProposalsTest.php during the
- * Filament-removal Phase B — these two tests exercise
+ * Ported from the pre-TallStackUI Filament test suite's proposals coverage
+ * during the Filament-removal Phase B — these two tests exercise
  * App\Services\ProposalConverter directly (no Filament UI involved).
  * tests/Feature/TallStack/TallStackProposalsTest.php covers the
  * TallStackUI "Convert to invoice" happy path via the Livewire component,

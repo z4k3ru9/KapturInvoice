@@ -102,9 +102,9 @@ class RolePermissionMatrixTest extends TestCase
     /**
      * Every TallStack settings route delegates to the same
      * App\Policies\CompanyPolicy::viewSettings gate (see e.g.
-     * App\Livewire\TallStackSettingsBranding::mount()); the Filament
-     * settings Pages this test used to enumerate
-     * (EditBrandingSettings::canAccess() etc.) are gone as of the
+     * App\Livewire\TallStackSettingsBranding::mount()); the pre-TallStackUI
+     * Filament admin's settings Pages this test used to enumerate
+     * (its EditBrandingSettings::canAccess() etc.) are gone as of the
      * Filament-removal Phase B, so this now hits each TallStack route
      * directly instead.
      *

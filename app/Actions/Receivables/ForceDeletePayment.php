@@ -16,9 +16,8 @@ use RuntimeException;
  * receipt/allocations are never physically deleted" — this only ever
  * applies before that event is real).
  *
- * Ported from `App\Filament\Resources\Payments\Tables\
- * PaymentsTable::isSafeToForceDelete()` (dropped, unreplaced, when
- * Filament was removed).
+ * Ported from the equivalent table-level guard in the pre-TallStackUI
+ * Filament admin (dropped, unreplaced, when Filament was removed).
  */
 class ForceDeletePayment
 {

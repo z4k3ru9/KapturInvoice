@@ -12,8 +12,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from tests/Feature/Filament/AdminPanelResourcesTest.php during the
- * Filament-removal Phase B — these two tests exercise
+ * Ported from the pre-TallStackUI Filament test suite's admin-panel
+ * resources coverage during the Filament-removal Phase B — these two tests exercise
  * App\Services\InvoiceTotalsCalculator directly (no Filament UI involved)
  * and had no other coverage, so they're kept here rather than dropped
  * along with the rest of that file's genuinely Filament-UI-only tests.

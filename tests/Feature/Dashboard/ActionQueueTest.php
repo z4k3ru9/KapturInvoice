@@ -22,10 +22,10 @@ use Tests\TestCase;
  * D10. Links go to plain TALL-stack register/index pages (no
  * `?tableFilters=` deep link this slice — see the class docblock).
  *
- * Ported from tests/Feature/Filament/ActionQueueTest.php during the
+ * Ported from the pre-TallStackUI Filament admin's own test during the
  * Filament-removal Phase B — the pure ActionQueue::for() assertions only;
- * that file's own Filament-widget render test is dropped, since
- * App\Filament\Widgets\ActionQueueWidget no longer exists — see the
+ * that file's own Filament-widget render test is dropped, since that
+ * widget no longer exists — see the
  * Phase B report's runtime verification of App\Livewire\TallStackDashboard
  * (the /tall/{company:slug}/dashboard route) for the equivalent manual
  * check; no dedicated automated test of that page existed before this
