@@ -46,9 +46,11 @@ use App\Livewire\TallStackReports;
 use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
 use App\Livewire\TallStackSettingsBranding;
+use App\Livewire\TallStackSettingsClientPortal;
 use App\Livewire\TallStackSettingsCompanyTaxes;
 use App\Livewire\TallStackSettingsEmail;
 use App\Livewire\TallStackSettingsLookups;
+use App\Livewire\TallStackSettingsNumbering;
 use App\Livewire\TallStackStatementOfAccount;
 use App\Livewire\TallStackUsers;
 use App\Livewire\TallStackVendorBillForm;
@@ -352,6 +354,12 @@ Route::get('/tall/{company:slug}/settings/branding', TallStackSettingsBranding::
 Route::get('/tall/{company:slug}/settings/lookups', TallStackSettingsLookups::class)
     ->middleware('auth')
     ->name('tallstack.settings.lookups');
+Route::get('/tall/{company:slug}/settings/numbering', TallStackSettingsNumbering::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.numbering');
+Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.client-portal');
 
 // Proposals — register and SOW rich editor (deferred-scope item, no
 // earlier phase number; see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
