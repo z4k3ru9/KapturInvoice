@@ -50,22 +50,27 @@
                         <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Workspace setup &amp; first-run guide</div>
                         <div class="text-xs text-gray-400">Complete these steps to start issuing invoices.</div>
                     </div>
-                    <x-badge text="{{ $checklist['done'] }} of {{ $checklist['total'] }} completed" color="blue" sm icon="clipboard-document-check" />
+                    <div class="flex items-center gap-2">
+                        <x-badge text="{{ $checklist['done'] }} of {{ $checklist['total'] }} completed" color="blue" sm icon="clipboard-document-check" />
+                        <x-button text="Go" icon="arrow-right" href="{{ $checklist['steps'][$firstIncompleteStep]['url'] }}" sm color="blue" />
+                    </div>
                 </div>
             </x-slot:header>
 
             {{--
                 x-step's "panels" variation (TallStackUI's own Step/Panels
-                component) replaces the previous hand-rolled card grid. Each
-                step's full sentence-length SetupChecklist::for() label
-                (e.g. "Set up your company profile and numbering") is too
-                long for the panel nav strip's fixed-width title/badge row,
-                so only a short summary shows there — the original full
-                text moves into an <x-tooltip> in the step's own content
-                panel below instead of being dropped. Keyed by the step's
-                stable 'key' (SetupChecklist's own array key, not the
-                array's 0-based index) so this map doesn't depend on step
-                ordering.
+                component) replaces the previous hand-rolled card grid. The
+                nav strip already shows each step's short summary as its
+                active/highlighted title (SetupChecklist's own 'key',
+                mapped below — its real label is a full sentence, e.g.
+                "Set up your company profile and numbering", too long for
+                that fixed-width row), so the content panel below just
+                shows that full sentence directly — no need to repeat the
+                short title or hide the sentence behind a tooltip. A single
+                "Go" action lives in the header next to the progress badge
+                instead of one per step, since it always points at the
+                same next actionable step regardless of which panel is
+                being viewed.
             --}}
             @php
                 $stepSummaries = [
@@ -79,18 +84,10 @@
             <x-step panels navigate :selected="$firstIncompleteStep + 1">
                 @foreach ($checklist['steps'] as $index => $step)
                     <x-step.items :step="$index + 1" :title="$stepSummaries[$step['key']] ?? $step['label']" :completed="$step['done']">
-                        <div class="flex items-center justify-between gap-3 p-4">
-                            <div class="flex items-center gap-2">
-                                <p class="text-sm font-medium {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
-                                    {{ $stepSummaries[$step['key']] ?? $step['label'] }}
-                                </p>
-                                <x-tooltip :text="$step['label']" />
-                            </div>
-                            @if ($step['done'])
-                                <x-badge text="Done" color="green" sm icon="check" />
-                            @else
-                                <x-button text="Go" icon="arrow-right" href="{{ $step['url'] }}" sm color="blue" />
-                            @endif
+                        <div class="p-4">
+                            <p class="text-sm font-medium {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
+                                {{ $step['label'] }}
+                            </p>
                         </div>
                     </x-step.items>
                 @endforeach
