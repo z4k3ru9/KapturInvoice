@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
 /**
@@ -12,7 +13,7 @@ use Filament\Support\Contracts\HasLabel;
  * `App\Enums\TaxCategory` (the tax classification is a separate axis from
  * this type).
  */
-enum CatalogItemType: string implements HasLabel
+enum CatalogItemType: string implements HasColor, HasLabel
 {
     case Product = 'product';
     case Service = 'service';
@@ -26,6 +27,16 @@ enum CatalogItemType: string implements HasLabel
             self::Service => 'Service',
             self::Labor => 'Labor',
             self::Other => 'Other',
+        };
+    }
+
+    public function getColor(): string
+    {
+        return match ($this) {
+            self::Product => 'info',
+            self::Service => 'success',
+            self::Labor => 'warning',
+            self::Other => 'gray',
         };
     }
 }
