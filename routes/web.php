@@ -34,6 +34,8 @@ use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackPaymentAllocation;
 use App\Livewire\TallStackPayments;
 use App\Livewire\TallStackProducts;
+use App\Livewire\TallStackProposalForm;
+use App\Livewire\TallStackProposals;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackSalesOrder;
@@ -278,6 +280,23 @@ Route::get('/tall/{company:slug}/settings/branding', TallStackSettingsBranding::
 Route::get('/tall/{company:slug}/settings/lookups', TallStackSettingsLookups::class)
     ->middleware('auth')
     ->name('tallstack.settings.lookups');
+
+// Proposals — register and SOW rich editor (deferred-scope item, no
+// earlier phase number; see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// "Deferred, no Stitch mockup" list — a Stitch mockup ("Proposals —
+// Register & SOW Rich Editor") was generated for it later in that
+// session, per docs/rebuild/outputs/26-stitch-missing-screens-prompts.md
+// prompt 12). Same explicit company-ownership re-check pattern as
+// Quotations above.
+Route::get('/tall/{company:slug}/proposals', TallStackProposals::class)
+    ->middleware('auth')
+    ->name('tallstack.proposals');
+Route::get('/tall/{company:slug}/proposals/create', TallStackProposalForm::class)
+    ->middleware('auth')
+    ->name('tallstack.proposals.create');
+Route::get('/tall/{company:slug}/proposals/{proposal}/edit', TallStackProposalForm::class)
+    ->middleware('auth')
+    ->name('tallstack.proposals.edit');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
