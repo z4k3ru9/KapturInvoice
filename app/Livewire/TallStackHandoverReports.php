@@ -33,6 +33,17 @@ class TallStackHandoverReports extends Component
 
     public array $sort = ['column' => 'handover_date', 'direction' => 'desc'];
 
+    /**
+     * The row currently shown in the "View signature" modal — a client
+     * e-signature captured on the public portal link
+     * (App\Livewire\Portal\SignHandoverReport). This register has no
+     * separate detail page (see class docblock), so the signature is
+     * viewed here directly rather than inventing one.
+     */
+    public ?int $viewingSignatureId = null;
+
+    public bool $showSignatureModal = false;
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -45,6 +56,12 @@ class TallStackHandoverReports extends Component
     public function updatingSearch(): void
     {
         $this->resetPage();
+    }
+
+    public function viewSignature(int $id): void
+    {
+        $this->viewingSignatureId = $id;
+        $this->showSignatureModal = true;
     }
 
     public function render(): View
@@ -71,12 +88,22 @@ class TallStackHandoverReports extends Component
                 'override_reason' => $h->override_reason ?: '—',
                 'notes' => $h->notes ?: '—',
                 'created_by' => $h->createdBy?->name ?? '—',
+                'portal_key' => $h->portal_key,
+                'signed_at' => $h->signed_at?->format('d M Y H:i'),
+                'signed_by_name' => $h->signed_by_name,
+                'signature' => $h->signature,
+                'has_signature_image' => $h->hasSignatureImage(),
             ]);
 
         $thisMonthStart = now()->startOfMonth();
 
+        $viewingSignature = $this->viewingSignatureId
+            ? collect($handoverReports->items())->firstWhere('id', $this->viewingSignatureId)
+            : null;
+
         return view('livewire.tallstack-handover-reports', [
             'handoverReports' => $handoverReports,
+            'viewingSignature' => $viewingSignature,
             'stats' => [
                 'total' => (int) (clone $base)->count(),
                 'thisMonth' => (int) (clone $base)->where('handover_date', '>=', $thisMonthStart)->count(),

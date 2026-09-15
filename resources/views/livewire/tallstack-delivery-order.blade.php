@@ -12,6 +12,16 @@
             @if ($job)
                 <x-button icon="briefcase" text="Open job" href="{{ route('tallstack.jobs.show', [$company, $job->id]) }}" color="gray" sm class="h-9" />
             @endif
+            {{-- Client-side clipboard copy, same pattern as
+                 tallstack-client-portal-invitations.blade.php's own "Copy
+                 portal link" action — no server round trip needed. --}}
+            <button type="button"
+                    x-on:click="window.navigator.clipboard.writeText('{{ route('portal.delivery-order', $deliveryOrder) }}')"
+                    title="Copy client signing link"
+                    class="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                <x-icon name="clipboard" class="w-3.5 h-3.5" />
+                Copy portal link
+            </button>
             <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('delivery-orders.pdf', $deliveryOrder) }}" target="_blank" color="blue" sm class="h-9" />
         </x-slot:actions>
     </x-tallstack.page-header>
@@ -83,5 +93,26 @@
 
             <x-slot:empty>No lines recorded on this delivery order.</x-slot:empty>
         </x-table>
+    </x-card>
+
+    {{-- Client e-signature captured on the public portal link
+         (App\Livewire\Portal\SignDeliveryOrder) — the same drawn-signature
+         capability as the invoice portal, extended to Delivery Orders.
+         Read-only here; there is no admin-side edit for a signature. --}}
+    <x-card>
+        <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Signature</span></x-slot:header>
+        @if ($deliveryOrder->signed_at)
+            <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-300">
+                <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                    <p>Confirmed by {{ $deliveryOrder->signed_by_name }} on {{ $deliveryOrder->signed_at->format('d M Y H:i') }}.</p>
+                    @if ($deliveryOrder->hasSignatureImage())
+                        <img src="{{ $deliveryOrder->signature }}" alt="Signature" class="mt-2 h-20 rounded border border-green-200 bg-white">
+                    @endif
+                </div>
+            </div>
+        @else
+            <p class="text-sm text-gray-500 dark:text-gray-400">Not yet signed. Share the portal link above with the client to collect their signature.</p>
+        @endif
     </x-card>
 </div>

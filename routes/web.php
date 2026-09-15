@@ -24,6 +24,9 @@ use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
 use App\Livewire\Login;
 use App\Livewire\Portal\ClientPortalHome;
+use App\Livewire\Portal\SignDeliveryOrder;
+use App\Livewire\Portal\SignHandoverReport;
+use App\Livewire\Portal\SignQuotation;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackClientDetail;
 use App\Livewire\TallStackClientPortalInvitations;
@@ -106,6 +109,29 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // App\Models\PortalLink and App\Livewire\Portal\ClientPortalHome.
     Route::get('/portal/link/{portalLink:key}', ClientPortalHome::class)
         ->name('portal.client-home')
+        ->missing(fn ($request) => response()->view('portal.unavailable', [
+            'company' => ResolveCompanyFromDomain::resolve($request),
+        ], 404));
+
+    // The same drawn-signature acceptance capability as the invoice
+    // portal above, extended to Delivery Orders/Handover Reports/
+    // Quotation approval per explicit user request (see each Livewire
+    // component's own docblock). No per-contact Invitation row exists
+    // for these three, so the unguessable credential is each model's own
+    // `portal_key` column instead — ->missing() covers an unknown/
+    // mistyped key the same way as the invoice route above.
+    Route::get('/portal/delivery-orders/{deliveryOrder:portal_key}', SignDeliveryOrder::class)
+        ->name('portal.delivery-order')
+        ->missing(fn ($request) => response()->view('portal.unavailable', [
+            'company' => ResolveCompanyFromDomain::resolve($request),
+        ], 404));
+    Route::get('/portal/handover-reports/{handoverReport:portal_key}', SignHandoverReport::class)
+        ->name('portal.handover-report')
+        ->missing(fn ($request) => response()->view('portal.unavailable', [
+            'company' => ResolveCompanyFromDomain::resolve($request),
+        ], 404));
+    Route::get('/portal/quotations/{quotation:portal_key}', SignQuotation::class)
+        ->name('portal.quotation')
         ->missing(fn ($request) => response()->view('portal.unavailable', [
             'company' => ResolveCompanyFromDomain::resolve($request),
         ], 404));
