@@ -531,22 +531,37 @@ status checklist.
             to `PaymentGatewayManager`). Fixed a real bug found during
             verification: test-result banner overflowing its table cell
             instead of wrapping.
-      - [ ] Login (`route('login')`, standalone) — build in progress,
-            aligning to the "Sign in — Standalone (KapturInvoice)" Stitch
-            mockup. **Blocking finding**: this app has no authentication
-            route/page outside Filament at all — every `middleware('auth')`
-            route currently has nowhere to redirect a signed-out visitor.
-            Must also add a logout control to the TallStack admin shell
-            header and confirm every `auth`-guarded route redirects here
-            (not to a Filament path, not a 500).
-      - [ ] Client Portal Invitations (admin-side register) — mockup
-            generated ("Portal Invitations — Invoice Magic Link Audit
-            Register"), not yet built.
-      - [ ] Documents (company-scoped file library) — mockup generated
-            ("Documents & File Library — Company Scoped Reference
-            Register"), not yet built.
+      - [x] Login (`route('login')`, standalone, `App\Livewire\Login`) —
+            closes the critical blocker that this app had NO authentication
+            route/page outside Filament at all. Also adds
+            `App\Http\Controllers\LogoutController` (`POST /logout`) and a
+            logout control in the TallStack admin shell header. Post-login
+            redirect mirrors `TallStackRegisterCompany`'s own
+            "first active company" resolution and honors
+            `session('url.intended')`. The "Sign in — Standalone
+            (KapturInvoice)" Stitch mockup could not be located in the
+            project at build time despite being marked generated — built
+            from prompt 24's full written spec plus the sibling "Create
+            Company — Standalone" screen's screenshot for visual
+            consistency instead; worth a visual diff later if that screen
+            surfaces under a different title.
+      - [x] Client Portal Invitations (`tallstack.client-portal-invitations`,
+            `App\Livewire\TallStackClientPortalInvitations` — folded into
+            the existing 'Clients' nav group) — read-mostly audit register
+            of every `Invitation` (invoice/contact/sent/viewed/signed,
+            Viewed/Signed filters, "Copy portal link" only, no
+            edit/delete). Matched against the "Portal Invitations —
+            Invoice Magic Link Audit Register" Stitch mockup.
+      - [x] Documents (`tallstack.documents`, `App\Livewire\TallStackDocuments`
+            — new top-level 'Documents' nav group, matching
+            `DocumentResource`'s own Filament grouping) — company-scoped
+            file library, reuses the existing `Document` model and
+            `DocumentDownloadController` unmodified; no upload button
+            here by design (uploads happen from the owning record).
+            Matched against the "Documents & File Library — Company
+            Scoped Reference Register" Stitch mockup.
       - [ ] Proposal Templates & Snippets — mockup generated ("Proposal
-            Templates & Snippets Library"), not yet built.
+            Templates & Snippets Library"), build in progress.
 - [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
       **not started, not scheduled** until every gap above (including
       login) is closed and verified; the user has already given a
