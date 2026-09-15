@@ -72,16 +72,12 @@
                 <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Current allocations</span>
             </x-slot:header>
 
-            @if ($payment->allocations->isEmpty())
-                <p class="text-sm text-gray-400">No invoices allocated yet.</p>
-            @else
-                <x-table :headers="[
-                    ['index' => 'invoice', 'label' => 'Invoice', 'sortable' => false],
-                    ['index' => 'amount', 'label' => 'Allocated', 'sortable' => false, 'align' => 'right'],
-                ]" :rows="$payment->allocations->map(fn ($a) => ['invoice' => $a->invoice?->number ?? '—', 'amount' => \App\Support\Dashboard\Money::format((float) $a->amount, $currency)])">
-                    <x-slot:empty>No invoices allocated yet.</x-slot:empty>
-                </x-table>
-            @endif
+            <x-table :headers="[
+                ['index' => 'invoice', 'label' => 'Invoice', 'sortable' => false],
+                ['index' => 'amount', 'label' => 'Allocated', 'sortable' => false, 'align' => 'right'],
+            ]" :rows="$payment->allocations->map(fn ($a) => ['invoice' => $a->invoice?->number ?? '—', 'amount' => \App\Support\Dashboard\Money::format((float) $a->amount, $currency)])">
+                <x-slot:empty>No invoices allocated yet.</x-slot:empty>
+            </x-table>
         </x-card>
 
         <x-card>
