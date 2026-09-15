@@ -156,17 +156,18 @@
         </tr>
     </table>
 
+    {{-- notes/terms are sanitized HTML from <x-editor> — see resources/views/pdf/invoice.blade.php's note. --}}
     @if ($quotation->notes)
         <div class="notes">
             <h4>{{ __('documents.notes') }}</h4>
-            <div>{{ $quotation->notes }}</div>
+            <div>{!! $quotation->notes !!}</div>
         </div>
     @endif
 
     @if ($quotation->terms)
         <div class="notes">
             <h4>{{ __('documents.terms') }}</h4>
-            <div>{{ $quotation->terms }}</div>
+            <div>{!! $quotation->terms !!}</div>
         </div>
     @endif
 </body>

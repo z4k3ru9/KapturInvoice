@@ -187,7 +187,8 @@
                 <x-slot:header>
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
-                <x-textarea wire:model="notes" label="Notes" rows="3" />
+                <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="18rem"
+                    :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
             </x-card>
         </div>
 

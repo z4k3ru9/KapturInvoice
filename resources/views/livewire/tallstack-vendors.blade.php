@@ -72,7 +72,8 @@
                 <x-input wire:model="postal_code" label="Postal code" />
                 <x-input wire:model="country_code" label="Country code" maxlength="2" />
             </div>
-            <x-textarea wire:model="notes" label="Notes" rows="3" />
+            <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="18rem"
+                :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
         </div>
 
         <x-slot:footer>

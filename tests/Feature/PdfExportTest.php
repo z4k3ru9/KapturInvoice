@@ -220,6 +220,36 @@ class PdfExportTest extends TestCase
         $this->assertStringContainsString(__('documents.amount', [], 'id'), $html);
     }
 
+    /**
+     * terms/public_notes/footer are now sanitized HTML typed into
+     * <x-editor> (App\Support\Html\RichTextSanitizer on save) — the PDF
+     * template renders them raw ({!! !!}, not {{ }}) so the formatting
+     * survives into the printed document rather than showing literal tags
+     * or being stripped.
+     */
+    public function test_invoice_pdf_renders_formatted_terms_and_notes_as_real_html_not_escaped(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'terms' => '<p>Payment due <strong>within 30 days</strong>.</p><ul><li>No refunds</li></ul>',
+            'public_notes' => '<p>Thank you for your <em>business</em>.</p>',
+        ]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('<strong>within 30 days</strong>', $html);
+        $this->assertStringContainsString('<li>No refunds</li>', $html);
+        $this->assertStringContainsString('<em>business</em>', $html);
+        $this->assertStringNotContainsString('&lt;strong&gt;', $html);
+    }
+
     public function test_credit_pdf_renders_english_labels_when_document_language_override_is_en(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);

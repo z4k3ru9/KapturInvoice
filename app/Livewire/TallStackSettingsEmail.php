@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Company;
 use App\Models\CompanySetting;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -91,6 +92,12 @@ class TallStackSettingsEmail extends Component
     public function save(): void
     {
         $this->authorize('viewSettings', $this->company);
+
+        $sanitizer = app(RichTextSanitizer::class);
+        $this->invoice_email_body = $sanitizer->sanitize($this->invoice_email_body);
+        $this->quote_email_body = $sanitizer->sanitize($this->quote_email_body);
+        $this->quotation_email_body = $sanitizer->sanitize($this->quotation_email_body);
+        $this->payment_email_body = $sanitizer->sanitize($this->payment_email_body);
 
         $data = $this->validate([
             'invoice_email_subject' => ['nullable', 'string', 'max:255'],
