@@ -5,6 +5,7 @@ use App\Http\Controllers\DeliveryOrderPdfController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\HandoverReportPdfController;
 use App\Http\Controllers\InvoicePdfController;
+use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\PaymentGatewayWebhookController;
 use App\Http\Controllers\Portal\InvoicePdfController as PortalInvoicePdfController;
 use App\Http\Controllers\ProposalPdfController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\VendorPurchaseOrderPdfController;
 use App\Http\Middleware\ResolveCompanyFromDomain;
 use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
+use App\Livewire\Login;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackClientDetail;
@@ -172,6 +174,34 @@ Route::get('/statement-of-accounts/{statementOfAccount}/pdf', StatementOfAccount
 Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountPreviewController::class)
     ->middleware('auth')
     ->name('statement-of-accounts.preview');
+
+// The app's only non-Filament, standalone login page — a new, parallel
+// entry point alongside (not replacing) Filament's own /admin/login. Named
+// `login` specifically: Illuminate\Auth\Middleware\Authenticate::redirectTo()
+// calls route('login') for every middleware('auth') route in this file
+// (and the Filament panel's own auth failures still go through Filament's
+// own login independently) — before this route existed, an unauthenticated
+// visit to any of those routes threw RouteNotFoundException instead of
+// redirecting. No `guest` middleware here deliberately: the framework's
+// own Illuminate\Auth\Middleware\RedirectIfAuthenticated falls back to
+// Route::has('dashboard')/'home' (neither name exists in this app — every
+// company page is named `tallstack.dashboard`) or finally '/', which would
+// bounce an already-signed-in visitor to the public homepage instead of
+// their own company dashboard. App\Livewire\Login::mount() does the same
+// "already authenticated" check itself, but resolves the correct
+// per-company destination the same way a fresh login does.
+Route::get('/login', Login::class)
+    ->name('login');
+
+// Standard Laravel logout: invalidate the session and regenerate both the
+// session id and CSRF token, then bounce to the new login page. A plain
+// controller (not a Livewire action) so the "Log out" control in the
+// TALL-stack shell's avatar menu (resources/views/components/tallstack/app.blade.php)
+// works as an ordinary POST form from any page, not just one that happens
+// to have a matching Livewire method.
+Route::post('/logout', LogoutController::class)
+    ->middleware('auth')
+    ->name('logout');
 
 // TallStackUI-native replacement for App\Filament\Pages\Tenancy\RegisterCompany
 // (Filament's RegisterTenant page) — the only path that creates a new
