@@ -106,7 +106,20 @@
                                 :options="$salesOrders"
                                 hint="Links this invoice to a job for cost/margin reporting. Scoped to the selected client's own open jobs." />
                         </div>
-                        <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                        {{--
+                            Number field: hidden entirely on create — the
+                            number is auto-assigned silently by
+                            App\Services\DocumentNumberGenerator at save
+                            time (Phase 11, repair plan). Kept visible and
+                            editable on edit, since a manually typed number
+                            on an already-saved document must stay
+                            correctable ("a manually typed number is
+                            respected and doesn't consume the sequence" —
+                            CLAUDE.md).
+                        --}}
+                        @if ($invoice)
+                            <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                        @endif
                         <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
                             :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
                         <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />

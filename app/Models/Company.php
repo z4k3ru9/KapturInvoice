@@ -26,6 +26,7 @@ use Throwable;
     'quote_prefix', 'quote_next_number',
     'credit_prefix', 'credit_next_number',
     'default_payment_terms', 'default_tax_rate_1_id', 'default_tax_rate_2_id',
+    'default_expire_after_days',
     'signatory_name', 'signatory_title', 'signature_image_path',
     'bank_name', 'bank_account_number', 'bank_account_name', 'payment_instructions',
 ])]
@@ -51,6 +52,7 @@ class Company extends Model
             'invoice_next_number' => 'integer',
             'quote_next_number' => 'integer',
             'credit_next_number' => 'integer',
+            'default_expire_after_days' => 'integer',
             'is_active' => 'boolean',
             'codes_locked_at' => 'datetime',
         ];

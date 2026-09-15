@@ -50,7 +50,17 @@
                         <x-select.styled wire:model="vendor_id" label="Vendor" searchable required
                             :options="$vendors->map(fn ($v) => ['label' => $v->name, 'value' => (string) $v->id])->all()" />
                     </div>
-                    <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                    {{--
+                        Number field: hidden entirely on create — the number
+                        is auto-assigned silently by
+                        App\Services\DocumentNumberGenerator at save time
+                        (Phase 11, repair plan). Kept visible and editable on
+                        edit, since a manually typed number on an
+                        already-saved document must stay correctable.
+                    --}}
+                    @if ($purchaseOrder)
+                        <x-input wire:model="number" label="Number" hint="Leave blank to auto-assign from the company numbering sequence." />
+                    @endif
                     <x-date wire:model="po_date" label="PO date" />
                     <x-date wire:model="due_date" label="Due date" />
                     <x-date wire:model="delivery_date" label="Delivery date" />

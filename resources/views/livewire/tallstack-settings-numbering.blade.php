@@ -28,11 +28,16 @@
         <p class="text-[11px] text-gray-400 -mt-2 mb-3">Applied to new invoices/quotes unless overridden on the document itself.</p>
 
         <div class="flex flex-col gap-4">
-            <x-textarea wire:model="default_payment_terms" label="Default payment terms" rows="3" />
+            <x-textarea wire:model="default_payment_terms" label="Default payment terms" rows="3" hint="Prefills the Terms field on new invoices, quotations, recurring invoice templates, and vendor purchase orders. Editable per document afterward." />
 
             <div class="grid sm:grid-cols-2 gap-4">
                 <x-select.styled wire:model="default_tax_rate_1_id" label="Default tax 1" :options="$this->taxRateOptions" searchable clearable />
                 <x-select.styled wire:model="default_tax_rate_2_id" label="Default tax 2" :options="$this->taxRateOptions" searchable clearable />
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+                <x-input wire:model="default_expire_after_days" label="Default expire after (days)" type="number" min="1" max="3650"
+                    hint="Prefills a new quotation's Valid until date as today plus this many days. Leave blank for no default." />
             </div>
         </div>
     </x-card>
