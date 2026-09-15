@@ -17,9 +17,10 @@
             @if ($invoice)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('invoices.pdf', $invoice) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
-            {{-- color="blue" — see Quotation form's own "Save" button for
-                 the standardized general-action color reasoning. --}}
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            {{-- color="brand" — Primary role (AppServiceProvider::
+                 registerActionColorPalette()'s docblock): the single main
+                 commit action of this page. --}}
+            <x-button text="Save" icon="document-check" color="brand" sm class="h-9" wire:click="save" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -28,11 +29,16 @@
         exact same App\Actions\Billing\* class the Filament table row
         actions use; no status is ever set directly from this UI.
 
-        Colors follow the same fixed, standardized semantic palette as
-        Quotations: green for Issue (forward/positive), blue for Send/
-        Resend (neutral in-progress), gray for Amend (a passive
-        correction), red for Void & reissue (destructive/terminal) —
-        never the tenant's own brand "primary" color.
+        Colors follow the app-wide semantic palette
+        (AppServiceProvider::registerActionColorPalette()'s docblock):
+        green = Success (Issue — forward/positive), blue = Info/
+        communicate (Send/Resend), gray = Neutral (Amend — a passive
+        correction), red = Destructive (Void & reissue). Deliberately
+        NOT the tenant's own brand "brand" color for any of these four —
+        that's reserved for this page's own single Primary action
+        ("Save", in the header above) so all five buttons visible on this
+        page stay distinguishable at a glance rather than two of them
+        landing on the same hue.
     --}}
     @if ($invoice)
         <div class="flex flex-wrap items-center gap-2">
@@ -82,7 +88,10 @@
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
                         @if ($invoice)
-                            <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
+                            {{-- color="gray" — Neutral role: a secondary
+                                 structural action, not this page's own
+                                 Primary ("Save", above). --}}
+                            <x-button text="Add line item" icon="plus" color="gray" sm wire:click="addItem" />
                         @endif
                     </div>
                 </x-slot:header>
@@ -234,7 +243,8 @@
                             <span class="text-gray-500 dark:text-gray-400">Filing date</span>
                             <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
                         </div>
-                        <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="blue" sm class="mt-1" wire:click="openTaxRecapModal" />
+                        {{-- color="brand" — this card's own single commit action (Primary role). --}}
+                        <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="brand" sm class="mt-1" wire:click="openTaxRecapModal" />
                     </div>
                 </x-card>
             @endif
@@ -271,7 +281,8 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showItemModal', false)" />
-            <x-button text="Save line item" color="blue" wire:click="saveItem" />
+            {{-- color="brand" — this modal's own single commit action (Primary role). --}}
+            <x-button text="Save line item" color="brand" wire:click="saveItem" />
         </x-slot:footer>
     </x-modal>
 
@@ -284,6 +295,8 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showSendModal', false)" />
+            {{-- color="blue" — Info/communicate role, matching the status
+                 bar's own "Send"/"Resend" trigger button above. --}}
             <x-button text="Send" color="blue" wire:click="send" />
         </x-slot:footer>
     </x-modal>
@@ -302,7 +315,9 @@
             <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between">
                     <span class="font-semibold text-sm text-gray-700 dark:text-gray-200">Corrected line items</span>
-                    <x-button text="Add row" icon="plus" color="blue" sm wire:click="addCorrectionItem" />
+                    {{-- color="gray" — Neutral role, not this modal's own
+                         Primary/Destructive commit button below. --}}
+                    <x-button text="Add row" icon="plus" color="gray" sm wire:click="addCorrectionItem" />
                 </div>
 
                 @foreach ($correctionItems as $index => $item)
@@ -332,7 +347,10 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showCorrectionModal', false)" />
-            <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'blue'" wire:click="submitCorrection" />
+            {{-- Destructive (red) when voiding, otherwise Primary (brand)
+                 — this modal's own single commit action either ends the
+                 document or just corrects it. --}}
+            <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" />
         </x-slot:footer>
     </x-modal>
 
@@ -352,7 +370,8 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showTaxRecapModal', false)" />
-            <x-button text="Save" color="blue" wire:click="submitTaxRecap" />
+            {{-- color="brand" — this modal's own single commit action (Primary role). --}}
+            <x-button text="Save" color="brand" wire:click="submitTaxRecap" />
         </x-slot:footer>
     </x-modal>
 </div>

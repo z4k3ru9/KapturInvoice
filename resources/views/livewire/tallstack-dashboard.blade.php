@@ -51,7 +51,9 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <x-badge text="{{ $checklist['done'] }} of {{ $checklist['total'] }} completed" color="blue" sm icon="clipboard-document-check" />
-                        <x-button text="Go" icon="arrow-right" href="{{ $checklist['steps'][$firstIncompleteStep]['url'] }}" sm color="blue" />
+                        {{-- color="brand" — Primary role: the main action
+                             of this onboarding panel. --}}
+                        <x-button text="Go" icon="arrow-right" href="{{ $checklist['steps'][$firstIncompleteStep]['url'] }}" sm color="brand" />
                     </div>
                 </div>
             </x-slot:header>
@@ -171,7 +173,10 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center justify-center gap-2">
-                    <x-button text="Create your first quotation" icon="plus" href="{{ route('tallstack.quotations.create', $company) }}" color="blue" sm />
+                    {{-- color="brand" — Primary role: the zero-state's own
+                         main call to action; "Add a client" (gray, Neutral)
+                         stays visually distinct beside it. --}}
+                    <x-button text="Create your first quotation" icon="plus" href="{{ route('tallstack.quotations.create', $company) }}" color="brand" sm />
                     <x-button text="Add a client" icon="user-plus" href="/admin/{{ $company->slug }}/clients" color="gray" sm />
                 </div>
             </div>
