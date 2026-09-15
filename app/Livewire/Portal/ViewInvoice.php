@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Enums\InvoiceStatus;
+use App\Livewire\Portal\Concerns\RendersUnavailablePage;
 use App\Models\Invitation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -24,6 +25,8 @@ use Livewire\Component;
 #[Layout('layouts.public')]
 class ViewInvoice extends Component
 {
+    use RendersUnavailablePage;
+
     public Invitation $invitation;
 
     public string $signatureName = '';
@@ -42,10 +45,9 @@ class ViewInvoice extends Component
             'contact',
         );
 
-        abort_unless(
-            app()->bound('currentCompany') && $invitation->invoice->company_id === app('currentCompany')->id,
-            404
-        );
+        if (! app()->bound('currentCompany') || $invitation->invoice->company_id !== app('currentCompany')->id) {
+            $this->abortUnavailable();
+        }
 
         if (! $invitation->viewed_at) {
             $invitation->forceFill(['viewed_at' => now()])->save();

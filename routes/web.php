@@ -69,7 +69,16 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // domain-resolved group so App\Livewire\Portal\ViewInvoice can
     // double-check the invitation's invoice belongs to the domain it was
     // opened on, and so the layout's company branding matches.
-    Route::get('/portal/{invitation:key}', ViewPortalInvoice::class)->name('portal.invoice');
+    // ->missing() covers an unknown/mistyped key specifically (route
+    // model binding failure, before the component ever mounts) with the
+    // same calm branded page App\Livewire\Portal\Concerns\
+    // RendersUnavailablePage renders for every other failure reason
+    // (cross-company, revoked, expired) — see that trait's docblock.
+    Route::get('/portal/{invitation:key}', ViewPortalInvoice::class)
+        ->name('portal.invoice')
+        ->missing(fn ($request) => response()->view('portal.unavailable', [
+            'company' => ResolveCompanyFromDomain::resolve($request),
+        ], 404));
 
     // "Download PDF" link on the portal page itself (§7) — same
     // domain-matched guard, no auth.
@@ -81,7 +90,11 @@ Route::middleware(ResolveCompanyFromDomain::class)->group(function () {
     // ordinary contact's explicitly-shared-documents view. Separate from
     // the single-invoice `invitations.key` route above; see
     // App\Models\PortalLink and App\Livewire\Portal\ClientPortalHome.
-    Route::get('/portal/link/{portalLink:key}', ClientPortalHome::class)->name('portal.client-home');
+    Route::get('/portal/link/{portalLink:key}', ClientPortalHome::class)
+        ->name('portal.client-home')
+        ->missing(fn ($request) => response()->view('portal.unavailable', [
+            'company' => ResolveCompanyFromDomain::resolve($request),
+        ], 404));
 });
 
 // Internal-user invitation accept page (App\Services\CompanyMembershipService::invite(),
