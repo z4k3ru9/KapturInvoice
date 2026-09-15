@@ -17,7 +17,7 @@
             @if ($purchaseOrder)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('vendor-purchase-orders.pdf', $purchaseOrder) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" loading="save" spinner="dots" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -30,7 +30,7 @@
     @if ($purchaseOrder)
         <div class="flex flex-wrap items-center gap-2">
             @if ($purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
-                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" wire:confirm="Approve this vendor purchase order? Its total becomes immutable." />
+                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" wire:confirm="Approve this vendor purchase order? Its total becomes immutable." loading="approve" spinner="dots" />
             @endif
             @if ($this->canApproveVariance)
                 <x-button text="Record variance" icon="arrows-right-left" color="amber" sm wire:click="openVarianceModal" />
@@ -198,7 +198,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showVarianceModal', false)" />
-            <x-button text="Approve variance" color="amber" wire:click="recordVariance" />
+            <x-button text="Approve variance" color="amber" wire:click="recordVariance" loading="recordVariance" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>

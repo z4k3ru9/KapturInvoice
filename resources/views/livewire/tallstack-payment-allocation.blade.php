@@ -37,7 +37,7 @@
             <x-button text="Amend allocation" icon="document-duplicate" color="blue" sm wire:click="openAllocationModal" />
         @endif
         @if ($payment->status === \App\Enums\PaymentStatus::Verified && ! $payment->receipt)
-            <x-button text="Issue receipt" icon="document-text" color="green" sm wire:click="issueReceipt" wire:confirm="Issue a receipt for this payment?" />
+            <x-button text="Issue receipt" icon="document-text" color="green" sm wire:click="issueReceipt" wire:confirm="Issue a receipt for this payment?" loading="issueReceipt" spinner="dots" />
         @endif
         @if (in_array($payment->status, [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Verified], true))
             <x-button text="Reverse" icon="no-symbol" color="red" sm wire:click="openReverseModal" />
@@ -148,7 +148,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAllocationModal', false)" />
-            <x-button text="Save allocation" color="blue" wire:click="saveAllocation" />
+            <x-button text="Save allocation" color="blue" wire:click="saveAllocation" loading="saveAllocation" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -161,7 +161,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showVerifyModal', false)" />
-            <x-button text="Verify" color="green" wire:click="verify" />
+            <x-button text="Verify" color="green" wire:click="verify" loading="verify" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -173,7 +173,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showReverseModal', false)" />
-            <x-button text="Reverse" color="red" wire:click="reverse" />
+            <x-button text="Reverse" color="red" wire:click="reverse" loading="reverse" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>

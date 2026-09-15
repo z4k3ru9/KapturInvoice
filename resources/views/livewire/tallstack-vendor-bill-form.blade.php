@@ -17,7 +17,7 @@
             @if ($bill)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('vendor-bills.pdf', $bill) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" loading="save" spinner="dots" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -27,10 +27,10 @@
     @if ($bill)
         <div class="flex flex-wrap items-center gap-2">
             @if ($bill->status === \App\Enums\VendorBillStatus::Draft)
-                <x-button text="Submit" icon="paper-airplane" color="blue" sm wire:click="submit" />
+                <x-button text="Submit" icon="paper-airplane" color="blue" sm wire:click="submit" loading="submit" spinner="dots" />
             @endif
             @if ($bill->status === \App\Enums\VendorBillStatus::Submitted)
-                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" />
+                <x-button text="Approve" icon="check-circle" color="green" sm wire:click="approve" loading="approve" spinner="dots" />
             @endif
             @if (in_array($bill->status, [\App\Enums\VendorBillStatus::Approved, \App\Enums\VendorBillStatus::PartiallyPaid]))
                 <x-button text="Record payment" icon="banknotes" color="green" sm wire:click="openPaymentModal" />
@@ -268,7 +268,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAllocateModal', false)" />
-            <x-button text="Allocate" color="blue" wire:click="allocate" />
+            <x-button text="Allocate" color="blue" wire:click="allocate" loading="allocate" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -287,7 +287,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showPaymentModal', false)" />
-            <x-button text="Record payment" color="green" wire:click="recordPayment" />
+            <x-button text="Record payment" color="green" wire:click="recordPayment" loading="recordPayment" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -301,7 +301,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showVerifyModal', false)" />
-            <x-button text="Verify" color="green" wire:click="verifyPayment" />
+            <x-button text="Verify" color="green" wire:click="verifyPayment" loading="verifyPayment" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -316,7 +316,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showAmendModal', false)" />
-            <x-button text="Amend" color="blue" wire:click="amendPayment" />
+            <x-button text="Amend" color="blue" wire:click="amendPayment" loading="amendPayment" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -329,7 +329,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showReverseModal', false)" />
-            <x-button text="Reverse" color="red" wire:click="reversePayment" />
+            <x-button text="Reverse" color="red" wire:click="reversePayment" loading="reversePayment" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>

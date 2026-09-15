@@ -126,7 +126,7 @@
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showRecordModal', false)" />
             {{-- color="brand" — this modal's own single commit action (Primary role). --}}
-            <x-button text="Record payment" color="brand" wire:click="recordPayment" />
+            <x-button text="Record payment" color="brand" wire:click="recordPayment" loading="recordPayment" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -140,7 +140,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showVerifyModal', false)" />
-            <x-button text="Verify" color="green" wire:click="verify" />
+            <x-button text="Verify" color="green" wire:click="verify" loading="verify" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 
@@ -152,7 +152,7 @@
 
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showReverseModal', false)" />
-            <x-button text="Reverse" color="red" wire:click="reverse" />
+            <x-button text="Reverse" color="red" wire:click="reverse" loading="reverse" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>
