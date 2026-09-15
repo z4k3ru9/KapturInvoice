@@ -75,6 +75,7 @@
                             <th class="px-3 py-2"></th>
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-right">Qty</th>
+                            <th class="px-3 py-2 text-right">Discount</th>
                             <th class="px-3 py-2 text-right">Net</th>
                             <th class="px-3 py-2 text-right">Tax</th>
                             <th class="px-3 py-2 text-right">Gross</th>
@@ -93,6 +94,7 @@
                                 </td>
                                 <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['discount'] ?? '—' }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['net_amount'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['tax_amount'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
@@ -243,7 +245,11 @@
             <div class="grid grid-cols-2 gap-4">
                 <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
                 <x-input wire:model="item_unit_cost" label="Unit cost" type="number" step="0.01" />
-                <x-input wire:model="item_net_amount" label="Net amount" type="number" step="0.01" />
+                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
+                <div class="flex items-end pb-2">
+                    <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
+                </div>
+                <x-input wire:model="item_net_amount" label="Net amount" type="number" step="0.01" hint="Before this line's discount." />
                 <x-input wire:model="item_tax_amount" label="Tax amount" type="number" step="0.01" />
             </div>
         </div>

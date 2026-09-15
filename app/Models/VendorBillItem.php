@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'vendor_bill_id', 'vendor_purchase_order_item_id', 'product_id',
-    'title', 'description', 'quantity', 'unit_cost',
+    'title', 'description', 'quantity', 'unit_cost', 'discount', 'discount_is_percentage',
     'net_amount', 'tax_amount', 'line_total', 'sort_order',
 ])]
 class VendorBillItem extends Model
@@ -19,6 +19,8 @@ class VendorBillItem extends Model
         return [
             'quantity' => 'decimal:4',
             'unit_cost' => 'decimal:4',
+            'discount' => 'decimal:2',
+            'discount_is_percentage' => 'boolean',
             'net_amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'line_total' => 'decimal:2',
