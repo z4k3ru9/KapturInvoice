@@ -79,6 +79,16 @@ return [
     'handover_report_title' => 'Handover Report',
     'handover_report_override' => 'Override reason',
 
+    'service_report_title' => 'Service Report',
+    'service_report_technician' => 'Technician',
+    'service_report_problem_reported' => 'Problem reported',
+    'service_report_diagnosis' => 'Diagnosis',
+    'service_report_action_taken' => 'Action taken',
+    'service_report_parts_used' => 'Parts used',
+    'service_report_result' => 'Result',
+    'service_report_follow_up_notes' => 'Follow-up notes',
+    'service_report_customer_acknowledgement' => 'Customer acknowledgement',
+
     'tax_recap_title' => 'Tax Recap',
     'tax_recap_reporting_period' => 'Reporting Period',
     'tax_recap_external_reference' => 'External Reference',

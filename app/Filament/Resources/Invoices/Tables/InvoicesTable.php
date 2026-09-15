@@ -22,6 +22,7 @@ use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -32,6 +33,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use RuntimeException;
 
 class InvoicesTable
@@ -82,9 +84,17 @@ class InvoicesTable
                     ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Draft ? 'Send' : 'Resend')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
-                    ->action(function (Invoice $record) {
+                    ->schema([
+                        TagsInput::make('cc')
+                            ->label('CC recipients')
+                            ->placeholder('Type an email and press enter')
+                            ->helperText('Optional — additional recipients for this send only.'),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
                         try {
-                            app(BillingMailer::class)->sendInvoice($record);
+                            $cc = array_values(array_filter($data['cc'] ?? [], fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false));
+
+                            app(BillingMailer::class)->sendInvoice($record, cc: $cc);
 
                             Notification::make()
                                 ->success()->seconds(4)
@@ -165,10 +175,55 @@ class InvoicesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: Filament's stock
+     * ForceDeleteBulkAction only hides itself while the Trashed filter
+     * isn't set — once switched to "With Trashed"/"Only Trashed", any
+     * selected row (regardless of status) gets `forceDelete()`'d
+     * directly, physically erasing history FINALIZED-DECISIONS.md §2
+     * requires never be deleted once issued — a real gap the earlier
+     * Codex-review round only fixed on VendorBill/VendorPurchaseOrder
+     * (see those tables' own `forceDeleteBulkAction()`). Restricted here
+     * to Draft, never-paid, never-corrected rows only.
+     */
+    public static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some invoices were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft invoice with no payments, allocations, or amendment/void-reissue history can be permanently deleted.")
+                        ->send();
+                }
+            });
+    }
+
+    public static function isSafeToForceDelete(Invoice $record): bool
+    {
+        return $record->status === InvoiceStatus::Draft
+            && ! $record->payments()->exists()
+            && ! $record->allocations()->exists()
+            && ! $record->correction()->exists();
     }
 
     /** @return array<int, mixed> */

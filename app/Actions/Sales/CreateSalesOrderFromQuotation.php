@@ -22,6 +22,12 @@ use RuntimeException;
  * quotation is immutable past Accepted anyway (no allowed transition
  * leads back to an editable state), but the snapshot makes that guarantee
  * explicit rather than incidental.
+ *
+ * Also copies the quotation's `job_type` onto the job and derives
+ * `requires_handover` from it (false only for Goods) —
+ * FINALIZED-DECISIONS.md §10. This was previously left at the column's
+ * blanket default regardless of job type (see docs/REFACTOR_PLAN.md's
+ * drift audit); every job now gets the value its own job type implies.
  */
 class CreateSalesOrderFromQuotation
 {
@@ -47,6 +53,8 @@ class CreateSalesOrderFromQuotation
                 'number' => $this->numberGenerator->next($quotation->company, 'sales_order'),
                 'status' => SalesOrderStatus::Draft,
                 'approved_value' => $quotation->total,
+                'job_type' => $quotation->job_type,
+                'requires_handover' => $quotation->job_type->requiresHandover(),
                 'source_snapshot' => [
                     'quotation_number' => $quotation->number,
                     'pricing_mode' => $quotation->pricing_mode->value,

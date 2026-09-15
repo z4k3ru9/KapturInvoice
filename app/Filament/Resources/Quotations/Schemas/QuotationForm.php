@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Quotations\Schemas;
 
+use App\Enums\JobType;
 use App\Enums\PricingMode;
 use App\Models\Client;
 use Filament\Forms\Components\DatePicker;
@@ -46,6 +47,12 @@ class QuotationForm
                             ->options(PricingMode::class)
                             ->default(PricingMode::Exclusive)
                             ->required(),
+                        Select::make('job_type')
+                            ->label('Job type')
+                            ->options(JobType::class)
+                            ->default(JobType::Installation)
+                            ->required()
+                            ->helperText('Goods jobs close after delivery; installation needs a handover; service needs approved Service Reports before handover.'),
                         DatePicker::make('quotation_date'),
                         DatePicker::make('valid_until'),
                         TextInput::make('discount')

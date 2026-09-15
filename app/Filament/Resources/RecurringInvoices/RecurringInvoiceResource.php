@@ -40,6 +40,16 @@ class RecurringInvoiceResource extends Resource
 
     protected static ?string $slug = 'recurring-invoices';
 
+    /**
+     * Recurring invoices/auto-billing are deferred launch scope
+     * (docs/REFACTOR_PLAN.md §1.2, Specs.md §3) — kept intact for any
+     * already-imported recurring template, just out of the launch sidebar.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return InvoiceForm::configure($schema);

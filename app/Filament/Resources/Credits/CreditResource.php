@@ -27,6 +27,16 @@ class CreditResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'number';
 
+    /**
+     * Credits/refunds are deferred launch scope (docs/REFACTOR_PLAN.md §1.1,
+     * PRD.md "Non-negotiable business rules") — kept fully intact for
+     * already-imported legacy credits, just out of the launch sidebar.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CreditForm::configure($schema);

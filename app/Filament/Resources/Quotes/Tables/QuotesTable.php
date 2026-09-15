@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Quotes\Tables;
 
 use App\Enums\InvoiceStatus;
+use App\Filament\Resources\Invoices\Tables\InvoicesTable;
 use App\Filament\Support\DownloadPdfAction;
 use App\Models\Invoice;
 use App\Services\BillingMailer;
@@ -14,11 +15,13 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TagsInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use RuntimeException;
 
 class QuotesTable
@@ -47,9 +50,17 @@ class QuotesTable
                     ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Draft ? 'Send' : 'Resend')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
-                    ->action(function (Invoice $record) {
+                    ->schema([
+                        TagsInput::make('cc')
+                            ->label('CC recipients')
+                            ->placeholder('Type an email and press enter')
+                            ->helperText('Optional — additional recipients for this send only.'),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
                         try {
-                            app(BillingMailer::class)->sendQuote($record);
+                            $cc = array_values(array_filter($data['cc'] ?? [], fn ($e) => filter_var($e, FILTER_VALIDATE_EMAIL) !== false));
+
+                            app(BillingMailer::class)->sendQuote($record, cc: $cc);
 
                             Notification::make()
                                 ->success()->seconds(4)
@@ -81,9 +92,47 @@ class QuotesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: same stock-ForceDeleteBulkAction
+     * gap already fixed on VendorBill. Reuses InvoicesTable's guard (same
+     * underlying `invoices` table/model) plus a Quote-specific check: a
+     * quote already converted to a real invoice
+     * (App\Services\InvoiceDuplicator) can never be permanently deleted.
+     */
+    public static function isSafeToForceDelete(Invoice $record): bool
+    {
+        return InvoicesTable::isSafeToForceDelete($record) && ! $record->convertedInvoices()->exists();
+    }
+
+    private static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some quotes were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft quote with no payments, allocations, or converted invoice can be permanently deleted.")
+                        ->send();
+                }
+            });
     }
 }

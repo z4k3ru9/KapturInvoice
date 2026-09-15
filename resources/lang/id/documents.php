@@ -90,6 +90,16 @@ return [
     'handover_report_title' => 'Berita Acara Serah Terima',
     'handover_report_override' => 'Alasan Pengecualian',
 
+    'service_report_title' => 'Laporan Servis',
+    'service_report_technician' => 'Teknisi',
+    'service_report_problem_reported' => 'Masalah Dilaporkan',
+    'service_report_diagnosis' => 'Diagnosis',
+    'service_report_action_taken' => 'Tindakan Dilakukan',
+    'service_report_parts_used' => 'Suku Cadang Digunakan',
+    'service_report_result' => 'Hasil',
+    'service_report_follow_up_notes' => 'Catatan Tindak Lanjut',
+    'service_report_customer_acknowledgement' => 'Diketahui oleh Pelanggan',
+
     'tax_recap_title' => 'Rekapitulasi Pajak',
     'tax_recap_reporting_period' => 'Periode Pelaporan',
     'tax_recap_external_reference' => 'Referensi Eksternal',

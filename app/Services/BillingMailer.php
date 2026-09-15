@@ -28,14 +28,20 @@ class BillingMailer
 {
     public function __construct(private EmailTemplateRenderer $renderer) {}
 
-    public function sendInvoice(Invoice $invoice): Invitation
+    /**
+     * @param  array<int, string>  $cc
+     */
+    public function sendInvoice(Invoice $invoice, array $cc = []): Invitation
     {
-        return $this->sendForInvoice($invoice, 'invoice');
+        return $this->sendForInvoice($invoice, 'invoice', cc: $cc);
     }
 
-    public function sendQuote(Invoice $quote): Invitation
+    /**
+     * @param  array<int, string>  $cc
+     */
+    public function sendQuote(Invoice $quote, array $cc = []): Invitation
     {
-        return $this->sendForInvoice($quote, 'quote');
+        return $this->sendForInvoice($quote, 'quote', cc: $cc);
     }
 
     public function sendReminder(Invoice $invoice, int $tier): Invitation
@@ -43,7 +49,10 @@ class BillingMailer
         return $this->sendForInvoice($invoice, 'invoice', reminderTier: $tier);
     }
 
-    public function sendPaymentReceipt(Payment $payment): void
+    /**
+     * @param  array<int, string>  $cc
+     */
+    public function sendPaymentReceipt(Payment $payment, array $cc = []): void
     {
         $payment->loadMissing('client.contacts', 'company.settings', 'invoice');
 
@@ -59,7 +68,7 @@ class BillingMailer
             '{{amount}}' => number_format((float) $payment->amount, 2),
         ];
 
-        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+        Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->render($bodyTemplate, $tokens),
         ));
@@ -93,7 +102,10 @@ class BillingMailer
         ));
     }
 
-    protected function sendForInvoice(Invoice $invoice, string $templateKind, ?int $reminderTier = null): Invitation
+    /**
+     * @param  array<int, string>  $cc
+     */
+    protected function sendForInvoice(Invoice $invoice, string $templateKind, ?int $reminderTier = null, array $cc = []): Invitation
     {
         $invoice->loadMissing('client.contacts', 'company.settings');
 
@@ -121,7 +133,7 @@ class BillingMailer
             '{{portal_link}}' => url('/portal/'.$invitation->key),
         ];
 
-        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+        Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->render($bodyTemplate, $tokens),
         ));
@@ -140,7 +152,7 @@ class BillingMailer
      */
     protected function resolveContact(?Contact $preferred, $contacts): Contact
     {
-        $contact = $preferred ?? $contacts->firstWhere('is_primary', true) ?? $contacts->first();
+        $contact = $preferred ?? $contacts->firstWhere('is_billing_contact', true) ?? $contacts->firstWhere('is_primary', true) ?? $contacts->first();
 
         if (! $contact || blank($contact->email)) {
             throw new RuntimeException('This client has no contact with an email address to send to.');

@@ -33,6 +33,17 @@ class ProposalSnippetResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * Follows ProposalResource: the formal proposal builder is deferred
+     * launch scope (docs/REFACTOR_PLAN.md §1.2) — hidden from the sidebar.
+     * Products' "Create proposal snippet" action still writes rows here
+     * regardless of nav visibility.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     // company_id is set automatically from the active Filament tenant
     // (ProposalSnippet::company()) — no field needed here.
     public static function form(Schema $schema): Schema

@@ -77,7 +77,9 @@ class PaymentForm
                 FileUpload::make('proof_path')
                     ->label('Proof of payment')
                     ->helperText('Required before a payment can be verified — PDF/JPG/PNG.')
-                    ->directory('payment-proofs'),
+                    ->directory('payment-proofs')
+                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                    ->maxSize(10240),
                 DatePicker::make('cheque_cleared_at')
                     ->label('Cheque cleared on')
                     ->visible(fn (Get $get) => $get('method') === 'cheque'),
