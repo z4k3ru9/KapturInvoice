@@ -55,6 +55,20 @@ the dispatching prompt only needs to state what's different about this task.
   invocation. Don't retry it more than once or burn time working around
   it; note it in your handback report and let the orchestrator decide
   (local branch deletion and ordinary pushes are unaffected).
+- If your worktree symlinks `vendor/`/`node_modules/` instead of a real
+  copy (to save setup time on this large repo), **PHP code changes can
+  silently not take effect**: Composer's generated autoload files
+  compute paths from their own `__DIR__`, which resolves *through* the
+  symlink back to the checkout that owns the real `vendor/` directory —
+  so a symlinked worktree can transparently run that other checkout's
+  `app/` code instead of its own, with no error. This has happened once
+  already and is easy to miss (tests can even pass against the wrong
+  code). If you're touching PHP and something you changed doesn't seem
+  to apply, check with `(new \ReflectionClass(SomeClassYouEdited::class))->getFileName()`
+  before assuming the bug is elsewhere. Prefer `cp -al` (hardlink) over
+  a symlink for `vendor/`/`node_modules/` when setting up a worktree —
+  same near-zero copy cost, but real directory entries so `__DIR__`
+  resolves correctly.
 
 ## Scope discipline
 
