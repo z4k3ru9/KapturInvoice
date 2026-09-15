@@ -14,6 +14,7 @@ use App\Enums\CompanyRole;
 use App\Enums\PaymentMethod;
 use App\Enums\VendorBillStatus;
 use App\Enums\VendorPurchaseOrderStatus;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Company;
 use App\Models\Product;
 use App\Models\SalesOrder;
@@ -30,9 +31,11 @@ use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -53,7 +56,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackVendorBillForm extends Component
 {
-    use Interactions, WithFileUploads;
+    use AutosavesDraft, Interactions, WithFileUploads;
 
     public Company $company;
 
@@ -178,10 +181,45 @@ class TallStackVendorBillForm extends Component
             $this->due_date = $vendorBill->due_date?->toDateString();
             $this->notes = $vendorBill->notes;
 
+            $this->initializeAutosaveVersion();
+
             return;
         }
 
         $this->bill_date = now()->toDateString();
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Only `notes` is a plain free-text/metadata field on this form —
+    // unlike Invoice/Quotation/Recurring Invoice, a Vendor Bill carries no
+    // separate terms/public_notes/private_notes/footer columns. Never
+    // vendor_id/vendor_purchase_order_id/number/dates, since those go
+    // through save()'s own validation/redirect path — same reasoning as
+    // TallStackInvoiceForm's own wiring.
+
+    public function updatedNotes(): void
+    {
+        $this->notes = app(RichTextSanitizer::class)->sanitize($this->notes);
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->bill;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['notes'];
+    }
+
+    protected function autosaveGuard(): bool
+    {
+        return $this->bill !== null
+            && $this->bill->status === VendorBillStatus::Draft
+            && Gate::allows('update', $this->bill);
     }
 
     public function save(): void

@@ -137,8 +137,14 @@ class TallStackInvoiceForm extends Component
 
     public ?string $footer = null;
 
-    // Line item modal state — mirrors ItemsRelationManager's own form.
-    public bool $showItemModal = false;
+    // Inline line-item add/edit form state (Phase 13 repair plan — replaces
+    // the previous <x-modal wire="showItemModal"> round-trip; the
+    // underlying field set/validation/save shape is unchanged, only the
+    // container). `itemFormOpen` gates whether the inline form row renders
+    // at all; `editingItemId` distinguishes "editing this row" (set) from
+    // "adding a new trailing row" (null) — mirrors ItemsRelationManager's
+    // own form fields.
+    public bool $itemFormOpen = false;
 
     public ?int $editingItemId = null;
 
@@ -444,7 +450,7 @@ class TallStackInvoiceForm extends Component
     public function addItem(): void
     {
         $this->resetItemForm();
-        $this->showItemModal = true;
+        $this->itemFormOpen = true;
     }
 
     public function editItem(int $id): void
@@ -464,7 +470,14 @@ class TallStackInvoiceForm extends Component
         $this->item_discount = (float) $item->discount;
         $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
         $this->item_tax_rate_ids = $item->taxes->pluck('tax_rate_id')->filter()->map(fn ($id) => (string) $id)->values()->all();
-        $this->showItemModal = true;
+        $this->itemFormOpen = true;
+    }
+
+    /** Closes the inline add/edit form without saving — mirrors the old modal's "Cancel". */
+    public function cancelItemForm(): void
+    {
+        $this->itemFormOpen = false;
+        $this->resetItemForm();
     }
 
     /** Same product -> title/unit_cost/default-tax autofill as ItemsRelationManager's afterStateUpdated(). */
@@ -531,7 +544,7 @@ class TallStackInvoiceForm extends Component
         app(InvoiceTotalsCalculator::class)->recalculate($this->invoice);
         $this->invoice->refresh()->load(['items.product', 'items.taxes']);
 
-        $this->showItemModal = false;
+        $this->itemFormOpen = false;
         $this->resetItemForm();
         $this->toast()->success('Line item saved.')->send();
     }

@@ -9,6 +9,12 @@
         :title="$invoice ? ($invoice->number ?? 'Recurring invoice') : 'New recurring invoice'"
     >
         <x-slot:actions>
+            @if ($invoice && $invoice->status === \App\Enums\InvoiceStatus::Draft)
+                {{-- Draft-only autosave status for the header text fields
+                     below (PO number/Terms/Public notes/Private notes/
+                     Footer) — see App\Livewire\Concerns\AutosavesDraft. --}}
+                <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+            @endif
             @if ($invoice)
                 {{-- color="green" — the same forward/positive action color
                      Invoices' own "Issue" button uses. This calls
@@ -81,7 +87,7 @@
                     @endif
                     <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
                         :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
-                    <x-input wire:model="po_number" label="PO number" />
+                    <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
                     <x-input wire:model="currency_code" label="Currency code" />
                     <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
                     <div class="flex items-end pb-2">
@@ -141,14 +147,21 @@
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
+                    {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                         <x-editor> — see TallStackInvoiceForm's own Terms card comment for the
+                         full explanation of this $wire.$commit() pattern. --}}
                     <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="18rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     <x-editor wire:model="public_notes" label="Public notes" min-height="8rem" max-height="18rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     <x-editor wire:model="private_notes" label="Private notes" min-height="8rem" max-height="18rem"
-                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                        :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     <x-editor wire:model="footer" label="Footer" min-height="4rem" max-height="8rem"
-                        :toolbar="['bold', 'italic', 'clear-format', 'undo', 'redo']" />
+                        :toolbar="['bold', 'italic', 'clear-format', 'undo', 'redo']"
+                        x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                 </div>
             </x-card>
         </div>

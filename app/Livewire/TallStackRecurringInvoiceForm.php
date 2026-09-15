@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
@@ -18,6 +19,8 @@ use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -47,7 +50,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackRecurringInvoiceForm extends Component
 {
-    use Interactions;
+    use AutosavesDraft, Interactions;
 
     public Company $company;
 
@@ -148,6 +151,8 @@ class TallStackRecurringInvoiceForm extends Component
             $this->no_end_date = blank($this->recurring_end_date);
             $this->auto_bill = (bool) $invoice->auto_bill;
 
+            $this->initializeAutosaveVersion();
+
             return;
         }
 
@@ -170,6 +175,76 @@ class TallStackRecurringInvoiceForm extends Component
             $this->discount = (float) $client->default_discount;
             $this->discount_is_percentage = (bool) $client->default_discount_is_percentage;
         }
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Same whitelist and reasoning as TallStackInvoiceForm's own wiring —
+    // this template literally is an Invoice row (is_recurring=true, see
+    // class docblock), so it reuses the exact same `invoices.draft_version`
+    // column. Wired only onto the plain free-text/metadata header fields —
+    // po_number, terms, public_notes, private_notes, footer — never
+    // client_id, number, pricing_mode, the recurring schedule fields, or
+    // the discount fields, since those either go through save()'s own
+    // validation/redirect path or feed InvoiceTotalsCalculator's
+    // recalculation, which this raw conditional-UPDATE autosave
+    // deliberately never triggers.
+
+    public function updatedPoNumber(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedTerms(): void
+    {
+        $this->terms = app(RichTextSanitizer::class)->sanitize($this->terms);
+        $this->autosaveDraft();
+    }
+
+    public function updatedPublicNotes(): void
+    {
+        $this->public_notes = app(RichTextSanitizer::class)->sanitize($this->public_notes);
+        $this->autosaveDraft();
+    }
+
+    public function updatedPrivateNotes(): void
+    {
+        $this->private_notes = app(RichTextSanitizer::class)->sanitize($this->private_notes);
+        $this->autosaveDraft();
+    }
+
+    public function updatedFooter(): void
+    {
+        $this->footer = app(RichTextSanitizer::class)->sanitize($this->footer);
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->invoice;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['po_number', 'terms', 'public_notes', 'private_notes', 'footer'];
+    }
+
+    /**
+     * A recurring template's `status` carries no enforced state machine
+     * (class docblock) — it is set to Draft once at creation and never
+     * transitioned away by anything this page (or any other owned action)
+     * does, so this check is a stable "always true for a real template"
+     * guard rather than a live lifecycle gate. Kept for the same "Auditor
+     * is read-only everywhere" boundary save() enforces via its own
+     * $this->authorize('update', ...) call, exactly as
+     * TallStackInvoiceForm::autosaveGuard() does.
+     */
+    protected function autosaveGuard(): bool
+    {
+        return $this->invoice !== null
+            && $this->invoice->status === InvoiceStatus::Draft
+            && Gate::allows('update', $this->invoice);
     }
 
     public function save(): void

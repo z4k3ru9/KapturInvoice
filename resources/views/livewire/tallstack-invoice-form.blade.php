@@ -162,7 +162,7 @@
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
-                        @if ($invoice)
+                        @if ($invoice && ! $itemFormOpen)
                             {{-- color="gray" — Neutral role: a secondary
                                  structural action, not this page's own
                                  Primary ("Save", above). --}}
@@ -175,6 +175,19 @@
                     <p class="text-sm text-gray-400">Save the invoice first to add line items.</p>
                 @else
                     @php $itemsAreReorderable = $invoice->status === \App\Enums\InvoiceStatus::Draft; @endphp
+                    {{--
+                        Phase 13 repair plan item 1 — inline editing directly
+                        in this table, replacing the previous
+                        <x-modal wire="showItemModal"> round-trip. A row
+                        being edited (App\Livewire\TallStackInvoiceForm::
+                        $editingItemId) swaps to a full-width inline form
+                        (partials/invoice-item-form.blade.php); a trailing
+                        "add row" renders the same partial when
+                        $itemFormOpen is true with no $editingItemId. Other
+                        rows' Edit/Delete are disabled while any inline form
+                        is open, since the item_* fields back only one row
+                        at a time.
+                    --}}
                     <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
                         <x-slot:head>
                             <th class="px-3 py-2"></th>
@@ -187,35 +200,54 @@
                         </x-slot:head>
 
                         @forelse ($items as $index => $row)
-                            <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
-                                <td class="px-3 py-2">
-                                    @if ($row['image'])
-                                        <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
-                                <td class="px-3 py-2 text-left">
-                                    @forelse ($row['taxes'] as $tax)
-                                        <x-badge text="{{ $tax }}" color="gray" sm />
-                                    @empty
-                                        <x-badge text="No tax" color="gray" sm />
-                                    @endforelse
-                                </td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
-                                <td class="px-3 py-2">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                        <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
-                                    </div>
-                                </td>
-                            </x-tallstack.reorderable-item-row>
+                            @if ($itemFormOpen && $editingItemId === $row['id'])
+                                <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="false" :first="$loop->first" :last="$loop->last">
+                                    <td colspan="7" class="px-3 py-3">
+                                        @include('livewire.partials.invoice-item-form')
+                                    </td>
+                                </x-tallstack.reorderable-item-row>
+                            @else
+                                <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
+                                    <td class="px-3 py-2">
+                                        @if ($row['image'])
+                                            <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
+                                    <td class="px-3 py-2 text-left">
+                                        @forelse ($row['taxes'] as $tax)
+                                            <x-badge text="{{ $tax }}" color="gray" sm />
+                                        @empty
+                                            <x-badge text="No tax" color="gray" sm />
+                                        @endforelse
+                                    </td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
+                                    <td class="px-3 py-2">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" />
+                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" />
+                                        </div>
+                                    </td>
+                                </x-tallstack.reorderable-item-row>
+                            @endif
                         @empty
-                            <tr>
-                                <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
-                            </tr>
+                            @unless ($itemFormOpen)
+                                <tr>
+                                    <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
+                                </tr>
+                            @endunless
                         @endforelse
+
+                        @if ($itemFormOpen && ! $editingItemId)
+                            <tr wire:key="item-add-row">
+                                <td class="px-2 py-2"></td>
+                                <td colspan="7" class="px-3 py-3">
+                                    @include('livewire.partials.invoice-item-form')
+                                </td>
+                            </tr>
+                        @endif
                     </x-tallstack.reorderable-items-table>
                 @endif
             </x-card>
@@ -413,32 +445,6 @@
             </x-card>
         </x-tab.items>
     </x-tab>
-
-    {{-- Line item modal --}}
-    <x-modal wire="showItemModal" title="{{ $editingItemId ? 'Edit line item' : 'Add line item' }}" center="sm" scrollable>
-        <div class="flex flex-col gap-4">
-            <x-select.styled wire:model.live="item_product_id" label="Product (optional)" searchable clearable
-                :options="$products->map(fn ($p) => ['label' => $p->name, 'value' => (string) $p->id])->all()" />
-            <x-input wire:model="item_title" label="Title" required />
-            <x-textarea wire:model="item_description" label="Description" rows="2" />
-            <div class="grid grid-cols-2 gap-4">
-                <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
-                <x-input wire:model="item_unit_cost" label="Unit cost" type="number" step="0.01" />
-                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
-                <div class="flex items-end pb-2">
-                    <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
-                </div>
-            </div>
-            <x-select.styled wire:model="item_tax_rate_ids" label="Taxes" :multiple="true" searchable
-                :options="$taxRates->map(fn ($t) => ['label' => $t->name, 'value' => (string) $t->id])->all()" />
-        </div>
-
-        <x-slot:footer>
-            <x-button text="Cancel" color="gray" wire:click="$set('showItemModal', false)" />
-            {{-- color="brand" — this modal's own single commit action (Primary role). --}}
-            <x-button text="Save line item" color="brand" wire:click="saveItem" />
-        </x-slot:footer>
-    </x-modal>
 
     {{-- Send / Resend modal — always calls App\Services\BillingMailer::sendInvoice()
          unmodified, matching InvoicesTable's own "send"/"cc" schema. --}}

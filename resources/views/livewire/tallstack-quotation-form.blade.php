@@ -26,6 +26,11 @@
             </x-slot:meta>
         @endif
         <x-slot:actions>
+            @if ($quotation && $quotation->status === \App\Enums\QuotationStatus::Draft)
+                {{-- Draft-only autosave status for the Terms/Notes editors
+                     below — see App\Livewire\Concerns\AutosavesDraft. --}}
+                <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+            @endif
             @if ($quotation)
                 <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('quotations.pdf', $quotation) }}" target="_blank" color="gray" sm class="h-9" />
             @endif
@@ -173,10 +178,15 @@
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Terms &amp; notes</span>
                     </x-slot:header>
                     <div class="grid sm:grid-cols-2 gap-4">
+                        {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
+                             <x-editor> — see TallStackInvoiceForm's own Terms card comment for the
+                             full explanation of this $wire.$commit() pattern. --}}
                         <x-editor wire:model="terms" label="Terms" min-height="8rem" max-height="20rem"
-                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                            x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                         <x-editor wire:model="notes" label="Notes" min-height="8rem" max-height="20rem"
-                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
+                            :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']"
+                            x-on:editor:change.debounce.1750ms="$wire.$commit()" />
                     </div>
                 </x-card>
             </div>
@@ -188,7 +198,7 @@
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
-                        @if ($quotation)
+                        @if ($quotation && ! $itemFormOpen)
                             <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
                     </div>
@@ -198,6 +208,13 @@
                     <p class="text-sm text-gray-400">Save the quotation first to add line items.</p>
                 @else
                     @php $itemsAreReorderable = $quotation->status === \App\Enums\QuotationStatus::Draft; @endphp
+                    {{--
+                        Phase 13 repair plan item 1 — inline editing directly
+                        in this table, replacing the previous
+                        <x-modal wire="showItemModal"> round-trip. Same
+                        pattern as TallStackInvoiceForm's own Line Items tab
+                        — see that file's comment for the full rationale.
+                    --}}
                     <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
                         <x-slot:head>
                             <th class="px-3 py-2"></th>
@@ -209,28 +226,47 @@
                         </x-slot:head>
 
                         @forelse ($items as $index => $row)
-                            <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
-                                <td class="px-3 py-2">
-                                    @if ($row['image'])
-                                        <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
-                                <td class="px-3 py-2">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                        <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
-                                    </div>
-                                </td>
-                            </x-tallstack.reorderable-item-row>
+                            @if ($itemFormOpen && $editingItemId === $row['id'])
+                                <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="false" :first="$loop->first" :last="$loop->last">
+                                    <td colspan="6" class="px-3 py-3">
+                                        @include('livewire.partials.quotation-item-form')
+                                    </td>
+                                </x-tallstack.reorderable-item-row>
+                            @else
+                                <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="$itemsAreReorderable" :first="$loop->first" :last="$loop->last">
+                                    <td class="px-3 py-2">
+                                        @if ($row['image'])
+                                            <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
+                                    <td class="px-3 py-2">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" />
+                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" />
+                                        </div>
+                                    </td>
+                                </x-tallstack.reorderable-item-row>
+                            @endif
                         @empty
-                            <tr>
-                                <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
-                            </tr>
+                            @unless ($itemFormOpen)
+                                <tr>
+                                    <td colspan="100%" class="px-3 py-6 text-center text-sm text-gray-400">No line items yet.</td>
+                                </tr>
+                            @endunless
                         @endforelse
+
+                        @if ($itemFormOpen && ! $editingItemId)
+                            <tr wire:key="item-add-row">
+                                <td class="px-2 py-2"></td>
+                                <td colspan="6" class="px-3 py-3">
+                                    @include('livewire.partials.quotation-item-form')
+                                </td>
+                            </tr>
+                        @endif
                     </x-tallstack.reorderable-items-table>
                 @endif
             </x-card>
@@ -344,29 +380,6 @@
             @endif
         </x-tab.items>
     </x-tab>
-
-    {{-- Line item modal --}}
-    <x-modal wire="showItemModal" title="{{ $editingItemId ? 'Edit line item' : 'Add line item' }}" center="sm" scrollable>
-        <div class="flex flex-col gap-4">
-            <x-select.styled wire:model.live="item_product_id" label="Product (optional)" searchable clearable
-                :options="$products->map(fn ($p) => ['label' => $p->name, 'value' => (string) $p->id])->all()" />
-            <x-input wire:model="item_title" label="Title" required />
-            <x-textarea wire:model="item_description" label="Description" rows="2" />
-            <div class="grid grid-cols-2 gap-4">
-                <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
-                <x-input wire:model="item_unit_cost" label="Unit cost" type="number" step="0.01" />
-                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
-                <div class="flex items-end pb-2">
-                    <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
-                </div>
-            </div>
-        </div>
-
-        <x-slot:footer>
-            <x-button text="Cancel" color="gray" wire:click="$set('showItemModal', false)" />
-            <x-button text="Save line item" color="blue" wire:click="saveItem" />
-        </x-slot:footer>
-    </x-modal>
 
     {{-- Accept modal — same as TallStackQuotations. --}}
     <x-modal wire="showAcceptModal" title="Accept quotation" center="sm">
