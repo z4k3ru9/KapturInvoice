@@ -50,6 +50,7 @@
         @else
             <x-table :headers="[
                 ['index' => 'brand', 'label' => 'Brand'],
+                ['index' => 'category', 'label' => 'Category'],
                 ['index' => 'sku', 'label' => 'SKU'],
                 ['index' => 'description', 'label' => 'Description'],
                 ['index' => 'price', 'label' => 'List price', 'align' => 'right'],
@@ -60,6 +61,21 @@
                      (badge/logo-style chip, e.g. 'Hikvision')"). --}}
                 @interact('column_brand', $row)
                     <x-badge text="{{ $row['brand'] }}" color="blue" sm />
+                @endinteract
+
+                {{-- Hand-editable field on this otherwise read-only
+                     register — see TallStackPriceListItems's own docblock
+                     for why. The importer's own header-detection guesses
+                     this per sheet and is often wrong/blank. --}}
+                @interact('column_category', $row)
+                    <div class="flex items-center gap-1.5">
+                        @if ($row['category'])
+                            <span class="text-xs text-gray-600 dark:text-gray-300">{{ $row['category'] }}</span>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
+                        <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-7 w-7" tooltip="Edit category" wire:click="openEditCategory({{ $row['id'] }})" />
+                    </div>
                 @endinteract
 
                 @interact('column_sku', $row)
@@ -128,6 +144,21 @@
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showImportModal', false)" />
             <x-button text="Import" icon="arrow-up-tray" color="blue" wire:click="import" />
+        </x-slot:footer>
+    </x-modal>
+
+    {{-- Edit-category modal — the one hand-editable field on this
+         otherwise import-only register, see TallStackPriceListItems's own
+         docblock. Reuses <x-tallstack.category-select> (repair plan Phase
+         10a's reusable searchable/inline-create picker), sourced from
+         every distinct category already used on this company's price
+         list items. --}}
+    <x-modal wire="showCategoryModal" title="Edit category" center="sm">
+        <x-tallstack.category-select wire:model="category" :options="$categories" />
+
+        <x-slot:footer>
+            <x-button text="Cancel" color="gray" wire:click="$set('showCategoryModal', false)" />
+            <x-button text="Save" icon="check" color="blue" wire:click="saveCategory" />
         </x-slot:footer>
     </x-modal>
 </div>

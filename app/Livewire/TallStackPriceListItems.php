@@ -30,6 +30,15 @@ use TallStackUi\Traits\Interactions;
  * form (PriceListItemForm) is a one-off fallback there for hand-typed
  * rows; this page doesn't build it, since the Stitch mockup itself never
  * shows one either.
+ *
+ * One deliberate, narrow exception (repair plan Phase 10a): `category` is
+ * hand-editable via a small "Edit category" modal
+ * (openEditCategory()/saveCategory()) — every imported sheet's own
+ * header-detection logic already guesses it per
+ * App\Services\PriceListImporter, and it's frequently wrong or absent, so
+ * a way to correct it without re-importing the whole sheet is worth the
+ * one-field exception. Every other column (brand/sku/description/price)
+ * stays a pure reflection of the last import, unchanged.
  */
 #[Layout('components.tallstack.app')]
 class TallStackPriceListItems extends Component
@@ -48,6 +57,14 @@ class TallStackPriceListItems extends Component
     public mixed $file = null;
 
     public ?string $importBrand = null;
+
+    // --- Edit-category modal state — see this class's own docblock for
+    // why `category` specifically is the one hand-editable field here. ---
+    public bool $showCategoryModal = false;
+
+    public ?int $editingCategoryId = null;
+
+    public ?string $category = null;
 
     public function mount(Company $company): void
     {
@@ -137,6 +154,46 @@ class TallStackPriceListItems extends Component
         )->send();
     }
 
+    /** Opens the "Edit category" modal — uses <x-tallstack.category-select> (resources/views/components/tallstack/category-select.blade.php, repair plan Phase 10a)'s searchable/inline-create picker, sourced from every distinct category already used on this company's price list items. */
+    public function openEditCategory(int $id): void
+    {
+        $item = $this->findScoped($id);
+
+        if (! $item) {
+            return;
+        }
+
+        $this->authorize('update', $item);
+
+        $this->editingCategoryId = $item->id;
+        $this->category = $item->category;
+        $this->resetErrorBag();
+        $this->showCategoryModal = true;
+    }
+
+    public function saveCategory(): void
+    {
+        $item = $this->findScoped($this->editingCategoryId);
+
+        if (! $item) {
+            return;
+        }
+
+        $this->authorize('update', $item);
+
+        $data = $this->validate([
+            'category' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $item->update(['category' => filled($data['category']) ? trim($data['category']) : null]);
+
+        $this->toast()->success('Category updated')->send();
+
+        $this->showCategoryModal = false;
+        $this->editingCategoryId = null;
+        $this->category = null;
+    }
+
     /** Never trust a bare `PriceListItem::find()` — always re-check company ownership explicitly, same as every other TALL-stack page. */
     private function findScoped(?int $id): ?PriceListItem
     {
@@ -170,6 +227,7 @@ class TallStackPriceListItems extends Component
             ->through(fn (PriceListItem $item) => [
                 'id' => $item->id,
                 'brand' => $item->brand,
+                'category' => $item->category,
                 'sku' => $item->sku,
                 'description' => $item->description,
                 'price' => $item->reference_price !== null
@@ -186,6 +244,17 @@ class TallStackPriceListItems extends Component
                 ->distinct()
                 ->orderBy('brand')
                 ->pluck('brand'),
+            // Powers <x-tallstack.category-select>'s picker — every
+            // distinct category already used on this tenant's price list
+            // items, scoped exactly like every other tenant-scoped lookup
+            // on this page (see class docblock: never trust an unscoped
+            // query for a picker/dropdown).
+            'categories' => PriceListItem::query()
+                ->where('company_id', $this->company->id)
+                ->whereNotNull('category')
+                ->distinct()
+                ->orderBy('category')
+                ->pluck('category'),
             'currency' => $currency,
             'hasAnyItems' => PriceListItem::query()->where('company_id', $this->company->id)->exists(),
         ])->layoutData([

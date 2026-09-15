@@ -148,4 +148,93 @@ class TallStackPriceListItemsTest extends TestCase
         Livewire::test(TallStackPriceListItems::class, ['company' => $otherCompany])
             ->assertStatus(403);
     }
+
+    public function test_save_category_updates_the_category_on_the_scoped_item(): void
+    {
+        $item = PriceListItem::create([
+            'company_id' => $this->company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'CAM-100',
+            'reference_price' => 100,
+        ]);
+
+        Livewire::test(TallStackPriceListItems::class, ['company' => $this->company])
+            ->call('openEditCategory', $item->id)
+            ->assertSet('editingCategoryId', $item->id)
+            ->set('category', 'IP Cameras')
+            ->call('saveCategory')
+            ->assertHasNoErrors()
+            ->assertSet('showCategoryModal', false);
+
+        $this->assertSame('IP Cameras', $item->fresh()->category);
+    }
+
+    public function test_save_category_can_clear_the_category_back_to_null(): void
+    {
+        $item = PriceListItem::create([
+            'company_id' => $this->company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'CAM-100',
+            'category' => 'IP Cameras',
+            'reference_price' => 100,
+        ]);
+
+        Livewire::test(TallStackPriceListItems::class, ['company' => $this->company])
+            ->call('openEditCategory', $item->id)
+            ->set('category', '')
+            ->call('saveCategory')
+            ->assertHasNoErrors();
+
+        $this->assertNull($item->fresh()->category);
+    }
+
+    public function test_a_pricelist_item_from_another_company_cannot_have_its_category_edited(): void
+    {
+        $otherCompany = Company::create(['name' => 'Other', 'slug' => 'other', 'currency_code' => 'USD']);
+        $foreignItem = PriceListItem::create([
+            'company_id' => $otherCompany->id,
+            'brand' => 'Hikvision',
+            'sku' => 'NOT-YOURS',
+            'category' => 'Original',
+            'reference_price' => 50,
+        ]);
+
+        Livewire::test(TallStackPriceListItems::class, ['company' => $this->company])
+            ->call('openEditCategory', $foreignItem->id)
+            ->assertSet('showCategoryModal', false);
+
+        $this->assertSame('Original', $foreignItem->fresh()->category);
+    }
+
+    public function test_the_category_picker_only_offers_the_active_companys_distinct_categories(): void
+    {
+        PriceListItem::create([
+            'company_id' => $this->company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'CAM-100',
+            'category' => 'IP Cameras',
+            'reference_price' => 100,
+        ]);
+        PriceListItem::create([
+            'company_id' => $this->company->id,
+            'brand' => 'Hikvision',
+            'sku' => 'CAM-101',
+            'category' => 'IP Cameras',
+            'reference_price' => 110,
+        ]);
+
+        $otherCompany = Company::create(['name' => 'Other', 'slug' => 'other', 'currency_code' => 'USD']);
+        PriceListItem::create([
+            'company_id' => $otherCompany->id,
+            'brand' => 'Hikvision',
+            'sku' => 'NOT-YOURS',
+            'category' => 'Other Company Category',
+            'reference_price' => 50,
+        ]);
+
+        $categories = Livewire::test(TallStackPriceListItems::class, ['company' => $this->company])
+            ->viewData('categories');
+
+        $this->assertSame(['IP Cameras'], $categories->values()->all());
+    }
 }
