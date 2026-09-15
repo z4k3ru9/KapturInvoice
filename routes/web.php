@@ -33,6 +33,7 @@ use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
 use App\Livewire\TallStackPaymentAllocation;
 use App\Livewire\TallStackPayments;
+use App\Livewire\TallStackPriceListItems;
 use App\Livewire\TallStackProducts;
 use App\Livewire\TallStackProposalForm;
 use App\Livewire\TallStackProposals;
@@ -251,6 +252,19 @@ Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::cl
 Route::get('/tall/{company:slug}/products', TallStackProducts::class)
     ->middleware('auth')
     ->name('tallstack.products');
+
+// Deferred item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// the vendor pricelist reference catalog register, TALL-stack-native
+// alongside the Filament resource it mirrors
+// (App\Filament\Resources\PriceListItems). Register/list only — browse
+// the imported pricelist, import/refresh a sheet, and create/refresh a
+// real Product from a chosen row (App\Services\ProductSync); no
+// hand-edit-a-row form, matching the Stitch mockup. Re-checks company
+// ownership explicitly in mount(), same reasoning as the other TALL-stack
+// pages.
+Route::get('/tall/{company:slug}/price-list-items', TallStackPriceListItems::class)
+    ->middleware('auth')
+    ->name('tallstack.price-list-items');
 
 // Phase 5 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
 // Clients register and detail view, TALL-stack-native alongside the
