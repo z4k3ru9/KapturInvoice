@@ -8,6 +8,7 @@ use App\Actions\Sales\TransitionQuotationStatus;
 use App\Enums\QuotationStatus;
 use App\Filament\Support\DownloadPdfAction;
 use App\Models\Quotation;
+use App\Services\Sales\QuotationMailer;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -60,7 +61,7 @@ class QuotationsTable
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->visible(fn (Quotation $record) => $record->status === QuotationStatus::Approved)
                     ->requiresConfirmation()
-                    ->action(fn (Quotation $record) => self::transition($record, QuotationStatus::Sent)),
+                    ->action(fn (Quotation $record) => self::sendQuotation($record)),
                 Action::make('accept')
                     ->label('Accept')
                     ->icon(Heroicon::OutlinedHandThumbUp)
@@ -178,6 +179,39 @@ class QuotationsTable
             Notification::make()->success()->seconds(4)->title('Quotation updated')->send();
         } catch (RuntimeException $e) {
             Notification::make()->danger()->persistent()->title('Could not update quotation')->body($e->getMessage())->send();
+        }
+    }
+
+    /**
+     * The "Send" action's status transition (Approved -> Sent) stays a
+     * separate, already-tested concern — this only adds the email
+     * dispatch alongside it. If the transition itself fails, the email
+     * is never attempted. If the transition succeeds but the email
+     * fails (no contact email, mail transport error, etc.), the
+     * quotation is still Sent — that failure surfaces as its own danger
+     * notification rather than being silently swallowed or rolling back
+     * the (correct, already-applied) status change.
+     */
+    private static function sendQuotation(Quotation $record): void
+    {
+        try {
+            app(TransitionQuotationStatus::class)->transition($record, QuotationStatus::Sent);
+        } catch (RuntimeException $e) {
+            Notification::make()->danger()->persistent()->title('Could not update quotation')->body($e->getMessage())->send();
+
+            return;
+        }
+
+        try {
+            app(QuotationMailer::class)->sendQuotation($record);
+
+            Notification::make()->success()->seconds(4)->title('Quotation sent')->send();
+        } catch (RuntimeException $e) {
+            Notification::make()
+                ->danger()->persistent()
+                ->title('Quotation marked as sent, but the email could not be sent')
+                ->body($e->getMessage())
+                ->send();
         }
     }
 }

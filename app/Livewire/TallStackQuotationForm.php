@@ -16,6 +16,7 @@ use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Services\DocumentNumberGenerator;
 use App\Services\QuotationTotalsCalculator;
+use App\Services\Sales\QuotationMailer;
 use App\Support\TallStack\StatusColor;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\View\View;
@@ -342,9 +343,39 @@ class TallStackQuotationForm extends Component
         $this->applyTransition(QuotationStatus::Approved);
     }
 
+    /**
+     * The status transition (Approved -> Sent) stays a separate,
+     * already-tested concern — this only adds the email dispatch
+     * alongside it, the same as the Filament table's own "Send" action
+     * (App\Filament\Resources\Quotations\Tables\QuotationsTable). If the
+     * transition fails, the email is never attempted. If the transition
+     * succeeds but the email fails, the quotation is still Sent — that
+     * failure surfaces as its own error toast rather than rolling back
+     * the already-applied status change.
+     */
     public function send(): void
     {
-        $this->applyTransition(QuotationStatus::Sent);
+        if (! $this->quotation) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        try {
+            app(TransitionQuotationStatus::class)->transition($this->quotation, QuotationStatus::Sent);
+            $this->quotation->refresh();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not update quotation', $e->getMessage())->send();
+
+            return;
+        }
+
+        try {
+            app(QuotationMailer::class)->sendQuotation($this->quotation);
+            $this->toast()->success('Quotation sent.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Quotation marked as sent, but the email could not be sent', $e->getMessage())->send();
+        }
     }
 
     public function reject(): void

@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\BillingMailer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Tests\TestCase;
@@ -231,5 +232,94 @@ class BillingMailerTest extends TestCase
         app(BillingMailer::class)->sendPaymentReceipt($payment);
 
         Mail::assertSent(CompanyTemplatedMail::class, fn (CompanyTemplatedMail $mail) => $mail->hasTo('jane@example.com') && str_contains($mail->bodyText, '50.00'));
+    }
+
+    public function test_sending_an_invoice_attaches_the_invoice_pdf(): void
+    {
+        Mail::fake();
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0008',
+        ]);
+        $invoice->forceFill(['total' => 150, 'balance' => 150])->save();
+
+        app(BillingMailer::class)->sendInvoice($invoice);
+
+        Mail::assertSent(CompanyTemplatedMail::class, function (CompanyTemplatedMail $mail) {
+            return $this->assertPdfAttachment($mail, 'INV-0008.pdf');
+        });
+    }
+
+    public function test_sending_a_quote_attaches_the_invoice_pdf(): void
+    {
+        Mail::fake();
+
+        $quote = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'quote',
+            'status' => 'draft',
+            'number' => 'QUO-0002',
+        ]);
+
+        app(BillingMailer::class)->sendQuote($quote);
+
+        Mail::assertSent(CompanyTemplatedMail::class, function (CompanyTemplatedMail $mail) {
+            return $this->assertPdfAttachment($mail, 'QUO-0002.pdf');
+        });
+    }
+
+    public function test_sending_a_payment_receipt_does_not_attach_a_pdf(): void
+    {
+        Mail::fake();
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0009',
+        ]);
+        $payment = Payment::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'invoice_id' => $invoice->id,
+            'amount' => 50,
+            'status' => 'completed',
+        ]);
+
+        app(BillingMailer::class)->sendPaymentReceipt($payment);
+
+        Mail::assertSent(CompanyTemplatedMail::class, fn (CompanyTemplatedMail $mail) => $mail->pdfAttachments === []);
+    }
+
+    /**
+     * `Mailable::hasAttachment()` compares raw resolved attachment
+     * bytes, which we can't recreate independently of the mailer's own
+     * PDF render here — so this asserts the attachment that was
+     * actually queued has the expected filename/mime and looks like a
+     * real PDF, via the public `Attachment::$as`/`$mime` properties and
+     * the resolver closure `App\Mail\CompanyTemplatedMail::attachments()`
+     * exposes through `$pdfAttachments`.
+     */
+    private function assertPdfAttachment(CompanyTemplatedMail $mail, string $expectedName): bool
+    {
+        if (count($mail->pdfAttachments) !== 1) {
+            return false;
+        }
+
+        $attachment = $mail->pdfAttachments[0];
+
+        if (! $attachment instanceof Attachment || $attachment->as !== $expectedName || $attachment->mime !== 'application/pdf') {
+            return false;
+        }
+
+        $data = $attachment->attachWith(fn ($path) => null, fn ($resolveData) => $resolveData());
+
+        return is_string($data) && str_starts_with($data, '%PDF');
     }
 }
