@@ -29,6 +29,7 @@ use App\Livewire\TallStackCredits;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackDeliveryOrder;
 use App\Livewire\TallStackDeliveryOrders;
+use App\Livewire\TallStackExpenses;
 use App\Livewire\TallStackHandoverReports;
 use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
@@ -418,6 +419,18 @@ Route::get('/tall/{company:slug}/vendor-bills/create', TallStackVendorBillForm::
 Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendorBillForm::class)
     ->middleware('auth')
     ->name('tallstack.vendor-bills.edit');
+
+// Expenses — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// prompt 19), TALL-stack-native alongside the Filament resource it
+// mirrors (App\Filament\Resources\Expenses). A plain non-job cost bucket,
+// separate from Vendor Bills (which ARE tied to a job/PO) — register/list
+// + modal create/edit only, no separate route, matching this app's
+// small-resource convention (see Clients/Vendors) and the fetched Stitch
+// mockup itself. Re-checks company ownership explicitly in mount(), same
+// reasoning as every other TALL-stack page.
+Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
+    ->middleware('auth')
+    ->name('tallstack.expenses');
 
 // Credits — register only (deferred-scope item, no earlier phase number;
 // see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's "Deferred"
