@@ -53,7 +53,11 @@ class AdminShellTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $order = ['Sales', 'Billing', 'Procurement', 'Clients', 'Catalog', 'Expenses', 'Documents', 'Team', 'Settings'];
+        // 'Expenses' is deliberately absent: Vendors/Expenses/Expense
+        // Categories all moved to 'Procurement' (Track A4), so the
+        // 'Expenses' group now has zero resources and Filament correctly
+        // never renders an empty group.
+        $order = ['Sales', 'Billing', 'Procurement', 'Clients', 'Catalog', 'Documents', 'Team', 'Settings'];
         // The group heading's own visible text is bound reactively
         // (Alpine/Livewire), never present as static ">Label<" HTML — the
         // collapse toggle's aria-label is the one static, per-group
