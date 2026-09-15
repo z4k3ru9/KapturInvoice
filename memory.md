@@ -36,10 +36,33 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 550 PHP tests passing as of 2026-09-15 (drifted up from the
-  531 previously recorded here — recent N+1/index fix commits added
-  regression coverage without updating this count; verified via `php -d
+- Test suite: 643 PHP tests passing as of 2026-09-16 (verified via `php -d
   memory_limit=1024M vendor/bin/phpunit`).
+- **Post-TallStackUI-rebuild repair plan (2026-09-16) — done, except two
+  deliberately-deferred items.** A full screenshot-driven QA pass against
+  the rebuilt TallStackUI admin found 31 verified issues; all were
+  designed into a 16-phase plan
+  (`/Users/richardpangalila/.claude/plans/dreamy-fluttering-willow.md`)
+  and landed via parallel background workers, each individually
+  rebased/tested/merged to `main`: shared toggle/badge/icon conventions
+  (Phase 1), sidebar/dark-mode root-cause fix (Phase 2), DocumentNumber
+  truncation + TallStackUI editor JS crash (Phase 3), Invoice/Quotation/
+  Vendor Bill/Vendor PO/Client Detail tab restructures incl. the
+  Invoice↔Job linking gap (Phases 4-7), PDF pagination footer (Phase 8),
+  Tax Recap Terms (Phase 9), Price List Item + Product shared category
+  taxonomy (Phase 10), document-number-field hiding + new settings
+  defaults (Phase 11), Settings consolidated into one tabbed page (Phase
+  12), inline line-item editing + `AutosavesDraft` rollout to Quotation/
+  Recurring Invoice/Vendor Bill/Vendor PO (Phase 13), portal-link
+  copy-to-clipboard fix (Phase 14), payment-proof file encryption (Phase
+  15's G4 slice), and the Phase 07 migration-tracking module
+  cherry-picked from a since-rejected branch (Phase 15's migration
+  slice). **Deliberately not done, per explicit decision:** passkey/
+  WebAuthn login (own dedicated session, out of scope here) and the live
+  currency-API (explicitly deferred by the user to "the last stage of
+  this development"). **Not yet done:** Phase 16 (docs/repo
+  reorganization) — intentionally sequenced last so it audits the final
+  set of cross-references rather than a moving target.
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior
@@ -101,6 +124,19 @@ re-run completed audits unless new evidence contradicts them.
 - Routine Phase 04 judgments, no re-ask needed: deferred resources (Payment
   Gateways, Recurring Invoices, Credits, Proposals) are hidden from launch
   navigation; overdue is a derived flag, not a stored status.
+- `InvoiceStatus` dual case set (ratified 2026-09-16): the legacy statuses
+  (`Draft/Sent/Viewed/Partial/Paid/Overdue/Cancelled`) and the Phase 04
+  statuses (`Approved/Issued/Void/Amended`) coexist in one enum
+  permanently — this is not a migration-safe interim awaiting cleanup.
+  Legacy statuses are read-only history that only ever appear on
+  imported/pre-migration documents; every document created by this app
+  goes exclusively through the Phase 04 lifecycle
+  (`IssueInvoice`/`AmendIssuedInvoice`/`VoidAndReissueInvoice`). Do not
+  backfill/remap legacy rows onto Phase 04 statuses — a legacy `Partial`,
+  for example, has no faithful Phase 04 equivalent, so mapping would
+  destroy real historical distinctions for no functional gain. Closes
+  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
+  C2.
 
 - Stitch UI layout work (ratified 2026-09-14, superseded in practice by the
   full TallStackUI rebuild above): the Stitch renders remain layout
