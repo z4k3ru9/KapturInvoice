@@ -139,6 +139,39 @@ class SalesOrderWorkflowTest extends TestCase
         $this->assertNotNull($cancelled->cancelled_at);
     }
 
+    public function test_approving_a_job_records_an_audit_event(): void
+    {
+        $salesOrder = $this->acceptedQuotationJob();
+        $salesOrder->milestones()->create([
+            'type' => MilestoneType::FullPayment,
+            'description' => 'Full payment on completion',
+            'amount' => $salesOrder->approved_value,
+        ]);
+
+        $approved = app(ApproveSalesOrder::class)->approve($salesOrder);
+
+        $this->assertDatabaseHas('audit_events', [
+            'company_id' => $approved->company_id,
+            'action' => 'sales_order.approved',
+            'entity_type' => $approved->getMorphClass(),
+            'entity_id' => $approved->id,
+        ]);
+    }
+
+    public function test_transitioning_a_job_status_records_an_audit_event(): void
+    {
+        $salesOrder = $this->acceptedQuotationJob();
+
+        $transitioned = app(TransitionSalesOrderStatus::class)->transition($salesOrder, SalesOrderStatus::Cancelled);
+
+        $this->assertDatabaseHas('audit_events', [
+            'company_id' => $transitioned->company_id,
+            'action' => 'sales_order.cancelled',
+            'entity_type' => $transitioned->getMorphClass(),
+            'entity_id' => $transitioned->id,
+        ]);
+    }
+
     public function test_job_state_transition_is_denied_once_cancelled(): void
     {
         $salesOrder = $this->acceptedQuotationJob();
