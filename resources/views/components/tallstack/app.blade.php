@@ -26,8 +26,9 @@
             ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
         ],
         'Procurement' => [
-            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => "{$adminBase}/vendor-bills", 'icon' => 'clipboard-document-list'],
-            ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
+            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
+            ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
+            ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
         ],
         // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales

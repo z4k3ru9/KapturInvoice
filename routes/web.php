@@ -45,6 +45,11 @@ use App\Livewire\TallStackSettingsCompanyTaxes;
 use App\Livewire\TallStackSettingsEmail;
 use App\Livewire\TallStackSettingsLookups;
 use App\Livewire\TallStackUsers;
+use App\Livewire\TallStackVendorBillForm;
+use App\Livewire\TallStackVendorBills;
+use App\Livewire\TallStackVendorPurchaseOrderForm;
+use App\Livewire\TallStackVendorPurchaseOrders;
+use App\Livewire\TallStackVendors;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -308,6 +313,37 @@ Route::get('/tall/{company:slug}/proposals/{proposal}/edit', TallStackProposalFo
 Route::get('/tall/{company:slug}/users', TallStackUsers::class)
     ->middleware('auth')
     ->name('tallstack.users');
+
+// Phase 6 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Procurement: Vendors, Vendor Purchase Orders, Vendor Bills, alongside
+// the Filament resources they mirror (App\Filament\Resources\{Vendors,
+// VendorPurchaseOrders,VendorBills}). `/create` is registered before the
+// `/{record}/edit` routes so the literal segment binds first. All three
+// components re-check company ownership explicitly in mount() — same
+// reasoning as the Quotation components above.
+Route::get('/tall/{company:slug}/vendors', TallStackVendors::class)
+    ->middleware('auth')
+    ->name('tallstack.vendors');
+
+Route::get('/tall/{company:slug}/vendor-purchase-orders', TallStackVendorPurchaseOrders::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-purchase-orders');
+Route::get('/tall/{company:slug}/vendor-purchase-orders/create', TallStackVendorPurchaseOrderForm::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-purchase-orders.create');
+Route::get('/tall/{company:slug}/vendor-purchase-orders/{vendorPurchaseOrder}/edit', TallStackVendorPurchaseOrderForm::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-purchase-orders.edit');
+
+Route::get('/tall/{company:slug}/vendor-bills', TallStackVendorBills::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-bills');
+Route::get('/tall/{company:slug}/vendor-bills/create', TallStackVendorBillForm::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-bills.create');
+Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendorBillForm::class)
+    ->middleware('auth')
+    ->name('tallstack.vendor-bills.edit');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
