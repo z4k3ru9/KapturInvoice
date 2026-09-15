@@ -245,4 +245,56 @@ class TallStackInvoiceAutosaveTest extends TestCase
         $this->assertNull($invoice->fresh()->terms);
         $this->assertSame(0, $invoice->fresh()->draft_version);
     }
+
+    /**
+     * Terms/footer/notes moved from a plain <x-textarea> to TallStackUI's
+     * <x-editor> (see resources/views/livewire/tallstack-invoice-form.blade.php).
+     * <x-editor> doesn't honor wire:model's .live/.debounce modifiers (only
+     * .live/.blur — TallStackUI\Support\Blade\Wireable::entangle()), and
+     * Livewire refuses calling an updated{Field}() lifecycle hook directly
+     * from Alpine, so the blade view instead wires
+     * x-on:editor:change.debounce.1750ms="$wire.$commit()" — pushing the
+     * already-entangled value after the same 1750ms pause, which makes
+     * Livewire's own dirty-check fire updatedTerms() automatically, exactly
+     * as it does for any other property change. That JS wiring can't run in
+     * a PHPUnit test, but Livewire::test()->set() exercises the identical
+     * server-side path (the property changes, updatedTerms() fires, which
+     * sanitizes and then calls autosaveDraft()) — this is the same
+     * assertion every other test in this file already makes, extended here
+     * to confirm real formatted HTML content (not just plain text) survives
+     * the round trip.
+     */
+    public function test_autosave_persists_formatted_html_content_from_the_editor(): void
+    {
+        $this->actingAsRole('owner');
+        $invoice = $this->draftInvoice();
+
+        $formatted = '<p>Payment is due <strong>within 30 days</strong>.</p><ul><li>No refunds</li></ul>';
+
+        $component = Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->set('terms', $formatted);
+
+        $component->assertSet('autosaveStatus', 'saved');
+        $this->assertSame($formatted, $invoice->fresh()->terms);
+    }
+
+    /**
+     * The editor sanitizes in the browser, but per its own docs that isn't
+     * the defense — App\Support\Html\RichTextSanitizer strips anything a
+     * hand-crafted payload bypassing the browser could still carry, on
+     * every save path including autosave's updatedTerms() hook.
+     */
+    public function test_autosave_sanitizes_a_malicious_payload_before_persisting(): void
+    {
+        $this->actingAsRole('owner');
+        $invoice = $this->draftInvoice();
+
+        $component = Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->set('terms', '<p onmouseover="alert(1)">Net 30</p><script>alert("xss")</script>');
+
+        $component->assertSet('autosaveStatus', 'saved');
+
+        $fresh = $invoice->fresh()->terms;
+        $this->assertSame('<p>Net 30</p>', $fresh);
+    }
 }

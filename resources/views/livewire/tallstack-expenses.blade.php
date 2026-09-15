@@ -116,7 +116,8 @@
                 </div>
             @endif
 
-            <x-textarea wire:model="private_notes" label="Private notes" rows="3" />
+            <x-editor wire:model="private_notes" label="Private notes" min-height="8rem" max-height="18rem"
+                :toolbar="['bold', 'italic', 'underline', 'ordered-list', 'unordered-list', 'link', 'clear-format', 'undo', 'redo']" />
 
             {{--
                 Documents — only reachable while editing (a Document needs

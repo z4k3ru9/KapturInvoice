@@ -14,6 +14,7 @@ use App\Services\DocumentNumberGenerator;
 use App\Services\InvoiceDuplicator;
 use App\Services\InvoiceTotalsCalculator;
 use App\Support\Dashboard\Money;
+use App\Support\Html\RichTextSanitizer;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
@@ -169,6 +170,12 @@ class TallStackRecurringInvoiceForm extends Component
 
     public function save(): void
     {
+        $sanitizer = app(RichTextSanitizer::class);
+        $this->terms = $sanitizer->sanitize($this->terms);
+        $this->public_notes = $sanitizer->sanitize($this->public_notes);
+        $this->private_notes = $sanitizer->sanitize($this->private_notes);
+        $this->footer = $sanitizer->sanitize($this->footer);
+
         $data = $this->validate([
             'client_id' => ['required', Rule::exists('clients', 'id')->where('company_id', $this->company->id)],
             'number' => ['nullable', 'string', 'max:255'],
