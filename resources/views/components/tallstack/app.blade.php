@@ -31,6 +31,14 @@
             ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
             ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
             ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
+            // Pre-Filament-removal gap audit item
+            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+            // prompt 19) — mirrors App\Filament\Resources\Expenses\ExpenseResource's
+            // own navigationGroup ('Procurement'), folded into this SAME
+            // 'Procurement' key, never a second 'Procurement' => [...]
+            // block (see this file's own duplicate-key warning further
+            // down).
+            ['key' => 'expenses', 'label' => 'Expenses', 'route' => route('tallstack.expenses', $company), 'icon' => 'receipt-refund'],
         ],
         // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
