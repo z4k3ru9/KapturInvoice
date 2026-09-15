@@ -23,6 +23,7 @@ use App\Livewire\AcceptInvitation;
 use App\Livewire\HomePage;
 use App\Livewire\Portal\ClientPortalHome;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
+use App\Livewire\TallStackDashboard;
 use Illuminate\Support\Facades\Route;
 
 // The public marketing/homepage side of KapturInvoice, resolved per-domain
@@ -123,6 +124,15 @@ Route::get('/statement-of-accounts/{statementOfAccount}/pdf', StatementOfAccount
 Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountPreviewController::class)
     ->middleware('auth')
     ->name('statement-of-accounts.preview');
+
+// A TALL-stack-native (TallStackUI components, no Filament) rendering of
+// the admin Dashboard, for comparing visual fidelity against the Stitch
+// mockup — see App\Livewire\TallStackDashboard's docblock.
+// canAccessTenant() authorization happens in the component's mount(),
+// same check Filament's own panel tenancy uses.
+Route::get('/tall/{company:slug}/dashboard', TallStackDashboard::class)
+    ->middleware('auth')
+    ->name('tallstack.dashboard');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
