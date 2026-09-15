@@ -4,18 +4,31 @@
     $primary = $company->primary_color ?: '#E63934';
     $logo = $company->getLogoDataUri();
 
+    // Phase 2 sidebar repair (docs/rebuild — see the plan referenced from
+    // the dispatching session): each top-level group below now carries its
+    // own 'icon' alongside its 'items' array. The group array shape used
+    // to be a flat `'Group' => [item, item, ...]`; every `foreach ($nav ..)`
+    // consumer downstream was updated in the same pass to read
+    // `$definition['icon']`/`$definition['items']` instead of iterating the
+    // group's value directly — see the sidebar markup below.
     $nav = [
         'Sales' => [
-            ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => route('tallstack.dashboard', $company), 'icon' => 'squares-2x2'],
-            ['key' => 'quotations', 'label' => 'Quotations', 'route' => route('tallstack.quotations', $company), 'icon' => 'document-text'],
-            ['key' => 'jobs', 'label' => 'Jobs', 'route' => route('tallstack.jobs', $company), 'icon' => 'briefcase'],
+            'icon' => 'rocket-launch',
+            'items' => [
+                ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => route('tallstack.dashboard', $company), 'icon' => 'squares-2x2'],
+                ['key' => 'quotations', 'label' => 'Quotations', 'route' => route('tallstack.quotations', $company), 'icon' => 'document-text'],
+                ['key' => 'jobs', 'label' => 'Jobs', 'route' => route('tallstack.jobs', $company), 'icon' => 'briefcase'],
+            ],
         ],
         'Billing' => [
-            ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
-            ['key' => 'recurring-invoices', 'label' => 'Recurring Invoices', 'route' => route('tallstack.recurring-invoices', $company), 'icon' => 'arrow-path'],
-            ['key' => 'payments', 'label' => 'Payments', 'route' => route('tallstack.payments', $company), 'icon' => 'credit-card'],
-            ['key' => 'quotes', 'label' => 'Quotes', 'route' => route('tallstack.quotes', $company), 'icon' => 'document-duplicate'],
-            ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
+            'icon' => 'banknotes',
+            'items' => [
+                ['key' => 'invoices', 'label' => 'Invoices', 'route' => route('tallstack.invoices', $company), 'icon' => 'document-currency-dollar'],
+                ['key' => 'recurring-invoices', 'label' => 'Recurring Invoices', 'route' => route('tallstack.recurring-invoices', $company), 'icon' => 'arrow-path'],
+                ['key' => 'payments', 'label' => 'Payments', 'route' => route('tallstack.payments', $company), 'icon' => 'credit-card'],
+                ['key' => 'quotes', 'label' => 'Quotes', 'route' => route('tallstack.quotes', $company), 'icon' => 'document-duplicate'],
+                ['key' => 'credits', 'label' => 'Credits', 'route' => route('tallstack.credits', $company), 'icon' => 'receipt-refund'],
+            ],
         ],
         // Mirrors the equivalent resource's own navigationGroup
         // ('Proposals', a group of its own rather than folded into
@@ -24,21 +37,27 @@
         // actually showed in the Filament sidebar, but this is still the
         // grouping the resource itself declared.
         'Proposals' => [
-            ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
+            'icon' => 'presentation-chart-bar',
+            'items' => [
+                ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
+            ],
         ],
         'Procurement' => [
-            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
-            ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
-            ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
-            // Pre-Filament-removal gap audit item
-            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-            // prompt 19) — mirrors the equivalent resource's own
-            // navigationGroup ('Procurement') from the pre-TallStackUI
-            // Filament admin, folded into this SAME
-            // 'Procurement' key, never a second 'Procurement' => [...]
-            // block (see this file's own duplicate-key warning further
-            // down).
-            ['key' => 'expenses', 'label' => 'Expenses', 'route' => route('tallstack.expenses', $company), 'icon' => 'receipt-refund'],
+            'icon' => 'shopping-bag',
+            'items' => [
+                ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
+                ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
+                ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
+                // Pre-Filament-removal gap audit item
+                // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // prompt 19) — mirrors the equivalent resource's own
+                // navigationGroup ('Procurement') from the pre-TallStackUI
+                // Filament admin, folded into this SAME
+                // 'Procurement' key, never a second 'Procurement' => [...]
+                // block (see this file's own duplicate-key warning further
+                // down).
+                ['key' => 'expenses', 'label' => 'Expenses', 'route' => route('tallstack.expenses', $company), 'icon' => 'receipt-refund'],
+            ],
         ],
         // Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
@@ -46,28 +65,37 @@
         // Stitch "Delivery Orders & Handover Register" mockup's own
         // sidebar, which places this group in the same spot.
         'Delivery' => [
-            ['key' => 'delivery-orders', 'label' => 'Delivery Orders', 'route' => route('tallstack.delivery-orders', $company), 'icon' => 'truck'],
-            ['key' => 'handover-reports', 'label' => 'Handover Reports', 'route' => route('tallstack.handover-reports', $company), 'icon' => 'document-check'],
+            'icon' => 'truck',
+            'items' => [
+                ['key' => 'delivery-orders', 'label' => 'Delivery Orders', 'route' => route('tallstack.delivery-orders', $company), 'icon' => 'truck'],
+                ['key' => 'handover-reports', 'label' => 'Handover Reports', 'route' => route('tallstack.handover-reports', $company), 'icon' => 'document-check'],
+            ],
         ],
         'Clients' => [
-            ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
-            // Pre-Filament-removal gap audit item
-            // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-            // prompt 21) — mirrors the equivalent resource's own
-            // navigationGroup ('Clients') from the pre-TallStackUI
-            // Filament admin, folded into this SAME
-            // 'Clients' key, never a second 'Clients' => [...] block (see
-            // this file's own duplicate-key warning further down).
-            ['key' => 'client-portal-invitations', 'label' => 'Portal Invitations', 'route' => route('tallstack.client-portal-invitations', $company), 'icon' => 'link'],
+            'icon' => 'identification',
+            'items' => [
+                ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
+                // Pre-Filament-removal gap audit item
+                // (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // prompt 21) — mirrors the equivalent resource's own
+                // navigationGroup ('Clients') from the pre-TallStackUI
+                // Filament admin, folded into this SAME
+                // 'Clients' key, never a second 'Clients' => [...] block (see
+                // this file's own duplicate-key warning further down).
+                ['key' => 'client-portal-invitations', 'label' => 'Portal Invitations', 'route' => route('tallstack.client-portal-invitations', $company), 'icon' => 'link'],
+            ],
         ],
         'Catalog' => [
-            ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
-            // Deferred item, built alongside Products/Catalog
-            // (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
-            // folded into this SAME 'Catalog' key, never a second
-            // 'Catalog' => [...] block (see this file's own duplicate-key
-            // warning further down).
-            ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
+            'icon' => 'archive-box',
+            'items' => [
+                ['key' => 'products', 'label' => 'Products', 'route' => route('tallstack.products', $company), 'icon' => 'cube'],
+                // Deferred item, built alongside Products/Catalog
+                // (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+                // folded into this SAME 'Catalog' key, never a second
+                // 'Catalog' => [...] block (see this file's own duplicate-key
+                // warning further down).
+                ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
+            ],
         ],
         // Pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
         // prompt 22) — mirrors the equivalent resource's own
@@ -78,7 +106,10 @@
         // duplicate-key warning further down for why that distinction
         // matters).
         'Documents' => [
-            ['key' => 'documents', 'label' => 'Documents', 'route' => route('tallstack.documents', $company), 'icon' => 'paper-clip'],
+            'icon' => 'paper-clip',
+            'items' => [
+                ['key' => 'documents', 'label' => 'Documents', 'route' => route('tallstack.documents', $company), 'icon' => 'paper-clip'],
+            ],
         ],
         // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order (Sales
@@ -90,7 +121,10 @@
         // (see this file's own duplicate-key warning further down for why
         // that distinction matters).
         'Reports' => [
-            ['key' => 'reports-financial', 'label' => 'Financial Analytics', 'route' => route('tallstack.reports', $company), 'icon' => 'chart-bar'],
+            'icon' => 'chart-bar',
+            'items' => [
+                ['key' => 'reports-financial', 'label' => 'Financial Analytics', 'route' => route('tallstack.reports', $company), 'icon' => 'chart-bar'],
+            ],
         ],
         // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order
@@ -107,18 +141,21 @@
         // these MUST stay merged into one array, never split into two
         // 'Settings' => [...] entries again.
         'Settings' => [
-            ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
-            ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
-            ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
-            ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
-            ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
-            ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
-            ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
-            // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
-            // prompt 20) — folded into this SAME 'Settings' key, never a
-            // second 'Settings' => [...] block (see this file's own
-            // duplicate-key warning above).
-            ['key' => 'payment-gateways', 'label' => 'Payment Gateways', 'route' => route('tallstack.payment-gateways', $company), 'icon' => 'credit-card'],
+            'icon' => 'cog-6-tooth',
+            'items' => [
+                ['key' => 'settings-company-taxes', 'label' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'adjustments-horizontal'],
+                ['key' => 'settings-email', 'label' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company), 'icon' => 'envelope'],
+                ['key' => 'settings-branding', 'label' => 'Branding', 'route' => route('tallstack.settings.branding', $company), 'icon' => 'swatch'],
+                ['key' => 'settings-lookups', 'label' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company), 'icon' => 'receipt-percent'],
+                ['key' => 'settings-numbering', 'label' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company), 'icon' => 'hashtag'],
+                ['key' => 'settings-client-portal', 'label' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company), 'icon' => 'globe-alt'],
+                ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
+                // Pre-Filament-removal audit gap (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+                // prompt 20) — folded into this SAME 'Settings' key, never a
+                // second 'Settings' => [...] block (see this file's own
+                // duplicate-key warning above).
+                ['key' => 'payment-gateways', 'label' => 'Payment Gateways', 'route' => route('tallstack.payment-gateways', $company), 'icon' => 'credit-card'],
+            ],
         ],
     ];
 @endphp
@@ -166,7 +203,51 @@
     @livewireStyles
     @tallStackUiStyle
 </head>
-<body class="antialiased bg-gray-50 dark:bg-gray-950">
+{{--
+    dark:bg-gray-950! (Tailwind v4 trailing-bang `!important`, not the plain
+    dark:bg-gray-950 this carried before) — Phase 2 sidebar repair's dark-mode
+    investigation traced down WHY dark mode visually never engaged anywhere
+    in this shell despite `prefers-color-scheme: dark` genuinely being active
+    (confirmed live: `window.matchMedia('(prefers-color-scheme: dark)').matches`
+    true, `getComputedStyle(document.body).backgroundColor` still the LIGHT
+    gray-50 value) and despite the compiled app.css rule for `dark:bg-gray-950`
+    being correctly nested inside a real `@media (prefers-color-scheme: dark)`
+    block (brace-matched and confirmed, same check this app's own
+    status-badge.blade.php docblock already describes doing for its own
+    colors).
+
+    Root cause, confirmed by inspecting BOTH compiled stylesheets byte-for-byte:
+    `@tallStackUiStyle` below (vendor/tallstackui/tallstackui/dist/tallstackui.css,
+    384KB) is loaded AFTER app.css in <head> (see this file's own comment on
+    the hidden `button[aria-label="Toggle sidebar"]` rule above, which already
+    documents this same later-wins-the-cascade ordering for a different
+    property) — and that vendor stylesheet independently compiles its OWN
+    plain, unconditional `.bg-gray-50{background-color:var(--color-gray-50)}`
+    rule (used by some vendor component template somewhere in its 80+
+    components, unrelated to this app), with ZERO `@media
+    (prefers-color-scheme: dark)` blocks anywhere in that file at all. At
+    equal specificity (both are single-class selectors), the LATER stylesheet
+    in document order wins regardless of whether the earlier rule's own
+    `@media` condition is satisfied — CSS doesn't grant extra cascade
+    priority for being inside a matched media query. So this app's own
+    `dark:bg-gray-950` (app.css, correctly gated, but not `!important`)
+    always lost to the vendor's `bg-gray-50` (tallstackui.css, unconditional,
+    loaded later), regardless of the visitor's actual color-scheme
+    preference — reproducing the exact "structurally correct CSS, still
+    renders light" symptom this task was dispatched to investigate.
+
+    `!important` is the correct, minimal fix (not reordering the two
+    `<head>` includes, which risks breaking whatever else currently depends
+    on tallstackui.css loading last) because `!important` beats a
+    non-important rule regardless of source order — the same fix this app's
+    status-badge.blade.php already uses for the identical class of bug, and
+    now applied here at its actual root cause (a cross-stylesheet collision
+    on a bare Tailwind utility class, not something special about `<body>`
+    or about this specific color). See `registerSideBarItemCustomization()` in
+    AppServiceProvider.php for the same fix applied to the sidebar's own
+    item/group colors, which the same root cause affects.
+--}}
+<body class="antialiased bg-gray-50 dark:bg-gray-950!">
 
 <x-layout>
     <x-slot:menu>
@@ -203,8 +284,19 @@
             key was verified correct instead.
         --}}
         <x-side-bar collapsible thin-scroll navigate>
+            {{--
+                px-4 py-4 (was px-1, no vertical padding at all): the brand
+                block used to sit flush against the sidebar's own top-left
+                corner — `desktop.wrapper.second`/`.third` (vendor
+                main.blade.php) carry no padding of their own, so whatever
+                this slot supplies is the only inset the logo/name ever get.
+                4px horizontal and zero vertical read as clipped/cramped
+                against the h-16 header row; 16px on both axes gives the
+                logo chip and text real breathing room while still fitting
+                the fixed h-16 brand row.
+            --}}
             <x-slot:brand>
-                <div class="flex items-center gap-3 px-1">
+                <div class="flex items-center gap-3 px-4 py-4">
                     @if ($logo)
                         <img src="{{ $logo }}" alt="" class="w-8 h-8 rounded-lg object-cover shrink-0">
                     @else
@@ -218,9 +310,11 @@
                 </div>
             </x-slot:brand>
             {{-- Collapsed rail: logo only, no name — the full name has no
-                 room in the railed width and only ever showed truncated. --}}
+                 room in the railed width and only ever showed truncated.
+                 Same px/py bump as the expanded brand slot above, for the
+                 same reason (no padding at all otherwise). --}}
             <x-slot:brandCollapsed>
-                <div class="flex items-center justify-center px-1">
+                <div class="flex items-center justify-center px-2 py-4">
                     @if ($logo)
                         <img src="{{ $logo }}" alt="{{ $company->name }}" class="w-8 h-8 rounded-lg object-cover shrink-0">
                     @else
@@ -230,52 +324,109 @@
                 </div>
             </x-slot:brandCollapsed>
 
-            @foreach ($nav as $group => $items)
-                {{--
-                    A plain text label truncates/wraps badly at the railed
-                    (collapsed) width — x-side-bar.separator is TallStackUI's
-                    own collapse-aware group divider: it shows the label
-                    when expanded and fades to just the rule line when
-                    railed, so nothing gets forced to show past its width.
-                --}}
-                <x-side-bar.separator text="{{ $group }}" line scope="nav" />
-                @foreach ($items as $item)
-                    {{--
-                        The component's own default text color is
-                        `text-primary-500` on every item, current or not —
-                        `!` (important) utilities override it so only the
-                        current route reads in the tenant's brand color,
-                        matching the Stitch mockup's muted/active contrast.
-                    --}}
-                    {{--
-                        `:route`, not `:href` — see this file's own
-                        `navigate` comment above on <x-side-bar>: only
-                        `route` lets the vendor item template attach
-                        `wire:navigate`. Both props render an identical
-                        `href="..."` attribute value either way (vendor
-                        Component.php resolves `route ?? href`), and
-                        `smart` stays off (see above), so `current` below
-                        is still the only thing that decides highlighting
-                        — this swap changes no visible behavior beyond
-                        enabling SPA navigation.
-                    --}}
-                    <x-side-bar.item
-                        :text="$item['label']"
-                        :route="$item['route']"
-                        :current="$active === $item['key']"
-                        :class="$active === $item['key'] ? '' : '!text-gray-600 dark:!text-gray-300'"
-                    >
+            {{--
+                Phase 2 sidebar repair — each nav group is now a real
+                `<x-side-bar.item>` GROUP (nested `<x-side-bar.item>`
+                children in its default slot), not a flat list under a
+                plain `<x-side-bar.separator>` label. This is TallStackUI's
+                own native, purpose-built mechanism for exactly this case,
+                confirmed against the bundled package docs
+                (vendor/tallstackui/tallstackui/.ai/components/layout/sidebar/{item,main}.md)
+                and the component source
+                (vendor/tallstackui/tallstackui/src/resources/views/components/layout/sidebar/item.blade.php):
+                a group with nested items becomes a collapsible accordion
+                section on a full-width sidebar, AND on a `collapsible`
+                sidebar's railed (icon-only) state it collapses to a
+                single group icon that opens its items in a floating panel
+                on hover/click, anchored beside the icon, headed by the
+                group's own label. That is a closer fit to this task's
+                actual goal ("collapsed sidebar shows ~10 group icons
+                instead of ~24 item icons, expand a group to reach its
+                items") than wrapping the separate, generic `<x-accordion>`
+                component would have been: `<x-accordion>` has no notion of
+                the sidebar's own rail/collapse state at all (no
+                icon-only/flyout mode, no tooltip, no integration with the
+                `$store['tsui.side-bar'].collapsed` Alpine store this shell
+                already drives from the header toggle button above), so
+                reproducing this exact behavior with it would mean
+                re-implementing what the side-bar's own item component
+                already does. Kept as a deliberate deviation from the
+                dispatching task's literal "use x-accordion" suggestion —
+                flagged in this session's own report for the orchestrator
+                to double-check.
+
+                A group auto-opens on load when one of its own children is
+                the active route: the vendor item.blade.php group wrapper
+                seeds its local Alpine `show` state from
+                `Str::contains($slot, 'ts-ui-group-opened')`, and a leaf
+                item's own rendered `<a>` carries that literal class
+                whenever ITS `current` prop is true (see the leaf item's
+                own class list further down) — so no manual `opened` prop
+                is needed here; the currently active page's group simply
+                starts expanded.
+            --}}
+            {{--
+                No per-instance `class` override on the GROUP
+                `<x-side-bar.item>` below (unlike the leaf items, which
+                each carry one): confirmed by reading the vendor
+                item.blade.php that the GROUP branch's `<button>` never
+                merges `$attributes` at all (`@class([...])` with no
+                `{{ $attributes }}`, unlike the leaf branch's `<a>`, which
+                does) — a `class="..."`/`:class="..."` prop passed to a
+                GROUP item is silently a no-op, so a per-group "is this
+                THE active group" color was structurally impossible to add
+                this way. Every group's button/icon color is instead
+                recolored once, globally, via
+                `registerSideBarItemCustomization()` in
+                AppServiceProvider.php — a neutral gray always, matching
+                this shell's original flat-separator design (group LABELS
+                were always plain gray; only the individual active LEAF
+                item ever took the tenant's brand color). The active
+                group still reads as "the current section" because it
+                auto-opens (see the `ts-ui-group-opened` note above) and
+                its own active leaf item is still brand-highlighted once
+                visible.
+            --}}
+            @foreach ($nav as $group => $definition)
+                <x-side-bar.item :text="$group" :icon="$definition['icon']">
+                    @foreach ($definition['items'] as $item)
                         {{--
-                            16px (w-4 h-4), matching this shell's other
-                            chrome icons (sidebar toggle/search/logout,
-                            below) — this app's standard "inline icon next
-                            to text" size, not an arbitrary one-off value.
+                            The component's own default text color is
+                            `text-primary-500` on every item, current or not —
+                            `!` (important) utilities override it so only the
+                            current route reads in the tenant's brand color,
+                            matching the Stitch mockup's muted/active contrast.
                         --}}
-                        <x-slot:icon>
-                            <x-icon :name="$item['icon']" class="w-4 h-4" />
-                        </x-slot:icon>
-                    </x-side-bar.item>
-                @endforeach
+                        {{--
+                            `:route`, not `:href` — see this file's own
+                            `navigate` comment above on <x-side-bar>: only
+                            `route` lets the vendor item template attach
+                            `wire:navigate`. Both props render an identical
+                            `href="..."` attribute value either way (vendor
+                            Component.php resolves `route ?? href`), and
+                            `smart` stays off (see above), so `current` below
+                            is still the only thing that decides highlighting
+                            — this swap changes no visible behavior beyond
+                            enabling SPA navigation.
+                        --}}
+                        <x-side-bar.item
+                            :text="$item['label']"
+                            :route="$item['route']"
+                            :current="$active === $item['key']"
+                            :class="$active === $item['key'] ? '' : '!text-gray-600 dark:!text-gray-300'"
+                        >
+                            {{--
+                                16px (w-4 h-4), matching this shell's other
+                                chrome icons (sidebar toggle/search/logout,
+                                below) — this app's standard "inline icon next
+                                to text" size, not an arbitrary one-off value.
+                            --}}
+                            <x-slot:icon>
+                                <x-icon :name="$item['icon']" class="w-4 h-4" />
+                            </x-slot:icon>
+                        </x-side-bar.item>
+                    @endforeach
+                </x-side-bar.item>
             @endforeach
         </x-side-bar>
     </x-slot:menu>
@@ -313,12 +464,28 @@
                         All three swapped icons share one size so the
                         button's visual weight doesn't shift between
                         states.
+
+                        `dark:text-gray-300!`/`dark:bg-gray-900!` here and at
+                        the search box/floating status indicator below carry
+                        the same `!important` fix as `<body>`'s own
+                        `dark:bg-gray-950!` above, for the same reason: these
+                        specific classes were confirmed (by grepping the
+                        compiled vendor/tallstackui/tallstackui/dist/tallstackui.css
+                        for an unconditional, same-name rule) to collide with
+                        a plain utility the vendor bundle also emits.
+                        `dark:bg-gray-800`/`dark:hover:bg-gray-700`/
+                        `dark:border-gray-800` right next to them were
+                        checked the same way and have NO such collision, so
+                        they were deliberately left unimportant — re-run the
+                        same grep against the vendor file if this app's
+                        TallStackUI version ever bumps and dark mode
+                        regresses again here.
                     --}}
                     <button type="button"
                             x-on:click="desktop ? $store['tsui.side-bar'].toggle() : (tallStackUiMenuMobile = !tallStackUiMenuMobile)"
                             x-bind:aria-expanded="desktop ? !$store['tsui.side-bar'].collapsed : tallStackUiMenuMobile"
                             aria-label="Toggle navigation"
-                            class="grid place-items-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer shrink-0">
+                            class="grid place-items-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300! hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer shrink-0">
                         <x-icon name="bars-3" x-show="!desktop" class="w-4 h-4" />
                         <x-icon name="chevron-double-left" x-show="desktop && !$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
                         <x-icon name="chevron-double-right" x-show="desktop && $store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
@@ -327,7 +494,7 @@
                 <div class="hidden sm:!block relative">
                     <x-icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="search" placeholder="Search records, clients, invoices…"
-                           class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800 dark:bg-gray-900 pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                           class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800 dark:bg-gray-900! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
                 </div>
             </x-slot:left>
             <x-slot:right>
@@ -403,16 +570,16 @@
      x-on:mouseleave="open = false"
      class="fixed bottom-4 left-4 z-40">
     <div x-show="open" x-transition x-cloak
-         class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 shadow-xl">
+         class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900! p-3 shadow-xl">
         <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full shrink-0" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
             <span class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="online ? 'All systems operational' : 'System offline'"></span>
         </div>
-        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">KapturInvoice v2.4 &middot; {{ now()->year }}</p>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400!">KapturInvoice v2.4 &middot; {{ now()->year }}</p>
     </div>
-    <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
+    <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900! pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
         <span class="h-2 w-2 rounded-full" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
-        <span class="text-xs font-medium text-gray-600 dark:text-gray-300" x-text="online ? 'Online' : 'Offline'"></span>
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-300!" x-text="online ? 'Online' : 'Offline'"></span>
     </div>
 </div>
 
