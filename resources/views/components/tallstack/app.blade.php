@@ -17,8 +17,9 @@
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
         ],
         'Procurement' => [
-            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => "{$adminBase}/vendor-bills", 'icon' => 'clipboard-document-list'],
-            ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
+            ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
+            ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
+            ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
         ],
         'Clients' => [
             ['key' => 'clients', 'label' => 'Clients', 'route' => "{$adminBase}/clients", 'icon' => 'user-group'],
