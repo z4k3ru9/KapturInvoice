@@ -10,8 +10,9 @@ use App\Models\Quotation;
  * edited totals" approach. Deliberately does not compute tax: the
  * approved Indonesian PPN/DPP Nilai Lain formula against
  * `Quotation::pricing_mode` is Phase 04 scope
- * (App\Services\TaxCalculationService, per docs/rebuild/outputs/
- * 05-implementation-plan.md Task 4) — a quotation's `total` here is its
+ * (App\Services\TaxCalculationService, per
+ * docs/rebuild/outputs/planning/05-implementation-plan.md Task 4) — a
+ * quotation's `total` here is its
  * pre-tax billable value, which is what Phase 03's job/milestone value
  * checks need.
  */

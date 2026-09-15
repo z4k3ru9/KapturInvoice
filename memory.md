@@ -10,7 +10,7 @@ re-run completed audits unless new evidence contradicts them.
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - Phases 01-06B (the job-centric rebuild) are implemented and verified —
-  see `docs/rebuild/outputs/23-phase-06b-checkpoint-report.md` and
+  see `docs/rebuild/outputs/checkpoints/23-phase-06b-checkpoint-report.md` and
   CLAUDE.md's own Phase 06B section for the full slice-by-slice and
   Codex-review detail. Do not re-derive this history from git log or
   re-run completed audits; treat it as settled.
@@ -19,7 +19,7 @@ re-run completed audits unless new evidence contradicts them.
   every resource has a `TallStack*` Livewire component under
   `App\Livewire`, routed at `/tall/{company:slug}/...`. This supersedes
   the older "Filament stays installed in parallel" plan;
-  `docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md` is historical
+  `docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md` is historical
   context on how the rebuild was planned, not a live constraint.
 - Established TallStackUI conventions (see CLAUDE.md and recent commit
   history for full detail — do not relitigate): semantic button color
@@ -135,14 +135,14 @@ re-run completed audits unless new evidence contradicts them.
   backfill/remap legacy rows onto Phase 04 statuses — a legacy `Partial`,
   for example, has no faithful Phase 04 equivalent, so mapping would
   destroy real historical distinctions for no functional gain. Closes
-  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
+  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
   C2.
 
 - Stitch UI layout work (ratified 2026-09-14, superseded in practice by the
   full TallStackUI rebuild above): the Stitch renders remain layout
   references only, never adopted verbatim (placeholder logos and the
   Inter webfont were rejected). See
-  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/` for the original
+  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/` for the original
   slice-order decisions if picking up unfinished Stitch-tracked work.
 
 ## Financial rules

@@ -15,5 +15,5 @@ Schedule::command('invoices:send-reminders')->dailyAt('08:00');
 
 // See App\Console\Commands\ExpireQuotations — closes the "no automatic
 // quotation expiry" gap noted in
-// docs/rebuild/outputs/17-phase-03-checkpoint-report.md.
+// docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md.
 Schedule::command('quotations:expire')->dailyAt('00:05');

@@ -270,7 +270,7 @@ Route::get('/tall/{company:slug}/dashboard', TallStackDashboard::class)
     ->middleware('auth')
     ->name('tallstack.dashboard');
 
-// Phase 1 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 1 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Quotations register and its create/edit line editor, TALL-stack-native
 // alongside the equivalent resource from the pre-TallStackUI Filament
 // admin. `/create` is registered before
@@ -289,7 +289,7 @@ Route::get('/tall/{company:slug}/quotations/{quotation}/edit', TallStackQuotatio
     ->middleware('auth')
     ->name('tallstack.quotations.edit');
 
-// Phase 2 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 2 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Job (SalesOrder) register and its 7-tab workspace, TALL-stack-native
 // alongside the equivalent resource from the pre-TallStackUI Filament
 // admin. Re-checks company ownership
@@ -301,7 +301,7 @@ Route::get('/tall/{company:slug}/jobs/{salesOrder}', TallStackSalesOrder::class)
     ->middleware('auth')
     ->name('tallstack.jobs.show');
 
-// Phase 3 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 3 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Invoices register and its detail/edit page (line items + status
 // lifecycle + e-Faktur/Tax Recap issuance), TALL-stack-native alongside
 // the equivalent resource from the pre-TallStackUI Filament admin.
@@ -332,7 +332,7 @@ Route::get('/tall/{company:slug}/quotes/{invoice}', TallStackInvoiceForm::class)
     ->middleware('auth')
     ->name('tallstack.quotes.edit');
 
-// Deferred-scope item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md
+// Deferred-scope item (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md
 // status checklist) — the Recurring Invoices register and its detail/
 // schedule-editor page, TALL-stack-native alongside the equivalent
 // resource from the pre-TallStackUI Filament admin. A recurring
@@ -353,7 +353,7 @@ Route::get('/tall/{company:slug}/recurring-invoices/{invoice}/edit', TallStackRe
     ->middleware('auth')
     ->name('tallstack.recurring-invoices.edit');
 
-// Phase 4 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 4 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Payments register and its allocation panel, TALL-stack-native alongside
 // the equivalent resource from the pre-TallStackUI Filament admin.
 // Both components re-check company ownership explicitly in mount() — same
@@ -365,7 +365,7 @@ Route::get('/tall/{company:slug}/payments/{payment}', TallStackPaymentAllocation
     ->middleware('auth')
     ->name('tallstack.payments.allocate');
 
-// Phase 7 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Phase 7 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
 // standalone Delivery Orders/Handover Reports registers browsing across
 // ALL jobs, TALL-stack-native alongside the Job resource's own read-only
 // relation managers from the pre-TallStackUI Filament admin. Neither
@@ -387,7 +387,7 @@ Route::get('/tall/{company:slug}/handover-reports', TallStackHandoverReports::cl
     ->middleware('auth')
     ->name('tallstack.handover-reports');
 
-// Phase 8 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 8 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Products/Catalog register, TALL-stack-native alongside the equivalent
 // resource from the pre-TallStackUI Filament admin. Create/Edit is a
 // modal on this same page, not a separate route — see
@@ -397,7 +397,7 @@ Route::get('/tall/{company:slug}/products', TallStackProducts::class)
     ->middleware('auth')
     ->name('tallstack.products');
 
-// Deferred item (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Deferred item (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
 // the vendor pricelist reference catalog register, TALL-stack-native
 // alongside the equivalent resource from the pre-TallStackUI Filament
 // admin. Register/list only — browse
@@ -410,7 +410,7 @@ Route::get('/tall/{company:slug}/price-list-items', TallStackPriceListItems::cla
     ->middleware('auth')
     ->name('tallstack.price-list-items');
 
-// Phase 5 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Phase 5 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) — the
 // Clients register and detail view, TALL-stack-native alongside the
 // equivalent resource from the pre-TallStackUI Filament admin.
 // `/clients` is registered before `/clients/{client}` so the literal
@@ -423,7 +423,7 @@ Route::get('/tall/{company:slug}/clients/{client}', TallStackClientDetail::class
     ->middleware('auth')
     ->name('tallstack.clients.show');
 
-// Statement of Accounts (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// Statement of Accounts (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
 // last remaining status-checklist item) — the document view reached from
 // TallStackClientDetail's "Preview / Generate SOA" action and its
 // Statement of Accounts relation manager's row action. `statementOfAccount`
@@ -436,7 +436,7 @@ Route::get('/tall/{company:slug}/clients/{client}/statement-of-account/{statemen
     ->middleware('auth')
     ->name('tallstack.clients.statement-of-account');
 
-// Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Phase 9 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
 // Settings, TALL-stack-native alongside the equivalent pages/resources
 // from the pre-TallStackUI Filament admin (the tenant-profile page, the
 // Email/Branding settings pages, and the TaxRates/ExpenseCategories/
@@ -465,7 +465,7 @@ Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClien
     ->name('tallstack.settings.client-portal');
 
 // Payment Gateways — register and configuration (pre-Filament-removal
-// audit gap; docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// audit gap; docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
 // prompt 20). Same explicit company-ownership re-check pattern as every
 // other TALL-stack route, plus the same CompanyPolicy::viewSettings()
 // (Owner/Admin only) gate the other Settings-group pages above already
@@ -475,10 +475,10 @@ Route::get('/tall/{company:slug}/payment-gateways', TallStackPaymentGateways::cl
     ->name('tallstack.payment-gateways');
 
 // Proposals — register and SOW rich editor (deferred-scope item, no
-// earlier phase number; see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// earlier phase number; see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
 // "Deferred, no Stitch mockup" list — a Stitch mockup ("Proposals —
 // Register & SOW Rich Editor") was generated for it later in that
-// session, per docs/rebuild/outputs/26-stitch-missing-screens-prompts.md
+// session, per docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md
 // prompt 12). Same explicit company-ownership re-check pattern as
 // Quotations above.
 Route::get('/tall/{company:slug}/proposals', TallStackProposals::class)
@@ -493,7 +493,7 @@ Route::get('/tall/{company:slug}/proposals/{proposal}/edit', TallStackProposalFo
 
 // Proposal Templates & Snippets — Proposals' own small supporting
 // library, reached via the tab-style links on TallStackProposals's own
-// header (docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt
+// header (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt
 // 23). Deliberately NOT a top-level nav entry — same "reached via the
 // parent register's own tabs" scoping prompt 13 already established for
 // Tax Rates/Expense Categories/Task Statuses.
@@ -504,9 +504,9 @@ Route::get('/tall/{company:slug}/proposals/snippets', TallStackProposalSnippets:
     ->middleware('auth')
     ->name('tallstack.proposal-snippets');
 
-// "Users & roles" (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+// "Users & roles" (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
 // "Deferred, no Stitch mockup" list — a mockup was generated later, see
-// docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 11).
+// docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 11).
 // canAccessTenant() plus the Owner/Admin-only CompanyPolicy::manageMembership
 // check both happen in the component's mount(), same pattern as every
 // other TALL-stack page.
@@ -514,7 +514,7 @@ Route::get('/tall/{company:slug}/users', TallStackUsers::class)
     ->middleware('auth')
     ->name('tallstack.users');
 
-// Phase 6 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Phase 6 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
 // Procurement: Vendors, Vendor Purchase Orders, Vendor Bills, alongside
 // the equivalent resources from the pre-TallStackUI Filament admin.
 // `/create` is registered before the
@@ -545,7 +545,7 @@ Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendo
     ->middleware('auth')
     ->name('tallstack.vendor-bills.edit');
 
-// Expenses — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// Expenses — pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
 // prompt 19), TALL-stack-native alongside the equivalent resource from
 // the pre-TallStackUI Filament admin. A plain non-job cost bucket,
 // separate from Vendor Bills (which ARE tied to a job/PO) — register/list
@@ -557,7 +557,7 @@ Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
     ->middleware('auth')
     ->name('tallstack.expenses');
 
-// Documents — pre-Filament-removal gap audit item (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+// Documents — pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
 // prompt 22), TALL-stack-native alongside the equivalent resource from
 // the pre-TallStackUI Filament admin. A flat,
 // company-scoped "every file we have" register/list-only page — no
@@ -570,10 +570,10 @@ Route::get('/tall/{company:slug}/documents', TallStackDocuments::class)
     ->name('tallstack.documents');
 
 // Credits — register only (deferred-scope item, no earlier phase number;
-// see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's "Deferred"
+// see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's "Deferred"
 // list — a Stitch mockup ("Credits — Register (Karunia Abadi Variant)")
 // was generated later in that session, per
-// docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 15).
+// docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 15).
 // Read-only: Credits are imported historical records only
 // (docs/rebuild/specs/FINALIZED-DECISIONS.md §7 — "New credit-note
 // creation, editing, refunds, and write-offs remain deferred"), so unlike
@@ -585,7 +585,7 @@ Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
     ->name('tallstack.credits');
 
 // Client Portal Invitations — pre-Filament-removal gap audit item
-// (docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt 21),
+// (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt 21),
 // TALL-stack-native alongside the equivalent resource from the
 // pre-TallStackUI Filament admin. Read-mostly,
 // same reasoning as Credits above: invitations are generated
@@ -595,7 +595,7 @@ Route::get('/tall/{company:slug}/client-portal-invitations', TallStackClientPort
     ->middleware('auth')
     ->name('tallstack.client-portal-invitations');
 
-// Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
+// Phase 10 (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md) —
 // Financial Analytics & Tax Reports. Reuses the Dashboard's own revenue/
 // outstanding/overdue aggregates, the pre-TallStackUI Filament admin's
 // job-margin report widget's query/computation, and real

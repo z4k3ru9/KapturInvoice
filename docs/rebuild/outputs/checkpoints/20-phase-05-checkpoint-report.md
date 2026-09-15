@@ -180,4 +180,4 @@ Phase `06-documents-portal-reporting` — extend `Document` to
 `document_files`, portal scoping on `Invitation`/`portal_links`,
 dashboards/reports (including the job-cost/margin report deferred above),
 `PaymentGateway*` stays frozen/hidden. Per
-`docs/rebuild/outputs/05-implementation-plan.md` Tasks 10–11.
+`docs/rebuild/outputs/planning/05-implementation-plan.md` Tasks 10–11.

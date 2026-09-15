@@ -238,7 +238,7 @@ Build Phase [N] of the KapturInvoice TallStackUI admin rebuild:
 [phase name, e.g. "Quotations — register, create/edit line editor, A4 PDF preview"].
 
 Read first, in order:
-1. docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md — the plan and
+1. docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md — the plan and
    resume point for this whole rebuild. Read its "Established TallStackUI
    patterns" section closely — it documents real bugs already hit and
    fixed (cross-stylesheet Tailwind v4 cascade quirk, icon shrink-0,
@@ -311,7 +311,7 @@ Verify before considering this phase done:
    commands) before finishing — none of that belongs in the commit.
 
 Do NOT touch app/Filament/** for this phase — Filament stays running in
-parallel per docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md.
+parallel per docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md.
 Do NOT change any financial calculation, numbering rule, status
 transition, or authorization rule — flag it instead if the Stitch mockup
 seems to imply one and ask before implementing it.
@@ -324,7 +324,7 @@ instructions) [adjust this line if the branch's push policy differs].
 
 Report back: what was built (files, route, nav entry), what Stitch
 screen(s) it matches and how closely, test/build results, and the next
-unchecked task in docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+unchecked task in docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
 status checklist.
 ```
 
@@ -514,7 +514,7 @@ status checklist.
       evidently finished server-side later. This was the last item in the
       phases above did.
 - [x] Filament-parity gap closure — pre-removal audit found 9 real gaps
-      (see `docs/rebuild/outputs/27-filament-parity-gap-prompts.md`).
+      (see `docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md`).
       Closing them one worktree-agent at a time (max 3 concurrent), each
       built against its own generated Stitch mockup:
       - [x] Company registration/onboarding (`/register-company`,

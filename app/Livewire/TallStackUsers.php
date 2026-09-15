@@ -21,8 +21,8 @@ use TallStackUi\Traits\Interactions;
  * App\Livewire\TallStackQuotations's docblock for the established pattern
  * this follows. This area has no dedicated Stitch phase number (it was in
  * the "Deferred, no Stitch mockup" list until a mockup was generated —
- * see docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md and
- * docs/rebuild/outputs/26-stitch-missing-screens-prompts.md prompt 11).
+ * see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md and
+ * docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 11).
  *
  * Every row here is a `company_user` pivot (App\Enums\CompanyRole in its
  * `role` column, plus an `is_active` flag) — a person can hold a

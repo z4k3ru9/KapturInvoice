@@ -378,7 +378,7 @@ class TallStackClientDetail extends Component
 
         // Redirect into the real document view (App\Livewire\
         // TallStackStatementOfAccount) instead of staying on this page —
-        // per docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md's
+        // per docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
         // Statement of Accounts item, "Generate" should land on the
         // Issued document, not just toast a number.
         $this->redirect(route('tallstack.clients.statement-of-account', [

@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 /**
  * The first-run setup checklist — see
- * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md O1.
+ * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md O1.
  *
  * Ported from the pre-TallStackUI Filament admin's own test during the
  * Filament-removal Phase B — the pure SetupChecklist::for()/isComplete()

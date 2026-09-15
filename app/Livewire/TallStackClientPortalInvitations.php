@@ -28,7 +28,7 @@ use Livewire\WithPagination;
  *
  * See App\Livewire\TallStackCredits' docblock for the established
  * read/browse-only register pattern this follows, and
- * docs/rebuild/outputs/27-filament-parity-gap-prompts.md §21 for the exact
+ * docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md §21 for the exact
  * table/filter/empty-state spec.
  */
 #[Layout('components.tallstack.app')]

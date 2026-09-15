@@ -40,7 +40,7 @@
         (Axen Technology Variant)" mockup renders this content as the
         Dashboard's own top section (same sidebar/header chrome, same
         page), not a standalone page — see
-        docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md. Reuses
+        docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md. Reuses
         App\Support\Dashboard\SetupChecklist's exact five steps and "done"
         logic unmodified; the mockup itself shows four Axen-specific steps
         (legal entity/tax registry, catalog, client+quotation, a bank

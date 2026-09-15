@@ -6,7 +6,7 @@ use Illuminate\Support\Number;
 
 /**
  * Dashboard-widget currency formatting — see
- * docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md D17.
+ * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md D17.
  * `Number::currency()` (the `intl` extension is present in every
  * environment this ships to) gives locale-aware thousands separators;
  * whole-Rupiah precision matches the approved upward-rounding rule for

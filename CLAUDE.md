@@ -414,7 +414,7 @@ Or just `composer setup` (runs the same steps via the composer script).
     model gets `document_language` + `resolveDocumentLanguage()`
     mirroring `Invoice`'s. New translation keys live in
     `resources/lang/{id,en}/documents.php` alongside the existing set —
-    see `docs/rebuild/outputs/22-phase-06b-terminology-sources.md` for
+    see `docs/rebuild/outputs/checkpoints/22-phase-06b-terminology-sources.md` for
     the now-complete source-backed terminology review (every `id` key
     covered; one real error caught and fixed — `soa_title` was
     `Rekening Koran`, which specifically means a *bank* statement, not a
@@ -589,10 +589,10 @@ Or just `composer setup` (runs the same steps via the composer script).
     period boundary its `verified_at` fell — both now use the full
     verified-payment-amount basis.
 - **Stitch UI remake — Track A1 (shell) + A2 (dashboard)** — per
-  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
+  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
   Track A, implemented pre-PR#4-merge since these files don't overlap that
   branch's diff. Full detail in
-  `docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md`;
+  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md`;
   see `docs/filament-admin-layout-design.md` §1/§9 for the nav-group/
   dashboard-widget state *as it stood under Filament*
   (pre-TallStackUI-rebuild architecture; see current TallStackUI
@@ -637,7 +637,7 @@ Or just `composer setup` (runs the same steps via the composer script).
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
   testing was deliberately NOT built — see
-  `docs/rebuild/outputs/21-phase-06-checkpoint-report.md` for why this
+  `docs/rebuild/outputs/checkpoints/21-phase-06-checkpoint-report.md` for why this
   matches, rather than contradicts, this project's already-established
   "no browser/E2E suite" policy (`docs/testing-coverage.md` "What's out
   of scope").
@@ -785,7 +785,7 @@ Or just `composer setup` (runs the same steps via the composer script).
     `VariationsRelationManager` established in Phase 03) and two new
     row actions (Close operationally/Close financially).
   - Deliberately not built this phase (see
-    `docs/rebuild/outputs/20-phase-05-checkpoint-report.md`): vendor PO/
+    `docs/rebuild/outputs/checkpoints/20-phase-05-checkpoint-report.md`): vendor PO/
     bill PDF export, a dedicated job-cost/margin report, and any
     attachment/evidence upload beyond the existing pattern — all
     correctly Phase 06 (`documents-portal-reporting`) scope.
@@ -845,7 +845,7 @@ Or just `composer setup` (runs the same steps via the composer script).
     `App\Filament\Resources\Invoices\Tables\InvoicesTable`/
     `App\Filament\Resources\Payments\Tables\PaymentsTable`.
   - Deliberately not built this phase (see
-    `docs/rebuild/outputs/18-phase-04-checkpoint-report.md` for the
+    `docs/rebuild/outputs/checkpoints/18-phase-04-checkpoint-report.md` for the
     full breakdown): the Livewire tax scratchpad UI, PDF rendering of
     tax snapshots/recaps, `Credit`/`RecurringInvoice` nav deprecation,
     and any procurement/job-cost/delivery work — all correctly Phase
@@ -896,7 +896,7 @@ Or just `composer setup` (runs the same steps via the composer script).
   - Full tax computation against `Quotation::pricing_mode`, generating
     invoices from milestones, and procurement/delivery/handover/job-cost
     relation managers are deliberately not built here — see
-    `docs/rebuild/outputs/17-phase-03-checkpoint-report.md` for the full
+    `docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md` for the full
     scope breakdown (Phase 04/05 work).
 - **Renovation Phase 02 (parties and catalog)** — `App\Models\Product`
   now models any sellable catalog item, not just physical goods:
@@ -909,7 +909,7 @@ Or just `composer setup` (runs the same steps via the composer script).
   deferred launch scope). `Contact::is_billing_contact` designates which
   of a client's contacts sees full billing history in the future portal
   (`FINALIZED-DECISIONS.md` §5) — everyone else sees only explicitly
-  shared documents. See `docs/rebuild/outputs/16-phase-02-checkpoint-report.md`
+  shared documents. See `docs/rebuild/outputs/checkpoints/16-phase-02-checkpoint-report.md`
   for the full slice report, including a real unbounded-query bug found
   and fixed in the invoice Items relation manager's product picker.
 - **Public homepage content** (`App\Support\Homepage\PortfolioContent`) —

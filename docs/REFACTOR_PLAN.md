@@ -24,14 +24,14 @@ this renovation are **already approved and closed** —
 [`docs/rebuild/specs/FINALIZED-DECISIONS.md`](rebuild/specs/FINALIZED-DECISIONS.md),
 and the phase files under `docs/rebuild/specs/00-gate-0/` through
 `08-release-readiness/` are the binding execution contract, and
-[`docs/rebuild/outputs/05-implementation-plan.md`](rebuild/outputs/05-implementation-plan.md)
+[`docs/rebuild/outputs/planning/05-implementation-plan.md`](rebuild/outputs/planning/05-implementation-plan.md)
 already lays out a task-by-task build order. **This document does not
 replace or reopen any of that.** It is a companion audit that maps the
 *current, real files in this repository* onto those already-approved
 decisions — a KEEP/DELETE/MODIFY inventory and a verification checklist —
 so implementation sessions don't have to re-derive "what exists today and
 what happens to it" from scratch before touching Phase 01. Gate 0 is
-already closed ([`14-gate-0-baseline-report.md`](rebuild/outputs/14-gate-0-baseline-report.md)):
+already closed ([`14-gate-0-baseline-report.md`](rebuild/outputs/checkpoints/14-gate-0-baseline-report.md)):
 118 tests currently pass on this branch (up from the 102 recorded at that
 Gate 0 snapshot, after the price-list-import work landed).
 
@@ -51,7 +51,7 @@ meet the new spec · **DEPRECATE** = kept for migration/read access only, hidden
 from launch navigation · **BUILD NEW** = has no real predecessor today.
 
 Per `docs/rebuild/specs/IMPLEMENTATION-STRUCTURE.md` §1 and
-`docs/rebuild/outputs/10-renovation-architecture-specification.md` §4: legacy
+`docs/rebuild/outputs/planning/10-renovation-architecture-specification.md` §4: legacy
 code is **read-only once its canonical replacement is accepted**, and is only
 physically deleted after the relevant phase's data-reconciliation and browser
 tests pass — never deleted pre-emptively. So "DEPRECATE" below never means
@@ -69,7 +69,7 @@ tests pass — never deleted pre-emptively. So "DEPRECATE" below never means
 | `TaxRate.php` | **MODIFY** | Needs `company_tax_settings` (enabled flag, mode, DPP factor) sitting above it — today's flat rate list doesn't express Axen's inclusive/exclusive DPP Nilai Lain formula or Karunia's disabled-tax state. |
 | `Invoice.php`, `InvoiceItem.php`, `InvoiceItemTax.php` | **MODIFY (major)** | Central rework target. Today `Invoice` + `InvoiceType` enum model **both invoices and quotes on one table** (no dedicated `quotes` table exists in migrations — confirmed by inventory). The new spec requires `quotations`/`quotation_items` as their own aggregate with their own state machine (`Draft→Approved→Sent→Accepted\|Rejected\|Expired\|Cancelled`), separate from `invoices`. This is a genuine schema split, not a rename. `invoice_item_taxes` (already a normalized pivot, not legacy inline columns) is a good foundation for `invoice_tax_snapshots` — extend, don't replace. |
 | `Credit.php` | **DEPRECATE (for now)** | Credits/refunds are explicitly **deferred** launch scope (`PRD.md` "Non-negotiable business rules", `Specs.md` §3 "Deferred"). Keep the model and its data for legacy-imported companies (read-only), hide `CreditResource` from nav once Phase 04 billing lands, do not build new credit workflows. |
-| `Payment.php` | **MODIFY (major)** | Today `payments` implies a 1:1-ish link to a single invoice. New spec requires `payments` (event) + `payment_allocations` (many-to-many across invoices/jobs, same client/company only) + `payment_verification_events` + `receipts` + `payment_reversals`. This is an additive schema change (new tables), with `Payment.php` losing its direct `invoice_id` as the source of truth — that FK can stay for legacy-imported rows only (`docs/rebuild/outputs/01-requirements-baseline.md`/implementation plan Task 6: "retain legacy linkage only for migration"). |
+| `Payment.php` | **MODIFY (major)** | Today `payments` implies a 1:1-ish link to a single invoice. New spec requires `payments` (event) + `payment_allocations` (many-to-many across invoices/jobs, same client/company only) + `payment_verification_events` + `receipts` + `payment_reversals`. This is an additive schema change (new tables), with `Payment.php` losing its direct `invoice_id` as the source of truth — that FK can stay for legacy-imported rows only (`docs/rebuild/outputs/planning/01-requirements-baseline.md`/implementation plan Task 6: "retain legacy linkage only for migration"). |
 | `PaymentGateway.php` + `Services/PaymentGateways/*` | **DEPRECATE (hide)** | Online payment gateway is explicitly deferred launch scope. `LocalApiPaymentGatewayDriver`, the webhook route, and `PaymentGatewayResource` are pre-built but must stay unwired from any real "Charge" UI action (already true today — CLAUDE.md itself flags "nothing in the UI calls `charge()` yet"). No code change needed now; just don't extend it, and hide the nav entry once Phase 09 authorization pass runs. |
 | `Expense.php`, `ExpenseCategory.php`, `ExpenseTax.php` | **MODIFY → becomes Vendor Bill** | Closest existing analog to `vendor_bills`/`vendor_bill_items`, but expenses today aren't linked to a Vendor PO or job-cost allocation. Phase 05 (`05-procurement-and-delivery`) builds `vendor_purchase_orders`/`vendor_bills`/`job_cost_allocations` as new tables; decide during that phase whether `Expense` is renamed/absorbed into `VendorBill` or kept as a non-job-linked cost bucket — flag as an open question rather than pre-deciding here (see §2 risk list). |
 | `Project.php`, `Task.php`, `TaskStatus.php` | **DEPRECATE, replaced by `SalesOrder`** | This is the single biggest naming trap in the repo: `Project`/`Task` look like the "job" concept but the spec explicitly says *"generic project/task/time tracking" is deferred/disabled scope* and a **new** `sales_orders`/`sales_order_items`/`payment_milestones` aggregate is the real job/Sales-Order-centric hub (`Specs.md` §3, `IMPLEMENTATION-STRUCTURE.md` Task 3). Do not extend `Project`/`Task` into the job hub — build `SalesOrder` fresh, keep `Project`/`Task` only as read/hidden legacy surfaces if any imported data depends on them. |
@@ -215,7 +215,7 @@ KEEP/MODIFY/DEPRECATE calls in §1 land in the right phase.
 | Approved phase | What from §1 lands here |
 |---|---|
 | **00 — Gate 0 (closed)** | N/A — already done; 118 tests green on this branch as of this audit. |
-| **01 — Company foundation (complete)** | Done — see `docs/rebuild/outputs/15-phase-01-checkpoint-report.md`. `Company`/`CompanySetting` MODIFIED, `company_tax_settings`/`numbering_sequences`/`audit_events`/`source_records`/`user_invitations` BUILT, `DocumentNumberGenerator` rewritten to the new format, `CompanyRole` enum + Gate::before policy layer + `CompanyMembershipService`/`PeriodLockService` added, 161 tests passing (up from 119). |
+| **01 — Company foundation (complete)** | Done — see `docs/rebuild/outputs/checkpoints/15-phase-01-checkpoint-report.md`. `Company`/`CompanySetting` MODIFIED, `company_tax_settings`/`numbering_sequences`/`audit_events`/`source_records`/`user_invitations` BUILT, `DocumentNumberGenerator` rewritten to the new format, `CompanyRole` enum + Gate::before policy layer + `CompanyMembershipService`/`PeriodLockService` added, 161 tests passing (up from 119). |
 | **02 — Parties and catalog** | `Client`/`Vendor`/`Product`/`PriceListItem` KEEP+extend, `catalog_items` type field BUILD, `Invitation`→`portal_links` MODIFY. |
 | **03 — Sales and job** | `Invoice`/`InvoiceType` split → `quotations` BUILD NEW, `SalesOrder`/`payment_milestones`/`job_variations` BUILD NEW, `Project`/`Task`/`TaskStatus` frozen+hidden (DEPRECATE). |
 | **04 — Billing and receivables** | `InvoiceTotalsCalculator` MODIFY (discount-before-tax fix), `Invoice`/`InvoiceItem`/`InvoiceItemTax` MODIFY (major) with `invoice_tax_snapshots`/`tax_recaps` BUILD NEW, `Payment` MODIFY (major) with `payment_allocations`/`payment_verification_events`/`receipts`/`payment_reversals` BUILD NEW, `Credit`/`RecurringInvoice` DEPRECATE from nav. |
@@ -225,7 +225,7 @@ KEEP/MODIFY/DEPRECATE calls in §1 land in the right phase.
 | **08 — Release readiness** | Browser journeys, backup/restore drill, final reconciliation sign-off, `Proposal*` confirmed hidden/frozen, all deferred features (`PaymentGateway`, `RecurringInvoice`, `Credit`, `Project`/`Task`) confirmed out of launch navigation. |
 
 Each phase's detailed task/file breakdown already exists in
-[`docs/rebuild/outputs/05-implementation-plan.md`](rebuild/outputs/05-implementation-plan.md)
+[`docs/rebuild/outputs/planning/05-implementation-plan.md`](rebuild/outputs/planning/05-implementation-plan.md)
 (Tasks 0–13) and the per-phase `docs/rebuild/specs/0X-*/Specs.md` files — this
 table is a cross-reference into those, not a replacement plan.
 
