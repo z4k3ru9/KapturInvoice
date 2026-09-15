@@ -3,12 +3,10 @@
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Proposals']]" title="Proposals">
         <x-slot:actions>
             {{-- Secondary tab-style links to the two supporting library
-                 screens — sketched as tab targets only per prompt 12's own
-                 scoping, not rebuilt as full TallStackUI pages this phase
-                 (see TallStackProposals's docblock). Both open the
-                 existing Filament admin pages for those resources. --}}
-            <x-button text="Proposal Templates" color="gray" sm class="h-9" href="{{ route('filament.admin.resources.proposal-templates.index', $company) }}" />
-            <x-button text="Proposal Snippets" color="gray" sm class="h-9" href="{{ route('filament.admin.resources.proposal-snippets.index', $company) }}" />
+                 screens — now real TallStackUI pages (prompt 23), no
+                 longer placeholders into the Filament admin resources. --}}
+            <x-button text="Proposal Templates" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-templates', $company) }}" />
+            <x-button text="Proposal Snippets" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-snippets', $company) }}" />
             {{-- color="blue", not "primary" — see app.blade.php's own
                  "+New" button for why: a general action shouldn't borrow
                  the tenant's brand color. --}}
