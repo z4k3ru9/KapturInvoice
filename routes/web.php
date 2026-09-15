@@ -26,6 +26,8 @@ use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
 use App\Livewire\TallStackDashboard;
 use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackInvoices;
+use App\Livewire\TallStackPaymentAllocation;
+use App\Livewire\TallStackPayments;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackQuotations;
 use App\Livewire\TallStackSalesOrder;
@@ -186,6 +188,18 @@ Route::get('/tall/{company:slug}/invoices/create', TallStackInvoiceForm::class)
 Route::get('/tall/{company:slug}/invoices/{invoice}', TallStackInvoiceForm::class)
     ->middleware('auth')
     ->name('tallstack.invoices.edit');
+
+// Phase 4 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) — the
+// Payments register and its allocation panel, TALL-stack-native alongside
+// the Filament resource they mirror (App\Filament\Resources\Payments).
+// Both components re-check company ownership explicitly in mount() — same
+// reasoning as the Quotations routes above.
+Route::get('/tall/{company:slug}/payments', TallStackPayments::class)
+    ->middleware('auth')
+    ->name('tallstack.payments');
+Route::get('/tall/{company:slug}/payments/{payment}', TallStackPaymentAllocation::class)
+    ->middleware('auth')
+    ->name('tallstack.payments.allocate');
 
 // Async status callbacks from a configured gateway — see
 // App\Http\Controllers\PaymentGatewayWebhookController and the CSRF
