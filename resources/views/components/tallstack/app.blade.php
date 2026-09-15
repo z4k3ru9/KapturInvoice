@@ -53,6 +53,18 @@
             // warning further down).
             ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
         ],
+        // Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
+        // — matches AdminPanelProvider's own pinned nav-group order (Sales
+        // → Procurement → Delivery → Catalog → Reports → Settings) and the
+        // Stitch "Financial Analytics & Tax Reports" mockup's own sidebar,
+        // which places this group in the same spot, right before Settings.
+        // This key did not exist before this phase, so it's a genuinely
+        // new top-level array entry — not a fold into an existing group
+        // (see this file's own duplicate-key warning further down for why
+        // that distinction matters).
+        'Reports' => [
+            ['key' => 'reports-financial', 'label' => 'Financial Analytics', 'route' => route('tallstack.reports', $company), 'icon' => 'chart-bar'],
+        ],
         // Phase 9 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md)
         // — matches AdminPanelProvider's own pinned nav-group order
         // (... Reports → Settings, last) and the Stitch "Company & Taxes
