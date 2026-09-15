@@ -446,7 +446,7 @@
             {{-- Destructive (red) when voiding, otherwise Primary (brand)
                  — this panel's own single commit action either ends the
                  document or just corrects it. --}}
-            <x-button text="{{ $correctionAction === 'void' ? 'Void & reissue' : 'Amend' }}" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" loading="submitCorrection" spinner="dots" />
+            <x-button :text="$correctionAction === 'void' ? 'Void & reissue' : 'Amend'" :color="$correctionAction === 'void' ? 'red' : 'brand'" wire:click="submitCorrection" loading="submitCorrection" spinner="dots" />
         </x-slot:footer>
     </x-slide>
     @endunless
