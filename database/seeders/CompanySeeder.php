@@ -40,7 +40,11 @@ class CompanySeeder extends Seeder
                 'postal_code' => '60118',
                 'country_code' => 'ID',
                 'currency_code' => 'IDR',
-                'primary_color' => '#8c0d1b',
+                // DESIGN.md §10 hexes — see memory.md "Stitch UI layout
+                // work" (Stitch's own placeholder logos are not adopted,
+                // hex colors only).
+                'primary_color' => '#E63934',
+                'secondary_color' => '#050708',
                 'invoice_prefix' => 'KJA-INV-',
                 'quote_prefix' => 'KJA-QUO-',
                 'credit_prefix' => 'KJA-CR-',
@@ -60,8 +64,8 @@ class CompanySeeder extends Seeder
                 'country_code' => 'ID',
                 'currency_code' => 'IDR',
                 'tax_number' => '63.611.560.2-619.000',
-                'primary_color' => '#298AAB',
-                'secondary_color' => '#7081e0',
+                'primary_color' => '#5065A8',
+                'secondary_color' => '#64748B',
                 'invoice_prefix' => 'ATI-INV-',
                 'quote_prefix' => 'ATI-QUO-',
                 'credit_prefix' => 'ATI-CR-',

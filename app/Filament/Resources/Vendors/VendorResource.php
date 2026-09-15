@@ -24,7 +24,10 @@ class VendorResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Expenses';
+    // Alongside Vendor Purchase Orders/Vendor Bills — see
+    // docs/rebuild/outputs/18-stitch-ui-gap-analysis/01-shell-dashboard.md
+    // S1.
+    protected static string|UnitEnum|null $navigationGroup = 'Procurement';
 
     protected static ?string $recordTitleAttribute = 'name';
 
