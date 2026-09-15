@@ -12,8 +12,8 @@ use Livewire\WithFileUploads;
 use TallStackUi\Traits\Interactions;
 
 /**
- * The TALL-stack "Branding" settings screen — mirrors
- * App\Filament\Pages\Settings\EditBrandingSettings field-for-field:
+ * The TALL-stack "Branding" settings screen — mirrors the equivalent
+ * pre-TallStackUI Filament branding settings page field-for-field:
  * logo/primary_color/secondary_color (the same Company columns
  * App\Livewire\TallStackSettingsCompanyTaxes's own Branding section
  * edits — both forms save to the same row, per CLAUDE.md's documented

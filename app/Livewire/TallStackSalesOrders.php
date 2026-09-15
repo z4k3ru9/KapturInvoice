@@ -20,8 +20,8 @@ use TallStackUi\Traits\Interactions;
  * The TALL-stack-native Job (SalesOrder) register — see
  * App\Livewire\TallStackQuotations' docblock for the established pattern
  * this follows. Reuses App\Models\SalesOrder/App\Enums\SalesOrderStatus
- * exactly; matches App\Filament\Resources\SalesOrders\Tables\SalesOrdersTable's
- * own column set (number, client, status, approved_value, source
+ * exactly; matches the equivalent pre-TallStackUI Filament sales orders
+ * table's own column set (number, client, status, approved_value, source
  * quotation, created_at) plus a "next milestone" display column computed
  * here purely for presentation (not a new domain calculation — the
  * milestone rows themselves already exist via PaymentMilestone).

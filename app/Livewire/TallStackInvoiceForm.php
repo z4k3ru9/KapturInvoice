@@ -38,22 +38,20 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack detail/edit page for an Invoice — the sibling page to
- * App\Livewire\TallStackInvoices. Mirrors
- * App\Filament\Resources\Invoices\Schemas\InvoiceForm (header fields) and
- * ...\RelationManagers\ItemsRelationManager (line items, including the
- * `tax_rate_ids` virtual field synced via
+ * App\Livewire\TallStackInvoices. Mirrors the equivalent pre-TallStackUI
+ * Filament invoice form (header fields) and its items relation manager
+ * (line items, including the `tax_rate_ids` virtual field synced via
  * App\Services\InvoiceTotalsCalculator::syncItemTaxes()) field-for-field.
  * Every status transition/correction goes through the exact same
- * App\Actions\Billing\* classes
- * ...\Tables\InvoicesTable's row actions call — `status` is never a form
- * field here, and totals/balance are never hand-set.
+ * App\Actions\Billing\* classes that resource's own table row actions
+ * called — `status` is never a form field here, and totals/balance are
+ * never hand-set.
  *
  * Scoped to plain, non-recurring `type = InvoiceType::Invoice` rows only
- * — deliberately drops InvoiceForm's "Recurring" section, since the
- * Invoices register this page lives under (App\Livewire\TallStackInvoices)
- * already excludes `is_recurring` rows (those stay on the separate,
- * untouched App\Filament\Resources\RecurringInvoices resource/nav entry
- * for this phase).
+ * — deliberately drops the equivalent Filament form's "Recurring" section,
+ * since the Invoices register this page lives under
+ * (App\Livewire\TallStackInvoices) already excludes `is_recurring` rows
+ * (those get their own dedicated page, App\Livewire\TallStackRecurringInvoices).
  *
  * A brand-new invoice must exist before it can carry line items (same
  * reason as TallStackQuotationForm) — saving a brand-new invoice redirects

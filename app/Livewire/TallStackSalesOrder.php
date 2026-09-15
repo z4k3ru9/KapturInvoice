@@ -33,9 +33,9 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack Job (SalesOrder) workspace — the 7-tab detail view
  * (Overview/Activity/Billing/Commercial/Delivery/Procurement/Margin)
- * matching the Stitch "Job Workspace" mockups. Mirrors
- * App\Filament\Resources\SalesOrders (the Infolist + every relation
- * manager: Items, Milestones, Variations, DeliveryOrders,
+ * matching the Stitch "Job Workspace" mockups. Mirrors the equivalent
+ * pre-TallStackUI Filament sales order resource (the Infolist + every
+ * relation manager: Items, Milestones, Variations, DeliveryOrders,
  * HandoverReports) field-for-field and action-for-action — every
  * mutation goes through the exact same App\Actions\Sales / App\Actions\Delivery
  * class the Filament table/relation-manager actions call, with the same
@@ -571,8 +571,9 @@ class TallStackSalesOrder extends Component
             'jobCostAllocations' => $this->jobCostAllocations($currency),
             'allocatedCostTotal' => Money::format($this->allocatedCost(), $currency),
 
-            // --- Margin tab — same three-number convention as
-            // App\Filament\Widgets\JobMarginReport, computed for this one job. ---
+            // --- Margin tab — same three-number convention as the
+            // equivalent pre-TallStackUI Filament JobMarginReport widget,
+            // computed for this one job. ---
             'margin' => [
                 'salesValue' => Money::format($this->salesValue(), $currency),
                 'allocatedCost' => Money::format($this->allocatedCost(), $currency),

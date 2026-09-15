@@ -25,8 +25,8 @@ use TallStackUi\Traits\Interactions;
  * the Products/Catalog register — see App\Livewire\TallStackQuotations's
  * docblock for the established pattern this follows. Reuses
  * App\Models\Product, App\Enums\CatalogItemType/TaxCategory, and
- * App\Services\ProposalSnippetSync exactly as
- * App\Filament\Resources\Products already does — this is a
+ * App\Services\ProposalSnippetSync exactly as the equivalent
+ * pre-TallStackUI Filament products resource already did — this is a
  * presentation-layer swap only.
  *
  * Create/Edit is a modal on this same list page, not a separate route —
@@ -39,9 +39,9 @@ use TallStackUi\Traits\Interactions;
  *
  * The picture upload is a plain Livewire temporary-upload
  * (`Livewire\WithFileUploads`), stored to the exact same `'products'`
- * directory / default filesystem disk `Product::image_path` and
- * `App\Filament\Resources\Products\Schemas\ProductForm`'s own
- * `FileUpload::make('image_path')->directory('products')` already use —
+ * directory / default filesystem disk `Product::image_path` and the
+ * equivalent pre-TallStackUI Filament product form's own
+ * `FileUpload::make('image_path')->directory('products')` already used —
  * `Product::getImageDataUri()` (base64 data URI) is reused unmodified to
  * render the thumbnail, never a `Storage::url()`.
  */

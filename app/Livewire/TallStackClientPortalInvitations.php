@@ -13,9 +13,9 @@ use Livewire\WithPagination;
 
 /**
  * The TALL-stack-native Client Portal Invitations register — read-mostly,
- * matching App\Filament\Resources\Invitations\InvitationResource (see that
- * resource's own docblock: invitations are generated automatically when an
- * invoice is sent, never created by hand here). Distinct from the broader,
+ * matching the equivalent pre-TallStackUI Filament invitations resource:
+ * invitations are generated automatically when an invoice is sent, never
+ * created by hand here. Distinct from the broader,
  * revocable/expiring App\Models\PortalLink ("Portal Links" relation
  * manager on the Client detail screen) — this one is invoice-scoped and
  * essentially permanent, an audit trail of who was sent what and whether

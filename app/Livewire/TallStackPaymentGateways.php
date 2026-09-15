@@ -26,16 +26,16 @@ use TallStackUi\Traits\Interactions;
  * unmodified; this is a pure UI swap, no driver/config-encryption/
  * test-connection logic changes.
  *
- * Matches App\Filament\Resources\PaymentGateways\Schemas\PaymentGatewayForm
- * field-for-field and App\Filament\Resources\PaymentGateways\Tables\PaymentGatewaysTable's
- * "Test connection" action exactly (same PaymentGatewayManager::driverFor()
- * call, same three caught exception types) — only the result surfaces as an
- * inline success/error banner per row (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
+ * Matches the equivalent pre-TallStackUI Filament payment gateway form
+ * field-for-field and that same resource's table "Test connection" action
+ * exactly (same PaymentGatewayManager::driverFor() call, same three caught
+ * exception types) — only the result surfaces as an inline success/error
+ * banner per row (docs/rebuild/outputs/27-filament-parity-gap-prompts.md
  * prompt 20) instead of a Filament Notification toast.
  *
- * Authorization: App\Filament\Resources\PaymentGateways\PaymentGatewayResource
- * declares no PaymentGateway-specific Policy of its own, so Filament's
- * mutating actions (Create/Edit/Delete) on it are already gated only by
+ * Authorization: the equivalent Filament payment gateway resource declared
+ * no PaymentGateway-specific Policy of its own, so Filament's
+ * mutating actions (Create/Edit/Delete) on it were already gated only by
  * the generic App\Providers\AppServiceProvider::registerCompanyRoleGate()
  * Gate::before hook every BelongsToCompany model gets — CompanyRole::mutatingRoles()
  * (every role except Auditor). Reused here unmodified via Gate::authorize()
