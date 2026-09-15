@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Documents;
 
-use App\Filament\Resources\Credits\Pages\ListCredits;
 use App\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Filament\Resources\Quotes\Pages\CreateQuote;
 use App\Models\Client;
@@ -162,15 +161,6 @@ class DocumentNumberingTest extends TestCase
             NumberingSequence::where('company_id', $this->company->id)->where('document_type', 'INV')->first(),
             'quote creation must not touch the invoice sequence'
         );
-    }
-
-    public function test_creating_a_credit_assigns_from_the_credit_sequence(): void
-    {
-        Livewire::test(ListCredits::class)
-            ->callAction('create', data: ['client_id' => $this->client->id, 'amount' => 50])
-            ->assertHasNoActionErrors();
-
-        $this->assertDatabaseHas('credits', ['company_id' => $this->company->id, 'number' => 'ACM-CR-2026090001']);
     }
 
     public function test_converting_a_quote_assigns_a_real_invoice_number(): void

@@ -63,6 +63,11 @@ class DocumentNumberGenerator
         'vendor_payment' => 'VPR',
         'delivery_order' => 'DO',
         'handover_report' => 'HOR',
+        // Service Report (change request ratified 2026-09-14,
+        // FINALIZED-DECISIONS.md §10): one per service visit, assigned at
+        // Draft creation (App\Actions\Delivery\RecordServiceReport) —
+        // mirrors VendorBill's own numbering-at-create convention.
+        'service_report' => 'SVR',
         'tax_recap' => 'TAX',
         // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa): the read-only
         // Statement of Account document.

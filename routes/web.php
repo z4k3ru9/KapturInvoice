@@ -11,6 +11,7 @@ use App\Http\Controllers\ProposalPdfController;
 use App\Http\Controllers\QuotationPdfController;
 use App\Http\Controllers\ReceiptPdfController;
 use App\Http\Controllers\SalesOrderPdfController;
+use App\Http\Controllers\ServiceReportPdfController;
 use App\Http\Controllers\StatementOfAccountPdfController;
 use App\Http\Controllers\StatementOfAccountPreviewController;
 use App\Http\Controllers\TaxRecapPdfController;
@@ -106,6 +107,9 @@ Route::get('/delivery-orders/{deliveryOrder}/pdf', DeliveryOrderPdfController::c
 Route::get('/handover-reports/{handoverReport}/pdf', HandoverReportPdfController::class)
     ->middleware('auth')
     ->name('handover-reports.pdf');
+Route::get('/service-reports/{serviceReport}/pdf', ServiceReportPdfController::class)
+    ->middleware('auth')
+    ->name('service-reports.pdf');
 Route::get('/tax-recaps/{taxRecap}/pdf', TaxRecapPdfController::class)
     ->middleware('auth')
     ->name('tax-recaps.pdf');

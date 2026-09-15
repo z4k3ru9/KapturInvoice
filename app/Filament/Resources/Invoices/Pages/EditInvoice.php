@@ -5,11 +5,15 @@ namespace App\Filament\Resources\Invoices\Pages;
 use App\Enums\InvoiceStatus;
 use App\Filament\Concerns\AutosavesDraft;
 use App\Filament\Resources\Invoices\InvoiceResource;
+use App\Filament\Resources\Invoices\Tables\InvoicesTable;
+use App\Models\Invoice;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Exceptions\Halt;
 
 class EditInvoice extends EditRecord
 {
@@ -29,7 +33,22 @@ class EditInvoice extends EditRecord
         return [
             ViewAction::make(),
             DeleteAction::make(),
-            ForceDeleteAction::make(),
+            // docs/REFACTOR_PLAN.md drift audit: guards the single-record
+            // action the same way InvoicesTable::forceDeleteBulkAction()
+            // guards the bulk one — otherwise this page let a Draft-only
+            // rule be bypassed entirely from a single Trashed record.
+            ForceDeleteAction::make()
+                ->before(function (Invoice $record) {
+                    if (! InvoicesTable::isSafeToForceDelete($record)) {
+                        Notification::make()
+                            ->danger()->persistent()
+                            ->title('Could not force-delete invoice')
+                            ->body('Only a Draft invoice with no payments, allocations, or amendment/void-reissue history can be permanently deleted.')
+                            ->send();
+
+                        throw new Halt;
+                    }
+                }),
             RestoreAction::make(),
         ];
     }

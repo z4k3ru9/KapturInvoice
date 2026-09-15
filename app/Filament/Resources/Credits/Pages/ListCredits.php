@@ -3,29 +3,23 @@
 namespace App\Filament\Resources\Credits\Pages;
 
 use App\Filament\Resources\Credits\CreditResource;
-use App\Services\DocumentNumberGenerator;
-use Filament\Actions\CreateAction;
-use Filament\Facades\Filament;
 use Filament\Resources\Pages\ListRecords;
 
 class ListCredits extends ListRecords
 {
     protected static string $resource = CreditResource::class;
 
+    /**
+     * "New credit-note creation... remain deferred" —
+     * FINALIZED-DECISIONS.md §7 (docs/REFACTOR_PLAN.md drift audit: this
+     * page previously kept a fully working CreateAction minting real `CR`
+     * numbers despite that decision — hiding the nav entry alone
+     * (CreditResource::shouldRegisterNavigation()) doesn't disable a
+     * List page's own header action). Existing/legacy-imported credits
+     * stay viewable and editable via the table's own EditAction.
+     */
     protected function getHeaderActions(): array
     {
-        return [
-            // Credit has no dedicated Create page (see CreditResource::getPages())
-            // — this now opens as a modal, so the number-assignment that used
-            // to live in CreateCredit::mutateFormDataBeforeCreate() moves here.
-            CreateAction::make()
-                ->mutateDataUsing(function (array $data): array {
-                    if (blank($data['number'] ?? null)) {
-                        $data['number'] = app(DocumentNumberGenerator::class)->next(Filament::getTenant(), 'credit');
-                    }
-
-                    return $data;
-                }),
-        ];
+        return [];
     }
 }

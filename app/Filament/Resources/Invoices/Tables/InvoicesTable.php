@@ -32,6 +32,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use RuntimeException;
 
 class InvoicesTable
@@ -165,10 +166,55 @@ class InvoicesTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    static::forceDeleteBulkAction(),
                     RestoreBulkAction::make(),
                 ]),
             ]);
+    }
+
+    /**
+     * docs/REFACTOR_PLAN.md drift audit: Filament's stock
+     * ForceDeleteBulkAction only hides itself while the Trashed filter
+     * isn't set — once switched to "With Trashed"/"Only Trashed", any
+     * selected row (regardless of status) gets `forceDelete()`'d
+     * directly, physically erasing history FINALIZED-DECISIONS.md §2
+     * requires never be deleted once issued — a real gap the earlier
+     * Codex-review round only fixed on VendorBill/VendorPurchaseOrder
+     * (see those tables' own `forceDeleteBulkAction()`). Restricted here
+     * to Draft, never-paid, never-corrected rows only.
+     */
+    public static function forceDeleteBulkAction(): ForceDeleteBulkAction
+    {
+        return ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+                $blocked = 0;
+
+                foreach ($records as $record) {
+                    if (! static::isSafeToForceDelete($record)) {
+                        $blocked++;
+
+                        continue;
+                    }
+
+                    $record->forceDelete();
+                }
+
+                if ($blocked > 0) {
+                    Notification::make()
+                        ->warning()->persistent()
+                        ->title('Some invoices were not force-deleted')
+                        ->body("{$blocked} record(s) were skipped — only a Draft invoice with no payments, allocations, or amendment/void-reissue history can be permanently deleted.")
+                        ->send();
+                }
+            });
+    }
+
+    public static function isSafeToForceDelete(Invoice $record): bool
+    {
+        return $record->status === InvoiceStatus::Draft
+            && ! $record->payments()->exists()
+            && ! $record->allocations()->exists()
+            && ! $record->correction()->exists();
     }
 
     /** @return array<int, mixed> */

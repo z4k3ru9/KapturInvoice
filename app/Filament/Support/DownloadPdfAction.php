@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\Proposal;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\ServiceReport;
 use App\Models\StatementOfAccount;
 use App\Models\TaxRecap;
 use App\Models\VendorBill;
@@ -147,6 +148,15 @@ class DownloadPdfAction
             ->label('Download PDF')
             ->icon(Heroicon::OutlinedDocumentArrowDown)
             ->url(fn (HandoverReport $record) => route('handover-reports.pdf', $record))
+            ->openUrlInNewTab();
+    }
+
+    public static function serviceReport(): Action
+    {
+        return Action::make('downloadPdf')
+            ->label('Download PDF')
+            ->icon(Heroicon::OutlinedDocumentArrowDown)
+            ->url(fn (ServiceReport $record) => route('service-reports.pdf', $record))
             ->openUrlInNewTab();
     }
 

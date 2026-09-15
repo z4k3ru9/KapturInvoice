@@ -25,6 +25,17 @@ class PaymentGatewayResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    /**
+     * An online payment gateway is deferred launch scope (docs/REFACTOR_PLAN.md
+     * §1.1, CLAUDE.md — "nothing in the UI calls charge() yet"). The driver
+     * abstraction, Test Connection action, and webhook route stay wired for
+     * future use; only the launch sidebar entry is hidden.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PaymentGatewayForm::configure($schema);
