@@ -9,7 +9,7 @@
         'Sales' => [
             ['key' => 'dashboard', 'label' => 'Dashboard', 'route' => route('tallstack.dashboard', $company), 'icon' => 'squares-2x2'],
             ['key' => 'quotations', 'label' => 'Quotations', 'route' => route('tallstack.quotations', $company), 'icon' => 'document-text'],
-            ['key' => 'jobs', 'label' => 'Jobs', 'route' => "{$adminBase}/sales-orders", 'icon' => 'briefcase'],
+            ['key' => 'jobs', 'label' => 'Jobs', 'route' => route('tallstack.jobs', $company), 'icon' => 'briefcase'],
         ],
         'Billing' => [
             ['key' => 'invoices', 'label' => 'Invoices', 'route' => "{$adminBase}/invoices", 'icon' => 'document-currency-dollar'],
