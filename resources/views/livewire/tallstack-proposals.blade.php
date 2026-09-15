@@ -5,8 +5,8 @@
             {{-- Secondary tab-style links to the two supporting library
                  screens — now real TallStackUI pages (prompt 23), no
                  longer placeholders into the Filament admin resources. --}}
-            <x-button text="Proposal Templates" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-templates', $company) }}" />
-            <x-button text="Proposal Snippets" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-snippets', $company) }}" />
+            <x-button text="Proposal Templates" icon="document-text" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-templates', $company) }}" />
+            <x-button text="Proposal Snippets" icon="square-2-stack" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-snippets', $company) }}" />
             {{-- color="blue", not "primary" — see app.blade.php's own
                  "+New" button for why: a general action shouldn't borrow
                  the tenant's brand color. --}}

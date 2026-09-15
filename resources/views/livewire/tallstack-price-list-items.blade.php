@@ -87,11 +87,14 @@
                      action (color="gray"/outline "sync" icon, never the
                      pencil "edit" look this app reserves for editing THIS
                      row) for "Create/update product", which writes to a
-                     different model entirely. --}}
+                     different model entirely. Both share a fixed h-9
+                     height so the badge and button align as one cluster
+                     instead of the badge's shorter natural line-height
+                     sitting noticeably lower than the button. --}}
                 @interact('column_actions', $row)
                     <div class="flex items-center justify-end gap-2">
                         @if ($row['linked'])
-                            <x-badge text="Linked" color="green" sm />
+                            <x-badge text="Linked" color="green" sm class="h-9 flex items-center" />
                         @endif
                         <x-button text="{{ $row['linked'] ? 'Update product' : 'Create product' }}" icon="arrow-path" sm color="gray" class="h-9" wire:click="syncProduct({{ $row['id'] }})" />
                     </div>
