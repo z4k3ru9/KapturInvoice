@@ -16,6 +16,15 @@
             ['key' => 'payments', 'label' => 'Payments', 'route' => "{$adminBase}/payments", 'icon' => 'credit-card'],
             ['key' => 'quotes', 'label' => 'Quotes', 'route' => "{$adminBase}/quotes", 'icon' => 'document-duplicate'],
         ],
+        // Mirrors App\Filament\Resources\Proposals\ProposalResource's own
+        // navigationGroup ('Proposals', a group of its own rather than
+        // folded into Sales/Billing) — that resource's own
+        // shouldRegisterNavigation() is false so it never actually shows
+        // in the Filament sidebar, but this is still the grouping the
+        // resource itself declares.
+        'Proposals' => [
+            ['key' => 'proposals', 'label' => 'Proposals', 'route' => route('tallstack.proposals', $company), 'icon' => 'presentation-chart-bar'],
+        ],
         'Procurement' => [
             ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => "{$adminBase}/vendor-bills", 'icon' => 'clipboard-document-list'],
             ['key' => 'vendors', 'label' => 'Vendors', 'route' => "{$adminBase}/vendors", 'icon' => 'building-storefront'],
