@@ -14,9 +14,9 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack "Numbering" settings screen — see
  * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the established
- * pattern this follows (presentation-layer swap only). Mirrors
- * App\Filament\Pages\Settings\EditNumberingSettings field-for-field, minus
- * invoice_prefix/quote_prefix/credit_prefix, which already live on the
+ * pattern this follows (presentation-layer swap only). Mirrors the
+ * equivalent pre-TallStackUI Filament numbering settings page field-for-
+ * field, minus invoice_prefix/quote_prefix/credit_prefix, which already live on the
  * TallStack Company & Taxes page — only the fields not already built
  * anywhere in TallStackUI are duplicated here: the three `_next_number`
  * live sequence counters (App\Services\DocumentNumberGenerator's source of

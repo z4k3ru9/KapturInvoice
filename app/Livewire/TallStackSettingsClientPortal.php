@@ -14,8 +14,8 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack "Client Portal" settings screen — see
  * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the established
- * pattern this follows (presentation-layer swap only). Mirrors
- * App\Filament\Pages\Settings\EditClientPortalSettings's single
+ * pattern this follows (presentation-layer swap only). Mirrors the
+ * equivalent pre-TallStackUI Filament client portal settings page's single
  * `portal_enabled` field on App\Models\CompanySetting exactly — this admin
  * page only toggles behaviour, it never renders the portal itself
  * (App\Livewire\Portal\*).

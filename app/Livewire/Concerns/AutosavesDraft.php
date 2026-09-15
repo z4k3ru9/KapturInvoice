@@ -7,8 +7,9 @@ use Throwable;
 
 /**
  * Draft-only autosave for a plain Livewire form component — the TALL-stack
- * port of the old App\Filament\Concerns\AutosavesDraft (removed with the
- * rest of app/Filament/** during the Filament-removal Phase B), per
+ * port of the equivalent autosave trait from the pre-TallStackUI Filament
+ * admin (removed with the rest of the Filament admin during the
+ * Filament-removal Phase B), per
  * docs/rebuild/specs/06b-ux-browser-soa/Specs.md: "Autosave is draft-only,
  * batched, debounced, conflict-aware, and never performs a financial
  * action." / "Add server version or equivalent optimistic concurrency

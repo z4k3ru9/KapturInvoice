@@ -39,10 +39,9 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack "Vendor Bill Detail & Shared Allocation" page — sibling to
- * App\Livewire\TallStackVendorBills. Mirrors
- * App\Filament\Resources\VendorBills\Schemas\VendorBillForm (header
- * fields) and ...\RelationManagers\{ItemsRelationManager,
- * PaymentsRelationManager} field-for-field: `status` is never a form
+ * App\Livewire\TallStackVendorBills. Mirrors the equivalent pre-TallStackUI
+ * Filament vendor bill form (header fields) and its Items and Payments
+ * relation managers field-for-field: `status` is never a form
  * field, and every mutation (submit/approve/record/verify/issue receipt/
  * amend/reverse payment, allocate cost to a job) reuses the exact same
  * App\Actions\Procurement\* class the Filament resource's actions call —

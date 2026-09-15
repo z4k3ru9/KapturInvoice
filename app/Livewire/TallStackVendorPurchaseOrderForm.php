@@ -27,9 +27,9 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack create/edit "line planning" page for a Vendor Purchase
  * Order — sibling to App\Livewire\TallStackVendorPurchaseOrders. Mirrors
- * App\Filament\Resources\VendorPurchaseOrders\Schemas\VendorPurchaseOrderForm
- * (header fields) and ...\RelationManagers\{ItemsRelationManager,
- * VariancesRelationManager} field-for-field: `status` is never a form
+ * the equivalent pre-TallStackUI Filament vendor purchase order form
+ * (header fields) and its Items and Variances relation managers
+ * field-for-field: `status` is never a form
  * field, and the PO's `total` stays immutable once approved — every
  * mutation reuses the exact same App\Actions\Procurement\* classes the
  * Filament resource's row/relation-manager actions call.

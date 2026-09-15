@@ -30,9 +30,9 @@ use TallStackUi\Traits\Interactions;
  * fields, same ItemsRelationManager-equivalent line-item modal, same
  * InvoiceTotalsCalculator recalculation) since a recurring template
  * literally is an `App\Models\Invoice` row (`is_recurring = true`) with
- * the exact same schema as a plain invoice — see
- * App\Filament\Resources\RecurringInvoices\RecurringInvoiceResource,
- * which reuses InvoiceForm/InvoiceInfolist/ItemsRelationManager unmodified.
+ * the exact same schema as a plain invoice — see the equivalent
+ * pre-TallStackUI Filament recurring invoice resource, which reused the
+ * plain invoice form/infolist/items relation manager unmodified.
  *
  * Deliberately excludes every real-invoice lifecycle action
  * (Issue/Send/Amend/Void & reissue/Tax recap) — a recurring template is

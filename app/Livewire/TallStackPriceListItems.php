@@ -21,8 +21,8 @@ use TallStackUi\Traits\Interactions;
  * the Price List Items register — see App\Livewire\TallStackProducts's
  * docblock for the established pattern this follows. Reuses
  * App\Models\PriceListItem, App\Services\PriceListImporter, and
- * App\Services\ProductSync exactly as
- * App\Filament\Resources\PriceListItems already does — this is a
+ * App\Services\ProductSync exactly as the equivalent pre-TallStackUI
+ * Filament price list items resource already did — this is a
  * presentation-layer swap only, deliberately register/list-only per
  * prompt 14's own framing ("browse the vendor's current price sheet, then
  * create/refresh a real Product from a chosen row" — never edit the

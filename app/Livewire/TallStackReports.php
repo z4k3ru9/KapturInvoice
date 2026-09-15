@@ -28,30 +28,32 @@ use Livewire\WithPagination;
  * Phase 10 (docs/rebuild/outputs/25-tallstack-full-rebuild-plan.md) —
  * "Financial Analytics & Tax Reports", TALL-stack-native. There is no
  * dedicated Filament page for this area — the closest existing sources of
- * truth are App\Filament\Pages\Dashboard's own widgets (RevenueOverview/
- * RevenueTrendChart, ported into App\Livewire\TallStackDashboard the same
- * way already) and App\Filament\Widgets\JobMarginReport (the job-cost/
- * margin report). This page is a presentation-layer combination of those
- * three data sources plus a real listing of App\Models\TaxRecap rows — it
- * introduces no new calculation of its own:
+ * truth are the equivalent pre-TallStackUI Filament dashboard's own
+ * widgets (RevenueOverview/RevenueTrendChart, ported into
+ * App\Livewire\TallStackDashboard the same way already) and that same
+ * admin's JobMarginReport widget (the job-cost/margin report). This page
+ * is a presentation-layer combination of those three data sources plus a
+ * real listing of App\Models\TaxRecap rows — it introduces no new
+ * calculation of its own:
  *
  * - Financial Analytics: the exact same revenue/outstanding/overdue
  *   aggregate queries App\Livewire\TallStackDashboard already runs
- *   (itself a direct port of App\Filament\Widgets\RevenueOverview), plus
- *   the same App\Filament\Support\RevenueBuckets-driven trend chart, with
- *   its own independent period selector (not shared with the Dashboard's
- *   own $period, since a report page is commonly viewed over a different
- *   window than "this month").
- * - Job margin: JobMarginReport's own query/columns/computation, ported
- *   verbatim (sales value = invoice total minus tax, excluding Void/
- *   Amended/Cancelled; allocated gross cost via a withSum on
- *   jobCostAllocations; unallocated purchasing cost computed the same
- *   two-aggregate-query way as the widget) — never blended into one
- *   number, per this project's own standing rule. Paginated (10/page),
- *   unlike the widget which relies on Filament's own table pagination.
+ *   (itself a direct port of the equivalent Filament RevenueOverview
+ *   widget), plus the same App\Support\Dashboard\RevenueBuckets-driven
+ *   trend chart, with its own independent period selector (not shared
+ *   with the Dashboard's own $period, since a report page is commonly
+ *   viewed over a different window than "this month").
+ * - Job margin: the equivalent Filament JobMarginReport widget's own
+ *   query/columns/computation, ported verbatim (sales value = invoice
+ *   total minus tax, excluding Void/Amended/Cancelled; allocated gross
+ *   cost via a withSum on jobCostAllocations; unallocated purchasing cost
+ *   computed the same two-aggregate-query way as the widget) — never
+ *   blended into one number, per this project's own standing rule.
+ *   Paginated (10/page), unlike the widget which relied on Filament's own
+ *   table pagination.
  * - Tax Reports: a real, read-only list of this company's TaxRecap rows
  *   (via each row's owning Invoice) with a status derived the same way
- *   App\Filament\Resources\Invoices\Schemas\InvoiceInfolist's own
+ *   the equivalent pre-TallStackUI Filament invoice infolist's own
  *   fileOrAdjustTaxRecap action already treats these columns (pending/
  *   filed/adjusted — see that class and App\Actions\Billing\
  *   FileOrAdjustTaxRecap for the exact semantics reused here), each row
@@ -157,10 +159,10 @@ class TallStackReports extends Component
     }
 
     /**
-     * Mirrors App\Filament\Widgets\JobMarginReport's query/columns exactly
-     * (see that class's own docblock for the full FINALIZED-DECISIONS.md
-     * §3 margin definition), company-scoped and paginated here rather than
-     * relying on Filament's own table pagination.
+     * Mirrors the equivalent pre-TallStackUI Filament JobMarginReport
+     * widget's query/columns exactly (see FINALIZED-DECISIONS.md §3 for
+     * the full margin definition), company-scoped and paginated here
+     * rather than relying on Filament's own table pagination.
      */
     private function jobMargins(?string $currency)
     {

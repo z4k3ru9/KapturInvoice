@@ -13,9 +13,9 @@ use Livewire\Component;
 use TallStackUi\Traits\Interactions;
 
 /**
- * The TALL-stack "Email & Reminders" settings screen — mirrors
- * App\Filament\Pages\Settings\EditEmailSettings field-for-field: every
- * invoice/quote/quotation/payment subject+body template, the reminder1-4
+ * The TALL-stack "Email & Reminders" settings screen — mirrors the
+ * equivalent pre-TallStackUI Filament email settings page field-for-field:
+ * every invoice/quote/quotation/payment subject+body template, the reminder1-4
  * enabled/days/direction/field config, and the late-fee tiers. See
  * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the shared
  * authorization/presentation-layer-swap reasoning this and every other

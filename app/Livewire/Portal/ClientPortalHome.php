@@ -82,7 +82,7 @@ class ClientPortalHome extends Component
 
         return $query
             // Client-facing documents only — never quotes or recurring
-            // invoice templates (App\Filament\Resources\RecurringInvoices'
+            // invoice templates (the recurring-invoice resource's
             // `is_recurring = true` rows are templates, not real invoices).
             ->where('type', InvoiceType::Invoice)
             ->where('is_recurring', false)

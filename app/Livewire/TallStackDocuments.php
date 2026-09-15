@@ -16,8 +16,8 @@ use TallStackUi\Traits\Interactions;
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
  * the Documents register — see App\Livewire\TallStackVendors's docblock
  * for the established pattern this follows. Reuses App\Models\Document
- * unmodified; a presentation-layer swap over
- * App\Filament\Resources\Documents\DocumentResource.
+ * unmodified; a presentation-layer swap over the equivalent pre-TallStackUI
+ * Filament documents resource.
  *
  * Per docs/rebuild/outputs/27-filament-parity-gap-prompts.md prompt 22,
  * this is a flat, company-scoped "every file we have" register — a

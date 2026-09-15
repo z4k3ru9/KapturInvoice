@@ -31,10 +31,9 @@ use TallStackUi\Traits\Interactions;
  * the Payments register — see App\Livewire\TallStackQuotations's docblock
  * for the established pattern this follows. Reuses App\Models\Payment,
  * App\Enums\PaymentStatus, and every App\Actions\Receivables\* action the
- * Filament PaymentsTable already uses for record/verify/issue-receipt/
- * reverse — this is a presentation-layer swap only, never a
- * reimplementation of the payment lifecycle (see
- * App\Filament\Resources\Payments\Tables\PaymentsTable).
+ * equivalent pre-TallStackUI Filament payments table already used for
+ * record/verify/issue-receipt/reverse — this is a presentation-layer swap
+ * only, never a reimplementation of the payment lifecycle.
  *
  * Allocate/Amend allocation are deliberately NOT built here — they need
  * the richer per-invoice repeater UI, which lives on the sibling detail
