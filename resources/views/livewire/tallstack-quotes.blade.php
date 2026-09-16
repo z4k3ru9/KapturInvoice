@@ -23,9 +23,9 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="text-sm text-gray-500 dark:text-gray-400">
+                <span class="text-sm text-gray-500 dark:text-gray-400!">
                     Legacy quotes imported from the old system. To create a new quote, use
-                    <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.quotations', $company) }}">Quotations</a> instead.
+                    <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.quotations', $company) }}">Quotations</a> instead.
                 </span>
 
                 <div class="w-full sm:w-64">
@@ -49,7 +49,7 @@
                 title="" gives the full number as a native hover tooltip.
             --}}
             @interact('column_number', $row)
-                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                 </span>
             @endinteract

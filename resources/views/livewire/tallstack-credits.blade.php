@@ -12,7 +12,7 @@
          scope. A muted explanatory line rather than a disabled/greyed-out
          button is the deliberate UX: it explains the screen's own limits
          instead of reading as unfinished. --}}
-    <p class="text-xs text-gray-500 dark:text-gray-400 -mt-3">
+    <p class="text-xs text-gray-500 dark:text-gray-400! -mt-3">
         Credits are historical records from data import and are not created from this screen.
     </p>
 
@@ -62,7 +62,7 @@
                 click away on the credit's own View page.
             --}}
             @interact('column_number', $row)
-                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                 </span>
             @endinteract
@@ -78,7 +78,7 @@
             @endinteract
 
             @interact('column_amount', $row)
-                <span class="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100">{{ $row['amount'] }}</span>
+                <span class="text-sm font-semibold tabular-nums text-gray-900 dark:text-gray-100!">{{ $row['amount'] }}</span>
             @endinteract
 
             @interact('column_actions', $row, $company)

@@ -38,7 +38,7 @@
                  Filament resource has is dropped. --}}
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Client &amp; schedule</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Client &amp; schedule</span>
                 </x-slot:header>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -70,7 +70,7 @@
                  prompt 16's own layout emphasis. --}}
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Invoice terms</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Invoice terms</span>
                 </x-slot:header>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -100,7 +100,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Line items</span>
                         @if ($invoice)
                             <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
@@ -144,7 +144,7 @@
 
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
                     {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
@@ -170,24 +170,24 @@
         <div class="flex flex-col gap-4">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
                 </x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Subtotal</span>
                         <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Discount</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Discount</span>
                         <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Tax</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Tax</span>
                         <span class="tabular-nums">{{ $taxTotal }}</span>
                     </div>
-                    <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                    <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-900 dark:text-gray-100">Total per cycle</span>
+                        <span class="font-bold text-gray-900 dark:text-gray-100!">Total per cycle</span>
                         <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                     </div>
                     <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above — this is the amount each generated invoice will carry, via App\Services\InvoiceTotalsCalculator.</p>
@@ -206,7 +206,7 @@
             <div id="generated-invoices">
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Generated invoices</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Generated invoices</span>
                     </x-slot:header>
 
                     @if ($generatedInvoices->isEmpty())
@@ -214,9 +214,9 @@
                     @else
                         <div class="flex flex-col gap-2">
                             @foreach ($generatedInvoices as $gen)
-                                <a href="{{ route('tallstack.invoices.edit', [$company, $gen['id']]) }}" class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:opacity-80">
+                                <a href="{{ route('tallstack.invoices.edit', [$company, $gen['id']]) }}" class="flex items-center justify-between gap-2 text-sm py-1.5 border-b border-gray-100 dark:border-gray-800! last:border-b-0 hover:opacity-80">
                                     <div class="flex flex-col">
-                                        <span class="font-mono text-xs font-medium text-blue-600 dark:text-blue-400">{{ $gen['number'] }}</span>
+                                        <span class="font-mono text-xs font-medium text-blue-600 dark:text-blue-400!">{{ $gen['number'] }}</span>
                                         <span class="text-[11px] text-gray-400">{{ $gen['invoice_date'] }}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
