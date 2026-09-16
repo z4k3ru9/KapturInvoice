@@ -19,7 +19,8 @@
             <x-input wire:model="email" label="Email" type="email" />
             <x-input wire:model="phone" label="Phone" />
             <x-input wire:model="tax_number" label="Tax ID" hint="Printed on invoice/credit PDFs." />
-            <x-input wire:model="currency_code" label="Default currency" maxlength="3" />
+            <x-select.styled wire:model="currency_code" label="Default currency" searchable
+                :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
         </div>
     </x-card>
 

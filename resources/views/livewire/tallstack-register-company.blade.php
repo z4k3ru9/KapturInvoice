@@ -14,7 +14,8 @@
             <x-input wire:model="domain" label="Domain"
                 hint="Public homepage domain for this entity, e.g. example.com" />
 
-            <x-input wire:model="currency_code" label="Default currency" maxlength="3" required />
+            <x-select.styled wire:model="currency_code" label="Default currency" searchable required
+                :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
 
             <x-color wire:model="primary_color" label="Primary color" placeholder="#RRGGBB" clearable />
 

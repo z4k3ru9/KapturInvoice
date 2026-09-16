@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\CompanyBankAccount;
 use App\Models\CompanyTaxSetting;
+use App\Models\Currency;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -161,7 +162,7 @@ class TallStackSettingsCompanyTaxes extends Component
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
-            'currency_code' => ['nullable', 'string', 'max:3'],
+            'currency_code' => ['nullable', 'string', 'max:3', 'exists:currencies,code'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'code' => ['nullable', 'string', 'max:20'],
@@ -344,6 +345,7 @@ class TallStackSettingsCompanyTaxes extends Component
 
         return view('livewire.tallstack-settings-company-taxes', [
             'bankAccounts' => $bankAccounts,
+            'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
         ])
             ->layoutData([
                 'company' => $this->company,

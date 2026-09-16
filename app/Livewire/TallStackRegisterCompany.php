@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Company;
+use App\Models\Currency;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -78,7 +79,7 @@ class TallStackRegisterCompany extends Component
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('companies', 'slug')],
             'domain' => ['nullable', 'string', 'max:255', Rule::unique('companies', 'domain')],
-            'currency_code' => ['required', 'string', 'size:3'],
+            'currency_code' => ['required', 'string', 'size:3', 'exists:currencies,code'],
             'primary_color' => ['nullable', 'string', 'max:20'],
         ]);
 
@@ -91,7 +92,9 @@ class TallStackRegisterCompany extends Component
 
     public function render(): View
     {
-        return view('livewire.tallstack-register-company');
+        return view('livewire.tallstack-register-company', [
+            'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
+        ]);
     }
 
     private function existingCompany(): ?Company

@@ -5,6 +5,7 @@ namespace Tests\Feature\Tenancy;
 use App\Livewire\TallStackRegisterCompany;
 use App\Models\Company;
 use App\Models\User;
+use Database\Seeders\CurrencySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -21,6 +22,18 @@ use Tests\TestCase;
 class RegisterCompanyTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // currency_code must resolve to a real row in the currencies
+        // reference table (see the `exists:currencies,code` validation
+        // rule on TallStackRegisterCompany::register()) — this table isn't
+        // auto-seeded by RefreshDatabase, so every test that submits a
+        // currency code needs it present.
+        $this->seed(CurrencySeeder::class);
+    }
 
     public function test_a_company_less_user_sees_the_registration_form(): void
     {
@@ -115,6 +128,21 @@ class RegisterCompanyTest extends TestCase
             ->set('currency_code', 'USD')
             ->call('register')
             ->assertHasErrors(['domain']);
+
+        $this->assertSame(0, $user->companies()->count());
+    }
+
+    public function test_registering_with_a_currency_code_that_is_not_a_real_currency_fails_validation(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(TallStackRegisterCompany::class)
+            ->set('name', 'Whatever')
+            ->set('slug', 'whatever')
+            ->set('currency_code', 'XXX')
+            ->call('register')
+            ->assertHasErrors(['currency_code']);
 
         $this->assertSame(0, $user->companies()->count());
     }
