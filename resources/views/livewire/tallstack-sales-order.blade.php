@@ -152,7 +152,11 @@
                 </div>
             </x-card>
 
-            <x-card>
+            {{-- minimize="mount": part of the same mobile-friendly
+                 collapse-by-default treatment as "Job details" above —
+                 secondary/reference info, not what a user visits this page
+                 for first. --}}
+            <x-card minimize="mount">
                 <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Fulfillment</span></x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
                     <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400!">Delivery orders</span><span class="font-semibold">{{ $deliveryOrders->count() }}</span></div>
@@ -220,7 +224,7 @@
             </div>
         </x-card>
 
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Source snapshot</span></x-slot:header>
             <p class="text-xs text-gray-400 mb-2">Frozen at job creation from the accepted quotation — never re-synced afterward, so this job's history can't be retroactively altered by later quotation edits.</p>
             @if ($sourceSnapshot)
@@ -265,7 +269,7 @@
             </x-table>
         </x-card>
 
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Payment milestones (reference)</span></x-slot:header>
             <x-table :headers="[
                 ['index' => 'type_label', 'label' => 'Type'],
@@ -280,7 +284,7 @@
 
     {{-- ============================= PROCUREMENT ============================= --}}
     <div @if ($activeTab !== 'procurement') hidden @endif class="flex flex-col gap-4">
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Allocated job cost</span>
@@ -307,7 +311,7 @@
     {{-- ============================= DELIVERY ============================= --}}
     <div @if ($activeTab !== 'delivery') hidden @endif class="flex flex-col gap-4">
         <div class="grid lg:grid-cols-2 gap-4 items-start">
-            <x-card>
+            <x-card minimize="mount">
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Delivery orders</span>
@@ -327,7 +331,7 @@
                 </x-table>
             </x-card>
 
-            <x-card>
+            <x-card minimize="mount">
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Handover reports</span>
@@ -363,7 +367,7 @@
 
     {{-- ============================= MARGIN ============================= --}}
     <div @if ($activeTab !== 'margin') hidden @endif class="flex flex-col gap-4">
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job margin</span></x-slot:header>
             <p class="text-xs text-gray-400 mb-3">
                 Same convention as the Job Margin report: sales value, allocated gross cost, and unallocated
@@ -392,7 +396,7 @@
 
     {{-- ============================= ACTIVITY ============================= --}}
     <div @if ($activeTab !== 'activity') hidden @endif class="flex flex-col gap-4">
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
                     <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job variations</span>
@@ -413,7 +417,7 @@
             </x-table>
         </x-card>
 
-        <x-card>
+        <x-card minimize="mount">
             <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Status history</span></x-slot:header>
             <x-table :headers="[
                 ['index' => 'action', 'label' => 'Event'],
