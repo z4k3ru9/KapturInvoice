@@ -56,6 +56,14 @@ class TallStackQuotationForm extends Component
 {
     use AutosavesDraft, Interactions, ManagesDocuments, WithFileUploads;
 
+    /**
+     * The system-wide fallback for how long a quotation stays valid when a
+     * company hasn't configured its own `default_expire_after_days`
+     * (Settings > Numbering) — a typical quotation validity window, not a
+     * hard business rule.
+     */
+    private const DEFAULT_QUOTATION_EXPIRY_DAYS = 14;
+
     public Company $company;
 
     public ?Quotation $quotation = null;
@@ -157,9 +165,16 @@ class TallStackQuotationForm extends Component
         // existing $quotation.
         $this->terms = $company->default_payment_terms;
 
-        if ($company->default_expire_after_days) {
-            $this->valid_until = now()->addDays($company->default_expire_after_days)->toDateString();
-        }
+        // A company that has never configured this setting still gets a
+        // real prefilled expiry (2 weeks from the quotation date) instead
+        // of none at all — Settings > Numbering's own "Default expire
+        // after (days)" field lets a company override this per-tenant;
+        // the field itself is still nullable, this fallback only applies
+        // when it's genuinely unset. The prefill is freely editable
+        // afterward — this is a default, not an enforced value.
+        $this->valid_until = now()
+            ->addDays($company->default_expire_after_days ?? self::DEFAULT_QUOTATION_EXPIRY_DAYS)
+            ->toDateString();
     }
 
     /** Same client-default-discount prefill as QuotationForm's own afterStateUpdated(). */

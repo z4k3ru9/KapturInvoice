@@ -187,13 +187,13 @@ class TallStackDocumentDefaultsTest extends TestCase
             ->assertSet('valid_until', now()->addDays(30)->toDateString());
     }
 
-    public function test_quotation_create_leaves_valid_until_blank_when_no_default_is_set(): void
+    public function test_quotation_create_falls_back_to_a_14_day_default_when_no_company_default_is_set(): void
     {
         $company = Company::create(['name' => 'No Default Co', 'slug' => 'no-default-co', 'currency_code' => 'USD']);
         $company->users()->attach($this->user, ['role' => 'owner']);
 
         Livewire::test(TallStackQuotationForm::class, ['company' => $company])
-            ->assertSet('valid_until', null);
+            ->assertSet('valid_until', now()->addDays(14)->toDateString());
     }
 
     public function test_quotation_edit_does_not_overwrite_a_real_saved_valid_until(): void
