@@ -129,6 +129,32 @@ class AppServiceProvider extends ServiceProvider
             'skeleton.icon' => 'size-9 rounded-lg',
         ]);
 
+        // resources/views/components/tallstack/page-header.blade.php used
+        // to hand-roll its own breadcrumb loop rather than TallStackUI's
+        // own <x-breadcrumbs> component — the same label/link/icon shape
+        // it now delegates to, just reinvented. Switched to the real
+        // component so linking, icon rendering, and sizing all come from
+        // one maintained place instead of hand-copied markup. Its own
+        // vendor defaults use a `dark:text-dark-*` palette this app
+        // doesn't otherwise use anywhere and — like every other `dark:`
+        // utility this app writes or overrides, see the `dark:` cascade-
+        // collision rule in .ai/rules/tallstackui-customization.md — none
+        // of them carry the required trailing `!`, so they'd lose to
+        // TallStackUI's own later-loaded compiled CSS regardless of the
+        // visitor's actual color-scheme preference. Overridden here with
+        // this app's own established gray scale instead, bang'd.
+        TallStackUi::customize()->breadcrumbs()->block([
+            'separator.text.class' => 'text-gray-400 dark:text-gray-500! select-none',
+            'separator.icon.class' => 'text-gray-400 dark:text-gray-500! shrink-0',
+            'item.link.class' => 'inline-flex items-center text-gray-400 dark:text-gray-500! transition-colors hover:text-gray-600 dark:hover:text-gray-300!',
+            'item.current.class' => 'inline-flex items-center font-medium text-gray-600 dark:text-gray-300!',
+            // Default is just 'shrink-0' (no color — the icon inherits its
+            // parent link/current item's own text color via currentColor),
+            // so this override exists only to keep 'shrink-0' from being
+            // silently dropped by the block replacement, not to add color.
+            'item.icon.class' => 'shrink-0',
+        ]);
+
         TallStackUi::customize()->dropdown(scope: 'toolbar')->block([
             'action.wrapper' => 'inline-flex h-9 w-full cursor-pointer items-center gap-x-1.5 rounded-md bg-gray-500 px-3 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
             'action.text' => 'text-sm font-medium',

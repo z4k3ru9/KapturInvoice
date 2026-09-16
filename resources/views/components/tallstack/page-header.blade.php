@@ -11,14 +11,24 @@
     TallStackUI patterns" section.
 
     $crumbs: array of ['label' => string, 'url' => string|null, 'icon' =>
-    string|null] — the last crumb is rendered as plain text even if it
-    carries a url, since it's the current page. Every other crumb links
-    when it has a url. `icon` is optional and backward compatible: when
-    present it's the same icon name already assigned to that section in
-    the sidebar nav (app.blade.php's own $nav array), rendered just
-    before the crumb's label; when absent (the common case today, since
-    most callers haven't been given one yet) the crumb renders exactly as
-    before, with no icon.
+    string|null] — the last crumb always renders as the current page
+    (plain text) even if it carries a url. Every other crumb links when
+    it has a url. `icon` is optional: when present it's the same icon
+    name already assigned to that section in the sidebar nav
+    (app.blade.php's own $nav array); when absent, no icon renders for
+    that crumb.
+
+    Renders via TallStackUI's own <x-breadcrumbs> component (not a
+    hand-rolled loop, which is what this used to be — that reinvented
+    exactly what the vendor component already does: linking, icon
+    rendering, sizing) — see AppServiceProvider's own
+    TallStackUi::customize()->breadcrumbs() call for the color overrides
+    (its vendor defaults use a `dark:text-dark-*` palette this app
+    doesn't otherwise use and, like every `dark:` utility this app
+    writes, none of them carry the required trailing `!`). The component
+    expects `link`, not `url`, and never accepts a link on the last item
+    — the mapping below both renames the key and drops the last item's
+    url.
 
     $meta (optional slot): a compact, at-a-glance row of label/value pairs
     (e.g. Client, Date, PO number) rendered under the title/badge — added
@@ -44,30 +54,16 @@
     only difference is this is hand-authored Blade markup, not a
     `TallStackUi::customize()` block, so the fix lives here instead.
 --}}
+@php
+    $breadcrumbItems = collect($crumbs)->values()->map(fn (array $crumb, int $i) => [
+        'label' => $crumb['label'],
+        'link' => $i < count($crumbs) - 1 ? ($crumb['url'] ?? null) : null,
+        'icon' => $crumb['icon'] ?? null,
+    ])->all();
+@endphp
 <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500!">
-            @foreach ($crumbs as $i => $crumb)
-                @if ($i > 0)
-                    <span>/</span>
-                @endif
-                @if (! empty($crumb['url']) && $i < count($crumbs) - 1)
-                    <a href="{{ $crumb['url'] }}" class="inline-flex items-center gap-1 hover:underline">
-                        @if (! empty($crumb['icon']))
-                            <x-icon name="{{ $crumb['icon'] }}" class="h-3.5 w-3.5" />
-                        @endif
-                        {{ $crumb['label'] }}
-                    </a>
-                @else
-                    <span class="inline-flex items-center gap-1">
-                        @if (! empty($crumb['icon']))
-                            <x-icon name="{{ $crumb['icon'] }}" class="h-3.5 w-3.5" />
-                        @endif
-                        {{ $crumb['label'] }}
-                    </span>
-                @endif
-            @endforeach
-        </div>
+        <x-breadcrumbs :items="$breadcrumbItems" xs />
         <div class="flex items-center gap-2 flex-wrap">
             <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100!">{{ $title }}</h1>
             {{ $badge ?? '' }}
