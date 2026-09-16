@@ -80,27 +80,57 @@
             @endinteract
 
             @interact('column_status', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
+                <div class="flex items-center gap-1.5">
+                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
+                    {{-- Hold is the override lever for the status-transition
+                         automation (invoices:mark-overdue,
+                         recurring-invoices:generate-due) — see
+                         App\Models\Concerns\Holdable's own docblock. --}}
+                    @if ($row['is_held'])
+                        <x-icon name="pause-circle" class="w-3.5 h-3.5 text-amber-500" title="On hold: {{ $row['held_reason'] }}" />
+                    @endif
+                </div>
             @endinteract
 
             @interact('column_actions', $row, $company)
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    {{-- Only ever shown for a Draft row — the guard's full
-                         predicate (no payments/allocations/corrections) is
-                         still re-checked server-side by
-                         App\Actions\Billing\ForceDeleteInvoice, the real
-                         source of truth. --}}
-                    @if ($row['status'] === \App\Enums\InvoiceStatus::Draft)
-                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this invoice? This cannot be undone." />
-                        </x-dropdown>
-                    @endif
+                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                        {{-- Only ever shown for a Draft row — the guard's
+                             full predicate (no payments/allocations/
+                             corrections) is still re-checked server-side by
+                             App\Actions\Billing\ForceDeleteInvoice, the
+                             real source of truth. --}}
+                        @if ($row['status'] === \App\Enums\InvoiceStatus::Draft)
+                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this invoice? This cannot be undone." separator />
+                        @endif
+                        @if ($row['is_held'])
+                            <x-dropdown.items text="Release hold" icon="play-circle" wire:click="releaseHold({{ $row['id'] }})" />
+                        @else
+                            <x-dropdown.items text="Hold" icon="pause-circle" wire:click="openHoldModal({{ $row['id'] }})" />
+                        @endif
+                    </x-dropdown>
                 </div>
             @endinteract
 
             <x-slot:empty>No invoices found.</x-slot:empty>
         </x-table>
     </x-card>
+
+    {{-- Hold — pauses invoices:mark-overdue/recurring-invoices:generate-due
+         automation on this one invoice; a reason is required, matching
+         this app's "exceptional actions require reason and audit data"
+         convention (e.g. App\Actions\Procurement\ApproveVendorPoVariance). --}}
+    <x-modal wire="showHoldModal" title="Hold this invoice" center="sm">
+        <div class="flex flex-col gap-4">
+            <p class="text-sm text-gray-500 dark:text-gray-400!">Pauses automatic Overdue marking and recurring auto-generation/issue/send on this invoice until released. Only Owner/Admin may place or release a hold.</p>
+            <x-textarea wire:model="holdReason" label="Reason" required placeholder="e.g. Under dispute, pending a revision to the line items" />
+        </div>
+
+        <x-slot:footer>
+            <x-button text="Cancel" color="gray" wire:click="$set('showHoldModal', false)" />
+            <x-button text="Hold" color="amber" wire:click="placeHold" loading="placeHold" spinner="dots" />
+        </x-slot:footer>
+    </x-modal>
 </div>
