@@ -109,7 +109,11 @@
                     if ($row['status'] === \App\Enums\QuotationStatus::Sent) {
                         $extraActions[] = ['text' => 'Accept', 'icon' => 'hand-thumb-up', 'color' => 'green', 'click' => 'openAcceptModal('.$row['id'].')'];
                         $extraActions[] = ['text' => 'Reject', 'icon' => 'x-circle', 'color' => 'red', 'click' => 'reject('.$row['id'].')'];
-                        $extraActions[] = ['text' => 'Mark expired', 'icon' => 'clock', 'click' => 'markExpired('.$row['id'].')'];
+                        // Manual "Mark expired" removed — a Sent quotation
+                        // past its valid_until already expires
+                        // automatically every night (the ExpireQuotations
+                        // scheduled command, routes/console.php), so a
+                        // manual early-trigger was redundant.
                     }
                     if ($row['status'] === \App\Enums\QuotationStatus::Accepted) {
                         $extraActions[] = ['text' => 'Create job', 'icon' => 'briefcase', 'click' => 'createJob('.$row['id'].')'];

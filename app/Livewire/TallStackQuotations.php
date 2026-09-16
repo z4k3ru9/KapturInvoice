@@ -138,11 +138,6 @@ class TallStackQuotations extends Component
         $this->applyTransition($id, QuotationStatus::Rejected);
     }
 
-    public function markExpired(int $id): void
-    {
-        $this->applyTransition($id, QuotationStatus::Expired);
-    }
-
     public function cancel(int $id): void
     {
         $this->applyTransition($id, QuotationStatus::Cancelled);
