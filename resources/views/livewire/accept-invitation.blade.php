@@ -3,9 +3,9 @@
         <div class="rounded-lg border border-green-200 bg-green-50 p-6 text-center dark:border-green-900! dark:bg-green-950!">
             <h1 class="text-lg font-semibold text-green-800 dark:text-green-200!">You're all set</h1>
             <p class="mt-2 text-sm text-green-700 dark:text-green-300!">
-                Your account is ready. You can now sign in to the admin panel.
+                Your account is ready. You can now sign in.
             </p>
-            <a href="/admin/login" class="mt-4 inline-block text-sm font-medium underline">Go to sign in</a>
+            <a href="{{ route('login') }}" class="mt-4 inline-block text-sm font-medium underline">Go to sign in</a>
         </div>
     @elseif (! $invitation->isUsable())
         <div class="rounded-lg border border-red-200 bg-red-50 p-6 text-center dark:border-red-900! dark:bg-red-950!">
