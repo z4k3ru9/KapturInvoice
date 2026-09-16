@@ -87,14 +87,16 @@
             @endinteract
 
             @interact('column_actions', $row)
+                @php
+                    $extraActions = [];
+                    if ($row['has_image']) {
+                        $extraActions[] = ['text' => 'Create proposal snippet', 'icon' => 'photo', 'click' => 'createProposalSnippet('.$row['id'].')'];
+                    }
+                    $extraActions[] = ['text' => 'Delete', 'icon' => 'trash', 'click' => 'delete('.$row['id'].')', 'confirm' => 'Delete this product?'];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="openEditModal({{ $row['id'] }})" tooltip="Edit" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        @if ($row['has_image'])
-                            <x-dropdown.items text="Create proposal snippet" icon="photo" wire:click="createProposalSnippet({{ $row['id'] }})" />
-                        @endif
-                        <x-dropdown.items text="Delete" icon="trash" wire:click="delete({{ $row['id'] }})" wire:confirm="Delete this product?" />
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

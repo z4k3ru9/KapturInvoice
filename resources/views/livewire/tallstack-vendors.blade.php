@@ -42,13 +42,16 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$vendors" paginate loading>
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [
+                        ['text' => 'View purchase orders', 'icon' => 'clipboard-document-list', 'href' => route('tallstack.vendor-purchase-orders', $company).'?vendor='.$row['id']],
+                        ['text' => 'View bills', 'icon' => 'document-text', 'href' => route('tallstack.vendor-bills', $company).'?vendor='.$row['id']],
+                        ['text' => 'Delete', 'icon' => 'trash', 'click' => 'delete('.$row['id'].')', 'confirm' => 'Delete this vendor?'],
+                    ];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="edit({{ $row['id'] }})" tooltip="Edit" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="View purchase orders" icon="clipboard-document-list" href="{{ route('tallstack.vendor-purchase-orders', $company) }}?vendor={{ $row['id'] }}" />
-                        <x-dropdown.items text="View bills" icon="document-text" href="{{ route('tallstack.vendor-bills', $company) }}?vendor={{ $row['id'] }}" />
-                        <x-dropdown.items text="Delete" icon="trash" wire:click="delete({{ $row['id'] }})" wire:confirm="Delete this vendor?" />
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

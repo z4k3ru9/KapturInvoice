@@ -55,11 +55,14 @@
             @endinteract
 
             @interact('column_actions', $row)
+                @php
+                    $extraActions = [
+                        ['text' => 'Delete', 'icon' => 'trash', 'click' => 'delete('.$row['id'].')', 'confirm' => 'Delete this expense?'],
+                    ];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" wire:click="openEditModal({{ $row['id'] }})" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Delete" icon="trash" wire:click="delete({{ $row['id'] }})" wire:confirm="Delete this expense?" />
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 
