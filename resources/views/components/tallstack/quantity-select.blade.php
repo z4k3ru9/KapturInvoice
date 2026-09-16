@@ -15,8 +15,19 @@
     control. This plain `<select>` reproduces the same
     `$quantity`-driven pagination with no fixed position of its own.
 --}}
+{{--
+    `dark:[color-scheme:dark]` — a native <select>'s OPENED options popup
+    is browser-native chrome; it ignores this element's own text/background
+    utility classes (those only style the closed trigger) and renders with
+    the OS's light-mode popup regardless, unless `color-scheme` tells the
+    browser which native palette to use for its own form-control UI. This
+    was the one native <select> in the app still showing black-on-white
+    when opened in dark mode after every other control here (TallStackUI's
+    own components, which build their own floating panel instead of using
+    native popups) was already fixed.
+--}}
 <select wire:model.live="quantity"
-        class="h-9 rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! text-sm pl-2.5 pr-7 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)] shrink-0"
+        class="h-9 rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! dark:[color-scheme:dark] text-sm pl-2.5 pr-7 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)] shrink-0"
         aria-label="Rows per page">
     @foreach ($options as $option)
         <option value="{{ $option }}">{{ $option }} / page</option>
