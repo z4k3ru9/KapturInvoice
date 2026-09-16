@@ -15,7 +15,7 @@
         <div class="grid sm:grid-cols-2 gap-4">
             <x-input wire:model="name" label="Company name" required />
             <x-input wire:model="slug" label="Slug" required />
-            <x-input wire:model="domain" label="Public homepage domain" hint="Resolves the public homepage/portal for this entity." />
+            <x-input wire:model="domain" label="Public homepage domain" />
             <x-input wire:model="email" label="Email" type="email" />
             <x-input wire:model="phone" label="Phone" />
             <x-input wire:model="tax_number" label="Tax ID" hint="Printed on invoice/credit PDFs." />

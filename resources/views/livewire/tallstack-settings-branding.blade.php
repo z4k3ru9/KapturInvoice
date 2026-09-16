@@ -67,7 +67,7 @@
                 <x-input wire:model="bank_name" label="Bank name" />
                 <x-input wire:model="bank_account_number" label="Bank account number" />
                 <div class="sm:col-span-2">
-                    <x-input wire:model="bank_account_name" label="Beneficiary account name" hint="Beneficiary name as registered with the bank." />
+                    <x-input wire:model="bank_account_name" label="Beneficiary account name" />
                 </div>
             </div>
 
