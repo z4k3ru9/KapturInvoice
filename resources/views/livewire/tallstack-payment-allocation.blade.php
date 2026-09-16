@@ -131,7 +131,7 @@
 
             <div class="flex flex-col gap-3">
                 @foreach ($allocationRows as $i => $row)
-                    <div class="grid grid-cols-[1fr_140px_auto] gap-2 items-end">
+                    <div class="grid grid-cols-1! sm:grid-cols-[1fr_140px_auto]! gap-2 items-end">
                         <x-select.styled wire:model="allocationRows.{{ $i }}.invoice_id" label="Invoice" searchable :options="$invoiceOptions" />
                         <x-input wire:model="allocationRows.{{ $i }}.amount" label="Amount" type="number" step="0.01" />
                         <x-button icon="trash" color="red" scope="icon-action" class="h-9 w-9" wire:click="removeAllocationRow({{ $i }})" />
