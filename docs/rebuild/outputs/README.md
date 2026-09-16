@@ -89,7 +89,18 @@ don't carry. Treat them as evidence, not as current status — check
 | [21-phase-06-checkpoint-report.md](checkpoints/21-phase-06-checkpoint-report.md) | 06 | Documents, portal, reporting — includes a note that 06B made its scoped-out items mandatory |
 | [22-phase-06b-terminology-sources.md](checkpoints/22-phase-06b-terminology-sources.md) | 06B | Sourced review of every Indonesian document-label translation key |
 | [23-phase-06b-checkpoint-report.md](checkpoints/23-phase-06b-checkpoint-report.md) | 06B | UX/browser-QA/SOA completion gate — Playwright suite, accessibility fixes, post-PR Codex review fixes |
-| [24-pending-post-merge-tasks.md](checkpoints/24-pending-post-merge-tasks.md) | — | **Fully superseded/moot** (marked at top of file) — was a live tracking doc for coordinating work around one specific open PR (#4). That PR merged long ago, and the Filament admin it discusses has since been fully removed and replaced by TallStackUI. Nothing in it is actionable anymore. Grouped here rather than in `ui-rebuild/` because it's a point-in-time status record like the other files in this folder, not a rebuild plan or gap-analysis document. |
+
+### `checkpoints/done/` — superseded/completed tracking docs, moved out of the active list
+
+A tracking doc (as opposed to a point-in-time checkpoint report) moves
+here once whatever it was coordinating is finished and nothing in it is
+actionable anymore — keeps the table above to reports that still carry
+real phase-implementation detail, separate from a doc whose own job is
+done.
+
+| File | One-line summary |
+| --- | --- |
+| [done/24-pending-post-merge-tasks.md](checkpoints/done/24-pending-post-merge-tasks.md) | **Fully superseded/moot** (marked at top of file) — was a live tracking doc for coordinating work around one specific open PR (#4). That PR merged long ago, and the Filament admin it discusses has since been fully removed and replaced by TallStackUI. Nothing in it is actionable anymore. |
 
 ## `ui-rebuild/` — TallStackUI admin rebuild: plan and gap-analysis/prompt docs (historical — not superseded)
 
