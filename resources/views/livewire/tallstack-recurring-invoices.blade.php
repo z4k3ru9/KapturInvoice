@@ -46,8 +46,11 @@
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Schedules</span>
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -60,7 +63,7 @@
             ['index' => 'status_label', 'label' => 'Status', 'sortable' => false],
             ['index' => 'generated_count', 'label' => 'Generated', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$templates" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$templates" :sort="$sort" striped paginate loading>
             @interact('column_client', $row)
                 <div class="flex flex-col">
                     <span class="font-medium text-gray-800 dark:text-gray-100!">{{ $row['client'] }}</span>
@@ -82,14 +85,14 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Edit', 'icon' => 'pencil-square', 'href' => route('tallstack.recurring-invoices.edit', [$company, $row['id']])],
+                    ];
                     $extraActions = [];
                     $extraActions[] = ['text' => 'Generate now', 'icon' => 'bolt', 'click' => 'generateNow('.$row['id'].')', 'confirm' => 'Generate a new invoice from this schedule now?'];
                     $extraActions[] = ['text' => 'View generated invoices', 'icon' => 'document-duplicate', 'href' => route('tallstack.recurring-invoices.edit', [$company, $row['id']]).'#generated-invoices'];
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="pencil-square" href="{{ route('tallstack.recurring-invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No recurring invoices set up — New recurring invoice to get started.</x-slot:empty>

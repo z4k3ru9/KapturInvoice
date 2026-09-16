@@ -28,8 +28,11 @@
                     <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.quotations', $company) }}">Quotations</a> instead.
                 </span>
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -41,7 +44,7 @@
             ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$quotes" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$quotes" :sort="$sort" striped paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits) — see App\Support\TallStack\DocumentNumber's own
@@ -60,6 +63,10 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.quotes.edit', [$company, $row['id']])],
+                        ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('invoices.pdf', $row['id']), 'target' => '_blank'],
+                    ];
                     $extraActions = [];
                     $extraActions[] = ['text' => $row['status'] === \App\Enums\InvoiceStatus::Draft ? 'Send' : 'Resend', 'icon' => 'paper-airplane', 'click' => 'send('.$row['id'].')'];
                     $extraActions[] = ['text' => 'Convert to invoice', 'icon' => 'arrow-right-circle', 'click' => 'convertToInvoice('.$row['id'].')', 'confirm' => 'Convert this quote to a real invoice?'];
@@ -71,11 +78,7 @@
                         $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this quote? This cannot be undone.'];
                     }
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.quotes.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No quotes found.</x-slot:empty>
