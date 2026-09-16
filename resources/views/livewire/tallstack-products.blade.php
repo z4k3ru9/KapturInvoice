@@ -141,7 +141,9 @@
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
-                <x-input wire:model="unit" label="Unit" hint="e.g. pcs, hour, package — not required for a service/labor line." />
+                <x-select.styled wire:model="unit" label="Unit" clearable
+                    hint="Not required for a service/labor line."
+                    :options="collect(\App\Enums\UnitOfMeasure::cases())->map(fn ($u) => ['label' => $u->getLabel(), 'value' => $u->value])->all()" />
                 <x-currency wire:model="unit_cost" label="Default price" locale="id-ID" :decimals="2" :precision="4" decimal symbol="{{ $currency }}" required />
             </div>
 

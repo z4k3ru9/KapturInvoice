@@ -4,6 +4,7 @@ namespace Tests\Feature\Parties;
 
 use App\Enums\CatalogItemType;
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use App\Models\Company;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,7 +93,7 @@ class CatalogItemTest extends TestCase
         ]);
 
         $this->assertSame(CatalogItemType::Service, $service->fresh()->type);
-        $this->assertSame('hour', $service->fresh()->unit);
+        $this->assertSame(UnitOfMeasure::Hour, $service->fresh()->unit);
         $this->assertSame('150.0000', $service->fresh()->unit_cost);
     }
 }

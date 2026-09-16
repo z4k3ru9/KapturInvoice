@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\CatalogItemType;
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use App\Models\Company;
 use App\Models\PriceListItem;
 use App\Models\Product;
@@ -152,7 +153,7 @@ class TallStackProducts extends Component
         $this->name = $product->name;
         $this->sku = $product->sku;
         $this->type = $product->type->value;
-        $this->unit = $product->unit;
+        $this->unit = $product->unit?->value;
         $this->unit_cost = (float) $product->unit_cost;
         $this->tax_category = $product->tax_category->value;
         $this->default_tax_rate_id = $product->default_tax_rate_id ? (string) $product->default_tax_rate_id : null;
@@ -184,7 +185,7 @@ class TallStackProducts extends Component
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'type' => ['required', Rule::enum(CatalogItemType::class)],
-            'unit' => ['nullable', 'string', 'max:255'],
+            'unit' => ['nullable', Rule::enum(UnitOfMeasure::class)],
             'unit_cost' => ['required', 'numeric', 'min:0'],
             'tax_category' => ['required', Rule::enum(TaxCategory::class)],
             'default_tax_rate_id' => ['nullable', Rule::exists('tax_rates', 'id')->where('company_id', $this->company->id)],
@@ -344,7 +345,7 @@ class TallStackProducts extends Component
                 'type' => $product->type,
                 'type_label' => $product->type->getLabel(),
                 'type_color' => StatusColor::map($product->type->getColor()),
-                'unit' => $product->unit ?? '—',
+                'unit' => $product->unit?->getLabel() ?? '—',
                 'price' => Money::format((float) $product->unit_cost, $currency),
                 'tax_category_label' => $product->tax_category->getLabel(),
                 'tax_category_color' => StatusColor::map($product->tax_category->getColor()),

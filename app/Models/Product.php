@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CatalogItemType;
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use App\Models\Concerns\BelongsToCompany;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +45,7 @@ class Product extends Model
     {
         return [
             'type' => CatalogItemType::class,
+            'unit' => UnitOfMeasure::class,
             'unit_cost' => 'decimal:4',
             'tax_category' => TaxCategory::class,
             'stock_flag' => 'boolean',

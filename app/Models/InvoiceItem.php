@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'invoice_id', 'legacy_invoice_item_id', 'product_id', 'title', 'description',
-    'quantity', 'unit_cost', 'discount', 'discount_is_percentage', 'sort_order', 'line_total',
+    'quantity', 'unit', 'unit_cost', 'discount', 'discount_is_percentage', 'sort_order', 'line_total',
     'tax_category',
 ])]
 class InvoiceItem extends Model
@@ -19,6 +20,7 @@ class InvoiceItem extends Model
     {
         return [
             'quantity' => 'decimal:4',
+            'unit' => UnitOfMeasure::class,
             'unit_cost' => 'decimal:4',
             'discount' => 'decimal:2',
             'discount_is_percentage' => 'boolean',

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\UnitOfMeasure;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'vendor_purchase_order_id', 'product_id', 'title', 'description',
-    'quantity', 'unit_cost', 'discount', 'discount_is_percentage', 'line_total', 'sort_order',
+    'quantity', 'unit', 'unit_cost', 'discount', 'discount_is_percentage', 'line_total', 'sort_order',
 ])]
 class VendorPurchaseOrderItem extends Model
 {
@@ -16,6 +17,7 @@ class VendorPurchaseOrderItem extends Model
     {
         return [
             'quantity' => 'decimal:4',
+            'unit' => UnitOfMeasure::class,
             'unit_cost' => 'decimal:4',
             'discount' => 'decimal:2',
             'discount_is_percentage' => 'boolean',
