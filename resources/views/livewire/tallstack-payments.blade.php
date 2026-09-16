@@ -41,12 +41,12 @@
                      state the enum doesn't have. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterStatus(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All
                     </button>
                     @foreach ($statuses as $case)
                         <button type="button" wire:click="filterStatus('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $case->getLabel() }}
                         </button>
                     @endforeach
@@ -73,7 +73,7 @@
             @endinteract
 
             @interact('column_receipt_number', $row)
-                <span class="font-mono text-xs text-gray-600 dark:text-gray-300">{{ $row['receipt_number'] ?? '—' }}</span>
+                <span class="font-mono text-xs text-gray-600 dark:text-gray-300!">{{ $row['receipt_number'] ?? '—' }}</span>
             @endinteract
 
             @interact('column_actions', $row, $company)
@@ -137,7 +137,7 @@
          same guard as App\Actions\Receivables\VerifyCustomerPayment. --}}
     <x-modal wire="showVerifyModal" title="Verify payment" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Only Accountant, Admin, or Owner may verify a payment.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400!">Only Accountant, Admin, or Owner may verify a payment.</p>
             <x-date wire:model="verify_cheque_cleared_at" label="Cheque cleared on" hint="Only required for a cheque payment that hasn't cleared yet." />
         </div>
 

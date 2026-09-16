@@ -499,7 +499,7 @@
                             x-on:click="desktop ? $store['tsui.side-bar'].toggle() : (tallStackUiMenuMobile = !tallStackUiMenuMobile)"
                             x-bind:aria-expanded="desktop ? !$store['tsui.side-bar'].collapsed : tallStackUiMenuMobile"
                             aria-label="Toggle navigation"
-                            class="grid place-items-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300! hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer shrink-0">
+                            class="grid place-items-center h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800! text-gray-500 dark:text-gray-300! hover:bg-gray-200 dark:hover:bg-gray-700! cursor-pointer shrink-0">
                         <x-icon name="bars-3" x-show="!desktop" class="w-4 h-4" />
                         <x-icon name="chevron-double-left" x-show="desktop && !$store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
                         <x-icon name="chevron-double-right" x-show="desktop && $store['tsui.side-bar'].collapsed" x-cloak class="w-4 h-4" />
