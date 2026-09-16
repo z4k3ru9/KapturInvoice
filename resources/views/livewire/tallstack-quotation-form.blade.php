@@ -19,10 +19,10 @@
                 never hides the essentials the user came here to confirm.
             --}}
             <x-slot:meta>
-                <span><span class="text-gray-400 dark:text-gray-500">Client</span> {{ $quotation->client?->name ?? '—' }}</span>
-                <span><span class="text-gray-400 dark:text-gray-500">Date</span> {{ $quotation->quotation_date?->format('d M Y') ?? '—' }}</span>
-                <span><span class="text-gray-400 dark:text-gray-500">Valid until</span> {{ $quotation->valid_until?->format('d M Y') ?? '—' }}</span>
-                <span><span class="text-gray-400 dark:text-gray-500">Total</span> <span class="font-semibold text-gray-700 dark:text-gray-300 tabular-nums">{{ $total }}</span></span>
+                <span><span class="text-gray-400 dark:text-gray-500!">Client</span> {{ $quotation->client?->name ?? '—' }}</span>
+                <span><span class="text-gray-400 dark:text-gray-500!">Date</span> {{ $quotation->quotation_date?->format('d M Y') ?? '—' }}</span>
+                <span><span class="text-gray-400 dark:text-gray-500!">Valid until</span> {{ $quotation->valid_until?->format('d M Y') ?? '—' }}</span>
+                <span><span class="text-gray-400 dark:text-gray-500!">Total</span> <span class="font-semibold text-gray-700 dark:text-gray-300! tabular-nums">{{ $total }}</span></span>
             </x-slot:meta>
         @endif
         <x-slot:actions>
@@ -108,7 +108,7 @@
                     {{-- Client & terms --}}
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Client &amp; quotation terms</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Client &amp; quotation terms</span>
                         </x-slot:header>
 
                         <div class="grid sm:grid-cols-2 gap-4">
@@ -144,20 +144,20 @@
                     {{-- Financial summary --}}
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
                         </x-slot:header>
                         <div class="flex flex-col gap-2 text-sm">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Subtotal</span>
                                 <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Discount</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Discount</span>
                                 <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
                             </div>
-                            <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                            <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
                             <div class="flex items-center justify-between">
-                                <span class="font-bold text-gray-900 dark:text-gray-100">Total</span>
+                                <span class="font-bold text-gray-900 dark:text-gray-100!">Total</span>
                                 <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                             </div>
                             <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above. Tax is applied once this quotation becomes an invoice.</p>
@@ -175,7 +175,7 @@
                 --}}
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Terms &amp; notes</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Terms &amp; notes</span>
                     </x-slot:header>
                     <div class="grid sm:grid-cols-2 gap-4">
                         {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
@@ -197,7 +197,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Line items</span>
                         @if ($quotation && ! $itemFormOpen)
                             <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
@@ -289,15 +289,15 @@
                         @if ($quotation && $quotation->customer_po_number)
                             <x-card>
                                 <x-slot:header>
-                                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Customer PO / COC</span>
+                                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Customer PO / COC</span>
                                 </x-slot:header>
                                 <div class="flex flex-col gap-2 text-sm">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-500 dark:text-gray-400">Number</span>
+                                        <span class="text-gray-500 dark:text-gray-400!">Number</span>
                                         <span class="font-semibold">{{ $quotation->customer_po_number }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-gray-500 dark:text-gray-400">Date</span>
+                                        <span class="text-gray-500 dark:text-gray-400!">Date</span>
                                         <span>{{ $quotation->customer_po_date?->format('d M Y') ?? '—' }}</span>
                                     </div>
                                     @if ($quotation->customer_po_is_system_generated)
@@ -310,7 +310,7 @@
                         @if ($quotation?->salesOrder)
                             <x-card>
                                 <x-slot:header>
-                                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job</span>
+                                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job</span>
                                 </x-slot:header>
                                 <p class="text-sm">{{ $quotation->salesOrder->number }}</p>
                             </x-card>
@@ -321,7 +321,7 @@
                 @if ($billedInvoices->isNotEmpty())
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Billed as</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Billed as</span>
                         </x-slot:header>
                         <x-table :headers="[
                             ['index' => 'number', 'label' => 'Invoice number'],
@@ -352,7 +352,7 @@
             @if ($quotation)
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Documents</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Documents</span>
                     </x-slot:header>
                     <div class="flex flex-col gap-3">
                         <x-upload wire:model="newDocument" label="Attach a document" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
