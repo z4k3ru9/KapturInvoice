@@ -87,22 +87,26 @@ class DeliveryAndHandoverTest extends TestCase
         $this->assertSame($staff->id, $deliveryOrder->created_by_user_id);
     }
 
-    public function test_a_goods_only_job_can_close_operationally_after_one_partial_delivery(): void
+    public function test_a_goods_only_job_auto_closes_operationally_after_one_partial_delivery(): void
     {
         $job = $this->makeJob(requiresHandover: false, itemQuantity: 5.0);
         $staff = $this->userWithRole('staff');
         $item = $job->items->first();
 
-        // Only a partial quantity is delivered — not fully delivered.
+        // Only a partial quantity is delivered — not fully delivered, but a
+        // goods-only job's closure condition only needs at least one
+        // recorded Delivery Order, so CompleteDelivery's own auto-close
+        // hook (status-transition automation) fires immediately here.
         app(CompleteDelivery::class)->complete($job, $staff, [
             ['sales_order_item_id' => $item->id, 'quantity_delivered' => 1.0],
         ]);
 
         $this->assertFalse($job->fresh()->isFullyDelivered());
+        $this->assertNotNull($job->fresh()->operational_closed_at);
 
-        $closed = app(CloseJobOperationally::class)->close($job->fresh());
-
-        $this->assertNotNull($closed->operational_closed_at);
+        // Already auto-closed — a manual close attempt now correctly denies.
+        $this->expectException(RuntimeException::class);
+        app(CloseJobOperationally::class)->close($job->fresh());
     }
 
     public function test_an_installation_job_is_blocked_from_operational_closure_until_handover_exists(): void
@@ -158,8 +162,10 @@ class DeliveryAndHandoverTest extends TestCase
         $this->assertSame('Valid service-only exceptional work', $handover->override_reason);
         $this->assertNotNull($handover->number);
 
-        $closed = app(CloseJobOperationally::class)->close($job->fresh());
-        $this->assertNotNull($closed->operational_closed_at);
+        // CompleteHandover's own auto-close hook fires immediately once the
+        // handover exists (a job requiring handover is now eligible) — no
+        // manual "Close operationally" click needed.
+        $this->assertNotNull($job->fresh()->operational_closed_at);
     }
 
     public function test_handover_override_is_denied_for_a_staff_actor_even_with_a_reason(): void
@@ -182,17 +188,35 @@ class DeliveryAndHandoverTest extends TestCase
         );
     }
 
+    public function test_a_held_job_is_not_auto_closed_even_when_its_condition_is_met(): void
+    {
+        $job = $this->makeJob(requiresHandover: false);
+        $staff = $this->userWithRole('staff');
+        $item = $job->items->first();
+
+        $job->forceFill(['held_at' => now(), 'held_reason' => 'Pending revision approval'])->save();
+
+        app(CompleteDelivery::class)->complete($job, $staff, [
+            ['sales_order_item_id' => $item->id, 'quantity_delivered' => 2.0],
+        ]);
+
+        $this->assertNull($job->fresh()->operational_closed_at);
+    }
+
     public function test_operational_closure_is_denied_the_second_time_it_is_attempted(): void
     {
         $job = $this->makeJob(requiresHandover: false);
         $staff = $this->userWithRole('staff');
         $item = $job->items->first();
 
+        // CompleteDelivery's own auto-close hook already closes the job
+        // here (goods-only, at least one Delivery Order recorded) — no
+        // manual first call needed to reach the "already closed" state.
         app(CompleteDelivery::class)->complete($job, $staff, [
             ['sales_order_item_id' => $item->id, 'quantity_delivered' => 2.0],
         ]);
 
-        app(CloseJobOperationally::class)->close($job->fresh());
+        $this->assertNotNull($job->fresh()->operational_closed_at);
 
         $this->expectException(RuntimeException::class);
 
