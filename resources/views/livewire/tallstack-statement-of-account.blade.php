@@ -83,9 +83,21 @@
     {{-- The A4-proportioned document itself. Everything inside this card
          is the printed content — admin-chrome actions live below it, per
          prompt 17's own "below the document itself (admin-chrome, not
-         part of the printed page)" instruction. --}}
-    <div class="relative bg-white text-gray-900 rounded-lg border border-gray-200 shadow-sm overflow-hidden mx-auto w-full"
-         style="max-width: 794px; aspect-ratio: 210 / 297; min-height: 1123px;">
+         part of the printed page)" instruction.
+
+         Wrapped in a horizontally-scrolling container rather than letting
+         the page shrink to fit a narrow viewport: at 375px, `w-full` used
+         to squeeze this into ~343px, and the letterhead's two-column row
+         below (company block + title/period block, no wrap) had nowhere
+         near enough room — confirmed live, the right-hand column was
+         silently clipped off-screen with no way to reach it. A real
+         printed document doesn't reflow at mobile width either; scrolling
+         to see the true-to-size page matches how the ledger table below it
+         already behaves (its own overflow-x-auto) rather than fighting the
+         fixed A4 proportions. --}}
+    <div class="overflow-x-auto soft-scrollbar">
+    <div class="relative bg-white text-gray-900 rounded-lg border border-gray-200 shadow-sm overflow-hidden mx-auto"
+         style="width: 794px; max-width: 794px; aspect-ratio: 210 / 297; min-height: 1123px;">
 
         {{-- Large diagonal "PREVIEW — NOT YET GENERATED" banner across the
              top of the document, per prompt 17 — visually unmistakable,
@@ -238,6 +250,7 @@
                 </div>
             @endif
         </div>
+    </div>
     </div>
 
     {{-- Admin-chrome actions — not part of the printed page. --}}
