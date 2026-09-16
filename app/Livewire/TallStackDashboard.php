@@ -218,6 +218,7 @@ class TallStackDashboard extends Component
             'periods' => DashboardPeriod::PERIODS,
             'periodLabel' => $periodLabel,
             'currency' => $currency,
+            'refreshSeconds' => $this->company->dashboard_refresh_seconds,
             'statsLoaded' => $this->statsLoaded,
             'stats' => $this->stats,
             'chartLabels' => $this->chartLabels,

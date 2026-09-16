@@ -1,7 +1,23 @@
-<div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
-
-    {{-- Full-page overlay for the refresh icon button's wire:click="$refresh" below --}}
-    <x-loading loading="$refresh" delay="short" />
+<div class="w-[93%] mx-auto py-6 flex flex-col gap-5"
+     @if ($refreshSeconds)
+         {{--
+             Replaces the old hand-clicked refresh button: a plain
+             setInterval calling loadDashboardData() straight over
+             Livewire's AJAX channel (never a page navigation/full
+             $refresh) — the "auto-refresh" cadence set on Settings >
+             Company & Taxes > Dashboard (Company::dashboard_refresh_seconds,
+             0/null = off, this block never renders). Paused whenever the
+             tab isn't visible (document.hidden) so an idle background tab
+             doesn't keep hammering the server. The existing
+             wire:loading.grid/wire:loading.remove.grid pair below is the
+             only visible feedback while it runs — deliberately NOT a
+             full-page overlay, which would make a silent background
+             refresh feel like a jarring reload instead of the fluid,
+             unobtrusive update it's meant to be.
+         --}}
+         x-data
+         x-init="setInterval(() => { if (! document.hidden) { $wire.loadDashboardData() } }, {{ $refreshSeconds * 1000 }})"
+     @endif>
 
     {{--
         Shared page-header component — see its own docblock. The
@@ -24,14 +40,6 @@
                 @endforeach
             </x-dropdown>
             <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" wire:click="exportSummary" wire:loading.attr="disabled" wire:target="exportSummary" />
-            {{--
-                Calls loadDashboardData() directly (not $refresh) — since
-                the heavy stats/chart query is no longer run from render(),
-                a bare $refresh would just re-render the page with
-                whatever was already loaded, not actually pull fresh
-                numbers.
-            --}}
-            <x-button icon="arrow-path" sm color="green" scope="icon-action" class="h-9 w-9" wire:click="loadDashboardData" tooltip="Refresh" />
         </x-slot:actions>
     </x-tallstack.page-header>
 

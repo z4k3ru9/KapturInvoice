@@ -88,6 +88,12 @@ class TallStackSettingsCompanyTaxes extends Component
 
     public bool $codesLocked = false;
 
+    // --- Dashboard — replaces the Dashboard's own manual refresh button
+    // with a company-wide auto-refresh cadence, set here rather than per
+    // user (see the new dashboard_refresh_seconds column's own migration
+    // docblock for why). null/0 = off. ------------------------------------
+    public ?int $dashboard_refresh_seconds = null;
+
     // --- Taxes — App\Models\CompanyTaxSetting's own field set. -----------
     public bool $tax_enabled = false;
 
@@ -143,6 +149,7 @@ class TallStackSettingsCompanyTaxes extends Component
         $this->quote_prefix = $company->quote_prefix;
         $this->credit_prefix = $company->credit_prefix;
         $this->codesLocked = filled($company->codes_locked_at);
+        $this->dashboard_refresh_seconds = $company->dashboard_refresh_seconds ?? 0;
 
         $taxSetting = CompanyTaxSetting::query()->firstOrCreate(['company_id' => $company->id]);
         $this->tax_enabled = (bool) $taxSetting->tax_enabled;
@@ -174,6 +181,7 @@ class TallStackSettingsCompanyTaxes extends Component
             'dpp_factor_numerator' => ['nullable', 'integer', 'min:0', 'max:255'],
             'dpp_factor_denominator' => ['nullable', 'integer', 'min:0', 'max:255'],
             'logo' => ['nullable', 'image', 'max:2048'],
+            'dashboard_refresh_seconds' => ['nullable', 'integer', Rule::in([0, 30, 60, 120, 300])],
         ]);
 
         $payload = [
@@ -186,6 +194,7 @@ class TallStackSettingsCompanyTaxes extends Component
             'currency_code' => $data['currency_code'],
             'primary_color' => $data['primary_color'],
             'secondary_color' => $data['secondary_color'],
+            'dashboard_refresh_seconds' => $data['dashboard_refresh_seconds'] ?: null,
         ];
 
         // "Locks after the first document is issued" — same guard

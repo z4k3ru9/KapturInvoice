@@ -106,6 +106,24 @@
             @endif
         </div>
     </x-card>
+
+    <x-card>
+        <x-slot:header>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Dashboard</span>
+        </x-slot:header>
+
+        <div class="max-w-xs">
+            <x-select.styled wire:model="dashboard_refresh_seconds" label="Auto-refresh"
+                :options="[
+                    ['value' => 0, 'label' => 'Off — refresh manually'],
+                    ['value' => 30, 'label' => 'Every 30 seconds'],
+                    ['value' => 60, 'label' => 'Every minute'],
+                    ['value' => 120, 'label' => 'Every 2 minutes'],
+                    ['value' => 300, 'label' => 'Every 5 minutes'],
+                ]" />
+            <p class="text-[11px] text-gray-400 mt-1">How often the Dashboard's stats and chart pull fresh data on their own, in the background — applies to everyone viewing this company's dashboard.</p>
+        </div>
+    </x-card>
     </x-tallstack.settings-tabs>
 
     <x-modal wire="showBankAccountModal" :title="$editingBankAccountId ? 'Edit bank account' : 'Add bank account'" center="sm">
