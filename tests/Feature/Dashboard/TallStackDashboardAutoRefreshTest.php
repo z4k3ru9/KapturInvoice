@@ -50,7 +50,31 @@ class TallStackDashboardAutoRefreshTest extends TestCase
         $this->actingAs($this->owner);
 
         Livewire::test(TallStackDashboard::class, ['company' => $this->company])
-            ->assertSee('loadDashboardData() } }, 60000)', false);
+            ->assertSee('setInterval', false)
+            ->assertSee('$wire.loadDashboardData()', false)
+            ->assertSee('}, 60000)', false);
+    }
+
+    public function test_the_auto_refresh_interval_skips_while_a_form_field_has_focus(): void
+    {
+        $this->company->update(['dashboard_refresh_seconds' => 60]);
+        $this->actingAs($this->owner);
+
+        // Not a real browser, so this can't simulate document.activeElement —
+        // asserts the guard clause is actually present in the rendered
+        // x-init rather than a bare setInterval with no such check.
+        Livewire::test(TallStackDashboard::class, ['company' => $this->company])
+            ->assertSee('document.activeElement?.matches', false)
+            ->assertSee('! document.hidden && ! editing', false);
+    }
+
+    public function test_load_dashboard_data_dispatches_a_dashboard_refreshed_browser_event(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(TallStackDashboard::class, ['company' => $this->company])
+            ->call('loadDashboardData')
+            ->assertDispatched('dashboard-refreshed');
     }
 
     public function test_saving_the_settings_page_updates_the_company(): void

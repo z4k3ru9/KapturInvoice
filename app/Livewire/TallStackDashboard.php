@@ -85,7 +85,13 @@ class TallStackDashboard extends Component
     /**
      * Computes the stat cards and trend-chart buckets — see this class's
      * own docblock for why this is split out of `render()` rather than run
-     * eagerly. Never called from `mount()`.
+     * eagerly. Never called from `mount()`. Every call — the initial
+     * wire:init load, a period change, or the auto-refresh interval (see
+     * the Blade view's own x-init) — ends by dispatching a browser
+     * 'dashboard-refreshed' event so the shell's floating status
+     * indicator (components/tallstack/app.blade.php) can show when the
+     * dashboard was last updated without this component needing to know
+     * that indicator exists.
      */
     public function loadDashboardData(): void
     {
@@ -131,6 +137,8 @@ class TallStackDashboard extends Component
         $this->chartCollected = $bucket['collected'];
 
         $this->statsLoaded = true;
+
+        $this->dispatch('dashboard-refreshed');
     }
 
     /**

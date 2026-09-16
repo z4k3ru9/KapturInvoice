@@ -7,32 +7,33 @@
              $refresh) — the "auto-refresh" cadence set on Settings >
              Company & Taxes > Dashboard (Company::dashboard_refresh_seconds,
              0/null = off, this block never renders). Paused whenever the
-             tab isn't visible (document.hidden) so an idle background tab
-             doesn't keep hammering the server. The existing
-             wire:loading.grid/wire:loading.remove.grid pair below is the
-             only visible feedback while it runs — deliberately NOT a
-             full-page overlay, which would make a silent background
-             refresh feel like a jarring reload instead of the fluid,
-             unobtrusive update it's meant to be.
+             tab isn't visible (document.hidden), OR whenever focus is
+             currently inside a form control (an input/textarea/select/
+             contenteditable — e.g. the onboarding checklist has no form
+             fields today, but this guard is generic on purpose: "auto
+             refresh can be used for view only, not during editing any
+             form" per the user's own explicit instruction) — a
+             background data pull has no business interrupting someone
+             mid-edit, even on a page that doesn't currently have one.
+             The existing wire:loading.grid/wire:loading.remove.grid pair
+             below is the only visible feedback while it runs —
+             deliberately NOT a full-page overlay, which would make a
+             silent background refresh feel like a jarring reload instead
+             of the fluid, unobtrusive update it's meant to be. Each
+             successful load dispatches a browser 'dashboard-refreshed'
+             event (see loadDashboardData()'s own docblock) that the
+             shell's floating status indicator listens for, to show when
+             the dashboard was last updated — see
+             components/tallstack/app.blade.php.
          --}}
          x-data
-         x-init="setInterval(() => { if (! document.hidden) { $wire.loadDashboardData() } }, {{ $refreshSeconds * 1000 }})"
+         x-init="setInterval(() => {
+             const editing = document.activeElement?.matches('input, textarea, select, [contenteditable=\'true\']');
+             if (! document.hidden && ! editing) { $wire.loadDashboardData() }
+         }, {{ $refreshSeconds * 1000 }})"
      @endif>
 
-    {{--
-        Shared page-header component — see its own docblock. The
-        "Owner · {name}" badge that used to sit here was merged into the
-        avatar/account dropdown's own header instead (that dropdown now
-        shows the user's real per-company role via
-        auth()->user()->companyRole($company)?->label(), replacing this
-        badge's hardcoded "Owner" string) — the user's role isn't
-        specific to the Dashboard, so it belongs in the one place it's
-        always reachable, not repeated on every page's own header.
-    --}}
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Overview']]" title="Dashboard">
-        <x-slot:badge>
-            <span class="text-xs text-gray-400">Updated moments ago</span>
-        </x-slot:badge>
         <x-slot:actions>
             <x-dropdown text="{{ $periodLabel }}" icon="calendar" scope="toolbar">
                 @foreach ($periods as $value => $label)

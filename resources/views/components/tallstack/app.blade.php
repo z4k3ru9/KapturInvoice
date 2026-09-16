@@ -711,9 +711,21 @@
     clipped mid-word. Floating it outside the sidebar avoids that clipping
     entirely and reads like a toast rather than a cut-off label.
 --}}
-<div x-data="{ open: false, online: true }"
+<div x-data="{ open: false, online: true, lastUpdated: null }"
      x-on:mouseenter="open = true"
      x-on:mouseleave="open = false"
+     {{--
+         The Dashboard's own "Updated moments ago" label used to sit next
+         to its page title — moved here instead, since this floating
+         indicator is the one place already reachable from every page,
+         not just the Dashboard (App\Livewire\TallStackDashboard's
+         loadDashboardData() dispatches this browser event on every
+         load — initial, period change, or the auto-refresh interval — so
+         this never needs to know the Dashboard's own internals). Stays
+         null (and the line below stays hidden) on any page that never
+         fires the event.
+     --}}
+     x-on:dashboard-refreshed.window="lastUpdated = new Date().toLocaleTimeString()"
      class="fixed bottom-4 left-4 z-40">
     <div x-show="open" x-transition x-cloak
          class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700! bg-white dark:bg-gray-900! p-3 shadow-xl">
@@ -721,6 +733,7 @@
             <span class="h-2 w-2 rounded-full shrink-0" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
             <span class="text-sm font-semibold text-gray-900 dark:text-gray-100!" x-text="online ? 'All systems operational' : 'System offline'"></span>
         </div>
+        <p x-show="lastUpdated" x-cloak class="mt-1 text-xs text-gray-500 dark:text-gray-400!">Dashboard updated <span x-text="lastUpdated"></span></p>
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400!">KapturInvoice v2.4 &middot; {{ now()->year }}</p>
     </div>
     <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700! bg-white dark:bg-gray-900! pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
