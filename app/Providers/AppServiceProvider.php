@@ -689,10 +689,20 @@ class AppServiceProvider extends ServiceProvider
             'expandable.button' => 'text-gray-500 dark:text-gray-300! hover:text-gray-700 dark:hover:text-gray-100! transition-transform duration-200',
         ]);
 
-        // <x-tab> — 5 usages (e.g. the Settings lookups tabbed page).
+        // <x-tab> — 5 usages (e.g. the Settings lookups tabbed page). The
+        // mask-image fade is the visual scroll-affordance hint this
+        // strip was missing on mobile: `scroll-on-mobile` (e.g.
+        // resources/views/components/tallstack/settings-tabs.blade.php)
+        // already made it functionally scrollable, but nothing signaled
+        // that more tabs sit off-screen — the soft-scrollbar alone is too
+        // subtle to notice. A static edge fade (not scroll-position-
+        // reactive — dompdf/CSS has no clean way to do that without JS)
+        // is the standard low-effort affordance for this; harmless when
+        // the strip already fits without scrolling; -webkit- duplicate
+        // for Safari, which doesn't support the unprefixed property yet.
         TallStackUi::customize()->tab()->block([
             'base.wrapper' => 'dark:bg-gray-900! w-full rounded-lg bg-white shadow-md',
-            'base.body' => 'soft-scrollbar flex-nowrap overflow-auto flex bg-gray-50 dark:bg-gray-950! rounded-t-lg',
+            'base.body' => 'soft-scrollbar flex-nowrap overflow-auto flex bg-gray-50 dark:bg-gray-950! rounded-t-lg [mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-16px),transparent)] [-webkit-mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-16px),transparent)]',
             'base.content' => 'text-gray-700 dark:text-gray-300! p-4',
             'base.divider' => 'h-px border-0 bg-gray-200 dark:bg-gray-800!',
             'base.select' => 'focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-900! dark:border-gray-800! w-full rounded-lg border-gray-200 px-4 py-3 dark:text-gray-400! sm:hidden',
