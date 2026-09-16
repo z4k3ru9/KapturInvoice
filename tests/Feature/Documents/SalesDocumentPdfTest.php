@@ -21,6 +21,7 @@ use App\Models\Receipt;
 use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\User;
+use App\Services\QuotationTotalsCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -273,6 +274,57 @@ class SalesDocumentPdfTest extends TestCase
 
         $this->assertStringContainsString(__('documents.type_quotation'), $html);
         $this->assertStringNotContainsString(__('documents.type_coc'), $html);
+    }
+
+    /**
+     * Mirrors the Invoice PDF fix (docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/03-quotations.md
+     * Screen 2: "Discount total line in summary: compute subtotal - total
+     * from stored columns") — a percentage discount also shows the computed
+     * nominal amount, derived from App\Services\QuotationTotalsCalculator's
+     * own already-persisted subtotal/total (never a fresh calculation).
+     */
+    public function test_quotation_pdf_shows_nominal_discount_amount_alongside_a_percentage_discount(): void
+    {
+        [$company, $client] = $this->makeCompanyAndClient();
+        $quotation = Quotation::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'number' => 'QUO-0002',
+            'status' => QuotationStatus::Draft,
+            'quotation_date' => '2026-09-01',
+            'valid_until' => '2026-10-01',
+            'discount' => 10,
+            'discount_is_percentage' => true,
+        ]);
+        QuotationItem::create([
+            'quotation_id' => $quotation->id,
+            'title' => 'Widget',
+            'quantity' => 2,
+            'unit_cost' => 500,
+            'line_total' => 1000,
+        ]);
+        app(QuotationTotalsCalculator::class)->recalculate($quotation);
+        $quotation = $quotation->fresh();
+        $quotation->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.quotation', ['quotation' => $quotation])->render();
+
+        $this->assertStringContainsString('(-USD 100.00)', $html);
+    }
+
+    /**
+     * Universal PDF polish (this session): every line-items table gets a
+     * subtle alternating row background so it reads as a striped table.
+     */
+    public function test_quotation_pdf_items_table_has_striped_row_css(): void
+    {
+        [$company, $client] = $this->makeCompanyAndClient();
+        $quotation = $this->makeQuotation($company, $client);
+        $quotation->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.quotation', ['quotation' => $quotation])->render();
+
+        $this->assertStringContainsString('table.items tbody tr:nth-child(even)', $html);
     }
 
     // --- Sales Order -----------------------------------------------------
