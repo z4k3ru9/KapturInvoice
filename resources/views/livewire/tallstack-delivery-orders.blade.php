@@ -31,7 +31,7 @@
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">All delivery orders</span>
-                <div class="w-full sm:w-64">
+                <div class="w-full sm:flex-1 sm:min-w-[240px]">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search number, job or client…" icon="magnifying-glass" clearable />
                 </div>
             </div>

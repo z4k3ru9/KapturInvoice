@@ -29,7 +29,7 @@
                     method="filterBrand"
                 />
 
-                <div class="w-full sm:w-72">
+                <div class="w-full sm:flex-1 sm:min-w-[240px]">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search SKU or description…" icon="magnifying-glass" clearable />
                 </div>
             </div>

@@ -23,7 +23,7 @@
                     method="filterType"
                 />
 
-                <div class="w-full sm:w-64">
+                <div class="w-full sm:flex-1 sm:min-w-[240px]">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Filter by filename…" icon="magnifying-glass" clearable />
                 </div>
             </div>
