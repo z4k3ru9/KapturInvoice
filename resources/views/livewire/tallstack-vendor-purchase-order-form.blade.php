@@ -106,7 +106,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
-                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
+                                <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}{{ $row['unit'] ? ' '.$row['unit'] : '' }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['discount'] ?? '—' }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
@@ -211,7 +211,9 @@
             <x-input wire:model="item_title" label="Title" required />
             <x-textarea wire:model="item_description" label="Description" rows="2" />
             <div class="grid grid-cols-2 gap-4">
-                <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
+                <x-input wire:model="item_quantity" label="Quantity" type="number" step="1" min="1" hint="Whole numbers only." />
+                <x-select.styled wire:model="item_unit" label="Unit" clearable
+                    :options="collect(\App\Enums\UnitOfMeasure::cases())->map(fn ($u) => ['label' => $u->getLabel(), 'value' => $u->value])->all()" />
                 <x-currency wire:model="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
                 @if ($item_discount_is_percentage)
                     <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" suffix="%" />

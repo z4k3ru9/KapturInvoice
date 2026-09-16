@@ -102,7 +102,7 @@
                             <div class="muted">{{ $item->description }}</div>
                         @endif
                     </td>
-                    <td class="text-right">{{ rtrim(rtrim($item->quantity, '0'), '.') ?: '0' }}</td>
+                    <td class="text-right">{{ rtrim(rtrim($item->quantity, '0'), '.') ?: '0' }}{{ $item->unit ? ' '.$item->unit->getAbbreviation() : '' }}</td>
                     <td class="text-right">{{ number_format($item->unit_cost, 2) }}</td>
                     <td class="text-right">{{ number_format($item->line_total, 2) }}</td>
                 </tr>

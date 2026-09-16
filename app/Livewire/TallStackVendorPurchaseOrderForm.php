@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Actions\Procurement\ApproveVendorPoVariance;
 use App\Actions\Procurement\ApproveVendorPurchaseOrder;
 use App\Enums\CompanyRole;
+use App\Enums\UnitOfMeasure;
 use App\Enums\VendorPurchaseOrderStatus;
 use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Company;
@@ -22,6 +23,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use RuntimeException;
@@ -72,6 +74,8 @@ class TallStackVendorPurchaseOrderForm extends Component
     public ?string $item_description = null;
 
     public float $item_quantity = 1;
+
+    public ?string $item_unit = null;
 
     public float $item_unit_cost = 0;
 
@@ -225,6 +229,7 @@ class TallStackVendorPurchaseOrderForm extends Component
         $this->item_title = $item->title;
         $this->item_description = $item->description;
         $this->item_quantity = (float) $item->quantity;
+        $this->item_unit = $item->unit?->value;
         $this->item_unit_cost = (float) $item->unit_cost;
         $this->item_discount = (float) $item->discount;
         $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
@@ -240,6 +245,7 @@ class TallStackVendorPurchaseOrderForm extends Component
         if ($product = Product::query()->where('company_id', $this->company->id)->find($value)) {
             $this->item_title = $product->name;
             $this->item_unit_cost = (float) $product->unit_cost;
+            $this->item_unit = $product->unit?->value;
         }
     }
 
@@ -252,7 +258,8 @@ class TallStackVendorPurchaseOrderForm extends Component
         $data = $this->validate([
             'item_title' => ['required', 'string', 'max:255'],
             'item_description' => ['nullable', 'string'],
-            'item_quantity' => ['required', 'numeric', 'min:0.0001'],
+            'item_quantity' => ['required', 'integer', 'min:1'],
+            'item_unit' => ['nullable', Rule::enum(UnitOfMeasure::class)],
             'item_unit_cost' => ['required', 'numeric', 'min:0'],
             'item_discount' => ['numeric', 'min:0'],
             'item_discount_is_percentage' => ['boolean'],
@@ -267,6 +274,7 @@ class TallStackVendorPurchaseOrderForm extends Component
             'title' => $data['item_title'],
             'description' => $data['item_description'],
             'quantity' => $data['item_quantity'],
+            'unit' => $data['item_unit'],
             'unit_cost' => $data['item_unit_cost'],
             'discount' => $data['item_discount'],
             'discount_is_percentage' => $data['item_discount_is_percentage'],
@@ -318,6 +326,7 @@ class TallStackVendorPurchaseOrderForm extends Component
         $this->item_title = null;
         $this->item_description = null;
         $this->item_quantity = 1;
+        $this->item_unit = null;
         $this->item_unit_cost = 0;
         $this->item_discount = 0;
         $this->item_discount_is_percentage = false;
@@ -432,6 +441,7 @@ class TallStackVendorPurchaseOrderForm extends Component
                 'image' => $item->product?->getImageDataUri(),
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
+                'unit' => $item->unit?->getAbbreviation(),
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
                 'discount' => (float) $item->discount > 0
                     ? ($item->discount_is_percentage ? $item->discount.'%' : Money::format((float) $item->discount, $currency))
