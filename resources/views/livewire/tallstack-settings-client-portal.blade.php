@@ -9,7 +9,7 @@
     <x-tallstack.settings-tabs :company="$company" active="client-portal">
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Client portal</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Client portal</span>
         </x-slot:header>
 
         <div>
