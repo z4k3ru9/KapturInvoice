@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Services\InvoiceDuplicator;
+use App\Services\RecurringInvoiceSchedule;
 use App\Support\Dashboard\Money;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
@@ -41,6 +42,16 @@ use TallStackUi\Traits\Interactions;
  * `recurring_end_date` alone — never a stored or authoritative field),
  * not the Active/Paused/Ended tri-state the Stitch mockup shows. See this
  * phase's handoff report for the full explanation.
+ *
+ * UPDATE (status-transition automation): the above is still exactly true
+ * for this page's manual "Generate now" row action. Separately,
+ * App\Console\Commands\GenerateDueRecurringInvoices now runs daily and
+ * DOES gate on something — the existing `auto_bill` flag (previously
+ * decorative) — generating (and, for that flag, also issuing/sending) a
+ * template's next invoice once it's actually due. `auto_bill = false`
+ * behaves like the "Pause" this docblock says doesn't exist, but only for
+ * the automatic path; a user can still click "Generate now" on a
+ * paused/`auto_bill = false` template exactly as before.
  */
 #[Layout('components.tallstack.app')]
 class TallStackRecurringInvoices extends Component
@@ -99,35 +110,15 @@ class TallStackRecurringInvoices extends Component
     }
 
     /**
-     * Purely a display estimate — Carbon arithmetic over the template's
-     * own `recurring_frequency` string and `recurring_last_sent_at`/
-     * `recurring_start_date`, never a stored schedule and never consulted
-     * by "Generate now" or anything else. No real automatic-generation
-     * scheduler exists in this codebase (flagged in this phase's report)
-     * — this only tells an admin roughly when the next manual "Generate
-     * now" would be due if they kept to the stated cadence.
+     * The same Carbon arithmetic App\Console\Commands\
+     * GenerateDueRecurringInvoices now uses for the real scheduling
+     * decision (App\Services\RecurringInvoiceSchedule) — this call site
+     * only ever displays the result, it never itself decides to generate
+     * anything.
      */
     private function estimateNextDate(Invoice $template): ?Carbon
     {
-        $anchor = $template->recurring_last_sent_at?->copy() ?? $template->recurring_start_date?->copy();
-
-        if (! $anchor) {
-            return null;
-        }
-
-        $next = match (strtolower((string) $template->recurring_frequency)) {
-            'weekly' => $anchor->addWeek(),
-            'monthly' => $anchor->addMonthNoOverflow(),
-            'quarterly' => $anchor->addMonthsNoOverflow(3),
-            'annually', 'yearly' => $anchor->addYearNoOverflow(),
-            default => null,
-        };
-
-        if ($next && $template->recurring_end_date && $next->greaterThan($template->recurring_end_date)) {
-            return null;
-        }
-
-        return $next;
+        return app(RecurringInvoiceSchedule::class)->nextDueDate($template);
     }
 
     /**
