@@ -292,6 +292,22 @@ class AppServiceProvider extends ServiceProvider
         // trigger's text, and both match this app's other px-3 fields.
         TallStackUi::customize()->select('styled')->block('box.list.item.wrapper')->replace('px-2', 'px-3');
 
+        // Every <x-toggle>/<x-checkbox>/<x-radio>'s label span carries no
+        // `whitespace-nowrap` at all — a label a few words long (e.g.
+        // "Discount is a percentage") wraps onto a second line the moment
+        // it sits in anything narrower than its own natural width, which
+        // most of this app's toggles do (a half-width grid cell next to a
+        // sibling field). Any toggle whose column is genuinely too narrow
+        // for its label even on one line still needs that column widened
+        // directly (col-span), which this can't fix on its own — see the
+        // `sm:col-span-2`/`col-span-2` added alongside every
+        // "Discount is a percentage" toggle. Also tightens the
+        // switch-to-label gap from mr-2/ml-2 (8px) to mr-1.5/ml-1.5 (6px) —
+        // the original read as more of a gap than a clicked-together
+        // control and its label.
+        TallStackUi::customize()->wrapper('radio')->block('label.spacing.left')->replace('mr-2', 'mr-1.5');
+        TallStackUi::customize()->wrapper('radio')->block('label.spacing.right')->replace('ml-2', 'ml-1.5');
+
         // Gives every <x-card> header a subtle depth cue against its own
         // body — previously both shared the exact same flat background
         // (parent 'wrapper.second' is bg-white/dark:bg-dark-800, and the
@@ -941,9 +957,14 @@ class AppServiceProvider extends ServiceProvider
 
         // The label TEXT beside every <x-toggle>/<x-checkbox>/<x-radio> —
         // all three compose the same shared `Wrapper\Radio` component for
-        // their own `label` prop, so one fix covers all three.
+        // their own `label` prop, so one fix covers all three. `whitespace-
+        // nowrap` keeps a multi-word label (e.g. "Discount is a percentage")
+        // from wrapping onto a second line in a narrow grid cell — see the
+        // `label.spacing` tightening further down, and the col-span widening
+        // added alongside any toggle whose column is too narrow even for one
+        // line.
         TallStackUi::customize()->wrapper('radio')->block([
-            'label.text' => 'dark:text-gray-400! cursor-pointer items-center text-sm font-medium text-gray-700',
+            'label.text' => 'dark:text-gray-400! cursor-pointer items-center text-sm font-medium text-gray-700 whitespace-nowrap',
         ]);
 
         // <x-toggle>'s own track background, and <x-checkbox>/<x-radio>'s

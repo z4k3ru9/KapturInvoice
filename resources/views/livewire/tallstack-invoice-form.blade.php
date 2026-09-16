@@ -128,7 +128,7 @@
                         <x-date wire:model="invoice_date" label="Invoice date" />
                         <x-date wire:model="due_date" label="Due date" />
                         <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
-                        <div class="flex items-end pb-2">
+                        <div class="flex items-end pb-2 sm:col-span-2">
                             <x-toggle wire:model="discount_is_percentage" label="Discount is a percentage" />
                         </div>
                     </div>

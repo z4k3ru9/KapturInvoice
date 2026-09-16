@@ -280,7 +280,7 @@
                 <x-input wire:model.live.debounce.500ms="item_quantity" label="Quantity" type="number" step="0.0001" />
                 <x-currency wire:model.live.debounce.500ms="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
                 <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
-                <div class="flex items-end pb-2">
+                <div class="flex items-end pb-2 col-span-2">
                     <x-toggle wire:model="item_discount_is_percentage" label="Discount is a percentage" />
                 </div>
                 <x-input wire:model.live.debounce.500ms="item_net_amount" label="Net amount" type="number" step="0.01" hint="Before this line's discount. Pre-filled from qty x unit cost — edit freely if the vendor's actual bill differs." />
