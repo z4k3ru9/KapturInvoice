@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Clients']]" title="Clients">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Clients', 'icon' => 'user-group']]" title="Clients">
         <x-slot:actions>
             {{-- color="blue", not "primary" — see app.blade.php's own
                  "+New" button for why. --}}

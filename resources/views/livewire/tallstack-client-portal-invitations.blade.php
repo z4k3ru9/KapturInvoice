@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Client Portal Invitations']]" title="Client Portal Invitations">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Client Portal Invitations', 'icon' => 'link']]" title="Client Portal Invitations">
         <x-slot:badge>
             <x-badge text="Read-only audit register" color="gray" sm />
         </x-slot:badge>
@@ -15,19 +15,16 @@
     </p>
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
-        <x-stats scope="compact" title="Total invitations" icon="link" color="blue">
+        <x-stats scope="compact" title="Invitations" icon="link" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>Ever generated</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Viewed" icon="eye" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['viewed'] }}</span>
-            <x-slot:footer>Opened by a contact</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Signed" icon="pencil" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['signed'] }}</span>
-            <x-slot:footer>E-signed on the portal</x-slot:footer>
         </x-stats>
     </div>
 

@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Reports']]" title="Financial Analytics & Tax Reports">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Reports', 'icon' => 'chart-bar']]" title="Financial Analytics & Tax Reports">
         <x-slot:actions>
             <x-dropdown text="{{ $periodLabel }}" icon="calendar" scope="toolbar">
                 @foreach ($periods as $value => $label)
@@ -25,19 +25,27 @@
          truncating; `truncate` on the number span is a second line of
          defense for an even narrower device or a larger real balance. --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
-        <x-stats scope="compact" title="Total revenue" icon="banknotes">
+        <x-stats scope="compact" icon="banknotes">
+            <span class="text-xs text-gray-600 dark:text-gray-300!">Revenue</span>
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['revenue'] }}</span>
-            <x-slot:footer>{{ $periodLabel }} · cash collected</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
+        <x-stats scope="compact" icon="clock" color="amber">
+            <div class="flex items-center gap-1.5">
+                <span class="text-xs text-gray-600 dark:text-gray-300!">Outstanding</span>
+                <x-badge text="{{ $stats['outstandingCount'] }} inv" sm light color="amber" />
+            </div>
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
-            <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Overdue amount" icon="exclamation-triangle" color="red">
+        <x-stats scope="compact" icon="exclamation-triangle" color="red">
+            <div class="flex items-center gap-1.5">
+                <span class="text-xs text-gray-600 dark:text-gray-300!">Overdue</span>
+                @if ($stats['overdueCount'] > 0)
+                    <x-badge text="{{ $stats['overdueCount'] }} inv" sm light color="red" />
+                @endif
+            </div>
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueTotal'] }}</span>
-            <x-slot:footer>{{ $stats['overdueCount'] }} overdue</x-slot:footer>
         </x-stats>
     </div>
 

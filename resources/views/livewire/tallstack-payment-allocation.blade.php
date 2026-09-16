@@ -4,7 +4,7 @@
         :crumbs="[
             ['label' => $company->name, 'url' => route('tallstack.payments', $company)],
             ['label' => 'Payments', 'url' => route('tallstack.payments', $company)],
-            ['label' => $payment->reference ?: ('#'.$payment->id)],
+            ['label' => $payment->reference ?: ('#'.$payment->id), 'icon' => 'credit-card'],
         ]"
         :title="$payment->reference ?: ('Payment #'.$payment->id)"
     >
@@ -50,19 +50,21 @@
          escrow/credit ledger" affordance has no domain equivalent, so
          it's not reproduced here — see this component's docblock). --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-        <x-stats scope="compact" title="Incoming payment" icon="banknotes" color="blue">
+        <x-stats scope="compact" icon="banknotes" color="blue">
+            <span class="text-xs text-gray-600 dark:text-gray-300!">Incoming</span>
             <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $incomingAmount }}</span>
-            <x-slot:footer>{{ $payment->client?->name ?? '—' }} &middot; {{ $payment->payment_date?->format('d M Y') ?? '—' }}</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Allocated total" icon="arrows-right-left" color="green">
+        <x-stats scope="compact" icon="arrows-right-left" color="green">
+            <div class="flex items-center gap-1.5">
+                <span class="text-xs text-gray-600 dark:text-gray-300!">Allocated</span>
+                <x-badge text="{{ $payment->allocations->count() }} inv" sm light color="green" />
+            </div>
             <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $allocatedTotal }}</span>
-            <x-slot:footer>Across {{ $payment->allocations->count() }} invoice(s)</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="{{ $remainingIsOverpaid ? 'Overpayment' : 'Remaining' }}" icon="exclamation-triangle" :color="$remainingIsOverpaid ? 'red' : 'gray'">
             <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $remaining }}</span>
-            <x-slot:footer>Unallocated balance</x-slot:footer>
         </x-stats>
     </div>
 

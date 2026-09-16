@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Products']]" title="Products">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Products', 'icon' => 'cube']]" title="Products">
         <x-slot:actions>
             {{-- color="blue", not "primary" — same reasoning as every other
                  general-function button on these TALL-stack pages (see

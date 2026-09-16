@@ -1,26 +1,32 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendor purchase orders']]" title="Vendor Purchase Orders">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendor purchase orders', 'icon' => 'shopping-cart']]" title="Vendor Purchase Orders">
         <x-slot:actions>
             <x-button text="New PO" icon="plus" color="blue" sm class="h-9" href="{{ route('tallstack.vendor-purchase-orders.create', $company) }}" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
-    <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
-        <x-stats scope="compact" title="Draft POs" icon="pencil-square" color="gray">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
-            <x-slot:footer>Not yet approved</x-slot:footer>
-        </x-stats>
+    {{-- Two stacked rows: the one Rupiah (currency) card gets its own row
+         so a large approved-value total never fights the two plain count
+         cards for space, matching the Dashboard's own stat-row treatment.
+         No outer wire:loading grid to escape here (this page's stats are
+         computed synchronously in render()), so both rows are plain
+         stacked grids inside a flex column. --}}
+    <div class="flex flex-col gap-2.5">
+        <div class="grid grid-cols-1 gap-2.5">
+            <x-stats scope="compact" title="Value" icon="banknotes" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalValue'] }}</span>
+            </x-stats>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+            <x-stats scope="compact" title="Draft" icon="pencil-square" color="gray">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Approved POs" icon="check-circle" color="green">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['approved'] }}</span>
-            <x-slot:footer>Active payment ceilings</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Approved value" icon="banknotes" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalValue'] }}</span>
-            <x-slot:footer>Sum of approved POs</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Approved" icon="check-circle" color="green">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['approved'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>

@@ -3,7 +3,7 @@
     {{-- Clients have no lifecycle status (prompt 10) — a muted "Since
          [date]" subtitle sits next to the title instead of a status
          badge. --}}
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Clients', 'url' => route('tallstack.clients', $company)], ['label' => $client->name]]" :title="$client->name">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Clients', 'url' => route('tallstack.clients', $company)], ['label' => $client->name, 'icon' => 'user-group']]" :title="$client->name">
         <x-slot:badge>
             <span class="text-xs text-gray-400">Since {{ $client->created_at->format('d M Y') }}</span>
         </x-slot:badge>
@@ -14,20 +14,32 @@
     </x-tallstack.page-header>
 
     {{-- Financial summary strip — same tabular-numeral/compact-stat
-         convention as the Dashboard/Quotations register. --}}
-    <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Total invoiced" icon="document-currency-dollar" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalInvoiced'] }}</span>
-        </x-stats>
-        <x-stats scope="compact" title="Total paid" icon="banknotes" color="green">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalPaid'] }}</span>
-        </x-stats>
-        <x-stats scope="compact" title="Outstanding balance" icon="exclamation-triangle" color="red">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
-        </x-stats>
-        <x-stats scope="compact" title="Open quotations" icon="document-text" color="amber">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['openQuotations'] }}</span>
-        </x-stats>
+         convention as the Dashboard/Quotations register. Two stacked rows,
+         mirroring the Dashboard's own stat-row treatment: the three
+         Rupiah (currency) cards get their own row since a genuinely large
+         seeded balance needs real width to render without clipping (see
+         memory.md), and the one plain count card (Quotations) sits below
+         on its own — there's no outer wire:loading grid to escape here
+         (this page computes its stats synchronously in render(), not via
+         a lazy round-trip), so both rows are just plain stacked grids
+         inside a flex column rather than needing `col-span-full`. --}}
+    <div class="flex flex-col gap-2.5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <x-stats scope="compact" title="Invoiced" icon="document-currency-dollar" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalInvoiced'] }}</span>
+            </x-stats>
+            <x-stats scope="compact" title="Paid" icon="banknotes" color="green">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalPaid'] }}</span>
+            </x-stats>
+            <x-stats scope="compact" title="Outstanding" icon="exclamation-triangle" color="red">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
+            </x-stats>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <x-stats scope="compact" title="Quotations" icon="document-text" color="amber">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['openQuotations'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     {{-- Tabbed body — client name + ledger stats above stay pinned outside

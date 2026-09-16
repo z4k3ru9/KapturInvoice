@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Payments']]" title="Payments">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Payments', 'icon' => 'credit-card']]" title="Payments">
         <x-slot:actions>
             {{-- color="brand" — Primary role (AppServiceProvider::
                  registerActionColorPalette()'s docblock): the single main
@@ -10,27 +10,32 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
-    {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard. --}}
-    <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Pending verification" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['pendingCount'] }}</span>
-            <x-slot:footer>Awaiting Verify</x-slot:footer>
-        </x-stats>
+    {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard.
+         Two stacked rows: the one Rupiah (currency) card gets its own row
+         so a large verified total never fights the three plain count
+         cards for space, matching the Dashboard's own stat-row treatment.
+         No outer wire:loading grid to escape here (this page's stats are
+         computed synchronously in render()), so both rows are plain
+         stacked grids inside a flex column. --}}
+    <div class="flex flex-col gap-2.5">
+        <div class="grid grid-cols-1 gap-2.5">
+            <x-stats scope="compact" title="Verified" icon="banknotes" color="green">
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['verifiedTotal'] }}</span>
+            </x-stats>
+        </div>
+        <div class="grid grid-cols-3 gap-2.5">
+            <x-stats scope="compact" title="Pending" icon="clock" color="amber">
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['pendingCount'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Verified total" icon="banknotes" color="green">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['verifiedTotal'] }}</span>
-            <x-slot:footer>Sum of verified payments</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Unallocated" icon="arrows-right-left" color="red">
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['unallocatedCount'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Unallocated" icon="arrows-right-left" color="red">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['unallocatedCount'] }}</span>
-            <x-slot:footer>Verified, not yet allocated</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Receipts issued" icon="document-text" color="blue">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['receiptsIssued'] }}</span>
-            <x-slot:footer>Total to date</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Receipts" icon="document-text" color="blue">
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['receiptsIssued'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>

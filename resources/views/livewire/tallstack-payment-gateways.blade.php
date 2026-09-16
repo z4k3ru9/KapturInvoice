@@ -1,20 +1,18 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Settings'], ['label' => 'Payment Gateways']]" title="Payment Gateways">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Settings'], ['label' => 'Payment Gateways', 'icon' => 'credit-card']]" title="Payment Gateways">
         <x-slot:actions>
             <x-button text="New gateway" icon="plus" color="blue" sm class="h-9" wire:click="create" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
     <div class="grid grid-cols-2 gap-2.5">
-        <x-stats scope="compact" title="Configured gateways" icon="credit-card" color="blue">
+        <x-stats scope="compact" title="Gateways" icon="credit-card" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>All drivers</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Enabled" icon="bolt" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['enabled'] }}</span>
-            <x-slot:footer>Accepting live settlements</x-slot:footer>
         </x-stats>
     </div>
 

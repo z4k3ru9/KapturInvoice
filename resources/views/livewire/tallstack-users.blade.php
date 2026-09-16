@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Users & Roles']]" title="Users & Roles">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Users & Roles', 'icon' => 'user-group']]" title="Users & Roles">
         <x-slot:actions>
             {{-- color="blue" — see app.blade.php's own "+New" button: a
                  general action shouldn't borrow the tenant's brand color. --}}
@@ -12,17 +12,14 @@
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Members" icon="users" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $activeCount }}</span>
-            <x-slot:footer>Active company members</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Invited" icon="envelope" color="amber">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $invitedCount }}</span>
-            <x-slot:footer>Awaiting acceptance</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Roles" icon="shield-check" color="primary">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ count($roles) }}</span>
-            <x-slot:footer>Owner, Admin, Accountant, Sales, Staff, Auditor</x-slot:footer>
         </x-stats>
     </div>
 
