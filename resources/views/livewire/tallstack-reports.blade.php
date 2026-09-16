@@ -14,20 +14,29 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
-    {{-- Financial Analytics -------------------------------------------- --}}
-    <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
+    {{-- Financial Analytics --------------------------------------------
+         grid-cols-1 below `sm` (not grid-cols-2 from the smallest width
+         up): at ~132px per card on a 375px phone, the bold currency
+         number ("Rp 94.000.000") has no room and its `overflow: visible`
+         wrapper (TallStackUI's own `wrapper.first`, not ours to change)
+         let it bleed straight into the neighboring card's icon — visually
+         broken, confirmed live at mobile width. One column at phone width
+         gives each card its full ~343px to render the number without
+         truncating; `truncate` on the number span is a second line of
+         defense for an even narrower device or a larger real balance. --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Total revenue" icon="banknotes">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['revenue'] }}</span>
+            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['revenue'] }}</span>
             <x-slot:footer>{{ $periodLabel }} · cash collected</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
+            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['outstanding'] }}</span>
             <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Overdue amount" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['overdueTotal'] }}</span>
+            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['overdueTotal'] }}</span>
             <x-slot:footer>{{ $stats['overdueCount'] }} overdue</x-slot:footer>
         </x-stats>
     </div>
@@ -35,7 +44,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex items-center justify-between w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Revenue &amp; cash inflow trend</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Revenue &amp; cash inflow trend</span>
             </div>
         </x-slot:header>
 
@@ -62,7 +71,7 @@
         <x-slot:header>
             <div class="flex items-center justify-between w-full">
                 <div>
-                    <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job margin</div>
+                    <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job margin</div>
                     <div class="text-xs text-gray-400">Sales value, allocated gross cost, and unallocated purchasing cost per job</div>
                 </div>
                 <x-button text="View jobs" href="{{ route('tallstack.jobs', $company) }}" color="blue" sm />
@@ -87,12 +96,12 @@
                 <x-badge :text="$row['status']" :color="$row['status_color']" sm light />
             @endinteract
             @interact('column_margin', $row)
-                <span class="tabular-nums {{ $row['margin_negative'] ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-green-600 dark:text-green-400' }}">
+                <span class="tabular-nums {{ $row['margin_negative'] ? 'text-red-600 dark:text-red-400! font-semibold' : 'text-green-600 dark:text-green-400!' }}">
                     {{ $row['margin'] }}
                 </span>
             @endinteract
             @interact('column_unallocated_cost', $row)
-                <span class="tabular-nums text-amber-600 dark:text-amber-400">{{ $row['unallocated_cost'] }}</span>
+                <span class="tabular-nums text-amber-600 dark:text-amber-400!">{{ $row['unallocated_cost'] }}</span>
             @endinteract
             <x-slot:empty>No jobs with billed invoices yet.</x-slot:empty>
         </x-table>
@@ -103,7 +112,7 @@
         <x-slot:header>
             <div class="flex items-center justify-between w-full">
                 <div>
-                    <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Tax reports</div>
+                    <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Tax reports</div>
                     <div class="text-xs text-gray-400">Filed and pending e-Faktur / tax recap entries</div>
                 </div>
             </div>
@@ -115,10 +124,10 @@
                  icon-plus-two-line layout, "explain why, don't just look
                  broken" (this project's own established convention). --}}
             <div class="flex flex-col items-center justify-center text-center py-14 px-6">
-                <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 grid place-items-center mb-3">
+                <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800! grid place-items-center mb-3">
                     <x-icon name="receipt-percent" class="w-6 h-6 text-gray-400" />
                 </div>
-                <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Tax is disabled for this company</p>
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-200!">Tax is disabled for this company</p>
                 <p class="text-xs text-gray-400 mt-1 max-w-sm">No tax recaps are generated — invoices issued here never carry tax, so there is nothing to report.</p>
             </div>
         @else

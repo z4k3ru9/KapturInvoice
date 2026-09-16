@@ -50,7 +50,7 @@
                 type="button"
                 x-show="search.trim().length > 0"
                 x-on:click="select(search.trim()); show = false"
-                class="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-[color:var(--ts-primary)] hover:bg-gray-50 dark:hover:bg-gray-800"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-[color:var(--ts-primary)] hover:bg-gray-50 dark:hover:bg-gray-800!"
             >
                 <x-icon name="plus-circle" class="w-4 h-4 shrink-0" />
                 <span>Add "<span x-text="search.trim()"></span>" as a new category</span>
