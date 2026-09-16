@@ -8,12 +8,12 @@
 
     <div class="grid grid-cols-2 gap-2.5">
         <x-stats scope="compact" title="Configured gateways" icon="credit-card" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>All drivers</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Enabled" icon="bolt" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['enabled'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['enabled'] }}</span>
             <x-slot:footer>Accepting live settlements</x-slot:footer>
         </x-stats>
     </div>

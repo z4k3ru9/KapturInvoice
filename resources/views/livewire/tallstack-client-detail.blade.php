@@ -17,16 +17,16 @@
          convention as the Dashboard/Quotations register. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Total invoiced" icon="document-currency-dollar" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['totalInvoiced'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalInvoiced'] }}</span>
         </x-stats>
         <x-stats scope="compact" title="Total paid" icon="banknotes" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['totalPaid'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalPaid'] }}</span>
         </x-stats>
         <x-stats scope="compact" title="Outstanding balance" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstandingBalance'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
         </x-stats>
         <x-stats scope="compact" title="Open quotations" icon="document-text" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['openQuotations'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['openQuotations'] }}</span>
         </x-stats>
     </div>
 

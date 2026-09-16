@@ -18,22 +18,22 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Historical credits" icon="receipt-refund" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['count'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['count'] }}</span>
             <x-slot:footer>Imported records</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Total credit amount" icon="banknotes" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>Across all credits</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Linked to invoices" icon="link" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['linked'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['linked'] }}</span>
             <x-slot:footer>Applied against an invoice</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Unlinked balance" icon="exclamation-triangle" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['unlinkedBalance'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['unlinkedBalance'] }}</span>
             <x-slot:footer>Not yet applied</x-slot:footer>
         </x-stats>
     </div>

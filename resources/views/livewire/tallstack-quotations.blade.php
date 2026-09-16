@@ -15,22 +15,22 @@
          real Quotation rows rather than any new stored aggregate. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Active quotations" icon="document-text" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['active'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['active'] }}</span>
             <x-slot:footer>Draft, approved or sent</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Awaiting decision" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['awaitingDecision'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['awaitingDecision'] }}</span>
             <x-slot:footer>Sent to client</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Expiring in 7 days" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['expiringSoon'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['expiringSoon'] }}</span>
             <x-slot:footer>Sent, valid until soon</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Acceptance rate" icon="check-circle" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['acceptanceRate'] === null ? '—' : $stats['acceptanceRate'].'%' }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['acceptanceRate'] === null ? '—' : $stats['acceptanceRate'].'%' }}</span>
             <x-slot:footer>Of decided quotations</x-slot:footer>
         </x-stats>
     </div>

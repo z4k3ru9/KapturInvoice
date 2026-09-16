@@ -10,22 +10,22 @@
          "pending" state to surface here. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Total deliveries" icon="truck" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>All recorded deliveries</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This month" icon="calendar-days" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['thisMonth'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisMonth'] }}</span>
             <x-slot:footer>Delivered so far this month</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This week" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['thisWeek'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisWeek'] }}</span>
             <x-slot:footer>Delivered so far this week</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Jobs served" icon="briefcase" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['distinctJobs'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['distinctJobs'] }}</span>
             <x-slot:footer>Distinct jobs with a delivery</x-slot:footer>
         </x-stats>
     </div>

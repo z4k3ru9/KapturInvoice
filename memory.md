@@ -130,6 +130,33 @@ re-run completed audits unless new evidence contradicts them.
   `App\Enums\VendorPaymentStatus` and `App\Actions\Procurement\
   {VerifyVendorPayment,IssueVendorPaymentReceipt,ReverseVendorPayment,
   AmendVendorPayment}`.
+- **Numeric/currency values are never truncated or abbreviated (ratified
+  2026-09-16)** — see `docs/rebuild/DESIGN.md` §8's "Numeric and currency
+  values are never truncated or abbreviated" for the binding rule text.
+  Surfaced by `App\Console\Commands\StressSeedCompany` (`stress:seed
+  {company}`, new this session — floods one company with large, deliberately
+  edge-case-heavy data across every entity type for exactly this kind of UI
+  audit): a genuinely large seeded Rupiah total ("Rp 101.431.740.047") was
+  silently clipped mid-digit on the Dashboard's stat cards, and those same
+  hand-rolled stat value `<span>`s app-wide (every `tallstack-*.blade.php`
+  list page's stat row, both portal pages) were also missing their `dark:`
+  text-color override entirely (plain black in dark mode — they render
+  content through `<x-stats>`'s DEFAULT slot, which never receives the
+  `'number'` Soft Customization key's `dark:text-gray-300!`, unlike the
+  `:number`-prop count cards). Root cause of the clipping: TallStackUI
+  v4.1's `<x-stats>` wraps that default-slot content in a plain
+  `<div class="grow">` flex item with no `min-w-0`, so it can never actually
+  shrink below its content's full single-line width — patched via
+  `App\Console\Commands\PatchTallStackUiStatsAsset`
+  (`tallstackui:patch-stats-asset`, wired into composer.json's
+  `post-autoload-dump` alongside the existing tab/editor patches, same
+  established pattern). Every affected span now carries `dark:text-gray-300!`
+  (or the page's existing dark color) plus `break-words` (never `truncate`)
+  so a value that's too wide for its card wraps onto another line instead of
+  being clipped or abbreviated. Does not apply to a document's own short ID
+  display (`App\Support\TallStack\DocumentNumber::short()` in dense table
+  listings, full number always in a hover `title`) — that's a distinct,
+  already-settled identifier convention, not a reported financial value.
 
 ## Binding product decisions
 

@@ -16,17 +16,17 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Total invitations" icon="link" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>Ever generated</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Viewed" icon="eye" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['viewed'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['viewed'] }}</span>
             <x-slot:footer>Opened by a contact</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Signed" icon="pencil" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['signed'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['signed'] }}</span>
             <x-slot:footer>E-signed on the portal</x-slot:footer>
         </x-stats>
     </div>

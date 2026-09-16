@@ -9,22 +9,22 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Total jobs" icon="briefcase" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>All statuses</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Active" icon="arrow-path" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['active'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['active'] }}</span>
             <x-slot:footer>Approved through handed over</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Draft" icon="pencil" color="gray">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['draft'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
             <x-slot:footer>Not yet approved</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Closed" icon="check-circle" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['closed'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['closed'] }}</span>
             <x-slot:footer>Operationally + financially closed</x-slot:footer>
         </x-stats>
     </div>

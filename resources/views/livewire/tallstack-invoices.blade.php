@@ -13,22 +13,22 @@
     {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Outstanding balance" icon="banknotes" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
             <x-slot:footer>Issued, partial or overdue</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Overdue" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['overdueCount'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueCount'] }}</span>
             <x-slot:footer>Invoices past due date</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="In draft" icon="document-text" color="gray">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['draftCount'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draftCount'] }}</span>
             <x-slot:footer>Draft or approved</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Paid this month" icon="check-circle" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['paidThisMonth'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paidThisMonth'] }}</span>
             <x-slot:footer>Marked paid since the 1st</x-slot:footer>
         </x-stats>
     </div>

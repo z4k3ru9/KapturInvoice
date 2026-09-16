@@ -10,22 +10,22 @@
          override. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Total handovers" icon="document-check" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>All recorded handovers</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This month" icon="calendar-days" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['thisMonth'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisMonth'] }}</span>
             <x-slot:footer>Handed over so far this month</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Overrides" icon="exclamation-triangle" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['overrides'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overrides'] }}</span>
             <x-slot:footer>Owner/Admin completeness override</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Jobs served" icon="briefcase" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['distinctJobs'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['distinctJobs'] }}</span>
             <x-slot:footer>Distinct jobs with a handover</x-slot:footer>
         </x-stats>
     </div>

@@ -75,7 +75,7 @@
              here would render white-on-white. --}}
         <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <x-stats scope="compact" title="Balance due" icon="banknotes" :color="$invoice->balance > 0 ? 'amber' : 'green'">
-                <span class="text-lg font-bold tabular-nums text-gray-900">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</span>
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</span>
                 <x-slot:footer>
                     @if ($invoice->due_date)
                         Due {{ $invoice->due_date->toFormattedDateString() }}
@@ -86,13 +86,13 @@
             </x-stats>
 
             <x-stats scope="compact" title="Total" icon="document-text" color="blue">
-                <span class="text-lg font-bold tabular-nums text-gray-900">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</span>
+                <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</span>
                 <x-slot:footer>{{ $invoice->items->count() }} line item{{ $invoice->items->count() === 1 ? '' : 's' }}</x-slot:footer>
             </x-stats>
 
             <x-stats scope="compact" title="Last payment" icon="check-circle" color="green">
                 @if ($lastPayment)
-                    <span class="text-lg font-bold tabular-nums text-gray-900">{{ $invoice->currency_code }} {{ number_format($lastPayment->amount, 2) }}</span>
+                    <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $invoice->currency_code }} {{ number_format($lastPayment->amount, 2) }}</span>
                     <x-slot:footer>{{ ($lastPayment->payment_date ?? $lastPayment->created_at)->toFormattedDateString() }}</x-slot:footer>
                 @else
                     <span class="text-lg font-bold text-gray-400 dark:text-gray-600!">None yet</span>

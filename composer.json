@@ -58,7 +58,8 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi",
             "@php artisan tallstackui:patch-editor-asset --ansi",
-            "@php artisan tallstackui:patch-tab-asset --ansi"
+            "@php artisan tallstackui:patch-tab-asset --ansi",
+            "@php artisan tallstackui:patch-stats-asset --ansi"
         ],
         "post-update-cmd": [
             "@php artisan vendor:publish --tag=laravel-assets --ansi --force"

@@ -15,22 +15,22 @@
          relation), never a new stored aggregate. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Active schedules" icon="arrow-path" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['active'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['active'] }}</span>
             <x-slot:footer>No end date, or not yet reached</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Ended" icon="stop-circle" color="gray">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['ended'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['ended'] }}</span>
             <x-slot:footer>Past their end date</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Auto-bill enabled" icon="bolt" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['autoBill'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['autoBill'] }}</span>
             <x-slot:footer>Of all schedules</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Invoices generated" icon="document-duplicate" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['totalGenerated'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalGenerated'] }}</span>
             <x-slot:footer>All time, across every schedule</x-slot:footer>
         </x-stats>
     </div>

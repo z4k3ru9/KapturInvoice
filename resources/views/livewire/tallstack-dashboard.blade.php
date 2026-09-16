@@ -178,12 +178,12 @@
                             <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
                         @endif
                     </div>
-                    <span class="text-lg font-bold tabular-nums">{{ $stats['revenue'] }}</span>
+                    <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['revenue'] }}</span>
                     <x-slot:footer>{{ $periodLabel }}</x-slot:footer>
                 </x-stats>
 
                 <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
-                    <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
+                    <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
                     <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
                 </x-stats>
 

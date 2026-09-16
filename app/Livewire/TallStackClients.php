@@ -34,6 +34,8 @@ class TallStackClients extends Component
 
     public string $search = '';
 
+    public int $quantity = 10;
+
     // --- Create/edit modal state — exactly ClientForm's own field set. ---
     public bool $showClientModal = false;
 
@@ -230,7 +232,7 @@ class TallStackClients extends Component
                     ->orWhere('email', 'like', "%{$this->search}%");
             }))
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->quantity)
             ->through(fn (Client $client) => [
                 'id' => $client->id,
                 'name' => $client->name,

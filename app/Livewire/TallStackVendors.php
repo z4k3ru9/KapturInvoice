@@ -36,6 +36,8 @@ class TallStackVendors extends Component
 
     public string $search = '';
 
+    public int $quantity = 10;
+
     public bool $showModal = false;
 
     public ?int $editingId = null;
@@ -199,7 +201,7 @@ class TallStackVendors extends Component
                     ->orWhere('email', 'like', "%{$this->search}%");
             }))
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->quantity)
             ->through(fn (Vendor $vendor) => [
                 'id' => $vendor->id,
                 'name' => $vendor->name,

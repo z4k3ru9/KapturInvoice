@@ -9,3 +9,4 @@ cross-cutting rules like the TallStackUI one below.
 | Glob                                 | Rule file                                                     | Covers |
 |---------------------------------------|----------------------------------------------------------------|--------|
 | `app/Providers/AppServiceProvider.php`, `resources/views/**/*.blade.php` | [tallstackui-customization.md](tallstackui-customization.md) | Verifying `TallStackUi::customize()->...->block([...])` key paths, and the app.css/tallstackui.css cascade-collision `!important` rule, before writing dark-mode or styling fixes. |
+| `resources/views/**/*.blade.php` | [views.md](views.md) | Never truncate/abbreviate a monetary or report value — full digits always, wrap instead of clip. |

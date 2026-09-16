@@ -8,17 +8,17 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Draft POs" icon="pencil-square" color="gray">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['draft'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
             <x-slot:footer>Not yet approved</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Approved POs" icon="check-circle" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['approved'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['approved'] }}</span>
             <x-slot:footer>Active payment ceilings</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Approved value" icon="banknotes" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['totalValue'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalValue'] }}</span>
             <x-slot:footer>Sum of approved POs</x-slot:footer>
         </x-stats>
     </div>

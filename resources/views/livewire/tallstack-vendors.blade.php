@@ -8,17 +8,17 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Total vendors" icon="building-storefront" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['total'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
             <x-slot:footer>Suppliers on record</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Outstanding bills (AP)" icon="banknotes" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstanding'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
             <x-slot:footer>Approved / partially paid balance</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Total vendor bills" icon="clipboard-document-list" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['billsCount'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['billsCount'] }}</span>
             <x-slot:footer>All time</x-slot:footer>
         </x-stats>
     </div>
@@ -27,8 +27,11 @@
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Supplier directory</span>
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or email…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or email…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>

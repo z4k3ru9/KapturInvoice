@@ -8,22 +8,22 @@
 
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Draft bills" icon="pencil-square" color="gray">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['draft'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
             <x-slot:footer>Not yet submitted</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Awaiting approval" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['awaitingApproval'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['awaitingApproval'] }}</span>
             <x-slot:footer>Submitted, review needed</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Outstanding balance" icon="banknotes" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['outstandingBalance'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
             <x-slot:footer>Approved / partially paid</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Fully paid" icon="check-circle" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['paid'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paid'] }}</span>
             <x-slot:footer>All time</x-slot:footer>
         </x-stats>
     </div>

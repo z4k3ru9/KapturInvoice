@@ -26,17 +26,17 @@
          defense for an even narrower device or a larger real balance. --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Total revenue" icon="banknotes">
-            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['revenue'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['revenue'] }}</span>
             <x-slot:footer>{{ $periodLabel }} · cash collected</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['outstanding'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
             <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Overdue amount" icon="exclamation-triangle" color="red">
-            <span class="text-lg font-bold tabular-nums truncate">{{ $stats['overdueTotal'] }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueTotal'] }}</span>
             <x-slot:footer>{{ $stats['overdueCount'] }} overdue</x-slot:footer>
         </x-stats>
     </div>

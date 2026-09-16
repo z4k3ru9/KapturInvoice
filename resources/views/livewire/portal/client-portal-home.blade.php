@@ -40,17 +40,17 @@
                  actually switches to dark). --}}
             <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                 <x-stats scope="compact" title="Outstanding balance" icon="banknotes" :color="$outstanding > 0 ? 'amber' : 'green'">
-                    <span class="text-lg font-bold tabular-nums text-gray-900">{{ $currency }} {{ number_format($outstanding, 2) }}</span>
+                    <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $currency }} {{ number_format($outstanding, 2) }}</span>
                     <x-slot:footer>{{ $openCount }} document{{ $openCount === 1 ? '' : 's' }} with a balance</x-slot:footer>
                 </x-stats>
 
                 <x-stats scope="compact" title="Documents" icon="document-text" color="blue">
-                    <span class="text-lg font-bold tabular-nums text-gray-900">{{ $invoices->count() }}</span>
+                    <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $invoices->count() }}</span>
                     <x-slot:footer>Shown on this portal link</x-slot:footer>
                 </x-stats>
 
                 <x-stats scope="compact" title="Access" icon="user" color="gray">
-                    <span class="text-lg font-bold text-gray-900">{{ $portalLink->contact->is_billing_contact ? 'Full billing history' : 'Shared documents' }}</span>
+                    <span class="text-lg font-bold text-gray-900 dark:text-gray-100! break-words">{{ $portalLink->contact->is_billing_contact ? 'Full billing history' : 'Shared documents' }}</span>
                     <x-slot:footer>{{ $portalLink->contact->name }}</x-slot:footer>
                 </x-stats>
             </div>

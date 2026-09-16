@@ -134,6 +134,17 @@ Desktop tables support sorting, filters, search, pagination, exports, column sel
 
 Global search begins after two characters, is debounced and bounded, and groups results by Clients, Jobs, Documents, Payments, Vendors, and References. Tablet/phone use a search overlay, filter drawer, stacked record summaries, and action menus. Keep status, totals, and primary action visible; move secondary fields into expandable details. Offer deliberate full-table horizontal scrolling when needed.
 
+### Numeric and currency values are never truncated or abbreviated
+
+**Ratified 2026-09-16**, after a stress-test flood of seed data (`stress:seed`) surfaced dashboard/list-page stat cards silently clipping large Rupiah totals mid-digit. This is an accounting/invoicing product — every monetary amount, total, and balance shown anywhere in the admin UI, portal, PDFs, or reports must always render its full, exact value. This is a hard rule, not a per-page style choice:
+
+- No ellipsis/CSS `truncate` on a currency figure, ever — a clipped amount is a misreadable amount.
+- No abbreviated/rounded notation ("Rp 1,2 Jt", "Rp 1,8 M", "$1.2K") anywhere a real figure is shown — full digits only.
+- When a card or column is too narrow for a value at its normal size, let the value **wrap onto additional lines** (`break-words`, not `truncate`) rather than shrink, clip, or abbreviate it. A stat card that grows taller to fit its number is correct; a stat card that hides part of its number is not.
+- This does **not** govern a document's own identifier (e.g. a table's document-number column showing `App\Support\TallStack\DocumentNumber::short()`'s abbreviated sequence with the full number in a hover `title`) — that is a distinct, already-settled dense-table-listing convention for an ID, not a reported financial value. If in doubt whether a given on-screen figure is a "reported value" this rule covers, treat any amount, total, balance, tax figure, or count that appears on a dashboard/report/stat card as covered.
+
+See `memory.md`'s "Current state" for the concrete fix (TallStackUI's `<x-stats>` vendor bug patched via `App\Console\Commands\PatchTallStackUiStatsAsset`, paired with `break-words` on every hand-rolled stat value span) and `.ai/rules/tallstackui-customization.md` for the implementation-level detail.
+
 ## 9. Notifications and async states
 
 Toastbox placement is top-right on desktop and full-width within the safe area on mobile. Deduplicate identical notifications and never cover totals or primary controls.

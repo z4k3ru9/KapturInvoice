@@ -57,6 +57,8 @@ class TallStackProducts extends Component
 
     public string $search = '';
 
+    public int $quantity = 10;
+
     // --- Create/Edit modal state — field-for-field ProductForm's own set. ---
     public bool $showFormModal = false;
 
@@ -333,7 +335,7 @@ class TallStackProducts extends Component
                     ->orWhere('sku', 'like', "%{$this->search}%");
             }))
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate($this->quantity)
             ->through(fn (Product $product) => [
                 'id' => $product->id,
                 'image' => $product->getImageDataUri(),

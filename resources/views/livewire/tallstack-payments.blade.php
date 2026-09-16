@@ -13,22 +13,22 @@
     {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Pending verification" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['pendingCount'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['pendingCount'] }}</span>
             <x-slot:footer>Awaiting Verify</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Verified total" icon="banknotes" color="green">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['verifiedTotal'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['verifiedTotal'] }}</span>
             <x-slot:footer>Sum of verified payments</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Unallocated" icon="arrows-right-left" color="red">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['unallocatedCount'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['unallocatedCount'] }}</span>
             <x-slot:footer>Verified, not yet allocated</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Receipts issued" icon="document-text" color="blue">
-            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['receiptsIssued'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100! break-words">{{ $stats['receiptsIssued'] }}</span>
             <x-slot:footer>Total to date</x-slot:footer>
         </x-stats>
     </div>

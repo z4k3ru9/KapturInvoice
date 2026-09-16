@@ -11,17 +11,17 @@
     {{-- Stat row — real counts from this company's own membership/invitation rows. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Members" icon="users" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $activeCount }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $activeCount }}</span>
             <x-slot:footer>Active company members</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Invited" icon="envelope" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $invitedCount }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $invitedCount }}</span>
             <x-slot:footer>Awaiting acceptance</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Roles" icon="shield-check" color="primary">
-            <span class="text-lg font-bold tabular-nums">{{ count($roles) }}</span>
+            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ count($roles) }}</span>
             <x-slot:footer>Owner, Admin, Accountant, Sales, Staff, Auditor</x-slot:footer>
         </x-stats>
     </div>
