@@ -171,7 +171,7 @@
                         <x-chart :series="$chartCollected" color="{{ $stats['revenueUp'] && ! $stats['revenueFlat'] ? 'green' : 'red' }}" curve="smooth" :height="64" />
                     </x-slot:chart>
                     <div class="flex items-center gap-1">
-                        <span class="dark:text-dark-300 text-xs text-gray-600">Total revenue</span>
+                        <span class="text-xs text-gray-600 dark:text-gray-300!">Total revenue</span>
                         @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
                             <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
                         @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
@@ -242,7 +242,7 @@
                          main call to action; "Add a client" (gray, Neutral)
                          stays visually distinct beside it. --}}
                     <x-button text="Create your first quotation" icon="plus" href="{{ route('tallstack.quotations.create', $company) }}" color="brand" sm />
-                    <x-button text="Add a client" icon="user-plus" href="/admin/{{ $company->slug }}/clients" color="gray" sm />
+                    <x-button text="Add a client" icon="user-plus" href="{{ route('tallstack.clients', $company) }}" color="gray" sm />
                 </div>
             </div>
         </x-card>
@@ -251,6 +251,30 @@
             Trend chart — same lazy-loading pair as the stat row above,
             sharing the parent's `wire:init="loadDashboardData"`.
         --}}
+        {{--
+            x-data drives the "View as accessible table" toggle in the
+            footer below — previously a dead `<button>` with no click
+            handler at all (found during the dark-mode/TallStackUI audit).
+            Alpine-only (no Livewire round-trip needed): both
+            representations are already rendered server-side from the same
+            $chartLabels/$chartInvoiced/$chartCollected buckets
+            (`App\Support\Dashboard\RevenueBuckets`), so toggling is just
+            a visibility swap.
+
+            This has to be a plain wrapping `<div>`, not an `x-data`
+            attribute on `<x-card>` itself: TallStackUI's own Card
+            component (vendor/tallstackui/tallstackui/src/resources/views/
+            components/card/main.blade.php) already sets its own
+            `x-data="tallstackui_card(...)"` on its root element and only
+            forwards `$attributes->whereStartsWith('x-on:')` — any other
+            attribute passed to `<x-card>`, `x-data` included, is silently
+            dropped, never reaching the DOM. Passing `x-data` directly on
+            `<x-card>` was tried first and produced a real, reproduced
+            "showTrendTable is not defined" Alpine error in the browser
+            console — the header/body/footer slots rendered with no
+            ancestor element carrying that scope at all.
+        --}}
+        <div x-data="{ showTrendTable: false }">
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
@@ -281,31 +305,54 @@
                         matches the rest of the page instead of the
                         component's own generic `number_format()` default.
                     --}}
-                    <x-chart
-                        type="area"
-                        :labels="$chartLabels"
-                        :series="[
-                            ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
-                            ['name' => 'Cash collected', 'data' => $chartCollected],
-                        ]"
-                        :colors="['red', 'primary']"
-                        grid
-                        legend
-                        tooltip
-                        markers
-                        curve="smooth"
-                        :formatter="fn (float $value) => \App\Support\Dashboard\Money::format($value, $currency)"
-                        height="280"
-                    />
+                    <div x-show="!showTrendTable">
+                        <x-chart
+                            type="area"
+                            :labels="$chartLabels"
+                            :series="[
+                                ['name' => 'Invoiced (legacy)', 'data' => $chartInvoiced],
+                                ['name' => 'Cash collected', 'data' => $chartCollected],
+                            ]"
+                            :colors="['red', 'primary']"
+                            grid
+                            legend
+                            tooltip
+                            markers
+                            curve="smooth"
+                            :formatter="fn (float $value) => \App\Support\Dashboard\Money::format($value, $currency)"
+                            height="280"
+                        />
+                    </div>
+                    {{--
+                        The accessible alternative to the chart above — same
+                        three buckets, one row per label, as a real table
+                        rather than something a screen reader has to
+                        interpret from an SVG. `x-cloak` (styled by
+                        TallStackUI's own compiled CSS, `[x-cloak]{display:
+                        none}`) avoids a flash of the table before Alpine
+                        initializes.
+                    --}}
+                    <div x-show="showTrendTable" x-cloak id="dashboard-trend-table">
+                        <x-table :headers="[
+                            ['index' => 'period', 'label' => 'Period'],
+                            ['index' => 'invoiced', 'label' => 'Invoiced (legacy)'],
+                            ['index' => 'collected', 'label' => 'Cash collected'],
+                        ]" :rows="$chartRows">
+                            <x-slot:empty>No revenue data for this period.</x-slot:empty>
+                        </x-table>
+                    </div>
                 @else
                     <x-chart skeleton height="280" />
                 @endif
             </div>
 
             <x-slot:footer>
-                <button type="button" class="text-xs font-semibold text-[color:var(--ts-primary)]">View as accessible table</button>
+                <x-button flat xs color="blue" x-on:click="showTrendTable = !showTrendTable" x-bind:aria-expanded="showTrendTable.toString()" aria-controls="dashboard-trend-table">
+                    <span x-text="showTrendTable ? 'View as chart' : 'View as accessible table'"></span>
+                </x-button>
             </x-slot:footer>
         </x-card>
+        </div>
     @endif
 
     {{-- Expiring quotations + action queue --}}

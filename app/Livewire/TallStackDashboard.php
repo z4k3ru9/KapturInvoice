@@ -164,6 +164,15 @@ class TallStackDashboard extends Component
             'chartLabels' => $this->chartLabels,
             'chartInvoiced' => $this->chartInvoiced,
             'chartCollected' => $this->chartCollected,
+            // The chart's accessible-table alternative (the "View as
+            // accessible table" toggle below the chart) — same buckets, one
+            // row per label, formatted the same way as the stat cards so
+            // the two representations never disagree.
+            'chartRows' => collect($this->chartLabels)->map(fn (string $label, int $index) => [
+                'period' => $label,
+                'invoiced' => Money::format($this->chartInvoiced[$index] ?? 0.0, $currency),
+                'collected' => Money::format($this->chartCollected[$index] ?? 0.0, $currency),
+            ])->values(),
             'expiring' => Quotation::query()
                 ->where('company_id', $this->company->id)
                 ->where('status', QuotationStatus::Sent)
