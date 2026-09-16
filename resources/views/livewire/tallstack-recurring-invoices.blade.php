@@ -45,7 +45,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Schedules</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Schedules</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
                 </div>
@@ -63,8 +63,8 @@
         ]" :rows="$templates" paginate loading>
             @interact('column_client', $row)
                 <div class="flex flex-col">
-                    <span class="font-medium text-gray-800 dark:text-gray-100">{{ $row['client'] }}</span>
-                    <span class="font-mono text-[11px] text-gray-400" title="{{ $row['number'] }}">{{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}</span>
+                    <span class="font-medium text-gray-800 dark:text-gray-100!">{{ $row['client'] }}</span>
+                    <span class="font-mono text-[11px] text-gray-400 dark:text-gray-500!" title="{{ $row['number'] }}">{{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}</span>
                 </div>
             @endinteract
 
@@ -77,7 +77,7 @@
             @endinteract
 
             @interact('column_generated_count', $row)
-                <span class="text-xs text-gray-500 dark:text-gray-400 tabular-nums">{{ $row['generated_count'] }} invoice{{ $row['generated_count'] === 1 ? '' : 's' }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400! tabular-nums">{{ $row['generated_count'] }} invoice{{ $row['generated_count'] === 1 ? '' : 's' }}</span>
             @endinteract
 
             @interact('column_actions', $row, $company)
