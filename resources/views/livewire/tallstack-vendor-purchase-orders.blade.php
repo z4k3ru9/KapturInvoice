@@ -59,19 +59,19 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    // Only ever populated for a Draft row — Force delete's
+                    // full predicate (no bills) is still re-checked
+                    // server-side by App\Actions\Procurement\ForceDeleteVendorPurchaseOrder.
+                    $extraActions = $row['status'] === \App\Enums\VendorPurchaseOrderStatus::Draft ? [
+                        ['text' => 'Approve', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'approve('.$row['id'].')', 'confirm' => 'Approve this vendor purchase order?'],
+                        ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this vendor purchase order? This cannot be undone.'],
+                    ] : [];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.vendor-purchase-orders.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('vendor-purchase-orders.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    @if ($row['status'] === \App\Enums\VendorPurchaseOrderStatus::Draft)
-                        <x-button text="Approve" icon="check-circle" color="green" sm class="h-9" wire:click="approve({{ $row['id'] }})" wire:confirm="Approve this vendor purchase order?" />
-                        {{-- Only ever shown for a Draft row — the guard's
-                             full predicate (no bills) is still re-checked
-                             server-side by
-                             App\Actions\Procurement\ForceDeleteVendorPurchaseOrder. --}}
-                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this vendor purchase order? This cannot be undone." />
-                        </x-dropdown>
-                    @endif
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

@@ -4,6 +4,37 @@
     $primary = $company->primary_color ?: '#E63934';
     $logo = $company->getLogoDataUri();
 
+    // The notification bell's actual content: the SAME role-aware
+    // "Action queue" the Dashboard's own ActionQueueWidget already shows
+    // (App\Support\Dashboard\ActionQueue, DESIGN.md §3) — reused here
+    // rather than a new notifications table, so it stays real, per-role
+    // data with zero new persistence. Computed on every shell render
+    // (this app's own shell, not a separate Livewire component), the same
+    // handful of lightweight COUNT queries the dashboard already pays for.
+    $actionQueueItems = auth()->user() ? \App\Support\Dashboard\ActionQueue::for(auth()->user(), $company) : [];
+    $actionQueueTotal = collect($actionQueueItems)->sum('count');
+
+    // Segments the flat Action Queue into labeled sections in the bell's
+    // dropdown, one per business area — same name/icon/order as this
+    // file's own sidebar $nav groups above, so the mental model matches:
+    // whichever section a notification sits under is the same nav group
+    // its link (below) actually opens. Categories with no current items
+    // are simply omitted rather than shown empty.
+    $actionQueueCategoryMeta = [
+        'Sales' => 'rocket-launch',
+        'Billing' => 'banknotes',
+        'Procurement' => 'shopping-bag',
+        'Delivery' => 'truck',
+    ];
+    $actionQueueGroups = collect($actionQueueCategoryMeta)
+        ->map(fn ($icon, $category) => [
+            'label' => $category,
+            'icon' => $icon,
+            'items' => collect($actionQueueItems)->where('category', $category)->values(),
+        ])
+        ->filter(fn ($group) => $group['items']->isNotEmpty())
+        ->values();
+
     // Phase 2 sidebar repair (docs/rebuild — see the plan referenced from
     // the dispatching session): each top-level group below now carries its
     // own 'icon' alongside its 'items' array. The group array shape used
@@ -522,9 +553,84 @@
                         reserved for actual identity chrome (the logo, the
                         active nav item) rather than every button on the
                         page.
+
+                        Was a dead button (no href/wire:click at all) — now
+                        a quick-create shortcut to the two document types a
+                        user starts from cold (a Job/Quote-linked Invoice
+                        still starts from a Quotation, but a standalone
+                        Invoice is valid too — see memory.md's Phase 04
+                        note). Custom `action` slot, same reason as the
+                        avatar/logout dropdown below: keeps this trigger
+                        visually identical to the old plain button.
                     --}}
-                    <x-button icon="plus" text="New" color="blue" sm class="h-9" />
-                    <x-button icon="bell" color="gray" sm scope="icon-action" class="h-9 w-9" />
+                    <x-dropdown position="bottom-end">
+                        <x-slot:action>
+                            <div x-on:click="show = !show">
+                                <x-button icon="plus" text="New" color="blue" sm class="h-9" />
+                            </div>
+                        </x-slot:action>
+                        <x-dropdown.items text="New invoice" icon="document-currency-dollar" href="{{ route('tallstack.invoices.create', $company) }}" navigate />
+                        <x-dropdown.items text="New quotation" icon="document-text" href="{{ route('tallstack.quotations.create', $company) }}" navigate />
+                    </x-dropdown>
+
+                    {{--
+                        Was also a dead button. Now surfaces the same
+                        role-aware Action Queue the Dashboard's own widget
+                        shows (App\Support\Dashboard\ActionQueue) — real,
+                        already-computed actionable items (overdue
+                        invoices, quotations awaiting a decision, etc.),
+                        not a new notifications feature/table. Segmented
+                        into one labeled section per business area
+                        ($actionQueueGroups above), matching this same
+                        file's own sidebar $nav groups — the section a
+                        notification sits under is the same nav group its
+                        own link opens, so clicking it always lands
+                        exactly where that section's icon implies.
+                    --}}
+                    <x-dropdown position="bottom-end" width="sm">
+                        <x-slot:action>
+                            <div x-on:click="show = !show" class="relative">
+                                <x-button icon="bell" color="gray" sm scope="icon-action" class="h-9 w-9" />
+                                @if ($actionQueueTotal > 0)
+                                    <span class="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+                                        {{ $actionQueueTotal > 99 ? '99+' : $actionQueueTotal }}
+                                    </span>
+                                @endif
+                            </div>
+                        </x-slot:action>
+                        <x-slot:header>
+                            <div class="px-2 py-1 flex items-center justify-between gap-2">
+                                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100!">Action queue</span>
+                                @if ($actionQueueTotal > 0)
+                                    <x-badge text="{{ $actionQueueTotal }}" color="red" sm />
+                                @endif
+                            </div>
+                        </x-slot:header>
+                        @forelse ($actionQueueGroups as $group)
+                            <div @class(['px-3 pt-2.5 pb-1 flex items-center gap-1.5 border-t border-t-gray-100 dark:border-t-gray-800!' => ! $loop->first])>
+                                <x-icon name="{{ $group['icon'] }}" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500!" />
+                                <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500!">{{ $group['label'] }}</span>
+                            </div>
+                            @foreach ($group['items'] as $item)
+                                @if ($item['url'])
+                                    <x-dropdown.items href="{{ $item['url'] }}" navigate>
+                                        <div class="flex items-center justify-between gap-3 w-full">
+                                            <span>{{ $item['label'] }}</span>
+                                            <x-badge text="{{ $item['count'] }}" :color="match ($item['tone']) { 'danger' => 'red', 'warning' => 'amber', 'info' => 'blue', default => 'gray' }" sm />
+                                        </div>
+                                    </x-dropdown.items>
+                                @else
+                                    {{-- Auditor's read-only queue — DESIGN.md §3, matches ActionQueue::readOnly(). --}}
+                                    <div class="flex items-center justify-between gap-3 w-full px-3 py-2 text-sm text-gray-500 dark:text-gray-400!">
+                                        <span>{{ $item['label'] }}</span>
+                                        <x-badge text="{{ $item['count'] }}" color="gray" sm />
+                                    </div>
+                                @endif
+                            @endforeach
+                        @empty
+                            <div class="px-3 py-4 text-center text-xs text-gray-400">You're all caught up.</div>
+                        @endforelse
+                    </x-dropdown>
                     {{--
                         The only reachable "Log out" control anywhere in
                         the TALL-stack shell — see App\Http\Controllers\LogoutController's

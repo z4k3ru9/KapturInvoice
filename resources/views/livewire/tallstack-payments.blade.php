@@ -71,33 +71,34 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    if ($row['status'] === \App\Enums\PaymentStatus::Pending) {
+                        $extraActions[] = ['text' => 'Verify', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'openVerifyModal('.$row['id'].')'];
+                    }
+                    if ($row['status'] === \App\Enums\PaymentStatus::Verified && ! $row['has_receipt']) {
+                        $extraActions[] = ['text' => 'Issue receipt', 'icon' => 'document-text', 'click' => 'issueReceipt('.$row['id'].')', 'confirm' => 'Issue a receipt for this payment?'];
+                    }
+                    if ($row['has_receipt']) {
+                        $extraActions[] = ['text' => 'Send receipt', 'icon' => 'envelope', 'click' => 'sendReceipt('.$row['id'].')', 'confirm' => "Email this receipt to the client's billing contact?"];
+                    }
+                    if (in_array($row['status'], [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Verified], true)) {
+                        $extraActions[] = ['text' => 'Reverse', 'icon' => 'no-symbol', 'color' => 'red', 'click' => 'openReverseModal('.$row['id'].')'];
+                    }
+                    // Only ever shown for a Pending row — the guard's full
+                    // predicate (no receipt/allocations/verification
+                    // history) is still re-checked server-side by
+                    // App\Actions\Receivables\ForceDeletePayment.
+                    if ($row['status'] === \App\Enums\PaymentStatus::Pending) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this payment? This cannot be undone.'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="arrows-right-left" href="{{ route('tallstack.payments.allocate', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Allocate / view" />
                     @if ($row['has_receipt'])
                         <x-button icon="document-arrow-down" href="{{ route('receipts.pdf', $row['receipt_id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download receipt" />
                     @endif
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        @if ($row['status'] === \App\Enums\PaymentStatus::Pending)
-                            <x-dropdown.items text="Verify" icon="check-circle" wire:click="openVerifyModal({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] === \App\Enums\PaymentStatus::Verified && ! $row['has_receipt'])
-                            <x-dropdown.items text="Issue receipt" icon="document-text" wire:click="issueReceipt({{ $row['id'] }})" wire:confirm="Issue a receipt for this payment?" />
-                        @endif
-                        @if ($row['has_receipt'])
-                            <x-dropdown.items text="Send receipt" icon="envelope" wire:click="sendReceipt({{ $row['id'] }})" wire:confirm="Email this receipt to the client's billing contact?" />
-                        @endif
-                        @if (in_array($row['status'], [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Verified], true))
-                            <x-dropdown.items text="Reverse" icon="no-symbol" wire:click="openReverseModal({{ $row['id'] }})" />
-                        @endif
-                        {{-- Only ever shown for a Pending row — the guard's
-                             full predicate (no receipt/allocations/
-                             verification history) is still re-checked
-                             server-side by
-                             App\Actions\Receivables\ForceDeletePayment. --}}
-                        @if ($row['status'] === \App\Enums\PaymentStatus::Pending)
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this payment? This cannot be undone." />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

@@ -88,11 +88,9 @@
             @interact('column_actions', $row)
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="pencil-square" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="openEditRoleModal({{ $row['id'] }})" tooltip="Edit role" />
-                    @if ($row['is_active'])
-                        <x-button icon="user-minus" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="openRemoveModal({{ $row['id'] }})" tooltip="Remove from company" />
-                    @else
-                        <x-button icon="arrow-path" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="restoreMember({{ $row['id'] }})" tooltip="Restore access" />
-                    @endif
+                    <x-tallstack.row-actions :items="$row['is_active']
+                        ? [['text' => 'Remove from company', 'icon' => 'user-minus', 'color' => 'red', 'click' => 'openRemoveModal('.$row['id'].')']]
+                        : [['text' => 'Restore access', 'icon' => 'arrow-path', 'click' => 'restoreMember('.$row['id'].')']]" />
                 </div>
             @endinteract
 

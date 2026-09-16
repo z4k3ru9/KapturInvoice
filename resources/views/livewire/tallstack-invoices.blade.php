@@ -91,24 +91,22 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    // Only ever shown for a Draft row — the guard's full
+                    // predicate (no payments/allocations/corrections) is
+                    // still re-checked server-side by App\Actions\Billing\ForceDeleteInvoice.
+                    if ($row['status'] === \App\Enums\InvoiceStatus::Draft) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this invoice? This cannot be undone.'];
+                    }
+                    $extraActions[] = $row['is_held']
+                        ? ['text' => 'Release hold', 'icon' => 'play-circle', 'click' => 'releaseHold('.$row['id'].')']
+                        : ['text' => 'Hold', 'icon' => 'pause-circle', 'color' => 'amber', 'click' => 'openHoldModal('.$row['id'].')'];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        {{-- Only ever shown for a Draft row — the guard's
-                             full predicate (no payments/allocations/
-                             corrections) is still re-checked server-side by
-                             App\Actions\Billing\ForceDeleteInvoice, the
-                             real source of truth. --}}
-                        @if ($row['status'] === \App\Enums\InvoiceStatus::Draft)
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this invoice? This cannot be undone." separator />
-                        @endif
-                        @if ($row['is_held'])
-                            <x-dropdown.items text="Release hold" icon="play-circle" wire:click="releaseHold({{ $row['id'] }})" />
-                        @else
-                            <x-dropdown.items text="Hold" icon="pause-circle" wire:click="openHoldModal({{ $row['id'] }})" />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

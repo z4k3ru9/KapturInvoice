@@ -28,11 +28,19 @@ use App\Models\VendorBill;
  * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md).
  * Auditor sees the same items as Owner/Admin but with every `url` null
  * (read-only, no interactive queue — DESIGN §3).
+ *
+ * Every item also carries a `category` matching one of the shell's own
+ * sidebar nav group names (`resources/views/components/tallstack/app.blade.php`'s
+ * `$nav` array) — consumed by that same shell to segment the notification
+ * bell's dropdown into labeled sections (App\Support\Dashboard\ActionQueueCategory
+ * supplies each category's display label/icon). The Dashboard's own
+ * ActionQueueWidget-equivalent table ignores this key and keeps rendering
+ * one flat list, so adding it here is additive/non-breaking there.
  */
 class ActionQueue
 {
     /**
-     * @return list<array{label: string, count: int, url: ?string, tone: string}>
+     * @return list<array{label: string, count: int, url: ?string, tone: string, category: string}>
      */
     public static function for(User $user, Company $company): array
     {
@@ -107,6 +115,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.invoices', $company),
             'tone' => 'danger',
+            'category' => 'Billing',
         ];
     }
 
@@ -119,6 +128,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.jobs', $company),
             'tone' => 'warning',
+            'category' => 'Sales',
         ];
     }
 
@@ -131,6 +141,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.quotations', $company),
             'tone' => 'info',
+            'category' => 'Sales',
         ];
     }
 
@@ -143,6 +154,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.vendor-bills', $company),
             'tone' => 'warning',
+            'category' => 'Procurement',
         ];
     }
 
@@ -155,6 +167,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.payments', $company),
             'tone' => 'warning',
+            'category' => 'Billing',
         ];
     }
 
@@ -167,6 +180,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.quotations', $company),
             'tone' => 'gray',
+            'category' => 'Sales',
         ];
     }
 
@@ -181,6 +195,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.jobs', $company),
             'tone' => 'info',
+            'category' => 'Sales',
         ];
     }
 
@@ -193,6 +208,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.jobs', $company),
             'tone' => 'info',
+            'category' => 'Delivery',
         ];
     }
 
@@ -205,6 +221,7 @@ class ActionQueue
             'count' => $count,
             'url' => route('tallstack.jobs', $company),
             'tone' => 'warning',
+            'category' => 'Delivery',
         ];
     }
 }

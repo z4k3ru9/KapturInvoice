@@ -91,51 +91,45 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
-                {{-- Consolidated to one primary "Open" button + a single
-                     kebab for everything else (Download PDF and Copy
-                     acceptance link folded in here too) — was 3 standalone
-                     icon buttons + a kebab with up to 6 more items,
-                     widening an already horizontally-scrolling table
-                     further at mobile width. Matches the pattern already
-                     used on the Proposals list. --}}
+                @php
+                    $extraActions = [
+                        ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('quotations.pdf', $row['id']), 'target' => '_blank'],
+                        // Client-side clipboard copy of the public
+                        // drawn-signature acceptance link (App\Livewire\Portal\SignQuotation)
+                        // — same pattern as tallstack-client-portal-invitations.blade.php's
+                        // own "Copy portal link" action.
+                        ['text' => 'Copy client acceptance link', 'icon' => 'clipboard', 'xclick' => "window.navigator.clipboard.writeText('".route('portal.quotation', $row['portal_key'])."')"],
+                    ];
+                    if ($row['status'] === \App\Enums\QuotationStatus::Draft) {
+                        $extraActions[] = ['text' => 'Approve', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'approve('.$row['id'].')'];
+                    }
+                    if ($row['status'] === \App\Enums\QuotationStatus::Approved) {
+                        $extraActions[] = ['text' => 'Send', 'icon' => 'paper-airplane', 'click' => 'send('.$row['id'].')'];
+                    }
+                    if ($row['status'] === \App\Enums\QuotationStatus::Sent) {
+                        $extraActions[] = ['text' => 'Accept', 'icon' => 'hand-thumb-up', 'color' => 'green', 'click' => 'openAcceptModal('.$row['id'].')'];
+                        $extraActions[] = ['text' => 'Reject', 'icon' => 'x-circle', 'color' => 'red', 'click' => 'reject('.$row['id'].')'];
+                        $extraActions[] = ['text' => 'Mark expired', 'icon' => 'clock', 'click' => 'markExpired('.$row['id'].')'];
+                    }
+                    if ($row['status'] === \App\Enums\QuotationStatus::Accepted) {
+                        $extraActions[] = ['text' => 'Create job', 'icon' => 'briefcase', 'click' => 'createJob('.$row['id'].')'];
+                    }
+                    if ($row['signed_at']) {
+                        $extraActions[] = ['text' => 'View signature', 'icon' => 'pencil', 'click' => 'viewSignature('.$row['id'].')'];
+                    }
+                    if (! \App\Enums\QuotationStatus::from($row['status']->value)->isTerminal()) {
+                        $extraActions[] = ['text' => 'Cancel', 'icon' => 'no-symbol', 'color' => 'red', 'click' => 'cancel('.$row['id'].')', 'confirm' => 'Cancel this quotation?'];
+                    }
+                    // Only ever shown for a Draft row — the guard's full
+                    // predicate (no job created from it) is still
+                    // re-checked server-side by App\Actions\Sales\ForceDeleteQuotation.
+                    if ($row['status'] === \App\Enums\QuotationStatus::Draft) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this quotation? This cannot be undone.'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Download PDF" icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" />
-                        {{-- Client-side clipboard copy of the public
-                             drawn-signature acceptance link
-                             (App\Livewire\Portal\SignQuotation) — same
-                             pattern as tallstack-client-portal-invitations.blade.php's
-                             own "Copy portal link" action. --}}
-                        <x-dropdown.items text="Copy client acceptance link" icon="clipboard" x-on:click="window.navigator.clipboard.writeText('{{ route('portal.quotation', $row['portal_key']) }}')" separator />
-                        @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
-                            <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] === \App\Enums\QuotationStatus::Approved)
-                            <x-dropdown.items text="Send" icon="paper-airplane" wire:click="send({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] === \App\Enums\QuotationStatus::Sent)
-                            <x-dropdown.items text="Accept" icon="hand-thumb-up" wire:click="openAcceptModal({{ $row['id'] }})" />
-                            <x-dropdown.items text="Reject" icon="x-circle" wire:click="reject({{ $row['id'] }})" />
-                            <x-dropdown.items text="Mark expired" icon="clock" wire:click="markExpired({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] === \App\Enums\QuotationStatus::Accepted)
-                            <x-dropdown.items text="Create job" icon="briefcase" wire:click="createJob({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['signed_at'])
-                            <x-dropdown.items text="View signature" icon="pencil" wire:click="viewSignature({{ $row['id'] }})" />
-                        @endif
-                        @if (! \App\Enums\QuotationStatus::from($row['status']->value)->isTerminal())
-                            <x-dropdown.items text="Cancel" icon="no-symbol" wire:click="cancel({{ $row['id'] }})" wire:confirm="Cancel this quotation?" />
-                        @endif
-                        {{-- Only ever shown for a Draft row — the guard's
-                             full predicate (no job created from it) is
-                             still re-checked server-side by
-                             App\Actions\Sales\ForceDeleteQuotation. --}}
-                        @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this quotation? This cannot be undone." />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

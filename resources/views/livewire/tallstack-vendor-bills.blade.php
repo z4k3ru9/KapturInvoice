@@ -65,24 +65,25 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    if ($row['status'] === \App\Enums\VendorBillStatus::Draft) {
+                        $extraActions[] = ['text' => 'Submit', 'icon' => 'paper-airplane', 'click' => 'submit('.$row['id'].')'];
+                    }
+                    if ($row['status'] === \App\Enums\VendorBillStatus::Submitted) {
+                        $extraActions[] = ['text' => 'Approve', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'approve('.$row['id'].')'];
+                    }
+                    // Only ever shown for a Draft row — the guard's full
+                    // predicate (no payments) is still re-checked
+                    // server-side by App\Actions\Procurement\ForceDeleteVendorBill.
+                    if ($row['status'] === \App\Enums\VendorBillStatus::Draft) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this vendor bill? This cannot be undone.'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.vendor-bills.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('vendor-bills.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        @if ($row['status'] === \App\Enums\VendorBillStatus::Draft)
-                            <x-dropdown.items text="Submit" icon="paper-airplane" wire:click="submit({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] === \App\Enums\VendorBillStatus::Submitted)
-                            <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
-                        @endif
-                        {{-- Only ever shown for a Draft row — the guard's
-                             full predicate (no payments) is still
-                             re-checked server-side by
-                             App\Actions\Procurement\ForceDeleteVendorBill. --}}
-                        @if ($row['status'] === \App\Enums\VendorBillStatus::Draft)
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this vendor bill? This cannot be undone." />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

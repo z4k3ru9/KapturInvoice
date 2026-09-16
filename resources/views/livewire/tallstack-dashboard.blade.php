@@ -30,7 +30,7 @@
                 whatever was already loaded, not actually pull fresh
                 numbers.
             --}}
-            <x-button icon="arrow-path" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="loadDashboardData" tooltip="Refresh" />
+            <x-button icon="arrow-path" sm color="green" scope="icon-action" class="h-9 w-9" wire:click="loadDashboardData" tooltip="Refresh" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
