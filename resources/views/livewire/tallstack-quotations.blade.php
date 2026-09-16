@@ -48,8 +48,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -68,7 +71,7 @@
             ['index' => 'total', 'label' => 'Total', 'align' => 'right', 'sortable' => false],
             ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$quotations" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
+        ]" :rows="$quotations" :sort="$sort" striped paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits), not the full company-type-year-month number — the
@@ -98,6 +101,9 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.quotations.edit', [$company, $row['id']])],
+                    ];
                     $extraActions = [
                         ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('quotations.pdf', $row['id']), 'target' => '_blank'],
                         // Client-side clipboard copy of the public
@@ -137,10 +143,7 @@
                         $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this quotation? This cannot be undone.'];
                     }
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No quotations found.</x-slot:empty>
