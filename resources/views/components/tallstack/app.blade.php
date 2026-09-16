@@ -607,7 +607,7 @@
                             </div>
                         </x-slot:header>
                         @forelse ($actionQueueGroups as $group)
-                            <div @class(['px-3 pt-2.5 pb-1 flex items-center gap-1.5 border-t border-t-gray-100 dark:border-t-gray-800!' => ! $loop->first])>
+                            <div @class(['px-3 pt-2.5 pb-1 flex items-center gap-1.5', 'border-t border-t-gray-100 dark:border-t-gray-800!' => ! $loop->first])>
                                 <x-icon name="{{ $group['icon'] }}" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500!" />
                                 <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500!">{{ $group['label'] }}</span>
                             </div>
