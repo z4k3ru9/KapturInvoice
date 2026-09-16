@@ -118,8 +118,8 @@
                                     <div class="flex items-center justify-end gap-3">
                                         @if ($purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
                                             <x-button.group>
-                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" aria-label="Edit line item" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" aria-label="Delete line item" />
                                             </x-button.group>
                                         @endif
                                         @if ($itemsAreReorderable)

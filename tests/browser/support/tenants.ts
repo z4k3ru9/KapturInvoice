@@ -4,8 +4,13 @@ import { KARUNIA_HOST, AXEN_HOST, BASE_URL } from '../../../playwright.config';
 /**
  * Seeded company identity shared by browser specs — see
  * database/seeders/CompanySeeder.php and CLAUDE.md "Login / seeded data".
- * Admin panel login is the same for every company (shared user, tenant
- * switch by URL path); the public homepage/portal are Host-header scoped.
+ * Login is the same for every company (shared user, tenant switch by URL
+ * path — `/tall/{company:slug}/...`); the public homepage/portal are
+ * Host-header scoped. There is no `/admin/...` panel anymore — the
+ * Filament admin was fully removed and rebuilt in TallStackUI/Livewire
+ * (see CLAUDE.md's note near the top of "Conventions this codebase
+ * already commits to"); this file previously still pointed at the old
+ * routes.
  */
 export const ADMIN_EMAIL = 'test@example.com';
 export const ADMIN_PASSWORD = 'password';
@@ -15,13 +20,18 @@ export const COMPANIES = {
         slug: 'karunia-abadi',
         host: KARUNIA_HOST,
         homepageUrl: BASE_URL.replace('127.0.0.1', KARUNIA_HOST),
-        adminUrl: `${BASE_URL}/admin/karunia-abadi`,
+        // Base tenant path for building sub-page URLs (`${adminUrl}/clients`,
+        // etc.) — there is no route at this bare path itself; land on a real
+        // page with `dashboardUrl` below instead.
+        adminUrl: `${BASE_URL}/tall/karunia-abadi`,
+        dashboardUrl: `${BASE_URL}/tall/karunia-abadi/dashboard`,
     },
     axen: {
         slug: 'axen-technology-indonesia',
         host: AXEN_HOST,
         homepageUrl: BASE_URL.replace('127.0.0.1', AXEN_HOST),
-        adminUrl: `${BASE_URL}/admin/axen-technology-indonesia`,
+        adminUrl: `${BASE_URL}/tall/axen-technology-indonesia`,
+        dashboardUrl: `${BASE_URL}/tall/axen-technology-indonesia/dashboard`,
     },
 } as const;
 
@@ -29,30 +39,25 @@ export type CompanyKey = keyof typeof COMPANIES;
 
 /**
  * Shared login helper — `waitForURL` is deliberately anchored
- * (`/\/admin(\/[a-z-]+)?$/`) so it never falsely matches `/admin/login`
- * itself before the real post-login redirect happens (an unanchored
- * `/\/admin/` regex matches the login page's own URL immediately,
- * letting a caller navigate away before the session is actually
- * established).
+ * (`/\/tall\/[a-z-]+/`) so it only matches a real post-login tenant route,
+ * never the plain `/login` page itself.
  */
 export async function loginAsOwner(page: Page): Promise<void> {
-    await page.goto('/admin/login');
+    await page.goto('/login');
 
     // Retries the submission once — an occasional Livewire request that
     // doesn't complete the redirect in time (rather than a genuine login
     // failure) shouldn't fail every test that logs in.
     for (let attempt = 0; attempt < 2; attempt++) {
         await page.getByRole('textbox', { name: /email/i }).fill(ADMIN_EMAIL);
-        await page.getByRole('textbox', { name: /password/i }).fill(ADMIN_PASSWORD);
-        await page.getByRole('button', { name: /sign in|log in/i }).click();
+        await page.getByLabel(/password/i).fill(ADMIN_PASSWORD);
+        // Exact match: a passkey option ("Sign in with a passkey") also
+        // matches a loose /sign in|log in/i, and Playwright's strict mode
+        // then refuses to click either.
+        await page.getByRole('button', { name: 'Log in', exact: true }).click();
 
         try {
-            // `/\/admin(\/[a-z-]+)?$/` alone also matches `/admin/login`
-            // itself (`login` matches `[a-z-]+`) — explicitly exclude it.
-            await page.waitForURL(
-                (url) => /\/admin(\/[a-z-]+)?$/.test(url.pathname) && !url.pathname.includes('/login'),
-                { timeout: 15_000 },
-            );
+            await page.waitForURL(/\/tall\/[a-z-]+/, { timeout: 15_000 });
 
             return;
         } catch {

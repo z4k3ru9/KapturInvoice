@@ -288,8 +288,8 @@
                                         --}}
                                         <div class="flex items-center justify-end gap-3">
                                             <x-button.group>
-                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" />
-                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" />
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" aria-label="Edit line item" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" aria-label="Delete line item" />
                                             </x-button.group>
                                             @if ($itemsAreReorderable)
                                                 <x-tallstack.reorder-handle />

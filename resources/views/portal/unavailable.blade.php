@@ -82,7 +82,7 @@
                     @endif
                 </x-card>
 
-                <p class="mt-6 text-center text-xs text-gray-400 dark:text-gray-600!">
+                <p class="mt-6 text-center text-xs text-gray-500 dark:text-gray-500!">
                     {{ $company->name ?? config('app.name') }}
                 </p>
             </div>

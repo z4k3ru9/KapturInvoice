@@ -10,55 +10,64 @@ import { loadFixtures } from '../support/fixtures';
  * DynamicRowReorderTest.php) — this proves the real UI actually exposes
  * a reorder entry point and a delete confirmation for a populated row.
  *
+ * Rewritten after the Filament admin panel was fully removed and rebuilt
+ * in TallStackUI/Livewire (see CLAUDE.md) — the Items table is a plain
+ * Blade table now, not a Filament RelationManager, so there is no
+ * separate "enable reorder mode" toggle button: every Draft-status row
+ * always shows its own drag handle
+ * (resources/views/components/tallstack/reorder-handle.blade.php), and
+ * "Delete" (wire:confirm) triggers the browser's native confirm()
+ * dialog, not a custom Filament alertdialog modal.
+ *
  * "Add the next blank row after meaningful content / remove an untouched
- * blank row automatically" is NOT implemented — see CLAUDE.md and
- * docs/filament-admin-layout-design.md §7.05: this project's line
- * editing is RelationManager-plus-modal (established since Phase 02), not
- * an embedded Repeater, and DESIGN.md's exact described behavior needs
- * one. Marked `fixme` rather than faked or silently omitted.
+ * blank row automatically" is NOT implemented — this project's line
+ * editing is a row-expands-to-a-form pattern (established since Phase
+ * 02), not an embedded Repeater, and DESIGN.md's exact described
+ * behavior needs one. Marked `fixme` rather than faked or silently
+ * omitted.
  */
 const fixtures = loadFixtures();
 const company = COMPANIES.karunia;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
-test('the Items table exposes a reorder entry point with a per-row drag handle', async ({ page }) => {
-    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
+test('the Items table shows a per-row drag handle to reorder', async ({ page }) => {
+    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}`);
 
-    // The Items relation manager tab is populated by its own Livewire
-    // mount request — wait for a real row before interacting with it.
+    // The document form is tabbed (Client & Terms / Line Items / Notes /
+    // ...) — Line Items isn't the default tab.
+    await page.getByRole('tab', { name: 'Line Items' }).click();
+
     // No explicit timeout: inherits playwright.config.ts's CI-aware
     // `expect.timeout` default.
     await expect(page.getByText('Draft line one')).toBeVisible();
 
-    await page.getByRole('button', { name: /reorder/i }).click();
-
-    await expect(page.locator('.fi-ta-reorder-handle').first()).toBeVisible();
+    // No "enable reorder mode" step needed — the handle is always present
+    // on a Draft document's rows.
+    await expect(page.getByTitle('Drag to reorder').first()).toBeVisible();
 });
 
 test('deleting a populated item row requires confirmation', async ({ page }) => {
-    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
+    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}`);
 
+    await page.getByRole('tab', { name: 'Line Items' }).click();
     await expect(page.getByText('Draft line one')).toBeVisible();
 
     const row = page.locator('tr', { hasText: 'Draft line one' });
-    await row.getByRole('button', { name: /delete/i }).click();
 
-    // Filament's DeleteAction confirmation-only modal (no form) renders
-    // as `role="alertdialog"` (the semantically correct ARIA role for a
-    // confirm/cancel prompt) — distinct from the `role="dialog"` used by
-    // action modals with an actual form (e.g. the SOA period-range
-    // modal). The `alertdialog` element itself is a zero-height
-    // positioning wrapper (its actual visible content is centered inside
-    // via its own layout, not this element's box) — real elements
-    // Playwright can call "visible" live inside it, so assert on the
-    // prompt text rather than the wrapper. The row must still exist
-    // afterward if the confirmation is dismissed.
-    const confirmModal = page.getByRole('alertdialog');
-    await expect(confirmModal.getByText('Are you sure you would like to do this?')).toBeVisible();
-    await confirmModal.getByRole('button', { name: /cancel/i }).click();
-    // Scoped to the table row, not `page.getByText(...)` — the modal's
-    // own now-dismissed heading ("Delete Draft line one") still matches
-    // that text in the DOM and makes an unscoped lookup ambiguous.
+    // wire:confirm="Remove this line item?" renders the browser's own
+    // native confirm() dialog — dismiss it here to prove the row survives
+    // a cancelled delete, rather than assuming a click alone deletes it.
+    let dialogMessage: string | undefined;
+    page.once('dialog', async (dialog) => {
+        dialogMessage = dialog.message();
+        await dialog.dismiss();
+    });
+
+    await row.getByRole('button', { name: 'Delete line item' }).click();
+    await expect.poll(() => dialogMessage).toBe('Remove this line item?');
+
+    // The row must still exist afterward since the confirmation was
+    // dismissed, not accepted.
     await expect(row).toBeVisible();
 });
 
@@ -66,10 +75,9 @@ test('deleting a populated item row requires confirmation', async ({ page }) => 
 test.fixme(
     'a blank row is added automatically after meaningful content is typed in the last row',
     async () => {
-        // Needs the embedded Repeater UI flagged in CLAUDE.md/
-        // filament-admin-layout-design.md §7.05 — this project's current
-        // line editing is RelationManager-plus-modal, which has no
-        // "typing triggers a new row" concept to test.
+        // Needs the embedded Repeater UI flagged above — this project's
+        // current line editing is a row-expands-to-a-form pattern, which
+        // has no "typing triggers a new row" concept to test.
     },
 );
 

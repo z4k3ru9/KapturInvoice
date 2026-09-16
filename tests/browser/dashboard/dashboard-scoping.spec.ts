@@ -17,7 +17,7 @@ for (const [key, company] of Object.entries(COMPANIES)) {
         // signed-in owner belongs to by NAME (CLAUDE.md "Switch between
         // them via the tenant menu") — that's not a leak. What must never
         // appear is a link into the OTHER company's actual records.
-        await gotoAdminPage(page, company.adminUrl);
+        await gotoAdminPage(page, company.dashboardUrl);
 
         const html = await page.content();
         expect(html).not.toContain(`/clients/${other.client_id}`);

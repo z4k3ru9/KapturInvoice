@@ -126,11 +126,11 @@
                                          separate button since it's not an
                                          edit action. --}}
                                     <div class="flex items-center justify-end gap-3">
-                                        <x-button icon="arrows-right-left" sm color="blue" scope="icon-action" class="h-9 w-9" wire:click="openAllocateModal({{ $row['id'] }})" tooltip="Allocate to job" />
+                                        <x-button icon="arrows-right-left" sm color="blue" scope="icon-action" class="h-9 w-9" wire:click="openAllocateModal({{ $row['id'] }})" tooltip="Allocate to job" aria-label="Allocate to job" />
                                         @if ($bill->status === \App\Enums\VendorBillStatus::Draft)
                                             <x-button.group>
-                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" aria-label="Edit line item" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" aria-label="Delete line item" />
                                             </x-button.group>
                                         @endif
                                         @if ($itemsAreReorderable)

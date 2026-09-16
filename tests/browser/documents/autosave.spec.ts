@@ -34,7 +34,7 @@ test('typing in a draft field shows the inline Saving -> Saved sequence, never a
     // full rendered error page, both printed straight to the CI job log.
     attachServerErrorDiagnostics(page, testInfo);
 
-    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}/edit`);
+    await gotoAdminPage(page, `${company.adminUrl}/invoices/${fixture.draft_invoice_id}`);
 
     const terms = page.getByLabel('Terms').first();
 
@@ -73,7 +73,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         // time as its own single-tab sibling above (or another spec
         // file), and two unrelated real saves racing the same row's
         // `draft_version` produced a genuine cross-test flake.
-        const editUrl = `${company.adminUrl}/invoices/${fixture.draft_invoice_id_for_conflict_test}/edit`;
+        const editUrl = `${company.adminUrl}/invoices/${fixture.draft_invoice_id_for_conflict_test}`;
         await gotoAdminPage(pageA, editUrl);
         await gotoAdminPage(pageB, editUrl);
 
@@ -89,11 +89,15 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         // slow request, but one that was never sent, confirmed via a
         // request-level trace showing zero server-side calls for this
         // record on every failing retry.
+        // Terms is a rich-text <x-editor>, not a plain <input>/<textarea>
+        // — its editable surface is a contenteditable element, so
+        // `.inputValue()`/`.toHaveValue()` (native form elements only)
+        // don't apply; read/compare its rendered text instead.
         const termsA = pageA.getByLabel('Terms').first();
         await termsA.fill(`Saved from tab A first — ${testInfo.project.name} ${Date.now()}`);
         await termsA.blur();
         await expect(pageA.getByText('Saved', { exact: true })).toBeVisible({ timeout: 60_000 });
-        const termsAValue = await termsA.inputValue();
+        const termsAValue = await termsA.innerText();
 
         // Tab B still thinks it has the original version — its own
         // autosave must now detect the conflict rather than clobber A's
@@ -107,7 +111,7 @@ test('a stale save from another tab surfaces an explicit conflict, never a silen
         await expect(pageB.getByRole('button', { name: 'Keep my changes anyway' })).toBeVisible();
 
         await pageB.getByRole('button', { name: 'Discard my changes' }).click();
-        await expect(termsB).toHaveValue(termsAValue);
+        await expect(termsB).toHaveText(termsAValue);
     } finally {
         await contextA.close();
         await contextB.close();
