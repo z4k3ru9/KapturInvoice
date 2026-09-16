@@ -345,4 +345,149 @@ class PdfExportTest extends TestCase
         $this->assertStringContainsString('CREDIT', $html);
         $this->assertStringNotContainsString('NOTA KREDIT', $html);
     }
+
+    /**
+     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
+     * item 7: an "Amount paid" row when amount_paid > 0, absent otherwise.
+     */
+    public function test_invoice_pdf_shows_amount_paid_row_only_when_something_has_been_paid(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+
+        $partiallyPaid = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'currency_code' => 'USD',
+        ]);
+        // subtotal/total/amount_paid/balance are deliberately not
+        // mass-assignable (App\Services\InvoiceTotalsCalculator /
+        // App\Actions\Billing\IssueInvoice are the only real writers) —
+        // forceFill to set up this fixture the same way those callers do.
+        $partiallyPaid->forceFill(['subtotal' => 100, 'total' => 100, 'amount_paid' => 40, 'balance' => 60])->save();
+        InvoiceItem::create(['invoice_id' => $partiallyPaid->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
+        $partiallyPaid->loadMissing('client', 'company', 'items');
+
+        $htmlPaid = view('pdf.invoice', ['invoice' => $partiallyPaid])->render();
+        $this->assertStringContainsString(__('documents.amount_paid'), $htmlPaid);
+
+        $unpaid = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0002',
+            'currency_code' => 'USD',
+        ]);
+        $unpaid->forceFill(['subtotal' => 100, 'total' => 100, 'amount_paid' => 0, 'balance' => 100])->save();
+        InvoiceItem::create(['invoice_id' => $unpaid->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
+        $unpaid->loadMissing('client', 'company', 'items');
+
+        $htmlUnpaid = view('pdf.invoice', ['invoice' => $unpaid])->render();
+        $this->assertStringNotContainsString(__('documents.amount_paid'), $htmlUnpaid);
+    }
+
+    /**
+     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
+     * item 7: a percentage discount also shows the computed nominal amount,
+     * derived from the invoice's own already-persisted subtotal/tax_total/
+     * total (never a fresh calculation — see resources/views/pdf/invoice.blade.php's
+     * own comment).
+     */
+    public function test_invoice_pdf_shows_nominal_discount_amount_alongside_a_percentage_discount(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'currency_code' => 'USD',
+            'discount' => 10,
+            'discount_is_percentage' => true,
+        ]);
+        $invoice->forceFill(['subtotal' => 200, 'tax_total' => 0, 'total' => 180])->save();
+        InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 200, 'line_total' => 200]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('(-USD 20.00)', $html);
+    }
+
+    /**
+     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
+     * item 7: tax rows broken out per tax name from the normalized
+     * invoice_item_taxes rows instead of one generic "Tax" line.
+     */
+    public function test_invoice_pdf_breaks_out_tax_rows_by_name_when_normalized_tax_rows_exist(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'currency_code' => 'USD',
+        ]);
+        $invoice->forceFill(['subtotal' => 100, 'tax_total' => 12, 'total' => 112])->save();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
+        $item->taxes()->create(['name' => 'PPN 12%', 'rate' => 12, 'amount' => 12]);
+        $invoice->loadMissing('client', 'company', 'items.taxes');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('PPN 12%', $html);
+        $this->assertStringNotContainsString('>'.__('documents.tax').'<', $html);
+    }
+
+    /**
+     * A legacy/imported invoice can carry a tax_total with no normalized
+     * invoice_item_taxes rows behind it — the template must still show a
+     * generic Tax line rather than silently dropping the figure.
+     */
+    public function test_invoice_pdf_shows_generic_tax_line_when_no_normalized_tax_rows_exist(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0001',
+            'currency_code' => 'USD',
+        ]);
+        $invoice->forceFill(['subtotal' => 100, 'tax_total' => 12, 'total' => 112])->save();
+        InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('>'.__('documents.tax').'<', $html);
+    }
+
+    /**
+     * Universal PDF polish (this session): every line-items table gets a
+     * subtle alternating row background so it reads as a striped table.
+     */
+    public function test_invoice_pdf_items_table_has_striped_row_css(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create(['company_id' => $company->id, 'client_id' => $client->id, 'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0001']);
+        InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Consulting', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('table.items tbody tr:nth-child(even)', $html);
+    }
 }

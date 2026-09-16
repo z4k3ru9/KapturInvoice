@@ -27,6 +27,7 @@ return [
     'discount' => 'Discount',
     'tax' => 'Tax',
     'total' => 'Total',
+    'amount_paid' => 'Amount paid',
     'balance_due' => 'Balance due',
 
     'amount' => 'Amount',

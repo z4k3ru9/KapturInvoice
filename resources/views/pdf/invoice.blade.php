@@ -11,6 +11,30 @@
         \App\Enums\InvoiceType::Invoice => __('documents.type_invoice'),
         \App\Enums\InvoiceType::Quote => __('documents.type_quote'),
     };
+
+    // Nominal discount amount, derived from already-persisted totals rather
+    // than recomputed here — never a new calculation, per CLAUDE.md's
+    // "printed financial document" guard. `App\Actions\Billing\IssueInvoice`
+    // freezes the authoritative figure on `InvoiceTaxSnapshot::discount_total`
+    // once an invoice is issued; a Draft/legacy invoice with no snapshot yet
+    // has its subtotal/tax_total/total kept in exact sync by
+    // App\Services\InvoiceTotalsCalculator (total = subtotal - discount +
+    // tax_total there, no separate rounding step), so the same subtraction
+    // recovers the identical figure.
+    $discountNominal = $invoice->discount > 0
+        ? (float) ($invoice->taxSnapshot?->discount_total
+            ?? ((float) $invoice->subtotal - (float) $invoice->total + (float) $invoice->tax_total))
+        : 0.0;
+
+    // Per-tax-name breakdown from the normalized invoice_item_taxes rows
+    // (App\Models\InvoiceItemTax) instead of one generic "Tax" line —
+    // summed straight from the persisted per-line amounts, so it always
+    // adds back up to the invoice's own stored tax_total. Falls back to a
+    // single generic line for a legacy/imported invoice that carries a
+    // tax_total with no normalized item-tax rows behind it.
+    $taxByName = $invoice->items->flatMap(fn ($item) => $item->taxes)
+        ->groupBy('name')
+        ->map(fn ($rows) => $rows->sum('amount'));
 @endphp
 <!DOCTYPE html>
 <html>
@@ -31,6 +55,7 @@
         table.items { width: 100%; border-collapse: collapse; margin-top: 16px; }
         table.items th { text-align: left; border-bottom: 2px solid #1f2937; padding: 6px 4px; font-size: 11px; text-transform: uppercase; color: #6b7280; }
         table.items td { padding: 6px 4px; border-bottom: 1px solid #e5e7eb; }
+        table.items tbody tr:nth-child(even) { background-color: #f9fafb; }
         .text-right { text-align: right; }
         table.totals { width: 260px; margin-left: auto; margin-top: 12px; }
         table.totals td { padding: 3px 4px; }
@@ -132,20 +157,37 @@
             <tr>
                 <td>{{ __('documents.discount') }}</td>
                 <td class="text-right">
-                    -{{ $invoice->discount_is_percentage ? $invoice->discount.'%' : number_format($invoice->discount, 2) }}
+                    @if ($invoice->discount_is_percentage)
+                        -{{ $invoice->discount }}% (-{{ $invoice->currency_code }} {{ number_format($discountNominal, 2) }})
+                    @else
+                        -{{ number_format($invoice->discount, 2) }}
+                    @endif
                 </td>
             </tr>
         @endif
         @if ($invoice->tax_total > 0)
-            <tr>
-                <td>{{ __('documents.tax') }}</td>
-                <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->tax_total, 2) }}</td>
-            </tr>
+            @forelse ($taxByName as $taxName => $taxAmount)
+                <tr>
+                    <td>{{ $taxName }}</td>
+                    <td class="text-right">{{ $invoice->currency_code }} {{ number_format($taxAmount, 2) }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td>{{ __('documents.tax') }}</td>
+                    <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->tax_total, 2) }}</td>
+                </tr>
+            @endforelse
         @endif
         <tr class="total">
             <td>{{ __('documents.total') }}</td>
             <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</td>
         </tr>
+        @if ($invoice->amount_paid > 0)
+            <tr>
+                <td>{{ __('documents.amount_paid') }}</td>
+                <td class="text-right">{{ $invoice->currency_code }} {{ number_format($invoice->amount_paid, 2) }}</td>
+            </tr>
+        @endif
         @if ($invoice->balance != $invoice->total)
             <tr>
                 <td>{{ __('documents.balance_due') }}</td>

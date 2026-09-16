@@ -19,6 +19,15 @@
     $documentTypeLabel = $isCustomerOrderConfirmation
         ? __('documents.type_coc')
         : __('documents.type_quotation');
+
+    // Nominal discount amount, derived from already-persisted totals rather
+    // than recomputed here (App\Services\QuotationTotalsCalculator sets
+    // total = subtotal - discount exactly, no separate rounding step, so
+    // this subtraction recovers the identical figure it used) — never a new
+    // calculation, per CLAUDE.md's "printed financial document" guard.
+    $discountNominal = $quotation->discount > 0
+        ? round((float) $quotation->subtotal - (float) $quotation->total, 2)
+        : 0.0;
 @endphp
 <!DOCTYPE html>
 <html>
@@ -40,6 +49,7 @@
         table.items { width: 100%; border-collapse: collapse; margin-top: 16px; }
         table.items th { text-align: left; border-bottom: 2px solid #1f2937; padding: 6px 4px; font-size: 11px; text-transform: uppercase; color: #6b7280; }
         table.items td { padding: 6px 4px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        table.items tbody tr:nth-child(even) { background-color: #f9fafb; }
         .text-right { text-align: right; }
         .item-picture { width: 40px; height: 40px; }
         table.totals { width: 260px; margin-left: auto; margin-top: 12px; }
@@ -147,7 +157,11 @@
             <tr>
                 <td>{{ __('documents.discount') }}</td>
                 <td class="text-right">
-                    -{{ $quotation->discount_is_percentage ? $quotation->discount.'%' : number_format($quotation->discount, 2) }}
+                    @if ($quotation->discount_is_percentage)
+                        -{{ $quotation->discount }}% (-{{ $quotation->company->currency_code }} {{ number_format($discountNominal, 2) }})
+                    @else
+                        -{{ number_format($quotation->discount, 2) }}
+                    @endif
                 </td>
             </tr>
         @endif

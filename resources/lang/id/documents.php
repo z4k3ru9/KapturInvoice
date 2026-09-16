@@ -35,6 +35,7 @@ return [
     'discount' => 'Diskon',
     'tax' => 'Pajak',
     'total' => 'Total',
+    'amount_paid' => 'Jumlah Dibayar',
     'balance_due' => 'Sisa Tagihan',
 
     'amount' => 'Jumlah',

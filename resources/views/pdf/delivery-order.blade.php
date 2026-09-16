@@ -26,6 +26,7 @@
         table.items { width: 100%; border-collapse: collapse; margin-top: 16px; }
         table.items th { text-align: left; border-bottom: 2px solid #1f2937; padding: 6px 4px; font-size: 11px; text-transform: uppercase; color: #6b7280; }
         table.items td { padding: 6px 4px; border-bottom: 1px solid #e5e7eb; }
+        table.items tbody tr:nth-child(even) { background-color: #f9fafb; }
         .text-right { text-align: right; }
         .notes { margin-top: 24px; }
         .notes h4 { margin-bottom: 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
