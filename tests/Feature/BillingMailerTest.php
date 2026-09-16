@@ -336,6 +336,50 @@ class BillingMailerTest extends TestCase
     }
 
     /**
+     * App\Services\EmailTemplateRenderer::renderHtml() closes a real HTML-
+     * injection gap: the body template itself is server-sanitized
+     * (App\Support\Html\RichTextSanitizer), but its `{{client_name}}`/
+     * `{{contact_name}}` token *values* are ordinary free-text data — a
+     * client could be named something that looks like a tag. Since
+     * resources/views/emails/plain.blade.php renders an HTML-looking body
+     * unescaped, an unescaped token substitution would let that markup
+     * reach the outbound email raw.
+     */
+    public function test_sending_escapes_a_malicious_client_name_inside_an_html_body_template(): void
+    {
+        Mail::fake();
+
+        CompanySetting::create([
+            'company_id' => $this->company->id,
+            'invoice_email_subject' => 'Your bill {{invoice_number}}',
+            'invoice_email_body' => '<p>Hi {{contact_name}} from {{client_name}}, please pay {{amount}}.</p>',
+        ]);
+
+        $this->client->update(['name' => '<img src=x onerror=alert(1)>']);
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'draft',
+            'number' => 'INV-0012',
+        ]);
+        $invoice->forceFill(['total' => 10])->save();
+
+        app(BillingMailer::class)->sendInvoice($invoice);
+
+        Mail::assertSent(CompanyTemplatedMail::class, function (CompanyTemplatedMail $mail) {
+            $rendered = view('emails.plain', ['body' => $mail->bodyText])->render();
+
+            return ! str_contains($rendered, '<img src=x onerror=alert(1)>')
+                && str_contains($rendered, '&lt;img src=x onerror=alert(1)&gt;')
+                // The template's own markup is untouched — only the token
+                // value was escaped, not the surrounding sanitized HTML.
+                && str_contains($rendered, '<p>Hi Jane Doe from');
+        });
+    }
+
+    /**
      * A company that hasn't customized a template yet still falls back to
      * BillingMailer::templateFor()'s hardcoded plain-text default, which
      * carries literal "\n" line breaks and no HTML — the view has to

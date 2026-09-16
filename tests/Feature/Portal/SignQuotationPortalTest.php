@@ -200,6 +200,30 @@ class SignQuotationPortalTest extends TestCase
         $this->assertSame('draft', $quotation->status->value);
     }
 
+    /**
+     * See ViewInvoicePortalTest::test_signing_with_an_oversized_signature_payload_is_rejected()
+     * — same gap, same fix, applied to this sibling portal endpoint.
+     */
+    public function test_accepting_with_an_oversized_signature_payload_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $quotation = $this->makeQuotation($company);
+        $this->app->instance('currentCompany', $company);
+
+        $oversized = 'data:image/png;base64,'.str_repeat('A', 2_000_001);
+
+        Livewire::test(SignQuotation::class, ['quotation' => $quotation])
+            ->set('signerName', 'Jane Doe')
+            ->set('capturedSignature', $oversized)
+            ->call('accept')
+            ->assertHasErrors(['capturedSignature' => 'max'])
+            ->assertSet('justSigned', false);
+
+        $quotation->refresh();
+        $this->assertNull($quotation->signature);
+        $this->assertSame('sent', $quotation->status->value);
+    }
+
     public function test_a_signed_quotation_renders_the_signature_image_and_status(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

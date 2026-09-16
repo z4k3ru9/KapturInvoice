@@ -74,6 +74,24 @@ class TallStackPriceListItemsTest extends TestCase
         @unlink($fixturePath);
     }
 
+    /**
+     * The xlsx mimetype was already enforced; the file size was not — an
+     * authenticated company member could otherwise upload an arbitrarily
+     * large file for App\Services\PriceListImporter to parse in memory.
+     */
+    public function test_import_rejects_an_oversized_file(): void
+    {
+        Storage::fake('local');
+
+        Livewire::test(TallStackPriceListItems::class, ['company' => $this->company])
+            ->set('file', UploadedFile::fake()->create('fixture.xlsx', 10241, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'))
+            ->set('importBrand', 'Hikvision')
+            ->call('import')
+            ->assertHasErrors(['file' => 'max']);
+
+        $this->assertSame(0, PriceListItem::where('company_id', $this->company->id)->count());
+    }
+
     public function test_sync_product_creates_and_then_refreshes_the_linked_product(): void
     {
         $item = PriceListItem::create([

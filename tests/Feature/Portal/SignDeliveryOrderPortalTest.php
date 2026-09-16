@@ -142,6 +142,29 @@ class SignDeliveryOrderPortalTest extends TestCase
         $this->assertNull($deliveryOrder->signature);
     }
 
+    /**
+     * See ViewInvoicePortalTest::test_signing_with_an_oversized_signature_payload_is_rejected()
+     * — same gap, same fix, applied to this sibling portal endpoint.
+     */
+    public function test_signing_with_an_oversized_signature_payload_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $deliveryOrder = $this->makeDeliveryOrder($company);
+        $this->app->instance('currentCompany', $company);
+
+        $oversized = 'data:image/png;base64,'.str_repeat('A', 2_000_001);
+
+        Livewire::test(SignDeliveryOrder::class, ['deliveryOrder' => $deliveryOrder])
+            ->set('signerName', 'Jane Doe')
+            ->set('capturedSignature', $oversized)
+            ->call('sign')
+            ->assertHasErrors(['capturedSignature' => 'max'])
+            ->assertSet('justSigned', false);
+
+        $deliveryOrder->refresh();
+        $this->assertNull($deliveryOrder->signature);
+    }
+
     public function test_a_signed_delivery_order_renders_the_signature_image(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

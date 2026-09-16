@@ -137,6 +137,29 @@ class SignHandoverReportPortalTest extends TestCase
         $this->assertNull($handoverReport->signature);
     }
 
+    /**
+     * See ViewInvoicePortalTest::test_signing_with_an_oversized_signature_payload_is_rejected()
+     * — same gap, same fix, applied to this sibling portal endpoint.
+     */
+    public function test_signing_with_an_oversized_signature_payload_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $handoverReport = $this->makeHandoverReport($company);
+        $this->app->instance('currentCompany', $company);
+
+        $oversized = 'data:image/png;base64,'.str_repeat('A', 2_000_001);
+
+        Livewire::test(SignHandoverReport::class, ['handoverReport' => $handoverReport])
+            ->set('signerName', 'Jane Doe')
+            ->set('capturedSignature', $oversized)
+            ->call('sign')
+            ->assertHasErrors(['capturedSignature' => 'max'])
+            ->assertSet('justSigned', false);
+
+        $handoverReport->refresh();
+        $this->assertNull($handoverReport->signature);
+    }
+
     public function test_a_signed_handover_report_renders_the_signature_image(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

@@ -63,7 +63,7 @@ class QuotationMailer
 
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
-            $this->renderer->render($bodyTemplate, $tokens),
+            $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$quotation->number}.pdf")->withMime('application/pdf')],
         ));
     }

@@ -111,7 +111,13 @@ class TallStackPriceListItems extends Component
         $this->authorize('create', PriceListItem::class);
 
         $data = $this->validate([
-            'file' => ['required', 'file', 'mimes:xlsx'],
+            // Type was already constrained (xlsx only); size was not — matches
+            // the 10MB ceiling App\Livewire\Concerns\ManagesDocuments already
+            // uses for every other upload in the app. Generous for a real
+            // pricelist spreadsheet (a few hundred rows at most, see
+            // docs/price-list-import.md) while bounding how large a file this
+            // still has to parse in memory (App\Services\PriceListImporter).
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:10240'],
             'importBrand' => ['required', 'string', 'max:255'],
         ]);
 

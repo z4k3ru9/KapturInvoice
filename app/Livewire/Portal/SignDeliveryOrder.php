@@ -63,7 +63,16 @@ class SignDeliveryOrder extends Component
     {
         $this->validate([
             'signerName' => ['required', 'string', 'max:255'],
-            'capturedSignature' => ['required', 'string', 'starts_with:data:image/'],
+            // Unauthenticated public endpoint (the unguessable portal_key is
+            // the only credential) — cap the base64 data URI so a crafted
+            // Livewire request can't push an unbounded payload into the
+            // `longtext` `signature` column (see that column's own
+            // widen-to-longtext migration docblock: the ceiling was
+            // deliberately removed at the DB layer for legitimate large
+            // signatures, so it needs to be re-established here instead).
+            // ~2,000,000 chars is a generous multiple of a real drawn
+            // signature's typical size.
+            'capturedSignature' => ['required', 'string', 'max:2000000', 'starts_with:data:image/'],
         ], [
             'capturedSignature.required' => 'Please draw your signature before submitting.',
             'capturedSignature.starts_with' => 'Please draw your signature before submitting.',

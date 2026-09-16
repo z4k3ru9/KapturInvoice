@@ -69,7 +69,10 @@ class ViewInvoice extends Component
     public function sign(): void
     {
         $this->validate([
-            'capturedSignature' => ['required', 'string', 'starts_with:data:image/'],
+            // See App\Livewire\Portal\SignDeliveryOrder::sign() for why this
+            // unauthenticated endpoint needs an explicit length cap on top
+            // of the `longtext` column's own (deliberately unbounded) size.
+            'capturedSignature' => ['required', 'string', 'max:2000000', 'starts_with:data:image/'],
         ], [
             'capturedSignature.required' => 'Please draw your signature before submitting.',
             'capturedSignature.starts_with' => 'Please draw your signature before submitting.',

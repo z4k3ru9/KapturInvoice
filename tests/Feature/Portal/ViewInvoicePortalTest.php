@@ -149,6 +149,32 @@ class ViewInvoicePortalTest extends TestCase
         $this->assertNull($invitation->signed_at);
     }
 
+    /**
+     * The unauthenticated portal endpoint's only credential is the
+     * unguessable invitation key — `invitations.signature` was widened to
+     * `longtext` (see that column's own migration docblock) specifically
+     * to remove any DB-level ceiling on a real drawn signature, which
+     * means the application layer has to be the one bounding it instead.
+     */
+    public function test_signing_with_an_oversized_signature_payload_is_rejected(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $invitation = $this->makeInvitation($company);
+        $this->app->instance('currentCompany', $company);
+
+        $oversized = 'data:image/png;base64,'.str_repeat('A', 2_000_001);
+
+        Livewire::test(ViewInvoice::class, ['invitation' => $invitation])
+            ->set('capturedSignature', $oversized)
+            ->call('sign')
+            ->assertHasErrors(['capturedSignature' => 'max'])
+            ->assertSet('justSigned', false);
+
+        $invitation->refresh();
+        $this->assertNull($invitation->signature);
+        $this->assertNull($invitation->signed_at);
+    }
+
     public function test_a_signed_invoice_renders_the_signature_image_instead_of_raw_base64_text(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

@@ -74,7 +74,7 @@ class BillingMailer
 
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
-            $this->renderer->render($bodyTemplate, $tokens),
+            $this->renderer->renderHtml($bodyTemplate, $tokens),
         ));
     }
 
@@ -102,7 +102,7 @@ class BillingMailer
 
         Mail::to($contact->email)->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
-            $this->renderer->render($bodyTemplate, $tokens),
+            $this->renderer->renderHtml($bodyTemplate, $tokens),
         ));
     }
 
@@ -137,7 +137,7 @@ class BillingMailer
 
         Mail::to($contact->email)->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
-            $this->renderer->render($bodyTemplate, $tokens),
+            $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$statementOfAccount->number}.pdf")->withMime('application/pdf')],
         ));
     }
@@ -182,7 +182,7 @@ class BillingMailer
 
         Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
-            $this->renderer->render($bodyTemplate, $tokens),
+            $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$invoice->number}.pdf")->withMime('application/pdf')],
         ));
 
