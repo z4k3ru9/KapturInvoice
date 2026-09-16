@@ -1,12 +1,30 @@
 <div class="relative hidden sm:!block" x-data="{ open: false }" x-on:click.outside="open = false" x-on:keydown.escape.window="open = false">
     <div class="relative">
         <x-icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        {{--
+            The header itself is bg-white/dark:bg-gray-900! (see
+            AppServiceProvider's registerAppShellDarkModeFix() ->
+            layout('header') block) — the exact same tone this input used
+            to use, so with the header's own border only appearing at its
+            bottom edge, the input had no visible box of its own: no
+            background contrast, and a border just one shade off the
+            surface it sat on (border-gray-800 on bg-gray-900). It's
+            structurally full-width (confirmed via computed style — 869px
+            in an 1152px header at a 1440px viewport) but visually read as
+            "just an icon and some placeholder text floating in empty
+            space" rather than a real search bar, which is what "the
+            navbar looks cramped" actually was. A background one step off
+            the header's own (bg-gray-50 in light, dark:bg-gray-800! in
+            dark — one shade lighter than the header's bg-gray-900) plus a
+            more visible border gives it a real, visible boundary at
+            whatever width it's actually rendered.
+        --}}
         <input type="search"
                wire:model.live.debounce.300ms="query"
                x-on:focus="open = true"
                x-on:input="open = true"
                placeholder="Search invoices, quotations, jobs, proposals…"
-               class="h-9 w-full text-sm rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! dark:placeholder:text-gray-500! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+               class="h-9 w-full text-sm rounded-lg border-gray-200 bg-gray-50 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! dark:placeholder:text-gray-500! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
     </div>
 
     {{--

@@ -27,7 +27,26 @@
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400!">Enter your credentials to continue.</p>
     </div>
 
-    <x-card class="mt-6">
+    {{--
+        border added: <x-card>'s own background matches the page's
+        (both bg-white / dark:bg-gray-900!, see layouts/public.blade.php),
+        so the card has no color boundary of its own in either mode —
+        only its `shadow-md` gave it any visible edge, and shadows read
+        clearly against a white page but are barely perceptible against
+        a dark one. The net effect: in light mode the card's shadow
+        creates a visible box around just the form fields, sitting below
+        the logo/heading and above the "Need a company?" line — both
+        outside it — which reads as an unbalanced block since only part
+        of the vertically-centered content is visibly boxed. In dark
+        mode there was no visible box at all, so nothing looked
+        "unbalanced" simply because there was no boundary to compare
+        against — not because the underlying centering (mx-auto
+        min-h-screen justify-center on the wrapping div) was actually
+        any different; it measures identically centered in both modes.
+        A real border makes the card a consistent, visible element in
+        both modes instead of light mode's shadow-only illusion of one.
+    --}}
+    <x-card class="mt-6 border border-gray-200 dark:border-gray-800!">
         @error('authentication')
             <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900! dark:bg-red-950! dark:text-red-300!">
                 {{ $message }}
