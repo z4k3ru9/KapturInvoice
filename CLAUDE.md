@@ -391,6 +391,101 @@ Or just `composer setup` (runs the same steps via the composer script).
   chosen row's sku/description/price into a real, invoiceable `Product`
   (`products.price_list_item_id` links the two, so re-running it refreshes
   the same Product rather than duplicating it).
+- **Status-transition automation (2026-09-16, research-driven audit)** —
+  answered "which manual status clicks have a safe, deterministic signal
+  and can be automated, vs. which are deliberate financial-control gates
+  that must stay manual": role-gated human decisions (customer/vendor
+  payment verification, `CloseJobFinancially`'s Owner-only override,
+  Quotation/SalesOrder approve/send/accept/reject/cancel, VendorBill/PO
+  approval, `AllocateJobCost`, Delivery/Handover completion) all correctly
+  stay manual — no safe automatic signal exists for any of them. Four real
+  gaps got closed instead: `InvoiceStatus::Overdue` existed, was read
+  everywhere (dashboards, reminders, Statement of Account), and had zero
+  writers anywhere in the codebase — new daily `invoices:mark-overdue`
+  command closes it, paired with a fix to
+  `RecalculateInvoiceReceivables` (previously had no way to output
+  `Overdue` from its status-derive `match`, so it would silently clobber
+  an Overdue invoice back to `Issued` on any unrelated payment event).
+  `Invoice.auto_bill` (a per-template boolean with its own UI toggle and
+  dashboard stat count) was purely decorative — "Generate now" was the
+  only trigger anywhere, entirely manual, unconditional; new daily
+  `recurring-invoices:generate-due` command (backed by the extracted
+  `App\Services\RecurringInvoiceSchedule`, shared with
+  `TallStackRecurringInvoices`'s own display estimate so the two can't
+  drift apart) generates, issues, and sends a due `auto_bill` template's
+  next invoice — the highest-risk piece, since it emails a real invoice
+  with no human review in that run, scoped as tightly as possible to an
+  explicit pre-existing per-template opt-in and supporting `--dry-run`;
+  the acting user for `IssueInvoice`'s role check resolves to the
+  template's own company's Owner. `App\Livewire\Portal\SignQuotation` now
+  records `viewed_at` on first portal visit (deliberately NOT a new
+  `QuotationStatus::Viewed` case — every place checking `status === Sent`
+  would need re-auditing for real ripple, for what's meant to be a purely
+  informational badge). `CloseJobOperationally` had no role gate and only
+  checked an already-computed condition — `CompleteDelivery`/
+  `CompleteHandover` now auto-close a job the instant that condition is
+  met instead of waiting for a manual click. New **Hold** override
+  mechanism (`held_at`/`held_reason`/`held_by` on `invoices` and
+  `sales_orders`, `App\Models\Concerns\Holdable`, `App\Actions\Shared\
+  {PlaceHold,ReleaseHold}`, Owner/Admin only, reason required to place) is
+  the intended lever for pausing any of the above on one specific record
+  for moderation or a pending revision — deliberately not a free-form
+  status dropdown, which the next automated run would just recompute
+  back; wired into the Invoices list UI (row action + modal), not yet
+  onto Jobs (the actions themselves already support `SalesOrder` — same
+  Blade pattern, just not built there yet). Also surfaced and fixed a
+  real, pre-existing bug: `InvoiceDuplicator` never copied `pricing_mode`
+  to a generated/converted invoice at all — issuing ANY duplicated
+  invoice (a converted quote or a recurring instance) would throw a
+  `TypeError` in `TaxCalculationService`, confirmed via a real Feature
+  test before the fix.
+- **Dark-mode / TallStackUI-compliance audit (2026-09-16)** — a second,
+  more thorough pass after the repair plan below, dispatched as 10
+  parallel per-page-group audits plus centralized fixes for issues
+  spanning many pages. Per-page: added the missing trailing `!` on
+  hand-written `dark:` utilities across effectively every
+  `tallstack-*.blade.php` view (the same cascade-collision rule
+  documented in `.ai/rules/tallstackui-customization.md`, just far more
+  exhaustively applied this pass), fixed several genuinely invisible
+  card-header/label text instances, low-contrast `font-mono` document-
+  number columns, and swapped a handful of raw `<input type="color">`/
+  `<label>` pairs for the canonical `<x-color>`/`<x-label>` components.
+  Centralized (`AppServiceProvider.php`): fixed `<x-stats>`'s
+  `wrapper.first` rendering solid white in dark mode (the scope's own
+  `title`/`number`/`slots.footer.text` blocks were also still on the
+  inert `dark-*` token) plus a real CSS Grid bug alongside it — a stat
+  card's box could grow past its own grid track when a real currency
+  value was wide, letting a neighboring card's icon visually overlap it
+  regardless of `overflow-hidden`, fixed with `min-w-0`. Fixed the
+  sidebar toggle button and the navbar search input (no `dark:text-*` at
+  all — typed text was invisible). The single highest-leverage fix: every
+  floating dropdown/picker panel app-wide (`<x-dropdown>` both scopes,
+  `<x-select.styled>`, `<x-date>`, `<x-color>`, `<x-autocomplete>`,
+  `<x-password>`, `<x-time>`, `<x-tag>`, `<x-upload>`) was rendering solid
+  white in dark mode — each of those components calls
+  `app(Floating::class)->customization()` directly at their own
+  construction time, bypassing the registered
+  `TallStackUi::customize()->floating()` override entirely (confirmed
+  independently by three separate audit passes); fixed by setting each
+  affected component's own `floating.default` key directly, the same
+  pattern `SideBar\Item`'s own flyout panel already used. Also added
+  `App\View\Components\TallStackUi\Colors\BadgeColors` (TallStackUI's
+  Color Personalization extension point, the same mechanism
+  `NormalButtonColors` already uses for the `brand` button color) since
+  `<x-badge light>` — this app's status-badge convention — was missing
+  `!important` on every one of its ~29 per-color `dark:` classes; values
+  were mechanically generated from the installed vendor defaults, not
+  hand-transcribed, to avoid a wrong shade across that many colors.
+  Separately patched a real TallStackUI vendor bug (no upstream fix at
+  the installed `^4.1`): `<x-tab.items>`'s `x-init` unconditionally
+  pushes into the parent `<x-tab>`'s shared Alpine `tabs` array with no
+  de-duplication, so nesting a second `<x-tab>` inside a page that's
+  itself already inside another `<x-tab>` panel corrupts the outer tab's
+  state (duplicated header, blanked panel) — fixed via the same
+  idempotent `post-autoload-dump`-hooked patch-command pattern
+  `PatchTallStackUiEditorAsset` already established for a different
+  vendor bug in this same package
+  (`App\Console\Commands\PatchTallStackUiTabAsset`).
 - **Renovation Phase 06B (UX, browser QA, and SOA completion — in
   progress)** — per `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`,
   added to `main` after Phase 06 shipped and making mandatory (not
@@ -964,7 +1059,7 @@ Or just `composer setup` (runs the same steps via the composer script).
 ## Verify before pushing
 
 ```sh
-php artisan test      # 550 PHP tests as of 2026-09-15 (see memory.md's Current state) + a Playwright browser suite (npm run test:browser) — see docs/testing-coverage.md
+php artisan test      # 669 PHP tests as of 2026-10-01 (see memory.md's Current state) + a Playwright browser suite (npm run test:browser) — see docs/testing-coverage.md
 vendor/bin/pint       # auto-fixes style; run before every commit
 ```
 
