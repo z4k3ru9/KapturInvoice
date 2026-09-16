@@ -9,15 +9,15 @@
         title="Proposal Snippets"
     >
         <x-slot:actions>
-            <x-button text="New snippet" icon="plus" color="blue" sm class="h-9" wire:click="create" />
+            <x-button text="New snippet" icon="plus" color="blue" sm class="h-9 whitespace-nowrap" wire:click="create" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
     {{-- Same tab switcher as TallStackProposalTemplates — this page is
          Templates' smaller sibling, not a separate top-level screen. --}}
-    <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800">
+    <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800!">
         <a href="{{ route('tallstack.proposal-templates', $company) }}"
-           class="px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+           class="px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-gray-400! hover:text-gray-700 dark:hover:text-gray-200!">
             Templates ({{ $templatesCount }})
         </a>
         <a href="{{ route('tallstack.proposal-snippets', $company) }}"
@@ -28,7 +28,7 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Snippets</span>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Snippets</span>
         </x-slot:header>
 
         <x-list :items="$snippets" searchable search-placeholder="Search snippets…">
@@ -60,10 +60,10 @@
             <x-textarea wire:model.live.debounce.400ms="html" label="HTML" rows="10" class="font-mono text-xs" placeholder="<p>Reusable clause or block…</p>" />
 
             <div>
-                <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1.5">Live preview</span>
-                <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-white">
+                <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400! mb-1.5">Live preview</span>
+                <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800! bg-white dark:bg-gray-900!">
                     <iframe
-                        srcdoc="<style>html,body{{ '{' }}margin:0;padding:16px;{{ '}' }}</style>{{ $html }}"
+                        srcdoc="<style>html,body{{ '{' }}margin:0;padding:16px;background:#fff;color:#111;{{ '}' }}</style>{{ $html }}"
                         style="width: 100%; height: 160px; border: 0;"
                         sandbox=""
                         title="Snippet preview"

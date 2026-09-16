@@ -33,7 +33,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">All delivery orders</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">All delivery orders</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search number, job or client…" icon="magnifying-glass" clearable />
                 </div>
@@ -50,7 +50,7 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$deliveryOrders" paginate loading>
             @interact('column_number', $row)
-                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                 </span>
             @endinteract

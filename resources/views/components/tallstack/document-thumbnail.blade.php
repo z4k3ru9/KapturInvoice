@@ -22,7 +22,7 @@
 @endphp
 
 <div
-    class="rounded-md overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shrink-0 grid place-items-center"
+    class="rounded-md overflow-hidden bg-white dark:bg-gray-900! border border-gray-200 dark:border-gray-800! shrink-0 grid place-items-center"
     style="width: {{ $size }}px; height: {{ $size }}px;"
 >
     @if ($image)
@@ -39,6 +39,6 @@
             ></iframe>
         </div>
     @else
-        <x-icon name="document" class="w-4 h-4 text-gray-300 dark:text-gray-600" />
+        <x-icon name="document" class="w-4 h-4 text-gray-300 dark:text-gray-600!" />
     @endif
 </div>
