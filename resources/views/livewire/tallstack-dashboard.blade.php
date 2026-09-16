@@ -4,16 +4,17 @@
     <x-loading loading="$refresh" delay="short" />
 
     {{--
-        Shared page-header component — see its own docblock. "Dashboard"
-        itself is a short, fixed title (unlike a record's name/number
-        elsewhere), so an sm badge/status line is used here rather than
-        the larger heading treatment a longer/variable title would need —
-        leaving more of the row's width to the period/export/refresh
-        controls on the right before they wrap.
+        Shared page-header component — see its own docblock. The
+        "Owner · {name}" badge that used to sit here was merged into the
+        avatar/account dropdown's own header instead (that dropdown now
+        shows the user's real per-company role via
+        auth()->user()->companyRole($company)?->label(), replacing this
+        badge's hardcoded "Owner" string) — the user's role isn't
+        specific to the Dashboard, so it belongs in the one place it's
+        always reachable, not repeated on every page's own header.
     --}}
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Overview']]" title="Dashboard">
         <x-slot:badge>
-            <x-badge text="Owner · {{ auth()->user()->name }}" color="blue" icon="user-circle" sm />
             <span class="text-xs text-gray-400">Updated moments ago</span>
         </x-slot:badge>
         <x-slot:actions>

@@ -676,7 +676,12 @@
                         </x-slot:action>
                         <x-slot:header>
                             <div class="px-2 py-1">
-                                <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100!">{{ auth()->user()->name }}</div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100!">{{ auth()->user()->name }}</span>
+                                    @if ($role = auth()->user()->companyRole($company))
+                                        <x-badge text="{{ $role->label() }}" color="blue" sm light />
+                                    @endif
+                                </div>
                                 <div class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</div>
                             </div>
                         </x-slot:header>
