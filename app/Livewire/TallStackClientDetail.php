@@ -201,6 +201,16 @@ class TallStackClientDetail extends Component
         $this->authorize('update', $this->client);
 
         $this->resetContactForm();
+
+        // A client's sole contact is always both — see saveContact()'s own
+        // enforcement below. Pre-checking here just makes the form honest
+        // about what will actually happen for this client's first contact,
+        // rather than showing an unchecked box that flips on regardless.
+        if ($this->client->contacts->isEmpty()) {
+            $this->contact_is_primary = true;
+            $this->contact_is_billing_contact = true;
+        }
+
         $this->showContactModal = true;
     }
 
@@ -258,6 +268,7 @@ class TallStackClientDetail extends Component
         }
 
         $this->client->refresh()->load('contacts');
+        $this->enforceSoleContactDefaults();
         $this->showContactModal = false;
         $this->resetContactForm();
         $this->toast()->success('Contact saved.')->send();
@@ -275,6 +286,7 @@ class TallStackClientDetail extends Component
 
         $contact->delete();
         $this->client->refresh()->load('contacts');
+        $this->enforceSoleContactDefaults();
         $this->toast()->success('Contact removed.')->send();
     }
 
@@ -324,6 +336,30 @@ class TallStackClientDetail extends Component
     private function scopedContact(int $id): ?Contact
     {
         return $this->client->contacts->firstWhere('id', $id);
+    }
+
+    /**
+     * A client's sole contact is always both the primary and billing
+     * contact by default — with only one point of contact, there's no
+     * meaningful "someone else is billing" choice to make, and leaving
+     * both unset would silently exclude the client from quote/invoice/
+     * reminder emails (App\Services\BillingMailer sends only to
+     * designated billing contacts) and from portal billing history. Runs
+     * after every contact create/update/delete; a client with two or more
+     * contacts is left alone — that's a real choice worth keeping.
+     */
+    private function enforceSoleContactDefaults(): void
+    {
+        if ($this->client->contacts->count() !== 1) {
+            return;
+        }
+
+        $sole = $this->client->contacts->first();
+
+        if (! $sole->is_primary || ! $sole->is_billing_contact) {
+            $sole->forceFill(['is_primary' => true, 'is_billing_contact' => true])->save();
+            $this->client->refresh()->load('contacts');
+        }
     }
 
     // --- Portal links --------------------------------------------------
