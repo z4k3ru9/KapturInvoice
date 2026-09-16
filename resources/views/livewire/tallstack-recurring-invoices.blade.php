@@ -81,12 +81,14 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    $extraActions[] = ['text' => 'Generate now', 'icon' => 'bolt', 'click' => 'generateNow('.$row['id'].')', 'confirm' => 'Generate a new invoice from this schedule now?'];
+                    $extraActions[] = ['text' => 'View generated invoices', 'icon' => 'document-duplicate', 'href' => route('tallstack.recurring-invoices.edit', [$company, $row['id']]).'#generated-invoices'];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="pencil-square" href="{{ route('tallstack.recurring-invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Generate now" icon="bolt" wire:click="generateNow({{ $row['id'] }})" wire:confirm="Generate a new invoice from this schedule now?" />
-                        <x-dropdown.items text="View generated invoices" icon="document-duplicate" href="{{ route('tallstack.recurring-invoices.edit', [$company, $row['id']]) }}#generated-invoices" />
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 
