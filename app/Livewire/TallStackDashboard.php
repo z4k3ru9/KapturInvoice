@@ -12,7 +12,6 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
-use App\Support\Dashboard\ActionQueue;
 use App\Support\Dashboard\DashboardPeriod;
 use App\Support\Dashboard\Money;
 use App\Support\Dashboard\RevenueBuckets;
@@ -28,8 +27,12 @@ use Livewire\Component;
  * the Dashboard — see
  * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
  * the visual-fidelity design this was built against. Reuses
- * DashboardPeriod/RevenueBuckets/ActionQueue/SetupChecklist
- * (App\Support\Dashboard) unmodified.
+ * DashboardPeriod/RevenueBuckets/SetupChecklist (App\Support\Dashboard)
+ * unmodified. This page no longer renders its own "Action queue" card —
+ * App\Support\Dashboard\ActionQueue is now surfaced only from the shell's
+ * notification bell (resources/views/components/tallstack/app.blade.php),
+ * reachable from every page including this one, so a second copy here
+ * was redundant.
  *
  * Stats/chart lazy loading (beautification pass): `$statsLoaded` starts
  * `false` and the 5 stat cards / trend chart render as `skeleton` in that
@@ -189,7 +192,6 @@ class TallStackDashboard extends Component
                     'expired' => (bool) $quotation->valid_until?->isPast(),
                     'id' => $quotation->id,
                 ]),
-            'actionQueue' => ActionQueue::for(auth()->user(), $this->company),
             'checklist' => $checklist,
             'showChecklist' => $checklist['done'] < $checklist['total'],
             'firstIncompleteStep' => $firstIncomplete === false ? null : $firstIncomplete,

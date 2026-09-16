@@ -355,8 +355,15 @@
         </div>
     @endif
 
-    {{-- Expiring quotations + action queue --}}
-    <div class="grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
+    {{--
+        Expiring quotations. The "Action queue" card that used to sit
+        beside this was removed — it duplicated exactly what the shell's
+        own notification bell now shows (App\Support\Dashboard\ActionQueue,
+        segmented by business area, reachable from every page including
+        this one), so keeping both was redundant chrome specific to this
+        one page.
+    --}}
+    <div class="grid gap-4 items-start">
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
@@ -400,33 +407,6 @@
                 @endinteract
                 <x-slot:empty>No quotations expiring soon.</x-slot:empty>
             </x-table>
-        </x-card>
-
-        <x-card>
-            <x-slot:header>
-                <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Action queue</span>
-                    <x-badge text="{{ count($actionQueue) }} items" color="red" sm />
-                </div>
-            </x-slot:header>
-
-            @if (empty($actionQueue))
-                <p class="text-sm text-gray-400">Nothing needs your attention.</p>
-            @else
-                <ul class="flex flex-col gap-3">
-                    @foreach ($actionQueue as $item)
-                        <li class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-{{ $item['tone'] === 'danger' ? 'red' : 'amber' }}-500"></span>
-                                <span class="text-sm truncate text-gray-700 dark:text-gray-200">{{ $item['count'] }} {{ $item['label'] }}</span>
-                            </div>
-                            @if ($item['url'])
-                                <x-button text="View" href="{{ $item['url'] }}" color="blue" sm class="shrink-0" />
-                            @endif
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
         </x-card>
     </div>
 </div>
