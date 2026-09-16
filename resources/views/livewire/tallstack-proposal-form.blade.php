@@ -19,6 +19,12 @@
                  narrow width would otherwise wrap their OWN label text
                  internally instead of wrapping as whole buttons. --}}
             <div class="flex flex-wrap items-center gap-2">
+                @if ($proposal && $proposal->status === \App\Enums\ProposalStatus::Draft)
+                    {{-- Draft-only autosave status for title/html/css — see
+                         App\Livewire\Concerns\AutosavesDraft. Inline and
+                         persistent, never a toast, per docs/rebuild/DESIGN.md §6. --}}
+                    <x-tallstack.autosave-status :status="$autosaveStatus" :error="$autosaveError" :conflict-fields="$autosaveConflictFields" />
+                @endif
                 @if ($proposal)
                     <x-button icon="document-arrow-down" text="Preview PDF" href="{{ route('proposals.pdf', $proposal) }}" target="_blank" color="gray" sm class="h-9 whitespace-nowrap" />
                 @endif
@@ -64,7 +70,7 @@
 
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div class="sm:col-span-2">
-                        <x-input wire:model="title" label="Title" required />
+                        <x-input wire:model.live.debounce.1750ms="title" label="Title" required />
                     </div>
                     <x-select.styled wire:model="client_id" label="Client" searchable clearable
                         :options="$clients->map(fn ($c) => ['label' => $c->name, 'value' => (string) $c->id])->all()" />
@@ -104,7 +110,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <x-textarea wire:model="css" label="Custom CSS (optional)" rows="4" class="font-mono text-xs" />
+                        <x-textarea wire:model.live.debounce.1750ms="css" label="Custom CSS (optional)" rows="4" class="font-mono text-xs" />
                     </div>
                 @endif
             </x-card>

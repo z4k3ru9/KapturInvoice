@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Enums\ProposalStatus;
+use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Proposal;
@@ -13,6 +14,8 @@ use App\Support\Dashboard\Money;
 use App\Support\TallStack\StatusColor;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -39,7 +42,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackProposalForm extends Component
 {
-    use Interactions;
+    use AutosavesDraft, Interactions;
 
     public Company $company;
 
@@ -104,6 +107,8 @@ class TallStackProposalForm extends Component
             $this->proposal_template_id = $proposal->proposal_template_id ? (string) $proposal->proposal_template_id : null;
             $this->html = $proposal->html;
             $this->css = $proposal->css;
+
+            $this->initializeAutosaveVersion();
         }
     }
 
@@ -119,6 +124,57 @@ class TallStackProposalForm extends Component
             $this->css = $template->css;
             $this->editorRevision++;
         }
+    }
+
+    // --- Draft autosave ---------------------------------------------------
+    //
+    // Wired only onto the free-form content fields — title, html, css —
+    // never client_id, status, amount, valid_until, or proposal_template_id,
+    // matching every other document form's own convention (see e.g.
+    // App\Livewire\TallStackInvoiceForm's own "Draft autosave" section):
+    // those either already go through save()'s own validation/redirect
+    // path or carry business meaning this raw conditional-UPDATE autosave
+    // deliberately never re-derives. This was the one remaining document
+    // edit form without autosave — see App\Livewire\Concerns\AutosavesDraft's
+    // docblock for the full algorithm.
+
+    public function updatedTitle(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedHtml(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    public function updatedCss(): void
+    {
+        $this->autosaveDraft();
+    }
+
+    protected function autosaveModel(): ?Model
+    {
+        return $this->proposal;
+    }
+
+    /** @return list<string> */
+    protected function autosaveFields(): array
+    {
+        return ['title', 'html', 'css'];
+    }
+
+    /**
+     * Same "Auditor is read-only everywhere" boundary save() enforces via
+     * its own explicit $this->authorize('update', ...) call — autosave
+     * must not become a side channel that bypasses it just because it
+     * never routes through save()'s validated form submission.
+     */
+    protected function autosaveGuard(): bool
+    {
+        return $this->proposal !== null
+            && $this->proposal->status === ProposalStatus::Draft
+            && Gate::allows('update', $this->proposal);
     }
 
     public function save(): void
