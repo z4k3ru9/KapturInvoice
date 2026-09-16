@@ -121,12 +121,15 @@
                 @endinteract
 
                 @interact('column_actions', $row)
+                    @php
+                        $extraActions = [
+                            ['text' => 'Generate portal link', 'icon' => 'link', 'click' => 'generatePortalLink('.$row['id'].')'],
+                            ['text' => 'Delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'deleteContact('.$row['id'].')', 'confirm' => 'Delete this contact?'],
+                        ];
+                    @endphp
                     <div class="flex items-center justify-end gap-2">
                         <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Edit" wire:click="editContact({{ $row['id'] }})" />
-                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                            <x-dropdown.items text="Generate portal link" icon="link" wire:click="generatePortalLink({{ $row['id'] }})" />
-                            <x-dropdown.items text="Delete" icon="trash" wire:click="deleteContact({{ $row['id'] }})" wire:confirm="Delete this contact?" />
-                        </x-dropdown>
+                        <x-tallstack.row-actions :items="$extraActions" />
                     </div>
                 @endinteract
 
@@ -149,25 +152,22 @@
                 @endinteract
 
                 @interact('column_actions', $row)
+                    @php
+                        $extraActions = [];
+                        if (! $row['revoked']) {
+                            // Client-side clipboard copy of the portal link's own URL — same
+                            // pattern as tallstack-quotations.blade.php's "Copy client
+                            // acceptance link" action. Without this, a link only ever existed
+                            // in the 3s-default "generated and emailed" toast; this row action
+                            // is the durable way back to it (e.g. the email step failed, or the
+                            // admin didn't copy it in time).
+                            $extraActions[] = ['text' => 'Copy portal link', 'icon' => 'clipboard', 'xclick' => "window.navigator.clipboard.writeText('".route('portal.client-home', $row['key'])."')"];
+                            // "Revoke" for active links only, same as PortalLinksRelationManager.
+                            $extraActions[] = ['text' => 'Revoke', 'icon' => 'no-symbol', 'color' => 'red', 'click' => 'revokePortalLink('.$row['id'].')', 'confirm' => 'Revoke this portal link?'];
+                        }
+                    @endphp
                     <div class="flex items-center justify-end gap-2">
-                        @unless ($row['revoked'])
-                            {{-- Client-side clipboard copy of the portal
-                                 link's own URL — same pattern as
-                                 tallstack-quotations.blade.php's "Copy
-                                 client acceptance link" action. Without
-                                 this, a link only ever existed in the
-                                 3s-default "generated and emailed" toast;
-                                 this row action is the durable way back
-                                 to it (e.g. the email step failed, or the
-                                 admin didn't copy it in time). --}}
-                            <button type="button"
-                                    x-on:click="window.navigator.clipboard.writeText('{{ route('portal.client-home', $row['key']) }}')"
-                                    title="Copy portal link"
-                                    class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
-                                <x-icon name="clipboard" class="w-4 h-4" />
-                            </button>
-                            <x-button text="Revoke" color="red" scope="row-action" sm wire:click="revokePortalLink({{ $row['id'] }})" wire:confirm="Revoke this portal link?" />
-                        @endunless
+                        <x-tallstack.row-actions :items="$extraActions" />
                     </div>
                 @endinteract
 
