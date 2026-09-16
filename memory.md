@@ -36,8 +36,15 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 669 PHP tests passing as of 2026-10-01 (verified via `php -d
+- Test suite: 682 PHP tests passing as of 2026-09-16 (verified via `php -d
   memory_limit=1024M vendor/bin/phpunit`).
+- **Company bank accounts / invoice Payment Method section (2026-09-16) —
+  done, merged to main.** Closed the Payment Method gap flagged in the
+  Stitch design prompt: `App\Models\CompanyBankAccount` (a company may
+  have more than one, e.g. two different banks), managed from Settings >
+  Company & Taxes, each printed as its own row in the invoice PDF's
+  Payment Method section. See `CompanyBankAccount`/`Company::bankAccounts()`
+  and `TallStackSettingsCompanyTaxesBankAccountsTest`.
 - **Status-transition automation (2026-10-01) — done, merged to main.**
   Closed four real gaps (`InvoiceStatus::Overdue` had zero writers despite
   being read everywhere; `Invoice.auto_bill` was purely decorative;
@@ -57,13 +64,21 @@ re-run completed audits unless new evidence contradicts them.
   (10 parallel per-page audits + centralized component fixes). Full
   detail in CLAUDE.md's own entry — do not re-run this audit or
   re-litigate the floating-panel/badge/tab-nesting root causes it found;
-  treat them as settled. One queued, not-yet-started follow-up from the
-  same conversation: a mobile/responsive redesign wave (horizontal
-  scroll on cramped rows, converting the app's copy-pasted filter-pill
-  pattern to a shared dropdown, fixing search/icon overlap, consolidating
-  per-row actions into a kebab menu) — in progress on
-  `.claude/worktrees/mobile-actions-redesign` /
-  `worktree-mobile-actions-redesign`, NOT yet merged as of this writing.
+  treat them as settled. Its queued follow-up, the mobile/responsive
+  redesign wave (horizontal scroll on cramped rows, converting the app's
+  copy-pasted filter-pill pattern to a shared dropdown, fixing search/icon
+  overlap, consolidating per-row actions into a kebab menu), is **done,
+  merged to main** (`worktree-mobile-actions-redesign`). A follow-up
+  audit-only pass (10 parallel per-page-group agents, no direct edits)
+  confirmed no further issues on the pages it managed to check before
+  being stopped as stale (Portal & Homepage's agent got stuck looping on
+  an unresolvable `nip.io` test-domain navigation with zero progress
+  across two checks ~15 min apart; everything it did check — company
+  dashboard/list pages — came back clean). Not yet addressed, lower
+  priority, flagged but not re-requested since: Users table, Vendor
+  Bills/POs, and Handover Reports row-action consolidation into a single
+  kebab menu (done everywhere else); Settings tab strip has no visual
+  scroll-affordance hint on mobile (functionally scrollable already).
 - **Post-TallStackUI-rebuild repair plan (2026-09-16) — done, except two
   deliberately-deferred items.** A full screenshot-driven QA pass against
   the rebuilt TallStackUI admin found 31 verified issues; all were
