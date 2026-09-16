@@ -88,7 +88,8 @@
                     <x-select.styled wire:model="pricing_mode" label="Pricing mode" required
                         :options="collect($pricingModes)->map(fn ($m) => ['label' => $m->getLabel(), 'value' => $m->value])->all()" />
                     <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
-                    <x-input wire:model="currency_code" label="Currency code" />
+                    <x-select.styled wire:model="currency_code" label="Currency" searchable
+                        :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
                     <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
                     <div class="flex items-end pb-2">
                         <x-toggle wire:model="discount_is_percentage" label="Discount is a percentage" />

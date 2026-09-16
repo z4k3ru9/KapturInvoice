@@ -8,6 +8,7 @@ use App\Enums\PricingMode;
 use App\Livewire\Concerns\AutosavesDraft;
 use App\Models\Client;
 use App\Models\Company;
+use App\Models\Currency;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
@@ -513,6 +514,7 @@ class TallStackRecurringInvoiceForm extends Component
             'products' => Product::query()->where('company_id', $this->company->id)->orderBy('name')->get(['id', 'name']),
             'taxRates' => $this->company->taxRates()->orderBy('name')->get(['id', 'name']),
             'pricingModes' => PricingMode::cases(),
+            'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
             'items' => $items,
             'currency' => $currency,
             'generatedInvoices' => $generatedInvoices,
