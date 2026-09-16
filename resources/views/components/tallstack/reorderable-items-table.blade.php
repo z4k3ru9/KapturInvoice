@@ -23,7 +23,7 @@
     only avoids wiring dead affordances into the DOM once a document has
     left Draft.
 --}}
-<div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800"
+<div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-800!"
      @if ($reorderable)
         x-data="{
             dragId: null,
@@ -67,7 +67,7 @@
 >
     <table class="w-full text-sm">
         <thead>
-            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-gray-400 border-b border-gray-200 dark:border-gray-800!">
                 <th class="w-14 px-2 py-2"><span class="sr-only">Reorder</span></th>
                 {{ $head }}
             </tr>

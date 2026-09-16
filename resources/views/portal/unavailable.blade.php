@@ -55,34 +55,34 @@
                 @endif
 
                 <x-card class="text-center">
-                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                        <x-icon name="link-slash" class="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800!">
+                        <x-icon name="link-slash" class="h-6 w-6 text-gray-400 dark:text-gray-500!" />
                     </div>
 
                     <h1 class="text-lg font-semibold tracking-tight">This link is no longer available</h1>
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400!">
                         It may have expired, been replaced, or no longer applies. If you still need this
                         document, please get in touch and we'll help right away.
                     </p>
 
                     @if ($company && ($company->email || $company->phone))
-                        <div class="mt-6 space-y-1 border-t border-gray-100 pt-4 text-sm dark:border-gray-800">
-                            <p class="font-medium text-gray-700 dark:text-gray-300">Need help?</p>
+                        <div class="mt-6 space-y-1 border-t border-gray-100 pt-4 text-sm dark:border-gray-800!">
+                            <p class="font-medium text-gray-700 dark:text-gray-300!">Need help?</p>
                             @if ($company->email)
                                 <p>
-                                    <a href="mailto:{{ $company->email }}" class="text-primary-600 hover:underline dark:text-primary-400">{{ $company->email }}</a>
+                                    <a href="mailto:{{ $company->email }}" class="text-primary-600 hover:underline dark:text-primary-400!">{{ $company->email }}</a>
                                 </p>
                             @endif
                             @if ($company->phone)
                                 <p>
-                                    <a href="tel:{{ $company->phone }}" class="text-primary-600 hover:underline dark:text-primary-400">{{ $company->phone }}</a>
+                                    <a href="tel:{{ $company->phone }}" class="text-primary-600 hover:underline dark:text-primary-400!">{{ $company->phone }}</a>
                                 </p>
                             @endif
                         </div>
                     @endif
                 </x-card>
 
-                <p class="mt-6 text-center text-xs text-gray-400 dark:text-gray-600">
+                <p class="mt-6 text-center text-xs text-gray-400 dark:text-gray-600!">
                     {{ $company->name ?? config('app.name') }}
                 </p>
             </div>

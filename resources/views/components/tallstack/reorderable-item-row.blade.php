@@ -10,7 +10,7 @@
 <tr
     data-item-row="{{ $id }}"
     wire:key="item-row-{{ $id }}"
-    class="border-b border-gray-100 dark:border-gray-800 last:border-b-0"
+    class="border-b border-gray-100 dark:border-gray-800! last:border-b-0"
     @if ($reorderable)
         draggable="true"
         x-on:dragstart="dragStart({{ $id }})"

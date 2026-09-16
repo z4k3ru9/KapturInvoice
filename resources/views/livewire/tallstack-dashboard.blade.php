@@ -56,7 +56,7 @@
             <x-slot:header>
                 <div class="flex flex-wrap items-center justify-between gap-2 w-full">
                     <div>
-                        <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Workspace setup &amp; first-run guide</div>
+                        <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Workspace setup &amp; first-run guide</div>
                         <div class="text-xs text-gray-400">Complete these steps to start issuing invoices.</div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -96,7 +96,7 @@
                 @foreach ($checklist['steps'] as $index => $step)
                     <x-step.items :step="$index + 1" :title="$stepSummaries[$step['key']] ?? $step['label']" :completed="$step['done']">
                         <div class="p-4">
-                            <p class="text-sm font-medium {{ $step['done'] ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100' }}">
+                            <p class="text-sm font-medium {{ $step['done'] ? 'text-gray-500 dark:text-gray-400! line-through' : 'text-gray-900 dark:text-gray-100!' }}">
                                 {{ $step['label'] }}
                             </p>
                         </div>
@@ -248,11 +248,11 @@
     @if ($isZeroState)
         <x-card>
             <div class="flex flex-col items-center justify-center gap-3 py-10 text-center">
-                <div class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-50 dark:bg-blue-950">
+                <div class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-blue-50 dark:bg-blue-950!">
                     <x-icon name="briefcase" class="h-7 w-7 text-blue-500" />
                 </div>
                 <div>
-                    <p class="font-semibold text-gray-900 dark:text-gray-100">No jobs or invoices yet</p>
+                    <p class="font-semibold text-gray-900 dark:text-gray-100!">No jobs or invoices yet</p>
                     <p class="mx-auto mt-1 max-w-sm text-sm text-gray-400">
                         Your transactional queue is clean. Add a client and send your first
                         quotation — once it's accepted, it becomes a job ready to bill.
@@ -299,7 +299,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Revenue &amp; cash inflow trend</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Revenue &amp; cash inflow trend</span>
                 </div>
             </x-slot:header>
 
@@ -389,7 +389,7 @@
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
                     <div>
-                        <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Expiring quotations</div>
+                        <div class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Expiring quotations</div>
                         <div class="text-xs text-gray-400">{{ $expiring->count() }} due for a decision within 7 days</div>
                     </div>
                     <x-button text="View all" href="{{ route('tallstack.quotations', $company) }}" color="blue" sm />
@@ -406,7 +406,7 @@
                 {{-- Dense overview list — see the same pattern's own comment
                      on the Quotations register table. --}}
                 @interact('column_number', $row)
-                    <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                    <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                         {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                     </span>
                 @endinteract

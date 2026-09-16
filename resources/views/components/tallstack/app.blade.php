@@ -250,7 +250,7 @@
 </head>
 {{--
     dark:bg-gray-950! (Tailwind v4 trailing-bang `!important`, not the plain
-    dark:bg-gray-950 this carried before) — Phase 2 sidebar repair's dark-mode
+    dark:bg-gray-950! this carried before) — Phase 2 sidebar repair's dark-mode
     investigation traced down WHY dark mode visually never engaged anywhere
     in this shell despite `prefers-color-scheme: dark` genuinely being active
     (confirmed live: `window.matchMedia('(prefers-color-scheme: dark)').matches`
@@ -349,7 +349,7 @@
                               style="background: {{ $primary }}">{{ mb_substr($company->name, 0, 1) }}</span>
                     @endif
                     <div class="min-w-0">
-                        <div class="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{{ $company->name }}</div>
+                        <div class="font-semibold text-sm text-gray-900 dark:text-gray-100! truncate">{{ $company->name }}</div>
                         <div class="text-[11px] text-gray-400">Enterprise billing</div>
                     </div>
                 </div>
@@ -676,7 +676,7 @@
                         </x-slot:action>
                         <x-slot:header>
                             <div class="px-2 py-1">
-                                <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{{ auth()->user()->name }}</div>
+                                <div class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100!">{{ auth()->user()->name }}</div>
                                 <div class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</div>
                             </div>
                         </x-slot:header>
@@ -711,14 +711,14 @@
      x-on:mouseleave="open = false"
      class="fixed bottom-4 left-4 z-40">
     <div x-show="open" x-transition x-cloak
-         class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900! p-3 shadow-xl">
+         class="absolute bottom-full left-0 mb-2 w-60 rounded-lg border border-gray-200 dark:border-gray-700! bg-white dark:bg-gray-900! p-3 shadow-xl">
         <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full shrink-0" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
-            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100" x-text="online ? 'All systems operational' : 'System offline'"></span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100!" x-text="online ? 'All systems operational' : 'System offline'"></span>
         </div>
         <p class="mt-1 text-xs text-gray-500 dark:text-gray-400!">KapturInvoice v2.4 &middot; {{ now()->year }}</p>
     </div>
-    <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900! pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
+    <div class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700! bg-white dark:bg-gray-900! pl-2.5 pr-3 py-1.5 shadow-lg cursor-default">
         <span class="h-2 w-2 rounded-full" :class="online ? 'bg-green-500' : 'bg-red-500'"></span>
         <span class="text-xs font-medium text-gray-600 dark:text-gray-300!" x-text="online ? 'Online' : 'Offline'"></span>
     </div>

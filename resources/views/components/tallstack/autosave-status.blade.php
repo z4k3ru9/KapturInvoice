@@ -16,21 +16,21 @@
 --}}
 <div>
     @if ($status === 'saving')
-        <span class="text-sm text-gray-500 dark:text-gray-400">Saving…</span>
+        <span class="text-sm text-gray-500 dark:text-gray-400!">Saving…</span>
     @elseif ($status === 'saved')
-        <span class="text-sm text-green-600 dark:text-green-400">Saved</span>
+        <span class="text-sm text-green-600 dark:text-green-400!">Saved</span>
     @elseif ($status === 'failed')
-        <span class="flex items-center gap-x-2 text-sm text-red-600 dark:text-red-400">
+        <span class="flex items-center gap-x-2 text-sm text-red-600 dark:text-red-400!">
             <span>Save failed @if ($error)— {{ $error }}@endif</span>
             <button type="button" wire:click="retryAutosaveDraft" class="font-semibold underline">Retry</button>
         </span>
     @elseif ($status === 'conflict')
-        <div class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700 dark:bg-amber-950">
-            <p class="font-semibold text-amber-800 dark:text-amber-200">
+        <div class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-700! dark:bg-amber-950!">
+            <p class="font-semibold text-amber-800 dark:text-amber-200!">
                 This draft was changed elsewhere while you were editing.
             </p>
             @if (! empty($conflictFields))
-                <ul class="mt-2 list-disc space-y-1 pl-5 text-amber-800 dark:text-amber-200">
+                <ul class="mt-2 list-disc space-y-1 pl-5 text-amber-800 dark:text-amber-200!">
                     @foreach ($conflictFields as $field => $values)
                         <li>
                             <strong>{{ $field }}</strong>:
@@ -40,8 +40,8 @@
                 </ul>
             @endif
             <div class="mt-3 flex gap-x-3">
-                <button type="button" wire:click="discardAutosaveConflict" class="font-semibold underline text-amber-800 dark:text-amber-200">Discard my changes</button>
-                <button type="button" wire:click="overwriteAutosaveConflict" class="font-semibold underline text-red-600 dark:text-red-400">Keep my changes anyway</button>
+                <button type="button" wire:click="discardAutosaveConflict" class="font-semibold underline text-amber-800 dark:text-amber-200!">Discard my changes</button>
+                <button type="button" wire:click="overwriteAutosaveConflict" class="font-semibold underline text-red-600 dark:text-red-400!">Keep my changes anyway</button>
             </div>
         </div>
     @endif
