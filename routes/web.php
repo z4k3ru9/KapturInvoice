@@ -30,6 +30,7 @@ use App\Livewire\Portal\SignDeliveryOrder;
 use App\Livewire\Portal\SignHandoverReport;
 use App\Livewire\Portal\SignQuotation;
 use App\Livewire\Portal\ViewInvoice as ViewPortalInvoice;
+use App\Livewire\TallStackAccountPasskeys;
 use App\Livewire\TallStackClientDetail;
 use App\Livewire\TallStackClientPortalInvitations;
 use App\Livewire\TallStackClients;
@@ -463,6 +464,15 @@ Route::get('/tall/{company:slug}/settings/numbering', TallStackSettingsNumbering
 Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
     ->middleware('auth')
     ->name('tallstack.settings.client-portal');
+
+// A user's own passkeys — not company data at all (App\Models\User's own
+// `passkeys()` relation carries no company_id), reachable from the
+// avatar menu rather than the Settings nav group; see
+// App\Livewire\TallStackAccountPasskeys's own docblock for why this
+// still sits under /tall/{company:slug}/ regardless.
+Route::get('/tall/{company:slug}/account/passkeys', TallStackAccountPasskeys::class)
+    ->middleware('auth')
+    ->name('tallstack.account.passkeys');
 
 // Payment Gateways — register and configuration (pre-Filament-removal
 // audit gap; docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
