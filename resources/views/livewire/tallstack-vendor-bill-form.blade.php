@@ -47,7 +47,7 @@
         <div class="flex flex-col gap-4">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Vendor bill</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Vendor bill</span>
                 </x-slot:header>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -74,7 +74,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Line items</span>
                         @if ($bill && $bill->status === \App\Enums\VendorBillStatus::Draft)
                             <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
@@ -114,7 +114,7 @@
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['tax_amount'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">
-                                    <span class="{{ $row['unallocated_raw'] > 0.009 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-gray-400' }}">
+                                    <span class="{{ $row['unallocated_raw'] > 0.009 ? 'text-amber-600 dark:text-amber-400! font-semibold' : 'text-gray-400' }}">
                                         {{ $row['unallocated'] }}
                                     </span>
                                 </td>
@@ -141,7 +141,7 @@
                          margin." --}}
                     @foreach ($items as $row)
                         @if ($row['allocations']->isNotEmpty())
-                            <div class="mt-2 px-2 pb-2 flex flex-wrap gap-1.5">
+                            <div class="mt-2 px-2 pb-2 flex flex-wrap items-center gap-1.5">
                                 <span class="text-[11px] text-gray-400">{{ $row['title'] }} allocated to:</span>
                                 @foreach ($row['allocations'] as $allocation)
                                     <x-badge text="{{ $allocation['job'] }}: {{ $allocation['amount'] }}" color="blue" sm />
@@ -160,7 +160,7 @@
                 @php($canVerifyPayments = $this->canVerifyPayments)
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Vendor payments</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Vendor payments</span>
                     </x-slot:header>
 
                     <x-table :headers="[
@@ -202,7 +202,7 @@
 
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Notes</span>
                 </x-slot:header>
                 {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
                      <x-editor> — see TallStackInvoiceForm's own Terms card comment for the
@@ -217,20 +217,20 @@
         <div class="flex flex-col gap-4">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
                 </x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Total (net + tax)</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Total (net + tax)</span>
                         <span class="font-semibold tabular-nums">{{ $total }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Paid</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Paid</span>
                         <span class="tabular-nums">{{ $amountPaid }}</span>
                     </div>
-                    <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                    <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-900 dark:text-gray-100">Balance</span>
+                        <span class="font-bold text-gray-900 dark:text-gray-100!">Balance</span>
                         <span class="font-bold text-lg tabular-nums">{{ $balance }}</span>
                     </div>
                     @if ($paymentCeiling)
@@ -242,7 +242,7 @@
             @if ($bill?->vendorPurchaseOrder)
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Vendor purchase order</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Vendor purchase order</span>
                     </x-slot:header>
                     <a href="{{ route('tallstack.vendor-purchase-orders.edit', [$company, $bill->vendorPurchaseOrder]) }}" class="text-sm font-semibold text-[color:var(--ts-primary)] hover:underline">
                         {{ $bill->vendorPurchaseOrder->number }}

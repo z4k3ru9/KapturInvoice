@@ -9,7 +9,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">All expenses</span>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200!">All expenses</span>
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="w-full sm:w-56">
                         <x-select.styled wire:model.live="categoryFilter" placeholder="All categories" clearable
@@ -34,7 +34,7 @@
         ]" :rows="$expenses" paginate loading>
             @interact('column_client', $row, $company)
                 @if ($row['client'])
-                    <a href="{{ route('tallstack.clients.show', [$company, $row['client_id']]) }}" class="font-medium text-gray-900 dark:text-gray-100 hover:underline">
+                    <a href="{{ route('tallstack.clients.show', [$company, $row['client_id']]) }}" class="font-medium text-gray-900 dark:text-gray-100! hover:underline">
                         {{ $row['client'] }}
                     </a>
                 @else
@@ -43,14 +43,14 @@
             @endinteract
 
             @interact('column_subtotal_formatted', $row)
-                <span class="tabular-nums font-medium text-gray-700 dark:text-gray-200">{{ $row['subtotal_formatted'] }}</span>
+                <span class="tabular-nums font-medium text-gray-700 dark:text-gray-200!">{{ $row['subtotal_formatted'] }}</span>
             @endinteract
 
             @interact('column_should_be_invoiced', $row)
                 @if ($row['should_be_invoiced'])
-                    <x-icon name="check-circle" class="h-5 w-5 text-green-600 dark:text-green-400" />
+                    <x-icon name="check-circle" class="h-5 w-5 text-green-600 dark:text-green-400!" />
                 @else
-                    <x-icon name="x-circle" class="h-5 w-5 text-gray-300 dark:text-gray-600" />
+                    <x-icon name="x-circle" class="h-5 w-5 text-gray-300 dark:text-gray-600!" />
                 @endif
             @endinteract
 
@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+            <div class="border-t border-gray-200 dark:border-gray-800! pt-4">
                 <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Rebilling</h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-toggle wire:model.live="should_be_invoiced" label="Rebill to client" class="sm:col-span-2" />
@@ -106,9 +106,9 @@
             </div>
 
             @if ($editingExpenseId)
-                <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+                <div class="border-t border-gray-200 dark:border-gray-800! pt-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Totals</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Recomputed automatically from the amount and taxes above.</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400! mb-2">Recomputed automatically from the amount and taxes above.</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <x-input :value="$tax_total" label="Tax total" disabled />
                         <x-input :value="$total" label="Total" disabled />
@@ -126,7 +126,7 @@
                 Invoice/Quotation forms' own Documents card.
             --}}
             @if ($editingExpenseId)
-                <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+                <div class="border-t border-gray-200 dark:border-gray-800! pt-4">
                     <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Documents</h3>
                     <div class="flex flex-col gap-3">
                         <x-upload wire:model="newDocument" label="Attach a document" tip="PDF, JPG or PNG up to 10MB" :preview="false" />
