@@ -493,7 +493,7 @@
                 else `shrink-0`) is the only way to make the search bar
                 itself the thing that grows.
             --}}
-            <div class="flex flex-1 min-w-0 items-center gap-4">
+            <div class="flex flex-1 min-w-0 items-center gap-6">
                 {{--
                     A single adaptive toggle rather than two separate icons:
                     the package's own header renders its own mobile
