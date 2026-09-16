@@ -42,6 +42,10 @@ class TallStackProposals extends Component
 
     public string $search = '';
 
+    public array $sort = ['column' => 'created_at', 'direction' => 'desc'];
+
+    public int $quantity = 10;
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -156,17 +160,25 @@ class TallStackProposals extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = Proposal::query()->where('company_id', $this->company->id);
+        $base = Proposal::query()->where('proposals.company_id', $this->company->id);
 
         $proposals = (clone $base)
+            // A Proposal's client_id is nullable, so this must be a
+            // leftJoin — an inner join would silently drop any
+            // clientless proposal from the paginated result.
+            ->leftJoin('clients', 'clients.id', '=', 'proposals.client_id')
+            ->select('proposals.*')
             ->with(['client', 'invoice'])
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('title', 'like', "%{$this->search}%")
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('proposals.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Proposal $proposal) => [
                 'id' => $proposal->id,
                 'title' => $proposal->title,

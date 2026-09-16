@@ -59,6 +59,8 @@ class TallStackQuotes extends Component
 
     public array $sort = ['column' => 'invoice_date', 'direction' => 'desc'];
 
+    public int $quantity = 10;
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -150,17 +152,22 @@ class TallStackQuotes extends Component
         $currency = $this->company->currency_code;
 
         $base = Invoice::query()
-            ->where('company_id', $this->company->id)
+            ->where('invoices.company_id', $this->company->id)
             ->where('type', InvoiceType::Quote);
 
         $quotes = (clone $base)
+            ->join('clients', 'clients.id', '=', 'invoices.client_id')
+            ->select('invoices.*')
             ->with('client')
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderBy($this->sort['column'], $this->sort['direction'])
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('invoices.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Invoice $quote) => [
                 'id' => $quote->id,
                 'number' => $quote->number ?? '—',

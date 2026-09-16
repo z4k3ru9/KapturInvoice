@@ -54,14 +54,14 @@
 
         <x-table :headers="[
             ['index' => 'client', 'label' => 'Client'],
-            ['index' => 'invoice', 'label' => 'Invoice'],
+            ['index' => 'invoice', 'label' => 'Invoice', 'sortable' => false],
             ['index' => 'amount', 'label' => 'Amount', 'align' => 'right'],
             ['index' => 'method', 'label' => 'Method'],
             ['index' => 'status', 'label' => 'Status'],
-            ['index' => 'receipt_number', 'label' => 'Receipt'],
+            ['index' => 'receipt_number', 'label' => 'Receipt', 'sortable' => false],
             ['index' => 'payment_date', 'label' => 'Date'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$payments" paginate loading>
+        ]" :rows="$payments" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             @interact('column_status', $row)
                 <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract

@@ -41,7 +41,7 @@
             ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$quotes" paginate loading>
+        ]" :rows="$quotes" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits) — see App\Support\TallStack\DocumentNumber's own

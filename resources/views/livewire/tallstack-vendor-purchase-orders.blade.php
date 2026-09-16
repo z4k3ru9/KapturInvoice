@@ -44,10 +44,10 @@
             ['index' => 'vendor', 'label' => 'Vendor'],
             ['index' => 'po_date', 'label' => 'Date'],
             ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
-            ['index' => 'payment_ceiling', 'label' => 'Payment ceiling', 'align' => 'right'],
+            ['index' => 'payment_ceiling', 'label' => 'Payment ceiling', 'align' => 'right', 'sortable' => false],
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$purchaseOrders" paginate loading>
+        ]" :rows="$purchaseOrders" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             @interact('column_number', $row)
                 <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
