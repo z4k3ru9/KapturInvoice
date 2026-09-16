@@ -64,7 +64,16 @@
     </div>
 
     @isset($actions)
-        <div class="flex items-center gap-2">
+        {{-- flex-wrap (not the original plain flex row): a crowded actions
+             slot — 3+ buttons, or an autosave-status indicator plus 2
+             buttons — had nowhere to go at mobile width, other than
+             overflowing or squeezing each button's own label text (see
+             App\Providers\AppServiceProvider's button() customize() call
+             for the matching `shrink-0 whitespace-nowrap` fix on the
+             button side of this same bug). justify-end keeps the row
+             right-aligned on desktop and right-aligned per wrapped line
+             on mobile, matching this slot's original intent. --}}
+        <div class="flex flex-wrap items-center justify-end gap-2">
             {{ $actions }}
         </div>
     @endisset

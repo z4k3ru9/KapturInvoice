@@ -38,20 +38,12 @@
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search invoice #, contact name or email…" icon="magnifying-glass" clearable />
                 </div>
 
-                <div class="flex items-center gap-1.5">
-                    <button type="button" wire:click="filterBy(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $filter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        All
-                    </button>
-                    <button type="button" wire:click="filterBy('viewed')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $filter === 'viewed' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        Viewed
-                    </button>
-                    <button type="button" wire:click="filterBy('signed')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $filter === 'signed' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        Signed
-                    </button>
-                </div>
+                <x-tallstack.filter-dropdown
+                    label="{{ ['viewed' => 'Viewed', 'signed' => 'Signed'][$filter] ?? 'All' }}"
+                    :options="[['value' => null, 'label' => 'All'], ['value' => 'viewed', 'label' => 'Viewed'], ['value' => 'signed', 'label' => 'Signed']]"
+                    :active="$filter"
+                    method="filterBy"
+                />
             </div>
         </x-slot:header>
 

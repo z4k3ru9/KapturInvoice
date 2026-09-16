@@ -70,16 +70,25 @@ class AppServiceProvider extends ServiceProvider
         // rendered solid white in dark mode. Swapped for the same standard
         // gray-*!important treatment as every other surface in this file.
         TallStackUi::customize()->stats('compact')->block([
-            // overflow-hidden added on top of the package's own default
-            // (overflow: visible): at 2-column tablet widths, a genuinely
-            // large real currency value ("Rp 94.000.000") has nowhere to
-            // truncate to before the neighboring card's icon square, and
-            // the vendor's own visible overflow let it bleed straight into
-            // that neighbor — confirmed live with real (non-fixture)
-            // amounts. Clipping at the card's own rounded-lg boundary is a
-            // structural fix (works at every width/number length) rather
-            // than each page inventing its own breakpoint/truncate dance.
-            'wrapper.first' => 'dark:bg-gray-900! flex w-full flex-col overflow-hidden rounded-lg bg-white shadow-md',
+            // overflow-hidden + min-w-0: two separate causes of the same
+            // symptom (a card's own icon overlapping the NEXT card's text
+            // in a 2-column grid). overflow-hidden clips content that
+            // overflows THIS card's own box — needed since the package's
+            // own default is overflow:visible. But a Flexbox/Grid item's
+            // default min-width is `auto`, not 0, which lets the box
+            // itself refuse to shrink below its content's intrinsic width
+            // — so a genuinely wide real currency value ("Rp 94.000.000")
+            // could still grow the CARD'S OWN BOUNDARY past its allocated
+            // grid track, encroaching into the neighboring track, and
+            // overflow-hidden alone can't fix that (the box that's
+            // overflowing is the grid item itself, not something inside
+            // it). Confirmed live at the 2-column breakpoint with a real
+            // 7-digit Rupiah value even after the overflow-hidden fix
+            // above. min-w-0 lets the grid track actually constrain the
+            // card's width, so the (already-truncate-classed, per-page)
+            // number text truncates within its real allocated space
+            // instead of growing the card.
+            'wrapper.first' => 'dark:bg-gray-900! flex w-full min-w-0 flex-col overflow-hidden rounded-lg bg-white shadow-md',
             // gap-2, not gap-3: at this card width (~173px content area,
             // minus the 36px icon box), the text column has ~125-129px to
             // work with depending on title length. With gap-3 (12px) two
@@ -145,6 +154,19 @@ class AppServiceProvider extends ServiceProvider
         TallStackUi::customize()->button(scope: 'icon-action')->block([
             'icon.sizes.sm' => 'h-5 w-5',
         ]);
+
+        // App-wide: a button's own label was letting a narrow flex parent
+        // (e.g. page-header.blade.php's actions slot) squeeze its TEXT
+        // instead of the button itself — "New / Proposal" line-wrapping
+        // mid-label inside a still-fixed-height pill, confirmed live on
+        // several pages' header action rows at mobile width. `shrink-0`
+        // plus `whitespace-nowrap` on the package's own base wrapper class
+        // means a button can now only ever render at its full natural
+        // width — combined with `flex-wrap` on every actions row (added
+        // to page-header.blade.php and the per-page filter/status rows),
+        // a crowded row now wraps whole buttons onto a new line instead of
+        // mangling the text inside one.
+        TallStackUi::customize()->button()->block('wrapper.class')->append('shrink-0 whitespace-nowrap');
 
         // Standalone <x-icon> usage (a bare icon, not a button/dropdown
         // trigger's own icon slot — those are covered by the scopes above)

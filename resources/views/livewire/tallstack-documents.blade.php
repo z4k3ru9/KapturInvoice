@@ -13,24 +13,15 @@
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 {{-- File-type filter pills. --}}
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <button type="button" wire:click="filterType('all')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === 'all' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        All ({{ $counts['all'] }})
-                    </button>
-                    <button type="button" wire:click="filterType('pdf')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === 'pdf' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        PDFs ({{ $counts['pdf'] }})
-                    </button>
-                    <button type="button" wire:click="filterType('image')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === 'image' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        Images ({{ $counts['image'] }})
-                    </button>
-                    <button type="button" wire:click="filterType('other')"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === 'other' ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        Other ({{ $counts['other'] }})
-                    </button>
-                </div>
+                @php
+                    $typeLabels = ['all' => 'All', 'pdf' => 'PDFs', 'image' => 'Images', 'other' => 'Other'];
+                @endphp
+                <x-tallstack.filter-dropdown
+                    label="{{ $typeLabels[$typeFilter] }} ({{ $counts[$typeFilter] }})"
+                    :options="collect($typeLabels)->map(fn ($label, $value) => ['value' => $value, 'label' => \"{$label} ({$counts[$value]})\"])->values()"
+                    :active="$typeFilter"
+                    method="filterType"
+                />
 
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Filter by filename…" icon="magnifying-glass" clearable />
