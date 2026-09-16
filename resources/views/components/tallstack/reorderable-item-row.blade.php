@@ -6,6 +6,13 @@
     read the live row order from (see that component's docblock) — every
     row MUST carry it, reorderable document or not, so a delete/re-add
     doesn't leave a stale id in the computed order.
+
+    The reorder handle itself no longer renders here as an automatic
+    leading column — it moved to x-tallstack.reorder-handle, which the
+    page places directly next to its own Edit/Delete buttons instead
+    ("tidy up all the actions on one side," per an explicit request). This
+    component still owns every drag/drop attribute on the <tr> itself
+    (unchanged) since that's independent of where the visible handle sits.
 --}}
 <tr
     data-item-row="{{ $id }}"
@@ -20,30 +27,5 @@
         x-bind:class="dragId === {{ $id }} ? 'opacity-40' : ''"
     @endif
 >
-    <td class="px-2 py-2">
-        @if ($reorderable)
-            <div class="flex items-center gap-1 text-gray-400">
-                <span class="cursor-move" title="Drag to reorder" aria-hidden="true">
-                    <x-icon name="bars-3" class="w-3.5 h-3.5" />
-                </span>
-                <div class="flex flex-col">
-                    <button type="button"
-                            @unless ($first) x-on:click="move({{ $id }}, -1, $el)" @endunless
-                            @disabled($first)
-                            class="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                            aria-label="Move item up">
-                        <x-icon name="chevron-up" class="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button"
-                            @unless ($last) x-on:click="move({{ $id }}, 1, $el)" @endunless
-                            @disabled($last)
-                            class="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed"
-                            aria-label="Move item down">
-                        <x-icon name="chevron-down" class="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            </div>
-        @endif
-    </td>
     {{ $slot }}
 </tr>

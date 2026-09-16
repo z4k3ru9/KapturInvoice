@@ -519,7 +519,14 @@ class TallStackInvoiceForm extends Component
 
     public function saveItem(): void
     {
-        if (! $this->invoice) {
+        // Matches App\Livewire\TallStackVendorBillForm/
+        // TallStackVendorPurchaseOrderForm's own established guard — this
+        // form was missing it (confirmed via a direct comparison while
+        // building inline quick-edit for quantity/unit cost below): an
+        // issued/sent/paid invoice's line items must never be mutable,
+        // matching CLAUDE.md's own "issued documents are never physically
+        // deleted" guard (which implies never silently re-totaled either).
+        if (! $this->invoice || $this->invoice->status !== InvoiceStatus::Draft) {
             return;
         }
 
@@ -572,9 +579,53 @@ class TallStackInvoiceForm extends Component
         $this->toast()->success('Line item saved.')->send();
     }
 
+    /**
+     * Inline quick-edit for a single row's quantity or unit cost, straight
+     * from the table cell — no expand-to-a-full-form round trip for the
+     * two fields people adjust most often. Deliberately narrow: only
+     * `quantity`/`unit_cost` are reachable this way (an explicit
+     * whitelist, not a free-form field name from the client) — changing
+     * the product, title, description, discount, or taxes still goes
+     * through the full editItem()/saveItem() form, since those need more
+     * context (e.g. a product change re-triggers the title/tax autofill)
+     * than a single-cell edit should carry. Same guards as saveItem(): a
+     * non-draft invoice's items are immutable, and the same authorization
+     * gate applies. Reuses InvoiceTotalsCalculator::recalculate() — the
+     * one place line_total/subtotal/tax_total/total/balance are ever
+     * computed — rather than recomputing anything itself.
+     */
+    public function updateItemInline(int $id, string $field, string $value): void
+    {
+        if (! $this->invoice || $this->invoice->status !== InvoiceStatus::Draft) {
+            return;
+        }
+
+        if (! in_array($field, ['quantity', 'unit_cost'], true)) {
+            return;
+        }
+
+        $this->authorize('update', $this->invoice);
+
+        $item = $this->scopedItem($id);
+
+        if (! $item) {
+            return;
+        }
+
+        $validated = validator(
+            [$field => $value],
+            [$field => $field === 'quantity' ? ['required', 'numeric', 'min:0.0001'] : ['required', 'numeric', 'min:0']]
+        )->validate();
+
+        $item->update($validated);
+
+        app(InvoiceTotalsCalculator::class)->recalculate($this->invoice);
+        $this->invoice->refresh()->load(['items.product', 'items.taxes']);
+    }
+
     public function deleteItem(int $id): void
     {
-        if (! $this->invoice) {
+        if (! $this->invoice || $this->invoice->status !== InvoiceStatus::Draft) {
             return;
         }
 
@@ -909,6 +960,12 @@ class TallStackInvoiceForm extends Component
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
+                // Raw, unformatted value for the inline quick-edit <input
+                // type="number"> below — a browser silently renders a
+                // number input blank when its value attribute isn't a
+                // bare number, so the Money::format()'d string above
+                // (e.g. "Rp 18.959.975") can't be reused there.
+                'unit_cost_raw' => (float) $item->unit_cost,
                 'taxes' => $item->taxes->pluck('name')->filter()->values()->all(),
                 'line_total' => Money::format((float) $item->line_total, $currency),
             ])->values()

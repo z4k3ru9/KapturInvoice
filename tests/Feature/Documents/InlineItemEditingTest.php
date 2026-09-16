@@ -177,6 +177,141 @@ class InlineItemEditingTest extends TestCase
         $this->assertSame(['Switch'], $quotation->fresh()->items->pluck('title')->all());
     }
 
+    // --- Inline quick-edit (quantity/unit cost straight in the table cell,
+    // no expand-to-a-form round trip) -------------------------------------
+
+    public function test_inline_quantity_edit_updates_the_item_and_recalculates_totals(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('updateItemInline', $item->id, 'quantity', '5');
+
+        $item->refresh();
+        $this->assertSame(5.0, (float) $item->quantity);
+        $this->assertSame(750.0, (float) $item->line_total);
+        $this->assertSame(750.0, (float) $invoice->fresh()->subtotal);
+        $this->assertSame(750.0, (float) $invoice->fresh()->total);
+    }
+
+    public function test_inline_unit_cost_edit_updates_the_item_and_recalculates_totals(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('updateItemInline', $item->id, 'unit_cost', '200');
+
+        $item->refresh();
+        $this->assertSame(200.0, (float) $item->unit_cost);
+        $this->assertSame(400.0, (float) $item->line_total);
+    }
+
+    public function test_inline_edit_rejects_a_field_outside_the_quantity_unit_cost_whitelist(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('updateItemInline', $item->id, 'title', 'Hacked title');
+
+        $this->assertSame('Router', $item->fresh()->title);
+    }
+
+    public function test_inline_edit_never_runs_once_the_invoice_leaves_draft_status(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+        $invoice->update(['status' => InvoiceStatus::Issued]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('updateItemInline', $item->id, 'quantity', '99');
+
+        $this->assertSame(2.0, (float) $item->fresh()->quantity);
+    }
+
+    public function test_inline_edit_rejects_an_invalid_value(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('updateItemInline', $item->id, 'quantity', '-5')
+            ->assertHasErrors(['quantity']);
+
+        $this->assertSame(2.0, (float) $item->fresh()->quantity);
+    }
+
+    public function test_quotation_inline_quantity_edit_updates_the_item_and_recalculates_totals(): void
+    {
+        $quotation = $this->draftQuotation();
+        $item = QuotationItem::create(['quotation_id' => $quotation->id, 'title' => 'Cabling', 'quantity' => 10, 'unit_cost' => 20, 'sort_order' => 0]);
+
+        Livewire::test(TallStackQuotationForm::class, ['company' => $this->company, 'quotation' => $quotation])
+            ->call('updateItemInline', $item->id, 'quantity', '15');
+
+        $item->refresh();
+        $this->assertSame(15.0, (float) $item->quantity);
+        $this->assertSame(300.0, (float) $item->line_total);
+        $this->assertSame(300.0, (float) $quotation->fresh()->subtotal);
+    }
+
+    // --- Draft-only guard on saveItem()/deleteItem() (previously missing
+    // on Invoice/Quotation, unlike VendorBill/VendorPurchaseOrder) --------
+
+    public function test_save_item_is_blocked_once_the_invoice_leaves_draft_status(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+        $invoice->update(['status' => InvoiceStatus::Issued]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('editItem', $item->id)
+            ->set('item_title', 'Should not persist')
+            ->call('saveItem');
+
+        $this->assertSame('Router', $item->fresh()->title);
+    }
+
+    public function test_delete_item_is_blocked_once_the_invoice_leaves_draft_status(): void
+    {
+        $invoice = $this->draftInvoice();
+        $item = InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Router', 'quantity' => 2, 'unit_cost' => 150, 'sort_order' => 0]);
+        $invoice->update(['status' => InvoiceStatus::Issued]);
+
+        Livewire::test(TallStackInvoiceForm::class, ['company' => $this->company, 'invoice' => $invoice])
+            ->call('deleteItem', $item->id);
+
+        $this->assertNotNull($item->fresh());
+    }
+
+    public function test_quotation_save_item_is_blocked_once_the_quotation_leaves_draft_status(): void
+    {
+        $quotation = $this->draftQuotation();
+        $item = QuotationItem::create(['quotation_id' => $quotation->id, 'title' => 'Cabling', 'quantity' => 10, 'unit_cost' => 20, 'sort_order' => 0]);
+        $quotation->update(['status' => QuotationStatus::Sent]);
+
+        Livewire::test(TallStackQuotationForm::class, ['company' => $this->company, 'quotation' => $quotation])
+            ->call('editItem', $item->id)
+            ->set('item_title', 'Should not persist')
+            ->call('saveItem');
+
+        $this->assertSame('Cabling', $item->fresh()->title);
+    }
+
+    public function test_quotation_delete_item_is_blocked_once_the_quotation_leaves_draft_status(): void
+    {
+        $quotation = $this->draftQuotation();
+        $item = QuotationItem::create(['quotation_id' => $quotation->id, 'title' => 'Cabling', 'quantity' => 10, 'unit_cost' => 20, 'sort_order' => 0]);
+        $quotation->update(['status' => QuotationStatus::Sent]);
+
+        Livewire::test(TallStackQuotationForm::class, ['company' => $this->company, 'quotation' => $quotation])
+            ->call('deleteItem', $item->id);
+
+        $this->assertNotNull($item->fresh());
+    }
+
     private function draftInvoice(): Invoice
     {
         $client = Client::create(['company_id' => $this->company->id, 'name' => 'Test Client']);

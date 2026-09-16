@@ -87,7 +87,6 @@
                     @php $itemsAreReorderable = $bill->status === \App\Enums\VendorBillStatus::Draft; @endphp
                     <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
                         <x-slot:head>
-                            <th class="px-3 py-2"></th>
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-right">Qty</th>
                             <th class="px-3 py-2 text-right">Discount</th>
@@ -119,11 +118,23 @@
                                     </span>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <div class="flex items-center justify-end gap-2">
+                                    {{-- All of this row's actions on one
+                                         side — the reorder handle used to
+                                         be its own leading column. Edit +
+                                         Delete are a real <x-button.group>;
+                                         "Allocate to job" stays its own
+                                         separate button since it's not an
+                                         edit action. --}}
+                                    <div class="flex items-center justify-end gap-3">
+                                        @if ($itemsAreReorderable)
+                                            <x-tallstack.reorder-handle :id="$row['id']" :first="$loop->first" :last="$loop->last" />
+                                        @endif
                                         <x-button icon="arrows-right-left" sm color="blue" scope="icon-action" class="h-9 w-9" wire:click="openAllocateModal({{ $row['id'] }})" tooltip="Allocate to job" />
                                         @if ($bill->status === \App\Enums\VendorBillStatus::Draft)
-                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                            <x-button.group>
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                            </x-button.group>
                                         @endif
                                     </div>
                                 </td>

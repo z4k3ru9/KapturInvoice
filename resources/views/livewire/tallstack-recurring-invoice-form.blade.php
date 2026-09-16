@@ -128,7 +128,7 @@
                             @forelse ($row['taxes'] as $tax)
                                 <x-badge text="{{ $tax }}" color="gray" sm />
                             @empty
-                                <x-badge text="No tax" color="gray" sm />
+                                <span class="text-xs text-gray-400">—</span>
                             @endforelse
                         @endinteract
                         @interact('column_actions', $row)

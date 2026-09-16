@@ -343,7 +343,14 @@ class TallStackQuotationForm extends Component
 
     public function saveItem(): void
     {
-        if (! $this->quotation) {
+        // Matches App\Livewire\TallStackVendorBillForm/
+        // TallStackVendorPurchaseOrderForm's own established guard — this
+        // form was missing it (confirmed via a direct comparison while
+        // building inline quick-edit for quantity/unit cost below): a
+        // quotation that's already been sent/accepted/etc. must not have
+        // its line items silently mutable out from under whatever the
+        // client actually saw.
+        if (! $this->quotation || $this->quotation->status !== QuotationStatus::Draft) {
             return;
         }
 
@@ -392,9 +399,46 @@ class TallStackQuotationForm extends Component
         $this->toast()->success('Line item saved.')->send();
     }
 
+    /**
+     * Inline quick-edit for a single row's quantity or unit cost, straight
+     * from the table cell — see App\Livewire\TallStackInvoiceForm::
+     * updateItemInline()'s own docblock for the full reasoning (same
+     * feature, same narrow whitelist, same guards). Reuses
+     * QuotationTotalsCalculator::recalculate() — the one place
+     * line_total/subtotal/total are ever computed for a quotation.
+     */
+    public function updateItemInline(int $id, string $field, string $value): void
+    {
+        if (! $this->quotation || $this->quotation->status !== QuotationStatus::Draft) {
+            return;
+        }
+
+        if (! in_array($field, ['quantity', 'unit_cost'], true)) {
+            return;
+        }
+
+        $this->authorize('update', $this->quotation);
+
+        $item = $this->scopedItem($id);
+
+        if (! $item) {
+            return;
+        }
+
+        $validated = validator(
+            [$field => $value],
+            [$field => $field === 'quantity' ? ['required', 'numeric', 'min:0.0001'] : ['required', 'numeric', 'min:0']]
+        )->validate();
+
+        $item->update($validated);
+
+        app(QuotationTotalsCalculator::class)->recalculate($this->quotation);
+        $this->quotation->refresh()->load('items.product');
+    }
+
     public function deleteItem(int $id): void
     {
-        if (! $this->quotation) {
+        if (! $this->quotation || $this->quotation->status !== QuotationStatus::Draft) {
             return;
         }
 
@@ -630,6 +674,9 @@ class TallStackQuotationForm extends Component
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
+                // Raw value for the inline quick-edit <input type="number">
+                // — see TallStackInvoiceForm's identical 'unit_cost_raw' key.
+                'unit_cost_raw' => (float) $item->unit_cost,
                 'line_total' => Money::format((float) $item->line_total, $currency),
             ])->values()
             : collect();

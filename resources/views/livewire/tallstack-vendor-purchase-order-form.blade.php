@@ -88,7 +88,6 @@
                     @php $itemsAreReorderable = $purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft; @endphp
                     <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
                         <x-slot:head>
-                            <th class="px-3 py-2"></th>
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-right">Qty</th>
                             <th class="px-3 py-2 text-right">Unit cost</th>
@@ -112,12 +111,21 @@
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['discount'] ?? '—' }}</td>
                                 <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
                                 <td class="px-3 py-2">
-                                    @if ($purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
-                                        <div class="flex items-center justify-end gap-2">
-                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
-                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
-                                        </div>
-                                    @endif
+                                    {{-- All of this row's actions on one
+                                         side — the reorder handle used to
+                                         be its own leading column. Edit +
+                                         Delete are a real <x-button.group>. --}}
+                                    <div class="flex items-center justify-end gap-3">
+                                        @if ($itemsAreReorderable)
+                                            <x-tallstack.reorder-handle :id="$row['id']" :first="$loop->first" :last="$loop->last" />
+                                        @endif
+                                        @if ($purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
+                                            <x-button.group>
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" />
+                                            </x-button.group>
+                                        @endif
+                                    </div>
                                 </td>
                             </x-tallstack.reorderable-item-row>
                         @empty

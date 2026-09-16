@@ -217,7 +217,6 @@
                     --}}
                     <x-tallstack.reorderable-items-table :reorderable="$itemsAreReorderable" reorder-method="reorderItems">
                         <x-slot:head>
-                            <th class="px-3 py-2"></th>
                             <th class="px-3 py-2 text-left">Item</th>
                             <th class="px-3 py-2 text-right">Qty</th>
                             <th class="px-3 py-2 text-right">Unit cost</th>
@@ -228,7 +227,7 @@
                         @forelse ($items as $index => $row)
                             @if ($itemFormOpen && $editingItemId === $row['id'])
                                 <x-tallstack.reorderable-item-row :id="$row['id']" :reorderable="false" :first="$loop->first" :last="$loop->last">
-                                    <td colspan="6" class="px-3 py-3">
+                                    <td colspan="5" class="px-3 py-3">
                                         @include('livewire.partials.quotation-item-form')
                                     </td>
                                 </x-tallstack.reorderable-item-row>
@@ -240,13 +239,41 @@
                                         @endif
                                     </td>
                                     <td class="px-3 py-2 text-left">{{ $row['title'] }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['quantity'] }}</td>
-                                    <td class="px-3 py-2 text-right tabular-nums">{{ $row['unit_cost'] }}</td>
+                                    <td class="px-3 py-2 text-right tabular-nums">
+                                        {{-- Inline quick-edit, commits on
+                                             change (blur/Enter) — see
+                                             TallStackInvoiceForm's own
+                                             identical pattern and
+                                             updateItemInline() docblock. --}}
+                                        @if ($itemsAreReorderable)
+                                            <input type="number" step="0.0001" min="0.0001"
+                                                   value="{{ $row['quantity'] }}"
+                                                   x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'quantity', $event.target.value)"
+                                                   class="w-20 h-8 rounded-md border-gray-200 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! text-right tabular-nums text-sm focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                                        @else
+                                            {{ $row['quantity'] }}
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-2 text-right tabular-nums">
+                                        @if ($itemsAreReorderable)
+                                            <input type="number" step="0.01" min="0"
+                                                   value="{{ $row['unit_cost_raw'] }}"
+                                                   x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'unit_cost', $event.target.value)"
+                                                   class="w-28 h-8 rounded-md border-gray-200 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! text-right tabular-nums text-sm focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                                        @else
+                                            {{ $row['unit_cost'] }}
+                                        @endif
+                                    </td>
                                     <td class="px-3 py-2 text-right tabular-nums">{{ $row['line_total'] }}</td>
                                     <td class="px-3 py-2">
-                                        <div class="flex items-center justify-end gap-2">
-                                            <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" />
-                                            <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" />
+                                        <div class="flex items-center justify-end gap-3">
+                                            @if ($itemsAreReorderable)
+                                                <x-tallstack.reorder-handle :id="$row['id']" :first="$loop->first" :last="$loop->last" />
+                                            @endif
+                                            <x-button.group>
+                                                <x-button icon="pencil" sm color="gray" scope="icon-action" class="h-9 w-9" wire:click="editItem({{ $row['id'] }})" :disabled="$itemFormOpen" />
+                                                <x-button icon="trash" sm color="red" scope="icon-action" class="h-9 w-9" wire:click="deleteItem({{ $row['id'] }})" wire:confirm="Remove this line item?" :disabled="$itemFormOpen" />
+                                            </x-button.group>
                                         </div>
                                     </td>
                                 </x-tallstack.reorderable-item-row>
@@ -261,8 +288,7 @@
 
                         @if ($itemFormOpen && ! $editingItemId)
                             <tr wire:key="item-add-row">
-                                <td class="px-2 py-2"></td>
-                                <td colspan="6" class="px-3 py-3">
+                                <td colspan="5" class="px-3 py-3">
                                     @include('livewire.partials.quotation-item-form')
                                 </td>
                             </tr>
