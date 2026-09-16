@@ -136,7 +136,13 @@
                             <x-date wire:model="valid_until" label="Valid until" />
                             <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
                             <div class="flex items-end pb-2 sm:col-span-2">
-                                <x-toggle wire:model="discount_is_percentage" label="Discount is a percentage" />
+                                <button type="button" wire:click="$toggle('discount_is_percentage')"
+                                    class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
+                                    @if ($discount_is_percentage)
+                                        <x-icon name="check-circle" class="w-3.5 h-3.5" />
+                                    @endif
+                                    Discount is a percentage
+                                </button>
                             </div>
                         </div>
                     </x-card>

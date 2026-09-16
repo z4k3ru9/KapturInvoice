@@ -468,7 +468,13 @@
             <x-select.styled wire:model="milestone_type" label="Type" required
                 :options="collect($milestoneTypes)->map(fn ($t) => ['label' => $t->getLabel(), 'value' => $t->value])->all()" />
             <x-input wire:model="milestone_description" label="Description" />
-            <x-toggle wire:model.live="milestone_is_percentage" label="Amount is a percentage of job value" />
+            <button type="button" wire:click="$toggle('milestone_is_percentage')"
+                class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $milestone_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
+                @if ($milestone_is_percentage)
+                    <x-icon name="check-circle" class="w-3.5 h-3.5" />
+                @endif
+                Amount is a percentage of job value
+            </button>
             @if ($milestone_is_percentage)
                 <x-input wire:model.live="milestone_percentage" label="Percentage" type="number" step="0.01" suffix="%" />
             @endif
