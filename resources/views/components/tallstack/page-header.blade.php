@@ -20,10 +20,27 @@
     collapses via <x-card minimize>, so the essentials stay visible
     without expanding it. Every caller that doesn't pass it renders
     exactly as before.
+
+    Every `dark:` utility below carries a trailing `!` (Tailwind v4
+    important). Without it, this h1's `dark:text-gray-100` LOST the
+    cascade to vendor/tallstackui/tallstackui/dist/tallstackui.css's own
+    unconditional `.text-gray-900{...}` rule (compiled by some bundled
+    component elsewhere in that 384KB file, with no `dark:` variant of its
+    own) — that stylesheet loads after app.css
+    (components/tallstack/app.blade.php's `@tallStackUiStyle`), so at equal
+    specificity its always-active rule wins over app.css's own correctly
+    `@media (prefers-color-scheme: dark)`-gated one regardless of the
+    visitor's actual preference. Confirmed live: this title rendered as
+    near-black text on the dark sidebar/header background with dark mode
+    genuinely active. Same root cause, same fix, as every other
+    `!important` in this codebase's dark-mode work (see
+    AppServiceProvider::registerAppShellDarkModeFix()'s docblock) — the
+    only difference is this is hand-authored Blade markup, not a
+    `TallStackUi::customize()` block, so the fix lives here instead.
 --}}
 <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-400">
+        <div class="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500!">
             @foreach ($crumbs as $i => $crumb)
                 @if ($i > 0)
                     <span>/</span>
@@ -36,11 +53,11 @@
             @endforeach
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100">{{ $title }}</h1>
+            <h1 class="font-bold text-xl text-gray-900 dark:text-gray-100!">{{ $title }}</h1>
             {{ $badge ?? '' }}
         </div>
         @isset($meta)
-            <div class="flex items-center gap-x-4 gap-y-1 flex-wrap mt-1 text-xs text-gray-500 dark:text-gray-400">
+            <div class="flex items-center gap-x-4 gap-y-1 flex-wrap mt-1 text-xs text-gray-500 dark:text-gray-400!">
                 {{ $meta }}
             </div>
         @endisset
