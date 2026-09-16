@@ -41,8 +41,11 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number, client or invoice…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number, client or invoice…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -54,7 +57,7 @@
             ['index' => 'amount', 'label' => 'Amount', 'align' => 'right'],
             ['index' => 'credit_date', 'label' => 'Credit date'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$credits" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$credits" :sort="$sort" striped paginate loading>
             {{--
                 Same dense-number convention as every other TALL-stack
                 register (see App\Support\TallStack\DocumentNumber's own
@@ -103,9 +106,7 @@
                         $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this credit? This cannot be undone.'];
                     }
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No credits on record for this company.</x-slot:empty>

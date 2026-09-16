@@ -40,8 +40,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search title or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search title or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -54,7 +57,7 @@
             ['index' => 'valid_until', 'label' => 'Valid until'],
             ['index' => 'invoice_number', 'label' => 'Converted to invoice', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$proposals" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$proposals" :sort="$sort" striped paginate loading>
             @interact('column_status', $row)
                 <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
@@ -75,6 +78,9 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.proposals.edit', [$company, $row['id']])],
+                    ];
                     $extraActions = [];
                     $extraActions[] = ['text' => 'Duplicate', 'icon' => 'document-duplicate', 'click' => 'duplicate('.$row['id'].')'];
                     if ($row['status'] !== \App\Enums\ProposalStatus::Accepted) {
@@ -84,10 +90,7 @@
                         $extraActions[] = ['text' => 'Mark declined', 'icon' => 'x-circle', 'color' => 'red', 'click' => 'markDeclined('.$row['id'].')', 'confirm' => 'Mark this proposal declined?'];
                     }
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.proposals.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No proposals yet — New Proposal to get started.</x-slot:empty>
