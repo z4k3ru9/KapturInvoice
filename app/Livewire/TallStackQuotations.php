@@ -43,6 +43,8 @@ class TallStackQuotations extends Component
 
     public array $sort = ['column' => 'quotation_date', 'direction' => 'desc'];
 
+    public int $quantity = 10;
+
     /** Bound to the Accept modal — the quotation id currently being accepted. */
     public ?int $acceptingId = null;
 
@@ -248,17 +250,28 @@ class TallStackQuotations extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = Quotation::query()->where('company_id', $this->company->id);
+        // Qualified with the table name so this $base stays valid once the
+        // paginated query below joins `clients` — both tables have their
+        // own company_id column, which would otherwise be ambiguous in
+        // that joined query.
+        $base = Quotation::query()->where('quotations.company_id', $this->company->id);
 
         $quotations = (clone $base)
+            // Joined only here — the aggregates below clone $base before
+            // this join is added, so they never pay for it.
+            ->join('clients', 'clients.id', '=', 'quotations.client_id')
+            ->select('quotations.*')
             ->with('client')
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderBy($this->sort['column'], $this->sort['direction'])
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('quotations.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Quotation $quotation) => [
                 'id' => $quotation->id,
                 'number' => $quotation->number ?? '—',
