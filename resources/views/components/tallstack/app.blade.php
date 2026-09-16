@@ -508,7 +508,7 @@
                 <div class="hidden sm:!block relative">
                     <x-icon name="magnifying-glass" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="search" placeholder="Search records, clients, invoices…"
-                           class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800 dark:bg-gray-900! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                           class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! dark:placeholder:text-gray-500! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
                 </div>
             </x-slot:left>
             <x-slot:right>
