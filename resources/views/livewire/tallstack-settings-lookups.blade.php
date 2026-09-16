@@ -20,14 +20,14 @@
          the outer "Tax Rates & Lookups" settings tab) — its own
          server-driven wire:click="switchTab" mechanism, unrelated to and
          untouched by the Phase 12 outer settings-tabs wrapper above. --}}
-    <div class="flex items-center gap-1.5 border-b border-gray-200 dark:border-gray-800">
+    <div class="flex items-center gap-1.5 border-b border-gray-200 dark:border-gray-800!">
         @foreach ([
             'tax-rates' => 'Tax rates',
             'expense-categories' => 'Expense categories',
             'task-statuses' => 'Task statuses',
         ] as $key => $label)
             <button type="button" wire:click="switchTab('{{ $key }}')"
-                    class="px-3 py-2 text-sm font-semibold border-b-2 -mb-px {{ $tab === $key ? 'border-[color:var(--ts-primary)] text-gray-900 dark:text-gray-100' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}">
+                    class="px-3 py-2 text-sm font-semibold border-b-2 -mb-px {{ $tab === $key ? 'border-[color:var(--ts-primary)] text-gray-900 dark:text-gray-100!' : 'border-transparent text-gray-500 dark:text-gray-400! hover:text-gray-700 dark:hover:text-gray-200!' }}">
                 {{ $label }}
             </button>
         @endforeach
@@ -41,10 +41,10 @@
                      by design, this table should never invite adding
                      rates that will never apply" (prompt 13). --}}
                 <div class="flex flex-col items-center justify-center text-center py-14 px-6">
-                    <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 grid place-items-center mb-3">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800! grid place-items-center mb-3">
                         <x-icon name="receipt-percent" class="w-6 h-6 text-gray-400" />
                     </div>
-                    <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Tax is disabled for this company</p>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-200!">Tax is disabled for this company</p>
                     <p class="text-xs text-gray-400 mt-1 max-w-sm">No tax rates are used — enable tax in Company & Taxes to configure rates.</p>
                 </div>
             @else

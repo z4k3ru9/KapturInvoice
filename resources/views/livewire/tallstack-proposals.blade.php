@@ -2,15 +2,29 @@
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Proposals']]" title="Proposals">
         <x-slot:actions>
-            {{-- Secondary tab-style links to the two supporting library
-                 screens — now real TallStackUI pages (prompt 23), no
-                 longer placeholders into the Filament admin resources. --}}
-            <x-button text="Proposal Templates" icon="document-text" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-templates', $company) }}" />
-            <x-button text="Proposal Snippets" icon="square-2-stack" color="gray" sm class="h-9" href="{{ route('tallstack.proposal-snippets', $company) }}" />
-            {{-- color="blue", not "primary" — see app.blade.php's own
-                 "+New" button for why: a general action shouldn't borrow
-                 the tenant's brand color. --}}
-            <x-button text="New Proposal" icon="plus" color="blue" sm class="h-9" href="{{ route('tallstack.proposals.create', $company) }}" />
+            {{-- Wrapped in our own flex-wrap row: the shared page-header's
+                 own actions container (resources/views/components/
+                 tallstack/page-header.blade.php) is a plain non-wrapping
+                 `flex items-center gap-2` — with 3 buttons plus a long
+                 "Proposal Templates"/"Proposal Snippets" label, a narrow
+                 viewport had no room to grow so each button's own text
+                 wrapped internally instead (2-line "Proposal Templates" /
+                 "Proposal Snippets" buttons next to a 1-line "New
+                 Proposal" button — jagged, mismatched heights). This inner
+                 wrapper lets whole buttons wrap to the next line instead,
+                 and `whitespace-nowrap` keeps each button's own label on
+                 one line either way. --}}
+            <div class="flex flex-wrap items-center gap-2">
+                {{-- Secondary tab-style links to the two supporting library
+                     screens — now real TallStackUI pages (prompt 23), no
+                     longer placeholders into the Filament admin resources. --}}
+                <x-button text="Proposal Templates" icon="document-text" color="gray" sm class="h-9 whitespace-nowrap" href="{{ route('tallstack.proposal-templates', $company) }}" />
+                <x-button text="Proposal Snippets" icon="square-2-stack" color="gray" sm class="h-9 whitespace-nowrap" href="{{ route('tallstack.proposal-snippets', $company) }}" />
+                {{-- color="blue", not "primary" — see app.blade.php's own
+                     "+New" button for why: a general action shouldn't borrow
+                     the tenant's brand color. --}}
+                <x-button text="New Proposal" icon="plus" color="blue" sm class="h-9 whitespace-nowrap" href="{{ route('tallstack.proposals.create', $company) }}" />
+            </div>
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -21,12 +35,12 @@
                      not an invented merged grouping. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterStatus(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All
                     </button>
                     @foreach ($statuses as $case)
                         <button type="button" wire:click="filterStatus('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $case->getLabel() }}
                         </button>
                     @endforeach
@@ -56,12 +70,12 @@
                  wording), never an editable field. --}}
             @interact('column_invoice_number', $row)
                 @if ($row['invoice_number'])
-                    <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-200">
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-gray-700 dark:text-gray-200!">
                         <x-icon name="link" class="w-3.5 h-3.5 shrink-0 text-gray-400" />
                         {{ $row['invoice_number'] }}
                     </span>
                 @else
-                    <span class="text-gray-300 dark:text-gray-600">—</span>
+                    <span class="text-gray-300 dark:text-gray-600!">—</span>
                 @endif
             @endinteract
 

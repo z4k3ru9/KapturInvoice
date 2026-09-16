@@ -9,20 +9,31 @@
         :title="$deliveryOrder->number"
     >
         <x-slot:actions>
-            @if ($job)
-                <x-button icon="briefcase" text="Open job" href="{{ route('tallstack.jobs.show', [$company, $job->id]) }}" color="gray" sm class="h-9" />
-            @endif
-            {{-- Client-side clipboard copy, same pattern as
-                 tallstack-client-portal-invitations.blade.php's own "Copy
-                 portal link" action — no server round trip needed. --}}
-            <button type="button"
-                    x-on:click="window.navigator.clipboard.writeText('{{ route('portal.delivery-order', $deliveryOrder) }}')"
-                    title="Copy client signing link"
-                    class="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
-                <x-icon name="clipboard" class="w-3.5 h-3.5" />
-                Copy portal link
-            </button>
-            <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('delivery-orders.pdf', $deliveryOrder) }}" target="_blank" color="blue" sm class="h-9" />
+            {{-- Wrapped in our own flex-wrap row — see
+                 tallstack-proposals.blade.php's own comment on this exact
+                 pattern: the shared page-header's actions container is a
+                 plain non-wrapping `flex items-center gap-2`, so with 3
+                 buttons a narrow viewport had no room to grow and each
+                 button's own text wrapped internally instead (jagged,
+                 mismatched heights). This inner wrapper lets whole buttons
+                 wrap to the next line instead, and `whitespace-nowrap`
+                 keeps each button's own label on one line either way. --}}
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                @if ($job)
+                    <x-button icon="briefcase" text="Open job" href="{{ route('tallstack.jobs.show', [$company, $job->id]) }}" color="gray" sm class="h-9 whitespace-nowrap" />
+                @endif
+                {{-- Client-side clipboard copy, same pattern as
+                     tallstack-client-portal-invitations.blade.php's own "Copy
+                     portal link" action — no server round trip needed. --}}
+                <button type="button"
+                        x-on:click="window.navigator.clipboard.writeText('{{ route('portal.delivery-order', $deliveryOrder) }}')"
+                        title="Copy client signing link"
+                        class="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold whitespace-nowrap text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
+                    <x-icon name="clipboard" class="w-3.5 h-3.5" />
+                    Copy portal link
+                </button>
+                <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('delivery-orders.pdf', $deliveryOrder) }}" target="_blank" color="blue" sm class="h-9 whitespace-nowrap" />
+            </div>
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -48,15 +59,15 @@
             <div><div class="text-gray-400 text-xs">Recorded by</div><div>{{ $deliveryOrder->createdBy?->name ?? '—' }}</div></div>
         </div>
         @if ($deliveryOrder->notes)
-            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800!">
                 <div class="text-gray-400 text-xs mb-1">Notes</div>
-                <p class="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-line">{{ $deliveryOrder->notes }}</p>
+                <p class="text-sm text-gray-700 dark:text-gray-200! whitespace-pre-line">{{ $deliveryOrder->notes }}</p>
             </div>
         @endif
     </x-card>
 
     <x-card>
-        <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Consignment lines</span></x-slot:header>
+        <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Consignment lines</span></x-slot:header>
         <x-table :headers="[
             ['index' => 'title', 'label' => 'Item'],
             ['index' => 'description', 'label' => 'Description'],
@@ -70,13 +81,13 @@
             @endinteract
 
             @interact('column_delivered_to_date', $row)
-                <span class="tabular-nums text-gray-500 dark:text-gray-400">
+                <span class="tabular-nums text-gray-500 dark:text-gray-400!">
                     {{ $row['delivered_to_date'] === null ? '—' : rtrim(rtrim(number_format((float) $row['delivered_to_date'], 4), '0'), '.') }}
                 </span>
             @endinteract
 
             @interact('column_ordered_quantity', $row)
-                <span class="tabular-nums text-gray-500 dark:text-gray-400">
+                <span class="tabular-nums text-gray-500 dark:text-gray-400!">
                     {{ $row['ordered_quantity'] === null ? '—' : rtrim(rtrim(number_format((float) $row['ordered_quantity'], 4), '0'), '.') }}
                 </span>
             @endinteract
@@ -100,9 +111,9 @@
          capability as the invoice portal, extended to Delivery Orders.
          Read-only here; there is no admin-side edit for a signature. --}}
     <x-card>
-        <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Signature</span></x-slot:header>
+        <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Signature</span></x-slot:header>
         @if ($deliveryOrder->signed_at)
-            <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/40 dark:text-green-300">
+            <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-950/40! dark:text-green-300!">
                 <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
                     <p>Confirmed by {{ $deliveryOrder->signed_by_name }} on {{ $deliveryOrder->signed_at->format('d M Y H:i') }}.</p>
@@ -112,7 +123,7 @@
                 </div>
             </div>
         @else
-            <p class="text-sm text-gray-500 dark:text-gray-400">Not yet signed. Share the portal link above with the client to collect their signature.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400!">Not yet signed. Share the portal link above with the client to collect their signature.</p>
         @endif
     </x-card>
 </div>

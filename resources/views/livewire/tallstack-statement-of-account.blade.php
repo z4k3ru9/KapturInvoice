@@ -241,7 +241,7 @@
     </div>
 
     {{-- Admin-chrome actions — not part of the printed page. --}}
-    <div class="max-w-[794px] w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-900/40 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <div class="max-w-[794px] w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-900/40! border border-gray-200 dark:border-gray-800! rounded-lg p-4">
         @if ($isPreview)
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center w-full">
                 <div class="flex items-center gap-3">

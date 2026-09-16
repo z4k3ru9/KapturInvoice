@@ -83,7 +83,7 @@
             <div class="flex flex-col gap-4">
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Client &amp; invoice terms</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Client &amp; invoice terms</span>
                     </x-slot:header>
 
                     <div class="grid sm:grid-cols-2 gap-4">
@@ -136,7 +136,7 @@
 
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Terms</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Terms</span>
                     </x-slot:header>
                     {{-- Livewire's .live/.debounce modifiers on wire:model are not honored by
                          <x-editor> (it only checks for .live/.blur — see TallStackUI\Support\Blade\
@@ -161,7 +161,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Line items</span>
                         @if ($invoice && ! $itemFormOpen)
                             {{-- color="gray" — Neutral role: a secondary
                                  structural action, not this page's own
@@ -256,7 +256,7 @@
         <x-tab.items tab="notes" title="Notes">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Notes</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Notes</span>
                 </x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4">
                     <x-editor wire:model="public_notes" label="Public notes" min-height="8rem" max-height="18rem"
@@ -278,33 +278,33 @@
             <div class="flex flex-col gap-4">
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
                     </x-slot:header>
                     <div class="flex flex-col gap-2 text-sm">
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Subtotal</span>
+                            <span class="text-gray-500 dark:text-gray-400!">Subtotal</span>
                             <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Discount</span>
+                            <span class="text-gray-500 dark:text-gray-400!">Discount</span>
                             <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Tax</span>
+                            <span class="text-gray-500 dark:text-gray-400!">Tax</span>
                             <span class="tabular-nums">{{ $taxTotal }}</span>
                         </div>
-                        <div class="border-t border-gray-200 dark:border-gray-800 my-1"></div>
+                        <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-gray-900 dark:text-gray-100">Total</span>
+                            <span class="font-bold text-gray-900 dark:text-gray-100!">Total</span>
                             <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                         </div>
                         @if ($invoice)
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Paid</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Paid</span>
                                 <span class="tabular-nums">{{ $amountPaid }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="font-semibold text-gray-900 dark:text-gray-100">Balance</span>
+                                <span class="font-semibold text-gray-900 dark:text-gray-100!">Balance</span>
                                 <span class="font-semibold tabular-nums">{{ $balance }}</span>
                             </div>
                         @endif
@@ -315,26 +315,26 @@
                 @if ($invoice && ($invoice->originalInvoice || $invoice->correction))
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Correction history</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Correction history</span>
                         </x-slot:header>
                         <div class="flex flex-col gap-2 text-sm">
                             @if ($invoice->originalInvoice)
                                 <div class="flex items-center justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Corrects</span>
-                                    <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
+                                    <span class="text-gray-500 dark:text-gray-400!">Corrects</span>
+                                    <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
                                 </div>
                             @endif
                             @if ($invoice->correction)
                                 <div class="flex items-center justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Corrected by</span>
-                                    <a class="font-semibold text-blue-600 hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
+                                    <span class="text-gray-500 dark:text-gray-400!">Corrected by</span>
+                                    <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
                                 </div>
                             @endif
                             @if ($invoice->void_reason)
-                                <p class="text-gray-500 dark:text-gray-400">Void reason: {{ $invoice->void_reason }}</p>
+                                <p class="text-gray-500 dark:text-gray-400!">Void reason: {{ $invoice->void_reason }}</p>
                             @endif
                             @if ($invoice->correction_reason)
-                                <p class="text-gray-500 dark:text-gray-400">Correction reason: {{ $invoice->correction_reason }}</p>
+                                <p class="text-gray-500 dark:text-gray-400!">Correction reason: {{ $invoice->correction_reason }}</p>
                             @endif
                         </div>
                     </x-card>
@@ -352,25 +352,25 @@
                     <x-card>
                         <x-slot:header>
                             <div class="flex items-center justify-between w-full">
-                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Tax recap (e-Faktur)</span>
+                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Tax recap (e-Faktur)</span>
                                 <x-button icon="document-arrow-down" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('tax-recaps.pdf', $invoice->taxRecap) }}" target="_blank" tooltip="Download PDF" />
                             </div>
                         </x-slot:header>
                         <div class="flex flex-col gap-2 text-sm">
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Number</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Number</span>
                                 <span class="font-semibold">{{ $invoice->taxRecap->number ?? '—' }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Reporting period</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Reporting period</span>
                                 <span>{{ $invoice->taxRecap->reporting_period }}</span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Status</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Status</span>
                                 <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400">Filing date</span>
+                                <span class="text-gray-500 dark:text-gray-400!">Filing date</span>
                                 <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
                             </div>
                             {{-- color="brand" — this card's own single commit action (Primary role). --}}
@@ -382,7 +382,7 @@
                 @if ($invoice?->salesOrder)
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job</span>
                         </x-slot:header>
                         <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
                     </x-card>
@@ -396,7 +396,7 @@
                 @if ($invoice?->salesOrder?->quotation)
                     <x-card>
                         <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">From quotation</span>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">From quotation</span>
                         </x-slot:header>
                         <p class="text-sm">{{ $invoice->salesOrder->quotation->number }}</p>
                     </x-card>
@@ -416,7 +416,7 @@
             --}}
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Documents</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Documents</span>
                 </x-slot:header>
                 @if (! $invoice)
                     <p class="text-sm text-gray-400">Save the invoice first to attach documents.</p>
@@ -487,14 +487,14 @@
 
             <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between">
-                    <span class="font-semibold text-sm text-gray-700 dark:text-gray-200">Corrected line items</span>
+                    <span class="font-semibold text-sm text-gray-700 dark:text-gray-200!">Corrected line items</span>
                     {{-- color="gray" — Neutral role, not this panel's own
                          Primary/Destructive commit button below. --}}
                     <x-button text="Add row" icon="plus" color="gray" sm wire:click="addCorrectionItem" />
                 </div>
 
                 @foreach ($correctionItems as $index => $item)
-                    <div wire:key="correction-item-{{ $index }}" class="grid grid-cols-12 gap-2 items-start border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+                    <div wire:key="correction-item-{{ $index }}" class="grid grid-cols-12 gap-2 items-start border border-gray-200 dark:border-gray-800! rounded-lg p-3">
                         <div class="col-span-12 sm:col-span-4">
                             <x-input wire:model="correctionItems.{{ $index }}.title" label="Title" required />
                         </div>

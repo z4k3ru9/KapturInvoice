@@ -29,7 +29,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Company members</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Company members</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search name, email or role…" icon="magnifying-glass" clearable />
                 </div>
@@ -59,7 +59,7 @@
 
             @interact('column_name', $row)
                 <div class="flex items-center gap-1.5">
-                    <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $row['name'] }}</span>
+                    <span class="font-semibold text-gray-900 dark:text-gray-100!">{{ $row['name'] }}</span>
                     @if ($row['is_super_admin'])
                         {{-- "Is super admin" shown only as a small shield
                              icon (prompt 11: "never a full column, this is
@@ -70,7 +70,7 @@
             @endinteract
 
             @interact('column_email', $row)
-                <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ $row['email'] }}</span>
+                <span class="font-mono text-xs text-gray-500 dark:text-gray-400!">{{ $row['email'] }}</span>
             @endinteract
 
             @interact('column_role', $row, $roleColors)
@@ -103,7 +103,7 @@
     @if ($invitations->isNotEmpty())
         <x-card>
             <x-slot:header>
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Pending invitations</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Pending invitations</span>
             </x-slot:header>
 
             <x-table :headers="[
@@ -131,17 +131,17 @@
          "Company Permission Hierarchy" reference block. --}}
     <x-card>
         <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Role permission boundaries</span>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Role permission boundaries</span>
         </x-slot:header>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             @foreach ($roles as $role)
-                <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-900! border border-gray-100 dark:border-gray-800!">
                     <div class="flex items-center gap-1.5 mb-1">
                         <span class="h-2 w-2 rounded-full shrink-0" style="{{ $role === \App\Enums\CompanyRole::Owner ? 'background: var(--ts-primary)' : '' }}"
                               @class(['bg-blue-500' => $role === \App\Enums\CompanyRole::Admin, 'bg-teal-500' => $role === \App\Enums\CompanyRole::Accountant, 'bg-amber-500' => $role === \App\Enums\CompanyRole::Sales, 'bg-gray-400' => $role === \App\Enums\CompanyRole::Staff, 'bg-slate-500' => $role === \App\Enums\CompanyRole::Auditor])></span>
-                        <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">{{ $role->label() }}</span>
+                        <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">{{ $role->label() }}</span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{{ $role->description() }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400! leading-snug">{{ $role->description() }}</p>
                 </div>
             @endforeach
         </div>
@@ -153,7 +153,7 @@
             <x-input wire:model="invite_email" label="Email" type="email" required />
             <x-select.styled wire:model.live="invite_role" label="Role" required
                 :options="collect($roles)->map(fn ($r) => ['label' => $r->label(), 'value' => $r->value])->all()" />
-            <div class="p-2.5 rounded bg-gray-50 dark:bg-gray-900 text-xs text-gray-600 dark:text-gray-300">
+            <div class="p-2.5 rounded bg-gray-50 dark:bg-gray-900! text-xs text-gray-600 dark:text-gray-300!">
                 {{ \App\Enums\CompanyRole::from($invite_role)->description() }}
             </div>
         </div>
@@ -179,12 +179,12 @@
             <x-select.styled wire:model.live="edit_role" label="Assigned role" required
                 :options="collect($roles)->map(fn ($r) => ['label' => $r->label(), 'value' => $r->value])->all()" />
 
-            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-900 flex flex-col gap-1">
-                <span class="text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1.5">
+            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-900! flex flex-col gap-1">
+                <span class="text-xs font-semibold text-gray-700 dark:text-gray-200! flex items-center gap-1.5">
                     <x-icon name="information-circle" class="w-4 h-4 text-blue-500 shrink-0" />
                     Permission boundary
                 </span>
-                <p class="text-xs text-gray-600 dark:text-gray-400 leading-snug">
+                <p class="text-xs text-gray-600 dark:text-gray-400! leading-snug">
                     {{ \App\Enums\CompanyRole::from($edit_role)->description() }}
                 </p>
             </div>
@@ -200,7 +200,7 @@
          which requires a reason and preserves membership history. --}}
     <x-modal wire="showRemoveModal" title="Remove {{ $removingUserName }} from company" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-600 dark:text-gray-300">
+            <p class="text-sm text-gray-600 dark:text-gray-300!">
                 This blocks {{ $removingUserName }}'s access to {{ $company->name }} immediately. Their history (documents, approvals, audit trail) is preserved — this never deletes anything they authored.
             </p>
             <x-textarea wire:model="removeReason" label="Reason" rows="3" required />

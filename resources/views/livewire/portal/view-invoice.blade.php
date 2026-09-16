@@ -24,7 +24,7 @@
                 @endif
                 <div>
                     <span class="block text-lg font-semibold leading-tight">{{ $invoice->company->name }}</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400">Client billing portal</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400!">Client billing portal</span>
                 </div>
             </div>
 
@@ -38,7 +38,7 @@
                 <h1 class="text-2xl font-bold tracking-tight">
                     {{ $invoice->type->getLabel() }} {{ $invoice->number }}
                 </h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400!">
                     Billed to {{ $invoice->client->name }}
                     @if ($invitation->contact->name)
                         (attn: {{ $invitation->contact->name }})
@@ -49,10 +49,10 @@
             <div class="flex items-center gap-3">
                 <dl class="text-right text-sm">
                     @if ($invoice->invoice_date)
-                        <div><dt class="inline text-gray-500 dark:text-gray-400">Date:</dt> <dd class="inline">{{ $invoice->invoice_date->toFormattedDateString() }}</dd></div>
+                        <div><dt class="inline text-gray-500 dark:text-gray-400!">Date:</dt> <dd class="inline">{{ $invoice->invoice_date->toFormattedDateString() }}</dd></div>
                     @endif
                     @if ($invoice->due_date)
-                        <div><dt class="inline text-gray-500 dark:text-gray-400">Due:</dt> <dd class="inline">{{ $invoice->due_date->toFormattedDateString() }}</dd></div>
+                        <div><dt class="inline text-gray-500 dark:text-gray-400!">Due:</dt> <dd class="inline">{{ $invoice->due_date->toFormattedDateString() }}</dd></div>
                     @endif
                 </dl>
                 <x-button text="Download PDF" icon="arrow-down-tray" href="{{ route('portal.invoice.pdf', $invitation) }}" target="_blank" sm color="gray" />
@@ -95,7 +95,7 @@
                     <span class="text-lg font-bold tabular-nums text-gray-900">{{ $invoice->currency_code }} {{ number_format($lastPayment->amount, 2) }}</span>
                     <x-slot:footer>{{ ($lastPayment->payment_date ?? $lastPayment->created_at)->toFormattedDateString() }}</x-slot:footer>
                 @else
-                    <span class="text-lg font-bold text-gray-400 dark:text-gray-600">None yet</span>
+                    <span class="text-lg font-bold text-gray-400 dark:text-gray-600!">None yet</span>
                     <x-slot:footer>&nbsp;</x-slot:footer>
                 @endif
             </x-stats>
@@ -115,7 +115,7 @@
                     @interact('column_title', $row)
                         <div class="font-medium">{{ $row->title }}</div>
                         @if ($row->description)
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $row->description }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400!">{{ $row->description }}</div>
                         @endif
                     @endinteract
 
@@ -138,22 +138,22 @@
             <div class="mt-4 flex justify-end">
                 <dl class="w-full max-w-xs space-y-1 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500 dark:text-gray-400">Subtotal</dt>
+                        <dt class="text-gray-500 dark:text-gray-400!">Subtotal</dt>
                         <dd class="tabular-nums">{{ $invoice->currency_code }} {{ number_format($invoice->subtotal, 2) }}</dd>
                     </div>
                     @if ($invoice->tax_total > 0)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Tax</dt>
+                            <dt class="text-gray-500 dark:text-gray-400!">Tax</dt>
                             <dd class="tabular-nums">{{ $invoice->currency_code }} {{ number_format($invoice->tax_total, 2) }}</dd>
                         </div>
                     @endif
-                    <div class="flex justify-between border-t border-gray-200 pt-1 text-base font-semibold dark:border-gray-800">
+                    <div class="flex justify-between border-t border-gray-200 pt-1 text-base font-semibold dark:border-gray-800!">
                         <dt>Total</dt>
                         <dd class="tabular-nums">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</dd>
                     </div>
                     @if ($invoice->balance > 0 && $invoice->balance != $invoice->total)
                         <div class="flex justify-between">
-                            <dt class="text-gray-500 dark:text-gray-400">Balance due</dt>
+                            <dt class="text-gray-500 dark:text-gray-400!">Balance due</dt>
                             <dd class="font-medium tabular-nums">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</dd>
                         </div>
                     @endif
@@ -163,11 +163,11 @@
 
         @if ($invoice->balance > 0)
             <x-card header="Payment">
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Balance due: <span class="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</span>
+                <p class="text-sm text-gray-600 dark:text-gray-400!">
+                    Balance due: <span class="font-semibold tabular-nums text-gray-900 dark:text-gray-100!">{{ $invoice->currency_code }} {{ number_format($invoice->balance, 2) }}</span>
                 </p>
                 @if ($settings?->portal_allow_client_payments)
-                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400!">
                         Online payment isn't available on this portal yet — please contact {{ $invoice->company->name }} to arrange payment.
                     </p>
                 @endif
@@ -204,7 +204,7 @@
                     <p class="text-sm whitespace-pre-line">{{ $invoice->public_notes }}</p>
                 @endif
                 @if ($invoice->terms)
-                    <p class="mt-3 text-sm whitespace-pre-line text-gray-500 dark:text-gray-400">{{ $invoice->terms }}</p>
+                    <p class="mt-3 text-sm whitespace-pre-line text-gray-500 dark:text-gray-400!">{{ $invoice->terms }}</p>
                 @endif
             </x-card>
         @endif
@@ -224,7 +224,7 @@
 
         <x-card header="Acceptance">
             @if ($invitation->signed_at)
-                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30! dark:text-green-300!">
                     <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                         <p>Signed on {{ $invitation->signed_at->toFormattedDateString() }}.</p>
@@ -237,7 +237,7 @@
                 </div>
             @else
                 @if ($settings?->portal_require_signature)
-                    <p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                    <p class="mb-3 text-sm text-gray-600 dark:text-gray-400!">
                         A signature is required to accept this {{ strtolower($invoice->type->getLabel()) }}.
                     </p>
                 @endif
@@ -272,8 +272,8 @@
             @endif
         </x-card>
 
-        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <p class="font-medium text-gray-600 dark:text-gray-300">{{ $invoice->company->name }}</p>
+        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800! dark:text-gray-400!">
+            <p class="font-medium text-gray-600 dark:text-gray-300!">{{ $invoice->company->name }}</p>
             <p class="mt-1 space-x-3">
                 @if ($invoice->company->email)
                     <a href="mailto:{{ $invoice->company->email }}" class="hover:underline">{{ $invoice->company->email }}</a>

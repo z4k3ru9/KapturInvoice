@@ -12,7 +12,7 @@
                 @endif
                 <div>
                     <span class="block text-lg font-semibold leading-tight">{{ $handoverReport->company->name }}</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400">Handover confirmation</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400!">Handover confirmation</span>
                 </div>
             </div>
         </div>
@@ -21,7 +21,7 @@
     <main class="mx-auto max-w-3xl space-y-6 px-6 py-10">
         <div>
             <h1 class="text-2xl font-bold tracking-tight">Handover Report {{ $handoverReport->number }}</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400!">
                 For {{ $job?->client?->name ?? '—' }} · job {{ $job?->number ?? '—' }}
                 @if ($handoverReport->handover_date)
                     · handed over {{ $handoverReport->handover_date->toFormattedDateString() }}
@@ -37,7 +37,7 @@
 
         <x-card header="Confirmation">
             @if ($handoverReport->signed_at)
-                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30! dark:text-green-300!">
                     <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                         <p>Confirmed by {{ $handoverReport->signed_by_name }} on {{ $handoverReport->signed_at->toFormattedDateString() }}.</p>
@@ -47,7 +47,7 @@
                     </div>
                 </div>
             @else
-                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400!">
                     Please confirm this handover by typing your name and drawing your signature below.
                 </p>
 
@@ -71,8 +71,8 @@
             @endif
         </x-card>
 
-        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <p class="font-medium text-gray-600 dark:text-gray-300">{{ $handoverReport->company->name }}</p>
+        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800! dark:text-gray-400!">
+            <p class="font-medium text-gray-600 dark:text-gray-300!">{{ $handoverReport->company->name }}</p>
         </div>
     </main>
 </div>

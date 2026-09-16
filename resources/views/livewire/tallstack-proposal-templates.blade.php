@@ -9,27 +9,27 @@
         title="Proposal Templates"
     >
         <x-slot:actions>
-            <x-button text="New template" icon="plus" color="blue" sm class="h-9" wire:click="create" />
+            <x-button text="New template" icon="plus" color="blue" sm class="h-9 whitespace-nowrap" wire:click="create" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
     {{-- Templates/Snippets tab switcher — the same two library screens
          Proposals' own header links to, sketched as tabs on both per
          prompt 23 ("structurally identical to Templates"). --}}
-    <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800">
+    <div class="flex items-center gap-1 border-b border-gray-200 dark:border-gray-800!">
         <a href="{{ route('tallstack.proposal-templates', $company) }}"
            class="px-3 py-2 text-sm font-semibold border-b-2 border-[color:var(--ts-primary)] text-[color:var(--ts-primary)]">
             Templates ({{ $templates->count() }})
         </a>
         <a href="{{ route('tallstack.proposal-snippets', $company) }}"
-           class="px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+           class="px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-gray-400! hover:text-gray-700 dark:hover:text-gray-200!">
             Snippets ({{ $snippetsCount }})
         </a>
     </div>
 
     <x-card>
         <x-slot:header>
-            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Templates</span>
+            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Templates</span>
         </x-slot:header>
 
         <x-list :items="$templates" searchable search-placeholder="Search templates…">
@@ -68,10 +68,10 @@
             </div>
 
             <div>
-                <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1.5">Live preview</span>
-                <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 bg-white">
+                <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400! mb-1.5">Live preview</span>
+                <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800! bg-white dark:bg-gray-900!">
                     <iframe
-                        srcdoc="<style>html,body{{ '{' }}margin:0;padding:16px;{{ '}' }}{{ $css }}</style>{{ $html }}"
+                        srcdoc="<style>html,body{{ '{' }}margin:0;padding:16px;background:#fff;color:#111;{{ '}' }}{{ $css }}</style>{{ $html }}"
                         style="width: 100%; height: 260px; border: 0;"
                         sandbox=""
                         title="Template preview"

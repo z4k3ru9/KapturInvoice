@@ -13,22 +13,22 @@
     {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Pending verification" icon="clock" color="amber">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['pendingCount'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['pendingCount'] }}</span>
             <x-slot:footer>Awaiting Verify</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Verified total" icon="banknotes" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['verifiedTotal'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['verifiedTotal'] }}</span>
             <x-slot:footer>Sum of verified payments</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Unallocated" icon="arrows-right-left" color="red">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['unallocatedCount'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['unallocatedCount'] }}</span>
             <x-slot:footer>Verified, not yet allocated</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Receipts issued" icon="document-text" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $stats['receiptsIssued'] }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $stats['receiptsIssued'] }}</span>
             <x-slot:footer>Total to date</x-slot:footer>
         </x-stats>
     </div>
@@ -41,12 +41,12 @@
                      state the enum doesn't have. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterStatus(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All
                     </button>
                     @foreach ($statuses as $case)
                         <button type="button" wire:click="filterStatus('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $case->getLabel() }}
                         </button>
                     @endforeach
@@ -73,7 +73,7 @@
             @endinteract
 
             @interact('column_receipt_number', $row)
-                <span class="font-mono text-xs text-gray-600 dark:text-gray-300">{{ $row['receipt_number'] ?? '—' }}</span>
+                <span class="font-mono text-xs text-gray-600 dark:text-gray-300!">{{ $row['receipt_number'] ?? '—' }}</span>
             @endinteract
 
             @interact('column_actions', $row, $company)
@@ -137,7 +137,7 @@
          same guard as App\Actions\Receivables\VerifyCustomerPayment. --}}
     <x-modal wire="showVerifyModal" title="Verify payment" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Only Accountant, Admin, or Owner may verify a payment.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400!">Only Accountant, Admin, or Owner may verify a payment.</p>
             <x-date wire:model="verify_cheque_cleared_at" label="Cheque cleared on" hint="Only required for a cheque payment that hasn't cleared yet." />
         </div>
 
