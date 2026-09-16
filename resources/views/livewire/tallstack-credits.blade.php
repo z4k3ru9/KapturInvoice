@@ -82,29 +82,29 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    // No TALL-stack detail page exists for a single
+                    // Credit (this phase is the register only) — the
+                    // previous "View" link here pointed at
+                    // `filament.admin.resources.credits.view`, a route
+                    // that no longer exists now that Filament has been
+                    // fully removed (a real, previously-unknown 500-on-
+                    // every-row bug, found while wiring the Force delete
+                    // action below — see the ForceDeleteCredit rollout
+                    // report). Removed rather than left dead; the
+                    // register table itself already shows every column
+                    // this would have.
+                    $extraActions = [];
+                    // Only ever shown for an unapplied credit — the
+                    // guard's full predicate (balance still equals face
+                    // amount) is still re-checked server-side by
+                    // App\Actions\Billing\ForceDeleteCredit.
+                    if ($row['unapplied']) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this credit? This cannot be undone.'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
-                    {{--
-                        No TALL-stack detail page exists for a single
-                        Credit (this phase is the register only) — the
-                        previous "View" link here pointed at
-                        `filament.admin.resources.credits.view`, a route
-                        that no longer exists now that Filament has been
-                        fully removed (a real, previously-unknown 500-on-
-                        every-row bug, found while wiring the Force delete
-                        action below — see the ForceDeleteCredit rollout
-                        report). Removed rather than left dead; the
-                        register table itself already shows every column
-                        this would have.
-                    --}}
-                    {{-- Only ever shown for an unapplied credit — the
-                         guard's full predicate (balance still equals face
-                         amount) is still re-checked server-side by
-                         App\Actions\Billing\ForceDeleteCredit. --}}
-                    @if ($row['unapplied'])
-                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this credit? This cannot be undone." />
-                        </x-dropdown>
-                    @endif
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 
