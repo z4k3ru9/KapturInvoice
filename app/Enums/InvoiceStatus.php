@@ -106,11 +106,19 @@ enum InvoiceStatus: string
      * `Approved`, the sole pre-issuance states where App\Actions\Billing\
      * IssueInvoice hasn't yet frozen a tax snapshot
      * (App\Models\InvoiceTaxSnapshot). Every other case is locked,
-     * including the legacy-only cases (`Sent`/`Viewed`/`Cancelled` never
-     * occur on an app-created document — memory.md's "InvoiceStatus dual
-     * case set" decision: they only appear on imported/pre-migration
-     * rows, which are read-only history and must never be edited via this
-     * form either) and `Partial`/`Paid`/`Overdue`, which double as the
+     * including `Cancelled` (legacy-only — memory.md's "InvoiceStatus dual
+     * case set" decision: it only appears on imported/pre-migration rows,
+     * which are read-only history and must never be edited via this form
+     * either). CORRECTION: `Sent`/`Viewed` do occur on app-created
+     * documents too — confirmed during the status-transition automation
+     * review — `Sent` is set automatically when BillingMailer sends the
+     * invoice email, and `Viewed` when the client first opens the portal
+     * link (App\Livewire\Portal\ViewInvoice); this class's own
+     * `allowedNextStates()` simply never routes an Issued invoice through
+     * either of them (`Draft -> Approved -> Issued` bypasses Sent/Viewed
+     * entirely for a plain app-created invoice), so they're locked here
+     * for the same reason as any other post-issuance state, not because
+     * they're unreachable. `Partial`/`Paid`/`Overdue` double as the
      * post-issuance payment states an Issued invoice reaches
      * (allowedNextStates() above) — exactly the same status set
      * App\Actions\Billing\AmendIssuedInvoice/VoidAndReissueInvoice accept

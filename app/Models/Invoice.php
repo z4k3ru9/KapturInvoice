@@ -6,6 +6,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\Holdable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class Invoice extends Model
 {
-    use BelongsToCompany, SoftDeletes;
+    use BelongsToCompany, Holdable, SoftDeletes;
 
     protected function casts(): array
     {
@@ -45,6 +46,7 @@ class Invoice extends Model
             'approved_at' => 'datetime',
             'issued_at' => 'datetime',
             'voided_at' => 'datetime',
+            'held_at' => 'datetime',
             'is_recurring' => 'boolean',
             'auto_bill' => 'boolean',
             'discount_is_percentage' => 'boolean',

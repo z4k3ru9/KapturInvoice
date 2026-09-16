@@ -59,6 +59,15 @@ class SignQuotation extends Component
             $this->abortUnavailable();
         }
 
+        // Informational only — mirrors App\Livewire\Portal\ViewInvoice's
+        // Invitation::viewed_at write, but a Quotation has no wrapping
+        // Invitation record, so it lives directly on the quotation. See
+        // this column's own migration docblock for why this deliberately
+        // does NOT also flip `status` to a new Viewed case.
+        if (! $quotation->viewed_at) {
+            $quotation->forceFill(['viewed_at' => now()])->saveQuietly();
+        }
+
         $this->quotation = $quotation;
     }
 
