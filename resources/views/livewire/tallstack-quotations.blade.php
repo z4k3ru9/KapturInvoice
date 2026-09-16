@@ -54,15 +54,21 @@
             </div>
         </x-slot:header>
 
+        {{-- Sortable: number, client (joined on `clients.name` in
+             TallStackQuotations::render()) and quotation_date — the three
+             dimensions requested. valid_until is a second real date column
+             but not one of the three asked for, so — like total/status —
+             it's marked sortable => false explicitly rather than left to
+             the component's own sortable-by-default behavior. --}}
         <x-table :headers="[
             ['index' => 'number', 'label' => 'Number'],
             ['index' => 'client', 'label' => 'Client'],
             ['index' => 'quotation_date', 'label' => 'Date'],
-            ['index' => 'valid_until', 'label' => 'Valid until'],
-            ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
-            ['index' => 'status', 'label' => 'Status'],
+            ['index' => 'valid_until', 'label' => 'Valid until', 'sortable' => false],
+            ['index' => 'total', 'label' => 'Total', 'align' => 'right', 'sortable' => false],
+            ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$quotations" paginate loading>
+        ]" :rows="$quotations" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits), not the full company-type-year-month number — the

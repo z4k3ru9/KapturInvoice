@@ -52,6 +52,8 @@ class TallStackInvoices extends Component
 
     public array $sort = ['column' => 'invoice_date', 'direction' => 'desc'];
 
+    public int $quantity = 10;
+
     public bool $showHoldModal = false;
 
     public ?int $holdingId = null;
@@ -164,20 +166,32 @@ class TallStackInvoices extends Component
     {
         $currency = $this->company->currency_code;
 
+        // Qualified with the table name (rather than the bare 'company_id'
+        // this used before) so this same $base stays valid once the
+        // paginated query below joins `clients` — both tables have their
+        // own company_id column, which would otherwise be an ambiguous
+        // column reference in that joined query.
         $base = Invoice::query()
-            ->where('company_id', $this->company->id)
+            ->where('invoices.company_id', $this->company->id)
             ->where('type', InvoiceType::Invoice)
             ->where('is_recurring', false);
 
         $invoices = (clone $base)
+            // Joined only here — the aggregates below clone $base before
+            // this join is added, so they never pay for it.
+            ->join('clients', 'clients.id', '=', 'invoices.client_id')
+            ->select('invoices.*')
             ->with('client')
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderBy($this->sort['column'], $this->sort['direction'])
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('invoices.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Invoice $invoice) => [
                 'id' => $invoice->id,
                 'number' => $invoice->number ?? '—',

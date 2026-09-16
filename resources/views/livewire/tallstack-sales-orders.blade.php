@@ -45,15 +45,24 @@
             </div>
         </x-slot:header>
 
+        {{-- Sortable: number and client (joined on `clients.name` in
+             TallStackSalesOrders::render()) — the two requested dimensions
+             this page actually has a column for; there is no visible date
+             column here (the default sort is by created_at, which isn't
+             displayed). next_milestone is a computed display value with no
+             matching database column and job_type/approved_value/status
+             weren't asked for, so all four are marked sortable => false
+             explicitly rather than left to the component's own
+             sortable-by-default behavior. --}}
         <x-table :headers="[
             ['index' => 'number', 'label' => 'Number'],
             ['index' => 'client', 'label' => 'Client'],
-            ['index' => 'job_type', 'label' => 'Type'],
-            ['index' => 'approved_value', 'label' => 'Value', 'align' => 'right'],
-            ['index' => 'next_milestone', 'label' => 'Next milestone'],
-            ['index' => 'status', 'label' => 'Status'],
+            ['index' => 'job_type', 'label' => 'Type', 'sortable' => false],
+            ['index' => 'approved_value', 'label' => 'Value', 'align' => 'right', 'sortable' => false],
+            ['index' => 'next_milestone', 'label' => 'Next milestone', 'sortable' => false],
+            ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$jobs" paginate loading>
+        ]" :rows="$jobs" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
             @interact('column_number', $row)
                 <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}

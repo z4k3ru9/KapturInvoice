@@ -55,16 +55,23 @@
             </div>
         </x-slot:header>
 
+        {{-- Sortable: number, client (joined on `clients.name` in
+             TallStackInvoices::render()) and invoice_date — the three
+             dimensions requested. Every other column is either a money/
+             status value not asked for or, for due_date, a second date
+             column that would be redundant with invoice_date — all marked
+             sortable => false explicitly rather than left to the
+             component's own sortable-by-default behavior. --}}
         <x-table :headers="[
             ['index' => 'number', 'label' => 'Number'],
             ['index' => 'client', 'label' => 'Client'],
             ['index' => 'invoice_date', 'label' => 'Date'],
-            ['index' => 'due_date', 'label' => 'Due'],
-            ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
-            ['index' => 'balance', 'label' => 'Balance', 'align' => 'right'],
-            ['index' => 'status', 'label' => 'Status'],
+            ['index' => 'due_date', 'label' => 'Due', 'sortable' => false],
+            ['index' => 'total', 'label' => 'Total', 'align' => 'right', 'sortable' => false],
+            ['index' => 'balance', 'label' => 'Balance', 'align' => 'right', 'sortable' => false],
+            ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$invoices" paginate loading>
+        ]" :rows="$invoices" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits) — see App\Support\TallStack\DocumentNumber's own
