@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Actions\Sales\ForceDeleteSalesOrder;
+use App\Actions\Shared\PlaceHold;
+use App\Actions\Shared\ReleaseHold;
 use App\Enums\SalesOrderStatus;
 use App\Models\Company;
 use App\Models\SalesOrder;
@@ -38,6 +40,12 @@ class TallStackSalesOrders extends Component
     public string $search = '';
 
     public array $sort = ['column' => 'created_at', 'direction' => 'desc'];
+
+    public bool $showHoldModal = false;
+
+    public ?int $holdingId = null;
+
+    public string $holdReason = '';
 
     public function mount(Company $company): void
     {
@@ -75,6 +83,68 @@ class TallStackSalesOrders extends Component
         }
     }
 
+    // --- Hold / Release hold ----------------------------------------------
+    // The override lever for the SalesOrder auto-close-operationally
+    // automation (App\Actions\Delivery\CompleteDelivery/CompleteHandover's
+    // auto-trigger) — see App\Livewire\TallStackInvoices for the identical
+    // pattern this mirrors and App\Models\Concerns\Holdable's own docblock.
+
+    public function openHoldModal(int $id): void
+    {
+        $this->holdingId = $id;
+        $this->holdReason = '';
+        $this->showHoldModal = true;
+    }
+
+    public function placeHold(): void
+    {
+        $job = $this->findScoped($this->holdingId);
+
+        if (! $job) {
+            return;
+        }
+
+        try {
+            app(PlaceHold::class)->hold($job, auth()->user(), $this->holdReason);
+            $this->showHoldModal = false;
+            $this->toast()->success('Job held.', 'Automation is paused on this job until the hold is released.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not place hold', $e->getMessage())->send();
+        }
+    }
+
+    public function releaseHold(int $id): void
+    {
+        $job = $this->findScoped($id);
+
+        if (! $job) {
+            return;
+        }
+
+        try {
+            app(ReleaseHold::class)->release($job, auth()->user());
+            $this->toast()->success('Hold released.', 'Automation will resume on this job.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not release hold', $e->getMessage())->send();
+        }
+    }
+
+    /** Never trust a bare `SalesOrder::find()` here — always re-check company ownership. */
+    private function findScoped(?int $id): ?SalesOrder
+    {
+        if (! $id) {
+            return null;
+        }
+
+        $job = SalesOrder::find($id);
+
+        if (! $job || $job->company_id !== $this->company->id) {
+            return null;
+        }
+
+        return $job;
+    }
+
     public function render(): View
     {
         $currency = $this->company->currency_code;
@@ -109,6 +179,8 @@ class TallStackSalesOrders extends Component
                     'status_label' => $job->status->getLabel(),
                     'status_color' => StatusColor::map($job->status->getColor()),
                     'closed' => $job->isFullyClosed(),
+                    'is_held' => $job->isHeld(),
+                    'held_reason' => $job->held_reason,
                 ];
             });
 

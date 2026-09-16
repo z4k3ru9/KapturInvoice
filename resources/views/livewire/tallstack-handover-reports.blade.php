@@ -93,17 +93,20 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    if ($row['job_id']) {
+                        $extraActions[] = ['text' => 'Open job', 'icon' => 'briefcase', 'href' => route('tallstack.jobs.show', [$company, $row['job_id']])];
+                    }
+                    // Client-side clipboard copy (App\Livewire\Portal\SignHandoverReport)
+                    // — same pattern as tallstack-quotations.blade.php's own
+                    // "Copy client acceptance link". Passed through row-actions
+                    // as a raw x-on:click since it's not a wire:click.
+                    $extraActions[] = ['text' => 'Copy client signing link', 'icon' => 'clipboard', 'xclick' => "window.navigator.clipboard.writeText('".route('portal.handover-report', $row['portal_key'])."')"];
+                @endphp
                 <div class="flex items-center justify-end gap-2">
-                    @if ($row['job_id'])
-                        <x-button icon="briefcase" href="{{ route('tallstack.jobs.show', [$company, $row['job_id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open job" />
-                    @endif
                     <x-button icon="document-arrow-down" href="{{ route('handover-reports.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <button type="button"
-                            x-on:click="window.navigator.clipboard.writeText('{{ route('portal.handover-report', $row['portal_key']) }}')"
-                            title="Copy client signing link"
-                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
-                        <x-icon name="clipboard" class="w-4 h-4" />
-                    </button>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 
