@@ -12,7 +12,7 @@
                 @endif
                 <div>
                     <span class="block text-lg font-semibold leading-tight">{{ $quotation->company->name }}</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400">Quotation approval</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400!">Quotation approval</span>
                 </div>
             </div>
 
@@ -23,7 +23,7 @@
     <main class="mx-auto max-w-3xl space-y-6 px-6 py-10">
         <div>
             <h1 class="text-2xl font-bold tracking-tight">Quotation {{ $quotation->number ?? '—' }}</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400!">
                 Prepared for {{ $quotation->client->name }}
                 @if ($quotation->valid_until)
                     · valid until {{ $quotation->valid_until->toFormattedDateString() }}
@@ -42,7 +42,7 @@
                     @interact('column_title', $row)
                         <div class="font-medium">{{ $row->title }}</div>
                         @if ($row->description)
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $row->description }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400!">{{ $row->description }}</div>
                         @endif
                     @endinteract
 
@@ -65,10 +65,10 @@
             <div class="mt-4 flex justify-end">
                 <dl class="w-full max-w-xs space-y-1 text-sm">
                     <div class="flex justify-between">
-                        <dt class="text-gray-500 dark:text-gray-400">Subtotal</dt>
+                        <dt class="text-gray-500 dark:text-gray-400!">Subtotal</dt>
                         <dd class="tabular-nums">{{ number_format($quotation->subtotal, 2) }}</dd>
                     </div>
-                    <div class="flex justify-between border-t border-gray-200 pt-1 text-base font-semibold dark:border-gray-800">
+                    <div class="flex justify-between border-t border-gray-200 pt-1 text-base font-semibold dark:border-gray-800!">
                         <dt>Total</dt>
                         <dd class="tabular-nums">{{ number_format($quotation->total, 2) }}</dd>
                     </div>
@@ -82,14 +82,14 @@
                     <p class="text-sm whitespace-pre-line">{{ $quotation->notes }}</p>
                 @endif
                 @if ($quotation->terms)
-                    <p class="mt-3 text-sm whitespace-pre-line text-gray-500 dark:text-gray-400">{{ $quotation->terms }}</p>
+                    <p class="mt-3 text-sm whitespace-pre-line text-gray-500 dark:text-gray-400!">{{ $quotation->terms }}</p>
                 @endif
             </x-card>
         @endif
 
         <x-card header="Approval">
             @if ($quotation->signed_at)
-                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30! dark:text-green-300!">
                     <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                         <p>Accepted by {{ $quotation->signed_by_name }} on {{ $quotation->signed_at->toFormattedDateString() }}.</p>
@@ -105,7 +105,7 @@
                     </div>
                 </div>
             @elseif ($canAccept)
-                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400!">
                     Please review the quotation above, then accept it by typing your name and drawing your signature
                     below. If you have a purchase order number for this job, enter it — otherwise leave it blank and
                     an internal Customer Order Confirmation will be generated on your behalf.
@@ -131,15 +131,15 @@
                     </div>
                 </form>
             @else
-                <p class="text-sm text-gray-600 dark:text-gray-400">
+                <p class="text-sm text-gray-600 dark:text-gray-400!">
                     This quotation is not currently available for acceptance
                     (status: {{ $quotation->status->getLabel() }}).
                 </p>
             @endif
         </x-card>
 
-        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <p class="font-medium text-gray-600 dark:text-gray-300">{{ $quotation->company->name }}</p>
+        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800! dark:text-gray-400!">
+            <p class="font-medium text-gray-600 dark:text-gray-300!">{{ $quotation->company->name }}</p>
         </div>
     </main>
 </div>

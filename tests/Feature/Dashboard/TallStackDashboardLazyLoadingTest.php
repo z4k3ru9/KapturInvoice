@@ -105,4 +105,24 @@ class TallStackDashboardLazyLoadingTest extends TestCase
             ->assertSet('statsLoaded', true)
             ->assertSet('stats.outstandingCount', 1);
     }
+
+    /**
+     * The chart's "View as accessible table" toggle (found dead/unwired
+     * during the dark-mode/TallStackUI audit — no click handler at all)
+     * now renders a real <x-table> alternative built from the exact same
+     * $chartInvoiced/$chartCollected buckets as the chart, formatted with
+     * the same App\Support\Dashboard\Money::format() the stat cards use —
+     * asserting the formatted collected amount appears is what proves the
+     * table is fed real bucket data, not an empty stub.
+     */
+    public function test_the_chart_has_a_populated_accessible_table_alternative(): void
+    {
+        $this->actingAs($this->owner);
+
+        Livewire::test(TallStackDashboard::class, ['company' => $this->company])
+            ->call('loadDashboardData')
+            ->assertSee('View as accessible table')
+            ->assertSee('dashboard-trend-table', false)
+            ->assertSee('US$500', false);
+    }
 }

@@ -33,7 +33,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">All handover reports</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">All handover reports</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search number, job or client…" icon="magnifying-glass" clearable />
                 </div>
@@ -51,7 +51,7 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$handoverReports" paginate loading>
             @interact('column_number', $row)
-                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                 </span>
             @endinteract
@@ -83,7 +83,7 @@
                  separate detail page, so it's surfaced here directly. --}}
             @interact('column_signed_at', $row)
                 @if ($row['signed_at'])
-                    <button type="button" wire:click="viewSignature({{ $row['id'] }})" class="flex items-center gap-1.5 text-green-600 dark:text-green-400 hover:underline">
+                    <button type="button" wire:click="viewSignature({{ $row['id'] }})" class="flex items-center gap-1.5 text-green-600 dark:text-green-400! hover:underline">
                         <x-icon name="check-circle" class="w-4 h-4" />
                         <span class="text-xs font-medium">{{ $row['signed_at'] }}</span>
                     </button>
@@ -101,7 +101,7 @@
                     <button type="button"
                             x-on:click="window.navigator.clipboard.writeText('{{ route('portal.handover-report', $row['portal_key']) }}')"
                             title="Copy client signing link"
-                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
                         <x-icon name="clipboard" class="w-4 h-4" />
                     </button>
                 </div>
@@ -113,11 +113,11 @@
 
     <x-modal wire="showSignatureModal" title="Signature" center="sm">
         @if ($viewingSignature)
-            <p class="text-sm text-gray-600 dark:text-gray-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400!">
                 Confirmed by <strong>{{ $viewingSignature['signed_by_name'] }}</strong> on {{ $viewingSignature['signed_at'] }}.
             </p>
             @if ($viewingSignature['has_signature_image'])
-                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700 bg-white">
+                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700! bg-white">
             @endif
         @endif
 

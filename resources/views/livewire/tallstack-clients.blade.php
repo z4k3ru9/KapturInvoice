@@ -11,7 +11,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">All clients</span>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200!">All clients</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or email…" icon="magnifying-glass" clearable />
                 </div>
@@ -29,7 +29,7 @@
             ['index' => 'actions', 'label' => '', 'sortable' => false],
         ]" :rows="$clients" paginate loading>
             @interact('column_name', $row, $company)
-                <a href="{{ route('tallstack.clients.show', [$company, $row['id']]) }}" class="font-medium text-gray-900 dark:text-gray-100 hover:underline">
+                <a href="{{ route('tallstack.clients.show', [$company, $row['id']]) }}" class="font-medium text-gray-900 dark:text-gray-100! hover:underline">
                     {{ $row['name'] }}
                 </a>
             @endinteract
@@ -37,13 +37,13 @@
             {{-- Right-aligned, tabular numerals, red text when the client
                  owes money — matching prompt 10's own spec literally. --}}
             @interact('column_balance_formatted', $row)
-                <span class="tabular-nums font-medium {{ $row['balance'] > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-200' }}">
+                <span class="tabular-nums font-medium {{ $row['balance'] > 0 ? 'text-red-600 dark:text-red-400!' : 'text-gray-700 dark:text-gray-200!' }}">
                     {{ $row['balance_formatted'] }}
                 </span>
             @endinteract
 
             @interact('column_paid_to_date_formatted', $row)
-                <span class="tabular-nums text-gray-700 dark:text-gray-200">{{ $row['paid_to_date_formatted'] }}</span>
+                <span class="tabular-nums text-gray-700 dark:text-gray-200!">{{ $row['paid_to_date_formatted'] }}</span>
             @endinteract
 
             @interact('column_actions', $row, $company)
@@ -79,7 +79,7 @@
 
             <div>
                 <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Billing defaults</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Prefilled onto new invoices for this client (editable per invoice).</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400! mb-2">Prefilled onto new invoices for this client (editable per invoice).</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-input wire:model="default_discount" label="Default discount" type="number" step="0.01" />
                     <div class="flex items-end pb-2">

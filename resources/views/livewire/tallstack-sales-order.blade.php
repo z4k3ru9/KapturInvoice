@@ -22,9 +22,9 @@
             it back open.
         --}}
         <x-slot:meta>
-            <span><span class="text-gray-400 dark:text-gray-500">Client</span> {{ $job->client?->name ?? '—' }}</span>
-            <span><span class="text-gray-400 dark:text-gray-500">Job type</span> {{ $job->job_type->getLabel() }}</span>
-            <span><span class="text-gray-400 dark:text-gray-500">Source quotation</span> {{ $job->quotation?->number ?? '—' }}</span>
+            <span><span class="text-gray-400 dark:text-gray-500!">Client</span> {{ $job->client?->name ?? '—' }}</span>
+            <span><span class="text-gray-400 dark:text-gray-500!">Job type</span> {{ $job->job_type->getLabel() }}</span>
+            <span><span class="text-gray-400 dark:text-gray-500!">Source quotation</span> {{ $job->quotation?->number ?? '—' }}</span>
         </x-slot:meta>
         <x-slot:actions>
             <x-button icon="document-arrow-down" text="Download PDF" href="{{ route('sales-orders.pdf', $job) }}" target="_blank" color="gray" sm class="h-9" />
@@ -88,7 +88,7 @@
          active tab persists client-side without a network round trip;
          `activeTab` is entangled above so every wire:click action still
          knows which tab is open (e.g. for a modal launched from a tab). --}}
-    <div class="border-b border-gray-200 dark:border-gray-800">
+    <div class="border-b border-gray-200 dark:border-gray-800!">
         <nav class="flex flex-wrap gap-1 -mb-px overflow-x-auto">
             @foreach ([
                 'overview' => ['label' => 'Overview', 'icon' => 'squares-2x2'],
@@ -100,11 +100,11 @@
                 'activity' => ['label' => 'Activity', 'icon' => 'clock'],
             ] as $key => $meta)
                 <button type="button" wire:click="setTab('{{ $key }}')"
-                        class="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold border-b-2 whitespace-nowrap {{ $activeTab === $key ? 'border-[color:var(--ts-primary)] text-gray-900 dark:text-gray-100' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200' }}">
+                        class="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold border-b-2 whitespace-nowrap {{ $activeTab === $key ? 'border-[color:var(--ts-primary)] text-gray-900 dark:text-gray-100!' : 'border-transparent text-gray-500 dark:text-gray-400! hover:text-gray-700 dark:hover:text-gray-200!' }}">
                     <x-icon :name="$meta['icon']" class="w-4 h-4 shrink-0" />
                     {{ $meta['label'] }}
                     @if (! empty($meta['count']))
-                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-300">{{ $meta['count'] }}</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800! text-gray-500 dark:text-gray-300!">{{ $meta['count'] }}</span>
                     @endif
                 </button>
             @endforeach
@@ -126,7 +126,7 @@
         --}}
         <div class="grid lg:grid-cols-2 gap-4 items-start">
             <x-card minimize="mount">
-                <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job details</span></x-slot:header>
+                <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job details</span></x-slot:header>
                 <div class="grid sm:grid-cols-2 gap-4 text-sm">
                     <div><div class="text-gray-400 text-xs">Job number</div><div class="font-semibold">{{ $job->number }}</div></div>
                     <div><div class="text-gray-400 text-xs">Job type</div><div>{{ $job->job_type->getLabel() }}</div></div>
@@ -147,12 +147,12 @@
             </x-card>
 
             <x-card>
-                <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Fulfillment</span></x-slot:header>
+                <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Fulfillment</span></x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
-                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">Delivery orders</span><span class="font-semibold">{{ $deliveryOrders->count() }}</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">Handover reports</span><span class="font-semibold">{{ $handoverReports->count() }}</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">Invoices</span><span class="font-semibold">{{ $invoices->count() }}</span></div>
-                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400">Variations recorded</span><span class="font-semibold">{{ $variations->count() }}</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400!">Delivery orders</span><span class="font-semibold">{{ $deliveryOrders->count() }}</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400!">Handover reports</span><span class="font-semibold">{{ $handoverReports->count() }}</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400!">Invoices</span><span class="font-semibold">{{ $invoices->count() }}</span></div>
+                    <div class="flex items-center justify-between"><span class="text-gray-500 dark:text-gray-400!">Variations recorded</span><span class="font-semibold">{{ $variations->count() }}</span></div>
                 </div>
             </x-card>
         </div>
@@ -160,7 +160,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job line items</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job line items</span>
                     <span class="text-xs text-gray-400">Total: {{ $overview['itemsTotal'] }}</span>
                 </div>
             </x-slot:header>
@@ -181,7 +181,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Payment milestones</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Payment milestones</span>
                     @if ($milestonesEditable)
                         <x-button text="New milestone" icon="plus" color="blue" sm wire:click="addMilestone" />
                     @endif
@@ -208,17 +208,17 @@
                 @endinteract
                 <x-slot:empty>No milestones recorded.</x-slot:empty>
             </x-table>
-            <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 text-sm">
-                <span class="text-gray-500 dark:text-gray-400">Milestones total</span>
+            <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-800! text-sm">
+                <span class="text-gray-500 dark:text-gray-400!">Milestones total</span>
                 <span class="font-bold tabular-nums">{{ $milestonesTotal }}</span>
             </div>
         </x-card>
 
         <x-card>
-            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Source snapshot</span></x-slot:header>
+            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Source snapshot</span></x-slot:header>
             <p class="text-xs text-gray-400 mb-2">Frozen at job creation from the accepted quotation — never re-synced afterward, so this job's history can't be retroactively altered by later quotation edits.</p>
             @if ($sourceSnapshot)
-                <pre class="text-[11px] leading-relaxed bg-gray-50 dark:bg-gray-900 rounded-lg p-3 overflow-x-auto max-h-80">{{ json_encode($sourceSnapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                <pre class="text-[11px] leading-relaxed bg-gray-50 dark:bg-gray-900! rounded-lg p-3 overflow-x-auto max-h-80">{{ json_encode($sourceSnapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
             @else
                 <p class="text-sm text-gray-400">No snapshot recorded.</p>
             @endif
@@ -230,7 +230,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Invoices billed against this job</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Invoices billed against this job</span>
                     {{-- App\Models\Invoice::sales_order_id — prefilled via the
                          same `?sales_order_id=` query-param convention
                          App\Livewire\TallStackStatementOfAccount already uses
@@ -260,7 +260,7 @@
         </x-card>
 
         <x-card>
-            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Payment milestones (reference)</span></x-slot:header>
+            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Payment milestones (reference)</span></x-slot:header>
             <x-table :headers="[
                 ['index' => 'type_label', 'label' => 'Type'],
                 ['index' => 'description', 'label' => 'Description'],
@@ -277,7 +277,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Allocated job cost</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Allocated job cost</span>
                     <span class="text-xs text-gray-400">Total allocated: {{ $allocatedCostTotal }}</span>
                 </div>
             </x-slot:header>
@@ -304,7 +304,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Delivery orders</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Delivery orders</span>
                         <x-button text="Record delivery" icon="plus" color="blue" sm wire:click="openDeliveryModal" />
                     </div>
                 </x-slot:header>
@@ -324,7 +324,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Handover reports</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Handover reports</span>
                         @if ($overview['requiresHandover'])
                             <x-button text="Record handover" icon="plus" color="blue" sm wire:click="openHandoverModal" />
                         @endif
@@ -358,7 +358,7 @@
     {{-- ============================= MARGIN ============================= --}}
     <div @if ($activeTab !== 'margin') hidden @endif class="flex flex-col gap-4">
         <x-card>
-            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job margin</span></x-slot:header>
+            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job margin</span></x-slot:header>
             <p class="text-xs text-gray-400 mb-3">
                 Same convention as the Job Margin report: sales value, allocated gross cost, and unallocated
                 purchasing cost are kept as three genuinely separate numbers, never blended into one figure.
@@ -389,7 +389,7 @@
         <x-card>
             <x-slot:header>
                 <div class="flex items-center justify-between w-full">
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Job variations</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job variations</span>
                     <x-button text="Record variation" icon="plus" color="blue" sm wire:click="openVariationModal" />
                 </div>
             </x-slot:header>
@@ -408,7 +408,7 @@
         </x-card>
 
         <x-card>
-            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Status history</span></x-slot:header>
+            <x-slot:header><span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Status history</span></x-slot:header>
             <x-table :headers="[
                 ['index' => 'action', 'label' => 'Event'],
                 ['index' => 'user', 'label' => 'By'],
@@ -416,7 +416,7 @@
                 ['index' => 'created_at', 'label' => 'When'],
             ]" :rows="$activityEvents">
                 @interact('column_reason', $row)
-                    <span class="text-gray-500 dark:text-gray-400">{{ $row['reason'] ?: '—' }}</span>
+                    <span class="text-gray-500 dark:text-gray-400!">{{ $row['reason'] ?: '—' }}</span>
                 @endinteract
                 <x-slot:empty>No activity recorded yet.</x-slot:empty>
             </x-table>
@@ -436,7 +436,7 @@
 
     <x-modal wire="showCloseFinanciallyModal" title="Close financially" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="text-sm text-gray-500 dark:text-gray-400!">
                 Blocked automatically while an outstanding customer balance or unresolved vendor cost remains.
                 Overriding requires Owner authorization, a reason, and an outstanding-balance summary — Admin may
                 prepare but cannot finalize the override.
@@ -488,7 +488,7 @@
         <div class="flex flex-col gap-4">
             <x-textarea wire:model="delivery_notes" label="Notes" rows="2" />
             <div class="flex flex-col gap-2">
-                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Delivered items</span>
+                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400!">Delivered items</span>
                 @foreach ($delivery_items as $i => $row)
                     <div class="grid grid-cols-[1.4fr_1fr_0.7fr_auto] gap-2 items-end">
                         <x-select.styled wire:model="delivery_items.{{ $i }}.sales_order_item_id" label="Job line" searchable

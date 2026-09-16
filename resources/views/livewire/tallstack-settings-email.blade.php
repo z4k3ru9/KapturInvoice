@@ -9,7 +9,7 @@
     <x-tallstack.settings-tabs :company="$company" active="email">
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Templates</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Templates</span>
         </x-slot:header>
 
         <div class="flex flex-col gap-4">
@@ -38,12 +38,12 @@
     <x-card>
         <x-slot:header>
             <div>
-                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Reminders</span>
+                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Reminders</span>
                 <p class="text-xs text-gray-400">Sent automatically relative to an invoice's due date or send date.</p>
             </div>
         </x-slot:header>
 
-        <div class="flex flex-col gap-4 divide-y divide-gray-100 dark:divide-gray-800">
+        <div class="flex flex-col gap-4 divide-y divide-gray-100 dark:divide-gray-800!">
             @foreach ($reminders as $n => $reminder)
                 <div class="grid sm:grid-cols-4 gap-4 items-end {{ $loop->first ? '' : 'pt-4' }}">
                     <x-toggle wire:model.live="reminders.{{ $n }}.enabled" label="Reminder {{ $n }}" />
@@ -61,7 +61,7 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Late fees</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Late fees</span>
         </x-slot:header>
 
         <div class="flex flex-col gap-4">

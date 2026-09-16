@@ -47,16 +47,16 @@
                     <div class="flex flex-col gap-3">
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Contact</h3>
                         <dl class="flex flex-col gap-2 text-sm">
-                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Email</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->email ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Phone</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->phone ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Website</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->website ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-4"><dt class="text-gray-500">Tax number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->tax_number ?: '—' }}</dd></div>
-                            <div class="flex justify-between gap-4"><dt class="text-gray-500">ID number</dt><dd class="text-gray-900 dark:text-gray-100">{{ $client->id_number ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400!">Email</dt><dd class="text-gray-900 dark:text-gray-100!">{{ $client->email ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400!">Phone</dt><dd class="text-gray-900 dark:text-gray-100!">{{ $client->phone ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400!">Website</dt><dd class="text-gray-900 dark:text-gray-100!">{{ $client->website ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400!">Tax number</dt><dd class="text-gray-900 dark:text-gray-100!">{{ $client->tax_number ?: '—' }}</dd></div>
+                            <div class="flex justify-between gap-4"><dt class="text-gray-500 dark:text-gray-400!">ID number</dt><dd class="text-gray-900 dark:text-gray-100!">{{ $client->id_number ?: '—' }}</dd></div>
                         </dl>
                     </div>
                     <div class="flex flex-col gap-3">
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400">Address &amp; currency</h3>
-                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                        <div class="text-sm text-gray-900 dark:text-gray-100!">
                             @if ($client->address_line_1 || $client->address_line_2 || $client->city || $client->state || $client->postal_code)
                                 <p>{{ $client->address_line_1 }}</p>
                                 @if ($client->address_line_2)
@@ -65,12 +65,12 @@
                                 <p>{{ collect([$client->city, $client->state, $client->postal_code])->filter()->implode(', ') }}</p>
                                 <p>{{ $client->country_code ?: '—' }}</p>
                             @else
-                                <p class="text-gray-500">No address on file.</p>
+                                <p class="text-gray-500 dark:text-gray-400!">No address on file.</p>
                             @endif
                         </div>
                         <div class="flex justify-between gap-4 text-sm">
-                            <span class="text-gray-500">Currency</span>
-                            <span class="text-gray-900 dark:text-gray-100">{{ $client->currency_code ?: '—' }}</span>
+                            <span class="text-gray-500 dark:text-gray-400!">Currency</span>
+                            <span class="text-gray-900 dark:text-gray-100!">{{ $client->currency_code ?: '—' }}</span>
                         </div>
                     </div>
                 </div>
@@ -80,16 +80,16 @@
                  "not an editable field on this read view." --}}
             <x-card class="mt-5">
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Billing defaults</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Billing defaults</span>
                 </x-slot:header>
                 <div class="flex items-center justify-between gap-4">
                     <div>
-                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                        <div class="text-sm text-gray-900 dark:text-gray-100!">
                             Default discount:
                             <span class="font-semibold tabular-nums">{{ number_format((float) $client->default_discount, 2) }}</span>
                             <x-badge :text="$client->default_discount_is_percentage ? 'Percentage' : 'Fixed amount'" color="gray" sm />
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Prefilled onto new invoices for this client — editable per invoice.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400! mt-1">Prefilled onto new invoices for this client — editable per invoice.</p>
                     </div>
                 </div>
             </x-card>
@@ -163,7 +163,7 @@
                             <button type="button"
                                     x-on:click="window.navigator.clipboard.writeText('{{ route('portal.client-home', $row['key']) }}')"
                                     title="Copy portal link"
-                                    class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                                    class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
                                 <x-icon name="clipboard" class="w-4 h-4" />
                             </button>
                             <x-button text="Revoke" color="red" scope="row-action" sm wire:click="revokePortalLink({{ $row['id'] }})" wire:confirm="Revoke this portal link?" />
@@ -216,7 +216,7 @@
 
             <div>
                 <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">Billing defaults</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Prefilled onto new invoices for this client (editable per invoice).</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400! mb-2">Prefilled onto new invoices for this client (editable per invoice).</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <x-input wire:model="default_discount" label="Default discount" type="number" step="0.01" />
                     <div class="flex items-end pb-2">
