@@ -1,6 +1,6 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotes', 'icon' => 'document-duplicate']]" title="Quotes" />
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotes (Legacy)', 'icon' => 'document-duplicate']]" title="Quotes (Legacy)" />
 
     {{-- Stat row — same "compact" x-stats scope as Invoices/Quotations. Title + number only, no footer (see memory.md's stat-card density pass). --}}
     <div class="grid grid-cols-1 min-[820px]:!grid-cols-3 gap-2.5">

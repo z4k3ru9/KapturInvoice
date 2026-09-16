@@ -192,7 +192,7 @@ class TallStackQuotes extends Component
         ])->layoutData([
             'company' => $this->company,
             'active' => 'quotes',
-            'title' => 'Quotes',
+            'title' => 'Quotes (Legacy)',
         ]);
     }
 }
