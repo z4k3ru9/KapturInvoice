@@ -8,7 +8,7 @@
 <div class="flex flex-col gap-3">
     <div class="grid sm:grid-cols-4 gap-3">
         <div class="sm:col-span-2">
-            <x-select.styled wire:model.live="item_product_id" label="Product (optional)" searchable clearable
+            <x-select.styled wire:model.live="item_product_id" label="Product (optional)" searchable
                 :options="$products->map(fn ($p) => ['label' => $p->name, 'value' => (string) $p->id])->all()" />
         </div>
         <div class="sm:col-span-2">

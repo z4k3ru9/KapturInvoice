@@ -43,12 +43,12 @@
                      state the enum doesn't have. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterStatus(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All
                     </button>
                     @foreach ($statuses as $case)
                         <button type="button" wire:click="filterStatus('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $case->getLabel() }}
                         </button>
                     @endforeach
@@ -78,7 +78,7 @@
                 title="" gives the full number as a native hover tooltip.
             --}}
             @interact('column_number', $row)
-                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200" title="{{ $row['number'] }}">
+                <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
                 </span>
             @endinteract
@@ -99,7 +99,7 @@
                     <button type="button"
                             x-on:click="window.navigator.clipboard.writeText('{{ route('portal.quotation', $row['portal_key']) }}')"
                             title="Copy client acceptance link"
-                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300 hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-colors">
+                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
                         <x-icon name="clipboard" class="w-4 h-4" />
                     </button>
                     <x-dropdown icon="ellipsis-vertical" scope="row-action">
@@ -156,11 +156,11 @@
 
     <x-modal wire="showSignatureModal" title="Signature" center="sm">
         @if ($viewingSignature)
-            <p class="text-sm text-gray-600 dark:text-gray-400">
+            <p class="text-sm text-gray-600 dark:text-gray-400!">
                 Accepted by <strong>{{ $viewingSignature['signed_by_name'] }}</strong> on {{ $viewingSignature['signed_at'] }}.
             </p>
             @if ($viewingSignature['has_signature_image'])
-                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700 bg-white">
+                <img src="{{ $viewingSignature['signature'] }}" alt="Signature" class="mt-3 h-24 rounded border border-gray-200 dark:border-gray-700! bg-white">
             @endif
         @endif
 
