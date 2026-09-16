@@ -69,6 +69,38 @@ class PdfExportTest extends TestCase
             ->assertHeader('content-type', 'application/pdf');
     }
 
+    /**
+     * `credits.client_id` is nullable (2026_09_29_090003_make_credits_
+     * client_id_nullable.php) to support quarantined/unmapped-client
+     * credits from the legacy importer (ImportInvoiceNinjaV4/V5's
+     * credit-quarantine flow, see MigrationBatchV4Test/MigrationBatchV5Test).
+     * credit.blade.php must render such a credit without throwing on a
+     * null $credit->client.
+     */
+    public function test_credit_pdf_downloads_for_a_quarantined_credit_with_no_mapped_client(): void
+    {
+        $user = User::factory()->create();
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $company->users()->attach($user, ['role' => 'owner']);
+        $credit = Credit::create(['company_id' => $company->id, 'client_id' => null, 'number' => 'CRE-0001', 'amount' => 50]);
+
+        $this->actingAs($user)
+            ->get(route('credits.pdf', $credit))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_credit_pdf_template_shows_a_placeholder_for_a_quarantined_credit_with_no_mapped_client(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $credit = Credit::create(['company_id' => $company->id, 'client_id' => null, 'number' => 'CRE-0001', 'amount' => 50]);
+        $credit->loadMissing('client', 'company');
+
+        $html = view('pdf.credit', ['credit' => $credit])->render();
+
+        $this->assertStringContainsString('—', $html);
+    }
+
     public function test_portal_invoice_pdf_downloads_without_auth_for_the_domain_matched_company(): void
     {
         $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);

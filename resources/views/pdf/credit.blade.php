@@ -54,11 +54,11 @@
 
     <div>
         <h4 class="muted" style="margin-bottom: 2px; text-transform: uppercase; font-size: 11px;">{{ __('documents.issued_to') }}</h4>
-        <div style="font-weight: bold;">{{ $credit->client->name }}</div>
-        @if ($credit->client->email)
+        <div style="font-weight: bold;">{{ $credit->client?->name ?? '—' }}</div>
+        @if ($credit->client?->email)
             <div class="muted">{{ $credit->client->email }}</div>
         @endif
-        @if ($credit->client->tax_number)
+        @if ($credit->client?->tax_number)
             <div class="muted">{{ __('documents.tax_id') }}: {{ $credit->client->tax_number }}</div>
         @endif
     </div>
