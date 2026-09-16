@@ -30,12 +30,31 @@
         {method}(value) via wire:click — value is passed through Blade's
         own @js() so null/string/int all serialize correctly.
 --}}
+{{--
+    wire:click below builds its call arguments via a plain `{{ }}` echo of
+    json_encode(), never the `@js()` directive: `@js()` embedded inside a
+    component tag's OWN attribute string (between the quotes of
+    wire:click="...") is never compiled at all — Blade's component-tag
+    attribute scanner doesn't pre-process directives nested inside an
+    attribute value the way it does for plain top-level template text, so
+    the rendered HTML ends up with the literal, uninterpreted text
+    "@js($option['value'])" sitting inside wire:click, which the browser
+    then tries (and fails) to evaluate as JavaScript — confirmed live via
+    a real "SyntaxError: Invalid or unexpected token" console error and
+    the raw uncompiled string in the DOM's own wire:click attribute. This
+    silently broke every status/type/brand filter dropdown built on this
+    shared component (Invoices, Payments, Quotations, Jobs, Vendor Bills,
+    Vendor Purchase Orders, Proposals, Client Portal Invitations,
+    Documents, Products, Price List Items — see this file's own docblock
+    above). `{{ json_encode(...) }}` is a plain expression echo, not a
+    directive, so it compiles correctly in the same position.
+--}}
 <x-dropdown text="{{ $label }}" icon="funnel" scope="toolbar">
     @foreach ($options as $option)
         <x-dropdown.items
             text="{{ $option['label'] }}"
             :icon="$active === $option['value'] ? 'check' : null"
-            wire:click="{{ $method }}(@js($option['value']))"
+            wire:click="{{ $method }}({{ json_encode($option['value']) }})"
         />
     @endforeach
 </x-dropdown>
