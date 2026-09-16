@@ -2,6 +2,7 @@
 
 namespace App\Actions\Delivery;
 
+use App\Actions\Sales\CloseJobOperationally;
 use App\Enums\CompanyRole;
 use App\Models\DeliveryOrder;
 use App\Models\SalesOrder;
@@ -25,6 +26,7 @@ class CompleteDelivery
     public function __construct(
         private DocumentNumberGenerator $numberGenerator,
         private AuditLogger $auditLogger,
+        private CloseJobOperationally $closeJobOperationally,
     ) {}
 
     /**
@@ -68,6 +70,35 @@ class CompleteDelivery
             ['number' => $number],
         );
 
+        $this->autoCloseIfEligible($salesOrder);
+
         return $deliveryOrder->fresh(['items']);
+    }
+
+    /**
+     * Status-transition automation: a goods-only job's operational
+     * closure condition (at least one recorded Delivery Order) is fully
+     * computed already — App\Actions\Sales\CloseJobOperationally's own
+     * check, not a new one. Auto-close the moment it's satisfied rather
+     * than waiting for a manual "Close operationally" click.
+     * RuntimeException here just means "not yet met" (a job requiring
+     * handover, or one still missing a requirement) — not a real error,
+     * so it's swallowed. A held job (App\Models\Concerns\Holdable) is
+     * left alone; placing a hold is the intended way to pause this
+     * specific automation on one record.
+     */
+    private function autoCloseIfEligible(SalesOrder $salesOrder): void
+    {
+        $fresh = $salesOrder->fresh();
+
+        if ($fresh->isHeld() || $fresh->operational_closed_at !== null) {
+            return;
+        }
+
+        try {
+            $this->closeJobOperationally->close($fresh);
+        } catch (RuntimeException) {
+            // Not yet eligible — nothing to do.
+        }
     }
 }

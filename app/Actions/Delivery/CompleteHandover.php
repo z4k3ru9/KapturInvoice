@@ -2,6 +2,7 @@
 
 namespace App\Actions\Delivery;
 
+use App\Actions\Sales\CloseJobOperationally;
 use App\Enums\CompanyRole;
 use App\Enums\JobType;
 use App\Models\HandoverReport;
@@ -35,6 +36,7 @@ class CompleteHandover
     public function __construct(
         private DocumentNumberGenerator $numberGenerator,
         private AuditLogger $auditLogger,
+        private CloseJobOperationally $closeJobOperationally,
     ) {}
 
     public function complete(
@@ -88,6 +90,8 @@ class CompleteHandover
             $override ? $overrideReason : null,
         );
 
+        $this->autoCloseIfEligible($salesOrder);
+
         return $handoverReport;
     }
 
@@ -96,5 +100,27 @@ class CompleteHandover
         return $salesOrder->job_type === JobType::Service
             ? $salesOrder->isServiceReportsResolvedForHandover()
             : $salesOrder->isFullyDelivered();
+    }
+
+    /**
+     * Status-transition automation — see App\Actions\Delivery\
+     * CompleteDelivery's identical method for the full rationale. A job
+     * requiring handover becomes operationally-closure-eligible the
+     * moment its Handover Report exists, whether reached normally or via
+     * an Owner/Admin override above.
+     */
+    private function autoCloseIfEligible(SalesOrder $salesOrder): void
+    {
+        $fresh = $salesOrder->fresh();
+
+        if ($fresh->isHeld() || $fresh->operational_closed_at !== null) {
+            return;
+        }
+
+        try {
+            $this->closeJobOperationally->close($fresh);
+        } catch (RuntimeException) {
+            // Not yet eligible — nothing to do.
+        }
     }
 }
