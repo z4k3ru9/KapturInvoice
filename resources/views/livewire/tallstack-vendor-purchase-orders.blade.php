@@ -33,8 +33,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or vendor…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or vendor…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -47,7 +50,7 @@
             ['index' => 'payment_ceiling', 'label' => 'Payment ceiling', 'align' => 'right', 'sortable' => false],
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$purchaseOrders" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$purchaseOrders" :sort="$sort" striped paginate loading>
             @interact('column_number', $row)
                 <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
@@ -60,6 +63,10 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.vendor-purchase-orders.edit', [$company, $row['id']])],
+                        ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('vendor-purchase-orders.pdf', $row['id']), 'target' => '_blank'],
+                    ];
                     // Only ever populated for a Draft row — Force delete's
                     // full predicate (no bills) is still re-checked
                     // server-side by App\Actions\Procurement\ForceDeleteVendorPurchaseOrder.
@@ -68,11 +75,7 @@
                         ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this vendor purchase order? This cannot be undone.'],
                     ] : [];
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.vendor-purchase-orders.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('vendor-purchase-orders.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No vendor purchase orders found.</x-slot:empty>

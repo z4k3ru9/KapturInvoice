@@ -46,8 +46,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search client, invoice, reference…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search client, invoice, reference…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -61,7 +64,7 @@
             ['index' => 'receipt_number', 'label' => 'Receipt', 'sortable' => false],
             ['index' => 'payment_date', 'label' => 'Date'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$payments" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
+        ]" :rows="$payments" :sort="$sort" striped paginate loading>
             @interact('column_status', $row)
                 <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
@@ -72,6 +75,12 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Allocate / view', 'icon' => 'arrows-right-left', 'href' => route('tallstack.payments.allocate', [$company, $row['id']])],
+                    ];
+                    if ($row['has_receipt']) {
+                        $primaryActions[] = ['text' => 'Download receipt', 'icon' => 'document-arrow-down', 'href' => route('receipts.pdf', $row['receipt_id']), 'target' => '_blank'];
+                    }
                     $extraActions = [];
                     if ($row['status'] === \App\Enums\PaymentStatus::Pending) {
                         $extraActions[] = ['text' => 'Verify', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'openVerifyModal('.$row['id'].')'];
@@ -93,13 +102,7 @@
                         $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this payment? This cannot be undone.'];
                     }
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="arrows-right-left" href="{{ route('tallstack.payments.allocate', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Allocate / view" />
-                    @if ($row['has_receipt'])
-                        <x-button icon="document-arrow-down" href="{{ route('receipts.pdf', $row['receipt_id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download receipt" />
-                    @endif
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No payments found.</x-slot:empty>
