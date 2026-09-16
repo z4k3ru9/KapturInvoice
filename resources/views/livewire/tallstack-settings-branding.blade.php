@@ -10,17 +10,17 @@
     <x-card>
         <x-slot:header>
             <div>
-                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Logo & colors</span>
+                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Logo & colors</span>
                 <p class="text-xs text-gray-400">Printed on invoice/credit PDFs and used on the public homepage/portal for this entity.</p>
             </div>
         </x-slot:header>
 
         <div class="flex flex-col gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Logo</label>
+                <x-label label="Logo" />
                 @if ($existingLogoDataUri && ! $logo)
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700!">
                             <img src="{{ $existingLogoDataUri }}" alt="" class="w-full h-full object-cover">
                         </div>
                         <x-button text="Remove" icon="trash" color="red" sm wire:click="removeLogo" />
@@ -30,20 +30,8 @@
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Primary color</label>
-                    <div class="flex items-center gap-3">
-                        <input type="color" wire:model="primary_color" class="h-9 w-9 rounded-md border border-gray-200 dark:border-gray-700 cursor-pointer bg-transparent p-0 shrink-0">
-                        <x-input wire:model="primary_color" placeholder="#RRGGBB" class="flex-1" />
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Secondary color</label>
-                    <div class="flex items-center gap-3">
-                        <input type="color" wire:model="secondary_color" class="h-9 w-9 rounded-md border border-gray-200 dark:border-gray-700 cursor-pointer bg-transparent p-0 shrink-0">
-                        <x-input wire:model="secondary_color" placeholder="#RRGGBB" class="flex-1" />
-                    </div>
-                </div>
+                <x-color wire:model="primary_color" label="Primary color" placeholder="#RRGGBB" clearable />
+                <x-color wire:model="secondary_color" label="Secondary color" placeholder="#RRGGBB" clearable />
             </div>
         </div>
     </x-card>
@@ -51,7 +39,7 @@
     <x-card>
         <x-slot:header>
             <div>
-                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Signatory & banking</span>
+                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Signatory & banking</span>
                 <p class="text-xs text-gray-400">For a future signature block and payment instructions on invoice/quotation PDFs — not yet printed on generated documents.</p>
             </div>
         </x-slot:header>
@@ -63,10 +51,10 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Signature image</label>
+                <x-label label="Signature image" />
                 @if ($existingSignatureDataUri && ! $signature)
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white">
+                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700! bg-white">
                             <img src="{{ $existingSignatureDataUri }}" alt="" class="w-full h-full object-contain">
                         </div>
                         <x-button text="Remove" icon="trash" color="red" sm wire:click="removeSignature" />

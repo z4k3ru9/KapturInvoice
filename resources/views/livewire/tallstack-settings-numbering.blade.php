@@ -9,7 +9,7 @@
     <x-tallstack.settings-tabs :company="$company" active="numbering">
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Numbering sequences</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Numbering sequences</span>
         </x-slot:header>
 
         <p class="text-[11px] text-gray-400 -mt-2 mb-3">Each sequence auto-increments independently per company. These are live counters — changing one affects the very next document's number.</p>
@@ -23,7 +23,7 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Defaults</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Defaults</span>
         </x-slot:header>
 
         <p class="text-[11px] text-gray-400 -mt-2 mb-3">Applied to new invoices/quotes unless overridden on the document itself.</p>

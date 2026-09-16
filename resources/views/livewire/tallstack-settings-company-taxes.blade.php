@@ -9,7 +9,7 @@
     <x-tallstack.settings-tabs :company="$company" active="company-and-taxes">
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Identity</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Identity</span>
         </x-slot:header>
 
         <div class="grid sm:grid-cols-2 gap-4">
@@ -25,15 +25,15 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Branding</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Branding</span>
         </x-slot:header>
 
         <div class="flex flex-col gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Logo</label>
+                <x-label label="Logo" />
                 @if ($existingLogoDataUri && ! $logo)
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700!">
                             <img src="{{ $existingLogoDataUri }}" alt="" class="w-full h-full object-cover">
                         </div>
                     </div>
@@ -42,27 +42,15 @@
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Primary color</label>
-                    <div class="flex items-center gap-3">
-                        <input type="color" wire:model="primary_color" class="h-9 w-9 rounded-md border border-gray-200 dark:border-gray-700 cursor-pointer bg-transparent p-0 shrink-0">
-                        <x-input wire:model="primary_color" placeholder="#RRGGBB" class="flex-1" />
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Secondary color</label>
-                    <div class="flex items-center gap-3">
-                        <input type="color" wire:model="secondary_color" class="h-9 w-9 rounded-md border border-gray-200 dark:border-gray-700 cursor-pointer bg-transparent p-0 shrink-0">
-                        <x-input wire:model="secondary_color" placeholder="#RRGGBB" class="flex-1" />
-                    </div>
-                </div>
+                <x-color wire:model="primary_color" label="Primary color" placeholder="#RRGGBB" clearable />
+                <x-color wire:model="secondary_color" label="Secondary color" placeholder="#RRGGBB" clearable />
             </div>
         </div>
     </x-card>
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Document numbering</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Document numbering</span>
         </x-slot:header>
 
         <div class="grid sm:grid-cols-3 gap-4">
@@ -78,7 +66,7 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">Taxes</span>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Taxes</span>
         </x-slot:header>
 
         <div class="flex flex-col gap-4">
