@@ -274,6 +274,7 @@ class TallStackQuotations extends Component
                 'status' => $quotation->status,
                 'status_label' => $quotation->status->getLabel(),
                 'status_color' => StatusColor::map($quotation->status->getColor()),
+                'viewed_at' => $quotation->viewed_at?->format('d M Y H:i'),
                 'portal_key' => $quotation->portal_key,
                 'signed_at' => $quotation->signed_at?->format('d M Y H:i'),
                 'signed_by_name' => $quotation->signed_by_name,

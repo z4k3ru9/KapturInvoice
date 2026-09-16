@@ -50,6 +50,7 @@ class Quotation extends Model
             'customer_po_date' => 'date',
             'customer_po_is_system_generated' => 'boolean',
             'sent_at' => 'datetime',
+            'viewed_at' => 'datetime',
             'accepted_at' => 'datetime',
             'rejected_at' => 'datetime',
             'expired_at' => 'datetime',

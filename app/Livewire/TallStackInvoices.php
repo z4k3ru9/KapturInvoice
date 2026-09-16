@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Actions\Billing\ForceDeleteInvoice;
+use App\Actions\Shared\PlaceHold;
+use App\Actions\Shared\ReleaseHold;
 use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Models\Company;
@@ -50,6 +52,12 @@ class TallStackInvoices extends Component
 
     public array $sort = ['column' => 'invoice_date', 'direction' => 'desc'];
 
+    public bool $showHoldModal = false;
+
+    public ?int $holdingId = null;
+
+    public string $holdReason = '';
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -85,6 +93,54 @@ class TallStackInvoices extends Component
             $this->toast()->success('Invoice permanently deleted.')->send();
         } catch (RuntimeException $e) {
             $this->toast()->error('Could not delete invoice', $e->getMessage())->send();
+        }
+    }
+
+    // --- Hold / Release hold ----------------------------------------------
+    // The override lever for the status-transition automation
+    // (App\Console\Commands\MarkInvoicesOverdue,
+    // App\Console\Commands\GenerateDueRecurringInvoices): pausing
+    // automation on one specific invoice for a real reason (moderation, a
+    // pending revision), never a raw status pick — see
+    // App\Models\Concerns\Holdable's own docblock.
+
+    public function openHoldModal(int $id): void
+    {
+        $this->holdingId = $id;
+        $this->holdReason = '';
+        $this->showHoldModal = true;
+    }
+
+    public function placeHold(): void
+    {
+        $invoice = $this->findScoped($this->holdingId);
+
+        if (! $invoice) {
+            return;
+        }
+
+        try {
+            app(PlaceHold::class)->hold($invoice, auth()->user(), $this->holdReason);
+            $this->showHoldModal = false;
+            $this->toast()->success('Invoice held.', 'Automation is paused on this invoice until the hold is released.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not place hold', $e->getMessage())->send();
+        }
+    }
+
+    public function releaseHold(int $id): void
+    {
+        $invoice = $this->findScoped($id);
+
+        if (! $invoice) {
+            return;
+        }
+
+        try {
+            app(ReleaseHold::class)->release($invoice, auth()->user());
+            $this->toast()->success('Hold released.', 'Automation will resume on this invoice.')->send();
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not release hold', $e->getMessage())->send();
         }
     }
 
@@ -133,6 +189,8 @@ class TallStackInvoices extends Component
                 'status' => $invoice->status,
                 'status_label' => $invoice->status->getLabel(),
                 'status_color' => StatusColor::map($invoice->status->getColor()),
+                'is_held' => $invoice->isHeld(),
+                'held_reason' => $invoice->held_reason,
             ]);
 
         $outstanding = (clone $base)
