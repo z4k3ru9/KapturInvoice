@@ -478,7 +478,22 @@
 
     <x-slot:header>
         <x-layout.header without-mobile-button>
-            <x-slot:left>
+            {{--
+                A single manually-built flex row in the default slot,
+                not the vendor's own `left`/`right` slots: TallStackUI's
+                `layout.header` renders each of `slots.left`/`slots.right`
+                as its own plain shrink-to-fit div (no `flex-1`, and no
+                way to add one from outside since neither div merges an
+                `$attributes` bag from the `x-slot`) with `justify-between`
+                on their shared parent — so the search bar's own container
+                could never grow past its content width; it just sat next
+                to a growing empty gap before the right-hand controls, the
+                exact "empty space in the header" the user pointed at. One
+                row we own end-to-end (search given `flex-1`, everything
+                else `shrink-0`) is the only way to make the search bar
+                itself the thing that grows.
+            --}}
+            <div class="flex flex-1 min-w-0 items-center gap-4">
                 {{--
                     A single adaptive toggle rather than two separate icons:
                     the package's own header renders its own mobile
@@ -545,10 +560,10 @@
                     description. Its own root element already carries
                     the `hidden sm:!block` this div used to provide.
                 --}}
-                <livewire:global-search :company="$company" :key="'global-search-'.$company->id" />
-            </x-slot:left>
-            <x-slot:right>
-                <div class="flex items-center gap-2">
+                <div class="flex-1 min-w-0">
+                    <livewire:global-search :company="$company" :key="'global-search-'.$company->id" />
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
                     {{--
                         color="blue", not "primary": a general function
                         (create a new record) shouldn't borrow the tenant's
@@ -677,7 +692,7 @@
                         </x-dropdown.items>
                     </x-dropdown>
                 </div>
-            </x-slot:right>
+            </div>
         </x-layout.header>
     </x-slot:header>
 

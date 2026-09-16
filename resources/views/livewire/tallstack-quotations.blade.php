@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotations']]" title="Quotations">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotations', 'icon' => 'document-text']]" title="Quotations">
         <x-slot:actions>
             {{-- color="blue", not "primary" — see app.blade.php's own
                  "+New" button for why: a general action shouldn't borrow

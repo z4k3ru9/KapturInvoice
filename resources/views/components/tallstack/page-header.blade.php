@@ -10,9 +10,15 @@
     docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's "Established
     TallStackUI patterns" section.
 
-    $crumbs: array of ['label' => string, 'url' => string|null] — the last
-    crumb is rendered as plain text even if it carries a url, since it's
-    the current page. Every other crumb links when it has a url.
+    $crumbs: array of ['label' => string, 'url' => string|null, 'icon' =>
+    string|null] — the last crumb is rendered as plain text even if it
+    carries a url, since it's the current page. Every other crumb links
+    when it has a url. `icon` is optional and backward compatible: when
+    present it's the same icon name already assigned to that section in
+    the sidebar nav (app.blade.php's own $nav array), rendered just
+    before the crumb's label; when absent (the common case today, since
+    most callers haven't been given one yet) the crumb renders exactly as
+    before, with no icon.
 
     $meta (optional slot): a compact, at-a-glance row of label/value pairs
     (e.g. Client, Date, PO number) rendered under the title/badge — added
@@ -46,9 +52,19 @@
                     <span>/</span>
                 @endif
                 @if (! empty($crumb['url']) && $i < count($crumbs) - 1)
-                    <a href="{{ $crumb['url'] }}" class="hover:underline">{{ $crumb['label'] }}</a>
+                    <a href="{{ $crumb['url'] }}" class="inline-flex items-center gap-1 hover:underline">
+                        @if (! empty($crumb['icon']))
+                            <x-icon name="{{ $crumb['icon'] }}" class="h-3.5 w-3.5" />
+                        @endif
+                        {{ $crumb['label'] }}
+                    </a>
                 @else
-                    <span>{{ $crumb['label'] }}</span>
+                    <span class="inline-flex items-center gap-1">
+                        @if (! empty($crumb['icon']))
+                            <x-icon name="{{ $crumb['icon'] }}" class="h-3.5 w-3.5" />
+                        @endif
+                        {{ $crumb['label'] }}
+                    </span>
                 @endif
             @endforeach
         </div>

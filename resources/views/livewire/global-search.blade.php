@@ -6,7 +6,7 @@
                x-on:focus="open = true"
                x-on:input="open = true"
                placeholder="Search invoices, quotations, jobs, proposals…"
-               class="h-9 w-72 text-sm rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! dark:placeholder:text-gray-500! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+               class="h-9 w-full text-sm rounded-lg border-gray-200 dark:border-gray-800! dark:bg-gray-900! dark:text-gray-100! dark:placeholder:text-gray-500! pl-9 focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
     </div>
 
     {{--
