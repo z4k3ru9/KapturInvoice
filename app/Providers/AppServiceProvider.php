@@ -248,6 +248,7 @@ class AppServiceProvider extends ServiceProvider
             'border-b border-[color:color-mix(in_srgb,var(--ts-primary)_20%,transparent)]'
         );
 
+        $this->registerContentSurfaceDarkModeFix();
         $this->registerActionColorPalette();
         $this->registerTallStackUiGlobals();
     }
@@ -436,6 +437,409 @@ class AppServiceProvider extends ServiceProvider
 
         TallStackUi::customize()->layout('header')->block([
             'wrapper.base' => 'dark:bg-gray-900! dark:border-gray-800! sticky top-0 z-40 flex shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 sm:gap-x-6 sm:px-6 lg:px-8 tsui-scrollbar-bleed',
+        ]);
+    }
+
+    /**
+     * The follow-up flagged at the end of `registerAppShellDarkModeFix()`'s
+     * docblock: the identical "package's own `dark-*` token can only ever be
+     * compiled by tallstackui.css, whose `dark:` variant is `.dark`-class-gated
+     * rather than `prefers-color-scheme`-gated" defect — confirmed there on
+     * `<x-card>` and every dropdown panel via a live DOM sweep — is actually
+     * the DEFAULT styling of essentially every TallStackUI component, because
+     * they're all built from the same `dark-*` palette. This method is the
+     * "audit app-wide" follow-up: every component actually used somewhere in
+     * `resources/views` (confirmed via `grep -rohE '<x-[a-z...]' resources/views`
+     * against each `Component.php`'s own `customization()`) that carries a
+     * `dark:`-prefixed `dark-*`-token class gets the same fix here, using the
+     * same two-part recipe as above (swap the token for the closest standard
+     * Tailwind `gray-*` shade, add `!important` for the cross-stylesheet
+     * ordering collision) — nothing here is a new kind of fix, just the same
+     * one applied everywhere the bug actually lives.
+     *
+     * The gray-shade mapping below is precise, not eyeballed: the package's
+     * `dark-*` scale (vendor/tallstackui/tallstackui/css/v4.css) is pure
+     * grayscale (`oklch(L 0 0)`) at every step, and standard Tailwind v4
+     * `gray-*` is also documented at fixed `oklch` lightness values, so each
+     * `dark-N` was mapped to whichever `gray-M` has the closest `L`:
+     *
+     * | `dark-*` | L (oklch) | closest `gray-*` | L (oklch) |
+     * |----------|-----------|-------------------|-----------|
+     * | 50       | .985      | 50                | .985      |
+     * | 100      | .970      | 100               | .967      |
+     * | 200      | .922      | 200               | .928      |
+     * | 300      | .870      | 300               | .872      |
+     * | 400      | .683      | 400               | .707      |
+     * | 500      | .510      | 500                | .551      |
+     * | 600      | .360      | 700 (.373 beats 600's .446) | .373 |
+     * | 700      | .253      | 800 (.278 beats 700's .373) | .278 |
+     * | 800      | .185      | 900 (.210 beats 800's .278) | .210 |
+     * | 900      | .145      | 950 (.130 beats 900's .210) | .130 |
+     * | 950      | .110      | 950 (nothing standard is darker) | .130 |
+     *
+     * This table is exactly what `registerSideBarItemCustomization()` already
+     * used ad hoc for `dark-800`→`gray-900`/`dark-700`→`gray-800` — it's
+     * generalized here rather than re-derived per component.
+     *
+     * What this method does NOT cover, confirmed present but deliberately
+     * left for a separate pass (each is either far deeper/more repetitive
+     * than the chrome fixed here, or genuinely low-traffic):
+     * - `<x-editor>`'s own rendered CONTENT typography (code blocks,
+     *   blockquotes, the `<hr>` rule — `editable.typography.*`) — only its
+     *   toolbar/footer/editable-area/image-upload chrome is fixed below.
+     * - The internal calendar/swatch/suggestion-row colors of `<x-date>`,
+     *   `<x-select.styled>` (Form\Select\Styled — NOT the same as
+     *   `<x-select.styled>`'s own PANEL, which reuses the shared
+     *   `floating()` fix below), the Form `autocomplete`/`tag`/`color`/
+     *   `upload`/`upload.async`/`pin`/`range` components, and
+     *   `<x-command-palette>` — the shared `floating()->block('wrapper')`
+     *   fix below already fixes their outer panel/popover BACKGROUND (the
+     *   same structural bug as the dropdown panel), but the internal
+     *   button/row/text colors inside each of those popovers still carry
+     *   their own un-migrated `dark-*` classes.
+     * - `<x-step>`'s `circles`/`simple` variants — only `panels` (the only
+     *   variant actually used, the dashboard setup checklist) is fixed.
+     * - `<x-toast>` — NOT fixed here because it didn't need it: this app
+     *   enables `globals()->colorful(toast: true)` (see
+     *   `registerTallStackUiGlobals()`), which replaces the toast body's
+     *   background with a solid per-type color (`colors['background'][type]`)
+     *   rather than relying on the package's plain `wrapper.third` (still
+     *   `dark:bg-dark-800` underneath, unfixed) — confirmed by reading
+     *   `ts-ui::components.toast.main`'s own Blade source rather than
+     *   assumed, and spot-checked live in both color schemes.
+     */
+    private function registerContentSurfaceDarkModeFix(): void
+    {
+        // Shared by EVERY floating popover in this app — the dropdown panel
+        // (<x-dropdown>, both scoped and unscoped), <x-dropdown.submenu>, the
+        // <x-select.styled> option list, the date/color/tag/autocomplete
+        // pickers, and the password-strength popover — because every one of
+        // those components builds its own panel on top of
+        // `Floating\Component::customization()['wrapper']` rather than
+        // defining its own background (confirmed by reading each of their
+        // `Component.php` files: they all resolve
+        // `app(Floating::class)->customization()` for their own 'floating'
+        // block). One fix here is therefore the single highest-leverage
+        // change in this method. `border-dark-200` (light mode, no `dark:`
+        // prefix) is left untouched — it's a real, unconditionally-compiled
+        // token in tallstackui.css with no cascade collision of its own, so
+        // it isn't part of this specific bug.
+        TallStackUi::customize()->floating()->block([
+            'wrapper' => 'dark:bg-gray-900! border-dark-200 dark:border-gray-800! absolute z-50 rounded-lg border bg-white',
+        ]);
+
+        // The dropdown ROW text/icon/divider colors sitting inside that now-
+        // fixed panel — <x-dropdown.items> (every row action menu in this
+        // app) and <x-dropdown.submenu>.
+        TallStackUi::customize()->dropdown('items')->block([
+            'item.base' => 'text-gray-600 dark:text-gray-300! dark:hover:bg-gray-800! dark:focus:bg-gray-800! flex w-full cursor-pointer items-center whitespace-nowrap transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden',
+            'border' => 'dark:border-t-gray-800! border-t border-t-gray-100',
+            'icon.base' => 'dark:text-gray-300! text-gray-500',
+        ]);
+        TallStackUi::customize()->dropdown('submenu')->block([
+            'item.base' => 'text-gray-600 dark:hover:bg-gray-800! dark:text-gray-300! dark:focus:bg-gray-800! flex w-full cursor-pointer items-center justify-between whitespace-nowrap transition-colors duration-150 hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden',
+            'border' => 'dark:border-t-gray-800! border-t border-t-gray-100',
+        ]);
+        // The trigger's own text (e.g. the "toolbar"-scoped dropdowns already
+        // fixed in registerTallStackUiCustomizations() override this per
+        // scope, but an unscoped/default <x-dropdown> falls back to this).
+        TallStackUi::customize()->dropdown()->block([
+            'action.text' => 'text-sm text-gray-700 font-medium dark:text-gray-400!',
+        ]);
+
+        // <x-card> — the confirmed bug this whole method exists to close.
+        // 'header.wrapper.base'/'header.wrapper.border' are already fixed
+        // above (registerTallStackUiCustomizations()) with a brand-color
+        // wash instead of a dark-* swap; every other surface of the card
+        // gets the plain token swap.
+        TallStackUi::customize()->card()->block([
+            'wrapper.second' => 'dark:bg-gray-900! flex w-full flex-col overflow-hidden bg-white shadow-md',
+            'bordered' => 'border border-gray-200 dark:border-gray-800!',
+            'header.text.color' => 'text-gray-700 dark:text-gray-300!',
+            'body' => 'text-gray-700 dark:text-gray-300! grow px-4 py-5',
+            'footer.wrapper' => 'text-gray-700 dark:text-gray-300! dark:border-t-gray-700/50! border-t border-t-gray-200 p-4',
+            'loading.overlay' => 'absolute inset-0 z-10 cursor-not-allowed rounded-lg bg-white/50 dark:bg-gray-800/50!',
+        ]);
+
+        // <x-modal> — explicitly in scope per the follow-up task ("also
+        // check modals"). Every one of this app's ~24 modal-based create/
+        // edit flows (see "Modal-based vs. dedicated create/edit" in
+        // CLAUDE.md) renders through this one component.
+        TallStackUi::customize()->modal()->block([
+            'wrapper.first' => 'fixed inset-0 bg-gray-400/75 dark:bg-gray-700/75! transform transition-opacity',
+            'wrapper.fourth' => 'dark:bg-gray-900! relative flex w-full transform flex-col rounded-t-xl sm:rounded-xl bg-white text-left shadow-xl transition-all',
+            'handle.bar' => 'h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-500!',
+            'title.wrapper' => 'dark:border-b-gray-800! flex items-center justify-between border-b border-b-gray-100 px-4 py-2.5',
+            'title.text' => 'text-md text-gray-600 dark:text-gray-300! whitespace-normal font-medium',
+            'body' => 'dark:text-gray-300! grow rounded-b-xl py-5 text-gray-700 px-4',
+            'footer.wrapper' => 'dark:text-gray-300! dark:border-t-gray-800! rounded-b-xl border-t border-t-gray-100 p-4 text-gray-700',
+            'footer.scrollable' => 'sticky bottom-0 z-10 bg-white dark:bg-gray-900!',
+        ]);
+
+        // <x-slide> — the one slide-over in this app.
+        TallStackUi::customize()->slide()->block([
+            'wrapper.first' => 'fixed inset-0 bg-gray-400/75 dark:bg-gray-700/75! transform transition-opacity',
+            'wrapper.fifth' => 'flex flex-col bg-white py-6 shadow-xl dark:bg-gray-800!',
+            'title.text' => 'whitespace-normal font-medium text-md text-gray-600 dark:text-gray-300!',
+            'body' => 'soft-scrollbar dark:text-gray-300! grow overflow-y-auto rounded-b-xl px-6 py-5 text-gray-700',
+            'footer.wrapper' => 'border-t border-t-gray-200 px-4 pt-4 dark:border-t-gray-700!',
+            'header.divider' => 'border-b border-b-gray-200 pb-4 dark:border-b-gray-700!',
+        ]);
+
+        // <x-table> — every list page in this app (36 files).
+        TallStackUi::customize()->table()->block([
+            'wrapper' => 'overflow-hidden dark:ring-gray-800! rounded-lg ring-1 ring-gray-200',
+            'table.wrapper' => 'relative soft-scrollbar overflow-auto bg-white dark:bg-gray-900!',
+            'table.base' => 'dark:divide-gray-700/50! min-w-full divide-y divide-gray-200',
+            'table.th' => 'dark:text-gray-200! px-3 py-3.5 text-sm font-semibold text-gray-700',
+            'table.th-compact' => 'dark:text-gray-200! px-3 py-2 text-sm font-semibold text-gray-700',
+            'table.tbody' => 'dark:bg-gray-900! dark:divide-gray-500/20! divide-y divide-gray-200 bg-white',
+            'table.td' => 'dark:text-gray-300! whitespace-nowrap px-3 py-4 text-sm text-gray-500',
+            'table.td-compact' => 'dark:text-gray-300! whitespace-nowrap px-3 py-2.5 text-sm text-gray-500',
+            'table.thead.normal' => 'bg-gray-50 dark:bg-gray-950!',
+            'table.thead.striped' => 'bg-white dark:bg-gray-950!',
+            'row.striped' => 'bg-gray-50 dark:bg-gray-900/50!',
+            'loading.icon' => 'text-primary-500 dark:text-gray-300! absolute bottom-0 left-0 right-0 top-0 m-auto grid h-10 w-10 animate-spin place-items-center',
+            'loading.indicator' => 'text-primary-500 dark:text-gray-300! absolute inset-0 m-auto grid place-items-center',
+            'empty' => 'dark:text-gray-300! col-span-full whitespace-nowrap px-3 py-4 text-sm text-gray-500',
+            'empty-compact' => 'dark:text-gray-300! col-span-full whitespace-nowrap px-3 py-2.5 text-sm text-gray-500',
+            'slots.header' => 'mb-2 dark:text-gray-300! text-gray-500',
+            'slots.footer' => 'mt-2 dark:text-gray-300! text-gray-500',
+            'expandable.wrapper' => 'bg-gray-50 dark:bg-gray-900!',
+            'expandable.button' => 'text-gray-500 dark:text-gray-300! hover:text-gray-700 dark:hover:text-gray-100! transition-transform duration-200',
+        ]);
+
+        // <x-tab> — 5 usages (e.g. the Settings lookups tabbed page).
+        TallStackUi::customize()->tab()->block([
+            'base.wrapper' => 'dark:bg-gray-900! w-full rounded-lg bg-white shadow-md',
+            'base.body' => 'soft-scrollbar flex-nowrap overflow-auto flex bg-gray-50 dark:bg-gray-950! rounded-t-lg',
+            'base.content' => 'text-gray-700 dark:text-gray-300! p-4',
+            'base.divider' => 'h-px border-0 bg-gray-200 dark:bg-gray-800!',
+            'base.select' => 'focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-900! dark:border-gray-800! w-full rounded-lg border-gray-200 px-4 py-3 dark:text-gray-400! sm:hidden',
+            'bordered' => 'border border-gray-200 dark:border-gray-800!',
+            'item.select' => 'text-primary-500 dark:text-gray-300! border-primary-500 dark:border-gray-300! group inline-flex cursor-pointer items-center border-b-2 font-medium',
+            'item.unselect' => 'dark:text-gray-500! cursor-pointer border-b-2 border-transparent font-medium text-gray-400 flex',
+        ]);
+
+        // <x-accordion>/<x-accordion.items> — 1 usage.
+        TallStackUi::customize()->accordion()->block([
+            'wrapper.base' => 'dark:bg-gray-900! w-full overflow-hidden rounded-lg bg-white shadow-md',
+            'bordered' => 'border border-gray-200 dark:border-gray-800!',
+        ]);
+        TallStackUi::customize()->accordion('items')->block([
+            'item.wrapper' => 'border-b border-gray-200 dark:border-gray-800! last:border-b-0',
+            'item.trigger.base' => 'flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-start text-sm font-medium justify-between transition-colors hover:bg-gray-50 dark:hover:bg-gray-800!',
+            'item.trigger.closed' => 'text-gray-700 dark:text-gray-300!',
+            'item.content' => 'px-4 pb-4 text-sm text-gray-600 dark:text-gray-400!',
+        ]);
+
+        // <x-list>/<x-list.items> — 4 usages.
+        TallStackUi::customize()->list()->block([
+            'box' => 'dark:bg-gray-900! dark:border-gray-800! rounded-md border border-gray-200 bg-white',
+            'search.wrapper' => 'dark:border-gray-800! relative flex h-11 items-center border-b border-gray-200',
+            'search.wrapper-compact' => 'dark:border-gray-700! relative flex h-9 items-center border-b border-gray-200',
+            'search.icon.wrapper' => 'pointer-events-none absolute left-3 flex size-5 items-center justify-center text-gray-400 dark:text-gray-400!',
+            'search.input' => 'h-full w-full border-0 bg-transparent pl-10 pr-3 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-0 dark:text-gray-100! dark:placeholder:text-gray-400!',
+            'items.wrapper' => '[&>[data-list-on]~[data-list-on]]:border-t [&>[data-list-on]~[data-list-on]]:border-gray-200 dark:[&>[data-list-on]~[data-list-on]]:border-gray-800!',
+            'empty.text' => 'text-sm text-gray-500 dark:text-gray-400!',
+        ]);
+        TallStackUi::customize()->list('items')->block([
+            'name' => 'text-sm font-medium text-gray-700 dark:text-gray-100!',
+            'caption' => 'text-xs text-gray-500 dark:text-gray-400!',
+            'menu.trigger' => 'dark:text-gray-400! dark:hover:bg-gray-800! dark:hover:text-gray-200! flex cursor-pointer items-center justify-center rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none',
+            'menu.floating' => 'dark:bg-gray-800! dark:border-gray-700! absolute z-40 overflow-hidden rounded-md border border-gray-200 bg-white',
+        ]);
+
+        // <x-loading> — the full-screen Livewire loading overlay.
+        TallStackUi::customize()->loading()->block([
+            'wrapper.first' => 'fixed inset-0 bg-gray-300 dark:bg-gray-950!',
+            'opacity' => 'bg-gray-300/75 dark:bg-gray-950/70!',
+        ]);
+
+        // <x-avatar>'s presence dot ring — 2 usages.
+        TallStackUi::customize()->avatar()->block([
+            'presence.dot' => 'rounded-full ring-2 ring-white dark:ring-gray-800!',
+        ]);
+
+        // <x-chart> — the dashboard's revenue trend chart, the one Chart
+        // usage in this app.
+        TallStackUi::customize()->chart()->block([
+            'plot.slice' => 'stroke-white dark:stroke-gray-800! stroke-[0.5]',
+            'plot.marker' => 'dark:ring-gray-800! absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current ring-2 ring-white',
+            'plot.grid' => 'stroke-gray-200 dark:stroke-gray-700! stroke-[0.4]',
+            'plot.crosshair' => 'stroke-gray-300 dark:stroke-gray-500! stroke-[0.5]',
+            'axis.y.label' => 'dark:text-gray-400! absolute right-2 -translate-y-1/2 whitespace-nowrap text-[0.65rem] leading-none text-gray-500',
+            'axis.y.right.label' => 'dark:text-gray-400! absolute left-2 -translate-y-1/2 whitespace-nowrap text-[0.65rem] leading-none text-gray-500',
+            'axis.x.label' => 'dark:text-gray-400! absolute -translate-x-1/2 whitespace-nowrap text-[0.65rem] leading-none text-gray-500',
+            'legend.text' => 'dark:text-gray-300! text-gray-600',
+            'tooltip.wrapper' => 'dark:bg-gray-950! dark:ring-gray-800! pointer-events-none absolute z-10 rounded-md bg-white px-2.5 py-1.5 ring-1 ring-gray-200',
+            'tooltip.title' => 'dark:text-gray-200! mb-1 text-xs font-medium text-gray-700',
+            'tooltip.name' => 'dark:text-gray-400! text-gray-500',
+            'tooltip.value' => 'dark:text-gray-200! ml-auto pl-2 font-medium text-gray-700',
+            'slots.header' => 'dark:text-gray-300! text-sm font-medium text-gray-700',
+            'slots.footer' => 'dark:text-gray-400! text-xs text-gray-500',
+            'skeleton.fill' => 'fill-gray-200 dark:fill-gray-700!',
+            'skeleton.stroke' => 'fill-none stroke-gray-200 stroke-2 dark:stroke-gray-700!',
+        ]);
+
+        // <x-step panels>'s panel/circle/divider/text colors — the
+        // dashboard's setup checklist, the only <x-step> usage in this app
+        // and the only variant (`panels`) it uses. The `circles`/`simple`
+        // variants are left unfixed (see this method's own docblock).
+        TallStackUi::customize()->step()->block([
+            'panels.li' => 'relative md:flex md:flex-1 border-b last:border-b-0 border-gray-200 dark:border-gray-700! md:border-0',
+            'panels.circle.inactive' => 'border-2 border-gray-300 dark:border-gray-800!',
+            'panels.divider.svg' => 'h-full w-full text-gray-200 dark:text-gray-800!',
+            'panels.text.number.active' => 'text-gray-500 dark:text-gray-300!',
+            'panels.text.title.inactive' => 'text-gray-600 dark:text-gray-300!',
+            'panels.text.description' => 'ml-4 whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400!',
+            'panels-shape' => 'mb-2 rounded-md border border-gray-200 dark:border-gray-800!',
+        ]);
+
+        // <x-signature> — the client-portal e-signing pad (invoice/
+        // quotation/delivery-order/handover-report portal pages).
+        TallStackUi::customize()->signature()->block([
+            'wrapper.first' => 'dark:bg-gray-900! dark:border-gray-800! rounded-lg border border-gray-200 bg-white',
+            'wrapper.second' => 'dark:border-gray-800! flex items-center justify-between space-x-4 border-b border-gray-200 px-4 py-2',
+            'canvas.base' => 'dark:border-gray-700! w-full rounded-lg border border-dashed border-gray-300',
+            'icons' => 'dark:text-gray-400! h-5 w-5 text-gray-500',
+        ]);
+
+        // <x-editor> — 16 usages (invoice/quote notes, proposal content).
+        // Toolbar/footer/editable-area/image-upload chrome only — the
+        // rendered content's own typography colors are deliberately left
+        // unfixed (see this method's own docblock).
+        TallStackUi::customize()->editor()->block([
+            'wrapper.base' => 'dark:border-gray-800! dark:bg-gray-900! flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white',
+            'toolbar.wrapper' => 'dark:border-gray-800! dark:bg-gray-950! flex items-center gap-x-1 overflow-x-auto border-b border-gray-200 bg-gray-50 px-2 py-1.5 soft-scrollbar',
+            'toolbar.divider' => 'dark:bg-gray-800! mx-1 h-5 w-px shrink-0 bg-gray-200',
+            'toolbar.button.base' => 'dark:text-gray-300! dark:hover:bg-gray-800! focus-visible:ring-primary-500 inline-flex h-8 min-w-8 shrink-0 cursor-pointer items-center justify-center rounded px-2 text-sm text-gray-600 transition outline-none hover:bg-gray-200 focus-visible:ring-2 focus-visible:ring-inset',
+            'toolbar.dropdown.trigger' => 'dark:text-gray-300! dark:hover:bg-gray-800! focus-visible:ring-primary-500 inline-flex h-8 shrink-0 cursor-pointer items-center gap-x-1 rounded px-2 text-sm whitespace-nowrap text-gray-600 transition outline-none hover:bg-gray-200 focus-visible:ring-2 focus-visible:ring-inset',
+            'editable.content' => 'dark:text-gray-200! relative w-full px-4 py-3 text-sm text-gray-700 outline-none focus:outline-none',
+            'editable.placeholder' => 'dark:data-[empty=true]:before:text-gray-500! data-[empty=true]:before:pointer-events-none data-[empty=true]:before:absolute data-[empty=true]:before:text-gray-400 data-[empty=true]:before:content-[attr(data-placeholder)]',
+            'footer.wrapper' => 'dark:border-gray-800! dark:bg-gray-950! dark:text-gray-400! flex items-center justify-end gap-x-3 border-t border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-500',
+            'image.upload.area' => 'dark:border-gray-700! dark:text-gray-400! hover:border-primary-400 hover:text-primary-600 flex cursor-pointer flex-col items-center justify-center gap-y-2 rounded-md border-2 border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 transition',
+            'image.upload.button' => 'inline-flex items-center gap-x-1.5 text-sm text-gray-600 dark:text-gray-100! font-medium',
+            'image.upload.hint' => 'dark:text-gray-400! text-xs text-gray-600',
+            'image.upload.progress.wrapper' => 'dark:bg-gray-900! mt-2 h-1 w-full overflow-hidden rounded bg-gray-200',
+            'image.preview' => 'dark:border-gray-800! max-h-48 w-full rounded border border-gray-200 object-contain',
+        ]);
+
+        // The SINGLE highest-leverage fix in this whole method: every plain
+        // text/number/textarea/tag field's actual background/border/text
+        // color comes from one shared trait,
+        // `TallStackUi\Components\Traits\FormDefaultInputClasses::input()`
+        // (`'color' => ['base' => '...dark:text-dark-300...', 'background'
+        // => 'dark:bg-dark-800 bg-white', 'disabled' => 'dark:bg-dark-900
+        // bg-gray-100']`), spread into EVERY one of these components' own
+        // `customization()` under an `input.color.*` key — so this is what
+        // was actually behind the live-reported "no search field or filter
+        // follows dark mode, at all" symptom: every text input, textarea,
+        // number field, and tag input in this app kept its plain white
+        // background and gray-600 text under dark mode. Each component
+        // below still needs its OWN separate ->form(...)->block() call
+        // (the trait is copy-pasted into each class's own customization()
+        // array at class-definition time, not shared at runtime), but the
+        // fix itself is identical everywhere: the same `input.color.base`/
+        // `input.color.background`/`input.color.disabled` keys, gray-swapped.
+        $sharedInputColor = [
+            'input.color.base' => 'dark:ring-gray-700/50! dark:text-gray-300! text-gray-600 ring-gray-200',
+            'input.color.background' => 'dark:bg-gray-900! bg-white',
+            'input.color.disabled' => 'dark:bg-gray-950! bg-gray-100',
+        ];
+
+        TallStackUi::customize()->form('input')->block($sharedInputColor);
+        TallStackUi::customize()->form('input.select')->block($sharedInputColor);
+        TallStackUi::customize()->form('number')->block($sharedInputColor);
+        TallStackUi::customize()->form('textarea')->block($sharedInputColor);
+        // Form\Tag keeps its own hand-written 'input.base' (excluded from
+        // the trait spread — see that class's own customization()) but
+        // still inherits 'input.color.*' from the same trait, so the same
+        // three keys apply here too.
+        TallStackUi::customize()->form('tag')->block($sharedInputColor);
+
+        // The icon/clearable-button colors sitting inside those same
+        // fields — shared by <x-input icon="...">/<x-input.select
+        // icon="...">, both built from the same trait-adjacent pattern.
+        TallStackUi::customize()->form('input')->block([
+            'icon.wrapper' => 'pointer-events-none absolute inset-y-0 flex items-center text-gray-500 dark:text-gray-400!',
+            'icon.color' => 'text-gray-500 dark:text-gray-400!',
+            'clearable.wrapper' => 'cursor-pointer absolute inset-y-0 flex items-center text-gray-500 dark:text-gray-400!',
+        ]);
+        TallStackUi::customize()->form('input.select')->block([
+            'icon.wrapper' => 'pointer-events-none absolute inset-y-0 flex items-center text-gray-500 dark:text-gray-400!',
+            'icon.color' => 'text-gray-500 dark:text-gray-400!',
+            'clearable.wrapper' => 'cursor-pointer absolute inset-y-0 flex items-center text-gray-500 dark:text-gray-400!',
+        ]);
+        TallStackUi::customize()->form('number')->block([
+            'buttons.left.color' => 'dark:text-gray-400! text-gray-500',
+            'buttons.right.color' => 'dark:text-gray-400! text-gray-500',
+            'buttons.right.separator' => 'border-l border-gray-200 dark:border-gray-700!',
+        ]);
+        TallStackUi::customize()->form('textarea')->block([
+            'count.base' => 'dark:text-gray-400! absolute right-0 mt-1 text-sm text-gray-500',
+        ]);
+        TallStackUi::customize()->form('tag')->block([
+            'label.base' => 'inline-flex h-6 items-center rounded-lg bg-gray-100 px-1 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-200 space-x-1 dark:text-gray-100! dark:bg-gray-800! dark:ring-gray-700!',
+            'button.wrapper' => 'text-gray-500 dark:text-gray-400! absolute inset-y-0 right-2 flex cursor-pointer items-center',
+            'box.item' => 'dark:text-gray-300! dark:hover:bg-gray-600! relative cursor-pointer select-none truncate px-3 py-2 text-gray-700 hover:bg-gray-100',
+            'box.highlighted' => 'bg-gray-100 dark:bg-gray-600!',
+            'box.empty' => 'block w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-300!',
+            'box.after' => 'dark:border-gray-700! border-t border-gray-200',
+        ]);
+
+        // <x-select.styled> — 20 usages, this app's main styled dropdown/
+        // filter component (its own bespoke structure, not built from the
+        // shared trait above, so it needs its own full token swap).
+        TallStackUi::customize()->select('styled')->block([
+            'input.wrapper.base' => 'dark:text-gray-300! dark:bg-gray-900! dark:focus:ring-primary-600 dark:disabled:bg-gray-950! dark:disabled:ring-gray-700/50! dark:ring-gray-700/50! flex w-full cursor-pointer items-center gap-x-2 rounded-md border-0 bg-white py-1.5 text-sm ring-1 ring-gray-200 disabled:bg-gray-100 disabled:text-gray-500 disabled:ring-gray-200',
+            'buttons.base' => 'dark:text-gray-400! text-gray-500 hover:text-red-500 dark:hover:text-red-500',
+            'box.button.icon' => 'dark:text-gray-400! h-5 w-5 text-gray-500 hover:text-red-500',
+            'box.list.loading.class' => 'text-primary-600 dark:text-gray-400! h-12 w-12 animate-spin',
+            'box.list.grouped.wrapper' => 'my-1 ml-2 text-gray-700 dark:text-gray-300! font-semibold',
+            'box.list.item.wrapper' => 'dark:text-gray-300! dark:hover:bg-gray-800! dark:focus:bg-gray-800! relative cursor-pointer select-none px-3 py-2 text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden',
+            'box.list.item.disabled' => 'dark:bg-gray-800! cursor-not-allowed! bg-gray-100',
+            'box.list.empty' => 'dark:text-gray-300! block w-full pr-2 text-gray-600',
+            'items.placeholder.text' => 'dark:text-gray-400! truncate leading-6 text-gray-400',
+            'items.single' => 'dark:text-gray-300! truncate leading-6 text-gray-600',
+            'items.multiple.item' => 'dark:text-gray-100! dark:bg-gray-900! dark:ring-gray-800! inline-flex h-6 items-center space-x-1 rounded-lg bg-gray-100 px-2 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-200',
+        ]);
+
+        // <x-swap> and <x-clipboard> are not used anywhere in this app
+        // (confirmed via grep) — no fix registered for either, to avoid
+        // maintaining dead customization for components with nothing to
+        // verify it against.
+
+        // <x-label> — the field TITLE text rendered above EVERY
+        // <x-input>/<x-textarea>/<x-select.styled>/etc. that has a `label`
+        // prop, and <x-hint> — the small helper line under a field. Both
+        // are their own tiny components (`Form\Label`, `Form\Hint`),
+        // composed internally by every other form component rather than
+        // duplicated, so one fix each covers every field in the app.
+        TallStackUi::customize()->form('label')->block([
+            'text' => 'dark:text-gray-300! mb-1 block text-sm font-medium text-gray-600',
+        ]);
+        TallStackUi::customize()->form('hint')->block([
+            'text' => 'dark:text-gray-400! mt-1 block text-sm text-gray-500',
+        ]);
+
+        // The label TEXT beside every <x-toggle>/<x-checkbox>/<x-radio> —
+        // all three compose the same shared `Wrapper\Radio` component for
+        // their own `label` prop, so one fix covers all three.
+        TallStackUi::customize()->wrapper('radio')->block([
+            'label.text' => 'dark:text-gray-400! cursor-pointer items-center text-sm font-medium text-gray-700',
+        ]);
+
+        // <x-toggle>'s own track background, and <x-checkbox>/<x-radio>'s
+        // own input background/border.
+        TallStackUi::customize()->form('toggle')->block([
+            'background.class' => 'bg-gray-200 dark:bg-gray-900! block cursor-pointer rounded-full group-focus:ring-0 group-focus:ring-offset-0 peer-focus:ring-0 peer-focus:ring-offset-0',
+        ]);
+        TallStackUi::customize()->form('checkbox')->block([
+            'input.class' => 'form-checkbox dark:border-gray-700/50! border-1 dark:bg-gray-900! rounded border-gray-200 bg-white ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0',
+        ]);
+        TallStackUi::customize()->form('radio')->block([
+            'input.class' => 'form-radio dark:border-gray-700/50! border-1 dark:bg-gray-900! rounded-full border-gray-200 bg-white ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0',
         ]);
     }
 
