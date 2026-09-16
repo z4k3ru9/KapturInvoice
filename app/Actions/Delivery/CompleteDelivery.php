@@ -38,6 +38,21 @@ class CompleteDelivery
             throw new RuntimeException('Only Staff and higher may record a delivery.');
         }
 
+        // Quantity delivered must always be a whole number going forward —
+        // enforced here too (not only in TallStackSalesOrder's own form
+        // validation) since this action, not the Livewire component, owns
+        // the mutation rule per this app's action-owns-invariants
+        // convention. `delivery_order_items.quantity_delivered` itself
+        // stays decimal(15,4) — historical rows may already be fractional —
+        // this only rejects a new invalid value going forward.
+        foreach ($items as $entry) {
+            $quantity = $entry['quantity_delivered'] ?? null;
+
+            if (! is_numeric($quantity) || (float) $quantity != (int) $quantity || (int) $quantity < 1) {
+                throw new RuntimeException('Quantity delivered must be a whole number of at least 1.');
+            }
+        }
+
         $number = $this->numberGenerator->next($salesOrder->company, 'delivery_order');
 
         $deliveryOrder = DB::transaction(function () use ($salesOrder, $actor, $items, $notes, $number) {

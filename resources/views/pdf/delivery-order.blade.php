@@ -71,6 +71,7 @@
             <tr>
                 <th>{{ __('documents.delivery_order_item_delivered') }}</th>
                 <th class="text-right">{{ __('documents.qty') }}</th>
+                <th>{{ __('documents.unit') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -78,6 +79,7 @@
                 <tr>
                     <td>{{ $item->description ?? $item->salesOrderItem?->title }}</td>
                     <td class="text-right">{{ rtrim(rtrim($item->quantity_delivered, '0'), '.') ?: '0' }}</td>
+                    <td>{{ $item->salesOrderItem?->unit?->getAbbreviation() ?? '—' }}</td>
                 </tr>
             @endforeach
         </tbody>

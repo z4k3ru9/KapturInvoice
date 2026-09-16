@@ -20,6 +20,7 @@ return [
 
     'item' => 'Item',
     'qty' => 'Qty',
+    'unit' => 'Unit',
     'unit_price' => 'Unit price',
     'total_column' => 'Total',
 

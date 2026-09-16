@@ -28,6 +28,7 @@ return [
 
     'item' => 'Item/Deskripsi',
     'qty' => 'Jumlah',
+    'unit' => 'Satuan',
     'unit_price' => 'Harga Satuan',
     'total_column' => 'Jumlah',
 

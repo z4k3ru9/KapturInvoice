@@ -81,6 +81,13 @@ class TallStackDeliveryOrder extends Component
                 'title' => $line?->title ?? $item->description ?? '—',
                 'description' => $item->description ?: ($line?->description ?? '—'),
                 'quantity_delivered' => (float) $item->quantity_delivered,
+                // delivery_order_items has no unit column of its own — a
+                // delivery line pulls its unit from the job line it's tied
+                // to (sales_order_items.unit). An untied/ad-hoc delivery
+                // line (sales_order_item_id null — the "Job line" picker on
+                // the Record delivery modal is not required) has no unit to
+                // show.
+                'unit' => $line?->unit?->getAbbreviation() ?? '—',
                 'ordered_quantity' => $line ? (float) $line->quantity : null,
                 'delivered_to_date' => $line ? $deliveredToDate : null,
                 'fully_delivered' => $line ? $deliveredToDate >= (float) $line->quantity : null,

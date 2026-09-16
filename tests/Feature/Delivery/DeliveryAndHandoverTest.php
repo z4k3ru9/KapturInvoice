@@ -87,6 +87,32 @@ class DeliveryAndHandoverTest extends TestCase
         $this->assertSame($staff->id, $deliveryOrder->created_by_user_id);
     }
 
+    public function test_recording_a_delivery_with_a_fractional_quantity_is_rejected(): void
+    {
+        $job = $this->makeJob(requiresHandover: false);
+        $staff = $this->userWithRole('staff');
+        $item = $job->items->first();
+
+        $this->expectException(RuntimeException::class);
+
+        app(CompleteDelivery::class)->complete($job, $staff, [
+            ['sales_order_item_id' => $item->id, 'quantity_delivered' => 1.5],
+        ]);
+    }
+
+    public function test_recording_a_delivery_with_a_zero_quantity_is_rejected(): void
+    {
+        $job = $this->makeJob(requiresHandover: false);
+        $staff = $this->userWithRole('staff');
+        $item = $job->items->first();
+
+        $this->expectException(RuntimeException::class);
+
+        app(CompleteDelivery::class)->complete($job, $staff, [
+            ['sales_order_item_id' => $item->id, 'quantity_delivered' => 0],
+        ]);
+    }
+
     public function test_a_goods_only_job_auto_closes_operationally_after_one_partial_delivery(): void
     {
         $job = $this->makeJob(requiresHandover: false, itemQuantity: 5.0);

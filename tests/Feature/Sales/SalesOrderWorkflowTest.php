@@ -10,6 +10,7 @@ use App\Actions\Sales\TransitionSalesOrderStatus;
 use App\Enums\MilestoneType;
 use App\Enums\QuotationStatus;
 use App\Enums\SalesOrderStatus;
+use App\Enums\UnitOfMeasure;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Quotation;
@@ -65,6 +66,38 @@ class SalesOrderWorkflowTest extends TestCase
         $this->assertSame(1, $salesOrder->items()->count());
         $this->assertNotNull($salesOrder->source_snapshot);
         $this->assertSame('1000.00', $salesOrder->source_snapshot['total']);
+    }
+
+    public function test_job_created_from_accepted_quotation_copies_each_items_unit(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme-unit', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Test Client']);
+
+        $quotation = Quotation::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'number' => 'KA-QUO-2026090099',
+            'status' => QuotationStatus::Draft,
+        ]);
+
+        QuotationItem::create([
+            'quotation_id' => $quotation->id,
+            'title' => 'Cable',
+            'quantity' => 10,
+            'unit' => UnitOfMeasure::Meter,
+            'unit_cost' => 20,
+            'line_total' => 200,
+        ]);
+        $quotation->forceFill(['subtotal' => 200, 'total' => 200])->save();
+
+        app(TransitionQuotationStatus::class)->transition($quotation, QuotationStatus::Approved);
+        app(TransitionQuotationStatus::class)->transition($quotation, QuotationStatus::Sent);
+        app(AcceptQuotation::class)->accept($quotation->fresh());
+
+        $salesOrder = app(CreateSalesOrderFromQuotation::class)->create($quotation->fresh());
+
+        $this->assertSame(UnitOfMeasure::Meter, $salesOrder->items->first()->unit);
+        $this->assertSame(UnitOfMeasure::Meter->value, $salesOrder->source_snapshot['items'][0]['unit']);
     }
 
     public function test_direct_full_payment_job_is_approved_with_one_milestone_covering_the_full_value(): void

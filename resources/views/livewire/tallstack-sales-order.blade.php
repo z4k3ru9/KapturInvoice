@@ -178,6 +178,7 @@
             <x-table :headers="[
                 ['index' => 'title', 'label' => 'Description'],
                 ['index' => 'quantity', 'label' => 'Qty', 'align' => 'right'],
+                ['index' => 'unit', 'label' => 'Unit'],
                 ['index' => 'unit_cost', 'label' => 'Unit cost', 'align' => 'right'],
                 ['index' => 'line_total', 'label' => 'Line total', 'align' => 'right'],
             ]" :rows="$items">
@@ -510,7 +511,7 @@
                         <x-select.styled wire:model="delivery_items.{{ $i }}.sales_order_item_id" label="Job line" searchable
                             :options="$items->map(fn ($it) => ['label' => $it['title'], 'value' => (string) $it['id']])->all()" />
                         <x-input wire:model="delivery_items.{{ $i }}.description" label="Description" />
-                        <x-input wire:model="delivery_items.{{ $i }}.quantity_delivered" label="Qty" type="number" step="0.0001" />
+                        <x-input wire:model="delivery_items.{{ $i }}.quantity_delivered" label="Qty" type="number" step="1" min="1" />
                         <x-button icon="trash" color="red" scope="icon-action" class="h-9 w-9" wire:click="removeDeliveryItemRow({{ $i }})" />
                     </div>
                 @endforeach

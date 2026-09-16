@@ -416,13 +416,21 @@ class TallStackSalesOrder extends Component
 
     public function recordDelivery(): void
     {
-        $items = array_values(array_filter($this->delivery_items, fn ($row) => (float) ($row['quantity_delivered'] ?? 0) > 0));
-
-        if (empty($items)) {
-            $this->toast()->error('Could not record delivery', 'At least one item with a delivered quantity is required.')->send();
-
-            return;
-        }
+        // Quantity delivered must always be a whole number — forward-looking
+        // validation only, per the same decision as SalesOrderItem/QuotationItem
+        // quantities: the `quantity_delivered` column itself stays
+        // decimal(15,4) (never narrowed), since historical rows may already
+        // carry a fractional value; this only constrains what a user can type
+        // going forward. Every row present in the modal must be filled in
+        // (or removed with "Add row"'s companion trash button) — unlike the
+        // old silent "drop any row with quantity <= 0" behavior, an
+        // unfilled row is now a real validation error instead of vanishing.
+        $this->validate([
+            'delivery_items' => ['required', 'array', 'min:1'],
+            'delivery_items.*.sales_order_item_id' => ['nullable', 'integer'],
+            'delivery_items.*.description' => ['nullable', 'string', 'max:255'],
+            'delivery_items.*.quantity_delivered' => ['required', 'integer', 'min:1'],
+        ]);
 
         try {
             app(CompleteDelivery::class)->complete(
@@ -432,7 +440,7 @@ class TallStackSalesOrder extends Component
                     'sales_order_item_id' => filled($row['sales_order_item_id']) ? (int) $row['sales_order_item_id'] : null,
                     'description' => $row['description'] ?? null,
                     'quantity_delivered' => (float) $row['quantity_delivered'],
-                ], $items),
+                ], $this->delivery_items),
                 $this->delivery_notes,
             );
 
@@ -504,6 +512,7 @@ class TallStackSalesOrder extends Component
                 'id' => $item->id,
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
+                'unit' => $item->unit?->getAbbreviation() ?? '—',
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
                 'line_total' => Money::format((float) $item->line_total, $currency),
             ]),

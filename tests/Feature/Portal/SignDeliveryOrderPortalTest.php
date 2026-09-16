@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Portal;
 
+use App\Enums\UnitOfMeasure;
 use App\Livewire\Portal\SignDeliveryOrder;
 use App\Models\Client;
 use App\Models\Company;
@@ -9,6 +10,7 @@ use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderItem;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -63,6 +65,48 @@ class SignDeliveryOrderPortalTest extends TestCase
             ->assertOk()
             ->assertSee('DO-0001')
             ->assertSee('Router unit');
+    }
+
+    public function test_portal_page_shows_the_unit_of_a_delivery_line_tied_to_a_job_item(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $quotation = Quotation::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'number' => 'QUO-0002',
+            'status' => 'accepted',
+        ]);
+        $job = SalesOrder::create([
+            'company_id' => $company->id,
+            'client_id' => $client->id,
+            'quotation_id' => $quotation->id,
+            'number' => 'JOB-0002',
+        ]);
+        $item = SalesOrderItem::create([
+            'sales_order_id' => $job->id,
+            'title' => 'Cable',
+            'quantity' => 20,
+            'unit' => UnitOfMeasure::Meter,
+            'unit_cost' => 10,
+            'line_total' => 200,
+        ]);
+        $deliveryOrder = DeliveryOrder::create([
+            'company_id' => $company->id,
+            'sales_order_id' => $job->id,
+            'number' => 'DO-0002',
+            'delivery_date' => '2026-09-10',
+        ]);
+        DeliveryOrderItem::create([
+            'delivery_order_id' => $deliveryOrder->id,
+            'sales_order_item_id' => $item->id,
+            'quantity_delivered' => 10,
+        ]);
+
+        $this->get("http://acme.test/portal/delivery-orders/{$deliveryOrder->portal_key}")
+            ->assertOk()
+            ->assertSee('DO-0002')
+            ->assertSee(UnitOfMeasure::Meter->getAbbreviation());
     }
 
     public function test_portal_page_404s_when_the_delivery_order_belongs_to_a_different_company_than_the_resolved_domain(): void

@@ -72,6 +72,7 @@
             ['index' => 'title', 'label' => 'Item'],
             ['index' => 'description', 'label' => 'Description'],
             ['index' => 'quantity_delivered', 'label' => 'Qty this delivery', 'align' => 'right'],
+            ['index' => 'unit', 'label' => 'Unit'],
             ['index' => 'delivered_to_date', 'label' => 'Delivered to date', 'align' => 'right'],
             ['index' => 'ordered_quantity', 'label' => 'Job line qty', 'align' => 'right'],
             ['index' => 'fully_delivered', 'label' => 'Status'],

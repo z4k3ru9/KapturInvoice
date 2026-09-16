@@ -37,6 +37,7 @@
                 <x-table :headers="[
                     ['index' => 'title', 'label' => 'Item'],
                     ['index' => 'quantity_delivered', 'label' => 'Qty delivered', 'align' => 'right'],
+                    ['index' => 'unit', 'label' => 'Unit'],
                 ]" :rows="$deliveryOrder->items">
                     @interact('column_title', $row)
                         <div class="font-medium">{{ $row->salesOrderItem?->title ?? $row->description ?? '—' }}</div>
@@ -47,6 +48,10 @@
 
                     @interact('column_quantity_delivered', $row)
                         <span class="tabular-nums">{{ rtrim(rtrim(number_format((float) $row->quantity_delivered, 4), '0'), '.') ?: '0' }}</span>
+                    @endinteract
+
+                    @interact('column_unit', $row)
+                        <span class="text-gray-500 dark:text-gray-400!">{{ $row->salesOrderItem?->unit?->getAbbreviation() ?? '—' }}</span>
                     @endinteract
 
                     <x-slot:empty>No lines recorded on this delivery order.</x-slot:empty>
