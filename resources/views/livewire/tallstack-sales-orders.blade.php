@@ -39,8 +39,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -62,7 +65,7 @@
             ['index' => 'next_milestone', 'label' => 'Next milestone', 'sortable' => false],
             ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$jobs" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
+        ]" :rows="$jobs" :sort="$sort" striped paginate loading>
             @interact('column_number', $row)
                 <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}
@@ -94,6 +97,10 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.jobs.show', [$company, $row['id']])],
+                        ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('sales-orders.pdf', $row['id']), 'target' => '_blank'],
+                    ];
                     $extraActions = [];
                     // Only ever shown for a Draft row — the guard's full
                     // predicate (no invoices/deliveries/handovers/service
@@ -106,11 +113,7 @@
                         ? ['text' => 'Release hold', 'icon' => 'play-circle', 'click' => 'releaseHold('.$row['id'].')']
                         : ['text' => 'Hold', 'icon' => 'pause-circle', 'color' => 'amber', 'click' => 'openHoldModal('.$row['id'].')'];
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.jobs.show', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('sales-orders.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No jobs found.</x-slot:empty>

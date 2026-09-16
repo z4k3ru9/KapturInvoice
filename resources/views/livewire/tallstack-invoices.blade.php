@@ -49,8 +49,11 @@
                     method="filterStatus"
                 />
 
-                <div class="w-full sm:w-64">
-                    <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="w-full sm:w-64">
+                        <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
+                    </div>
+                    <x-tallstack.quantity-select />
                 </div>
             </div>
         </x-slot:header>
@@ -71,7 +74,7 @@
             ['index' => 'balance', 'label' => 'Balance', 'align' => 'right', 'sortable' => false],
             ['index' => 'status', 'label' => 'Status', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$invoices" :sort="$sort" striped :filter="['quantity' => 'quantity']" paginate loading>
+        ]" :rows="$invoices" :sort="$sort" striped paginate loading>
             {{--
                 Dense overview list: just the generated sequence (last 4
                 digits) — see App\Support\TallStack\DocumentNumber's own
@@ -99,6 +102,10 @@
 
             @interact('column_actions', $row, $company)
                 @php
+                    $primaryActions = [
+                        ['text' => 'Open', 'icon' => 'eye', 'href' => route('tallstack.invoices.edit', [$company, $row['id']])],
+                        ['text' => 'Download PDF', 'icon' => 'document-arrow-down', 'href' => route('invoices.pdf', $row['id']), 'target' => '_blank'],
+                    ];
                     $extraActions = [];
                     // Only ever shown for a Draft row — the guard's full
                     // predicate (no payments/allocations/corrections) is
@@ -110,11 +117,7 @@
                         ? ['text' => 'Release hold', 'icon' => 'play-circle', 'click' => 'releaseHold('.$row['id'].')']
                         : ['text' => 'Hold', 'icon' => 'pause-circle', 'color' => 'amber', 'click' => 'openHoldModal('.$row['id'].')'];
                 @endphp
-                <div class="flex items-center justify-end gap-2">
-                    <x-button icon="eye" href="{{ route('tallstack.invoices.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-tallstack.row-actions :items="$extraActions" />
-                </div>
+                <x-tallstack.row-actions :primary="$primaryActions" :items="$extraActions" />
             @endinteract
 
             <x-slot:empty>No invoices found.</x-slot:empty>
