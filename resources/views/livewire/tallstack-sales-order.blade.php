@@ -89,7 +89,13 @@
          `activeTab` is entangled above so every wire:click action still
          knows which tab is open (e.g. for a modal launched from a tab). --}}
     <div class="border-b border-gray-200 dark:border-gray-800!">
-        <nav class="flex flex-wrap gap-1 -mb-px overflow-x-auto">
+        {{-- flex-nowrap (was flex-wrap, contradicting the overflow-x-auto
+             right next to it — dead code, since a row that's allowed to
+             wrap never needs to scroll): confirmed live, the 7 tabs wrapped
+             into 3 stacked rows at both mobile and tablet widths instead of
+             ever scrolling horizontally. soft-scrollbar matches this app's
+             other horizontally-scrollable strips (e.g. <x-card> body). --}}
+        <nav class="flex flex-nowrap gap-1 -mb-px overflow-x-auto soft-scrollbar">
             @foreach ([
                 'overview' => ['label' => 'Overview', 'icon' => 'squares-2x2'],
                 'commercial' => ['label' => 'Commercial', 'icon' => 'banknotes'],
