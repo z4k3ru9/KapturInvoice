@@ -142,7 +142,7 @@
 
             <div class="grid sm:grid-cols-2 gap-4">
                 <x-input wire:model="unit" label="Unit" hint="e.g. pcs, hour, package — not required for a service/labor line." />
-                <x-input wire:model="unit_cost" label="Default price" type="number" step="0.01" prefix="{{ $currency }}" required />
+                <x-currency wire:model="unit_cost" label="Default price" locale="id-ID" :decimals="2" :precision="4" decimal symbol="{{ $currency }}" required />
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">

@@ -236,9 +236,20 @@
                                     </td>
                                     <td class="px-3 py-2 text-right tabular-nums">
                                         @if ($itemsAreReorderable)
-                                            <input type="number" step="0.01" min="0"
-                                                   value="{{ $row['unit_cost_raw'] }}"
-                                                   x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'unit_cost', $event.target.value)"
+                                            {{--
+                                                A plain type="number" cannot show
+                                                thousands/decimal grouping. Shown
+                                                pre-formatted (id-ID: "." thousands,
+                                                "," decimal) instead; the change
+                                                handler undoes that formatting
+                                                before it reaches updateItemInline(),
+                                                and the field re-renders from the
+                                                server's own freshly-recalculated
+                                                value after the round trip.
+                                            --}}
+                                            <input type="text" inputmode="decimal"
+                                                   value="{{ number_format((float) $row['unit_cost_raw'], 2, ',', '.') }}"
+                                                   x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'unit_cost', parseMoneyInput($event.target.value))"
                                                    class="w-28 h-8 rounded-md border-gray-200 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! text-right tabular-nums text-sm focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
                                         @else
                                             {{ $row['unit_cost'] }}
@@ -556,7 +567,7 @@
                             <x-input wire:model="correctionItems.{{ $index }}.quantity" label="Qty" type="number" step="0.0001" />
                         </div>
                         <div class="col-span-6 sm:col-span-2">
-                            <x-input wire:model="correctionItems.{{ $index }}.unit_cost" label="Unit cost" type="number" step="0.01" />
+                            <x-currency wire:model="correctionItems.{{ $index }}.unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
                         </div>
                         <div class="col-span-6 sm:col-span-2">
                             <x-input wire:model="correctionItems.{{ $index }}.discount" label="Discount" type="number" step="0.01" />
