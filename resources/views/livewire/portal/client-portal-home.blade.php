@@ -21,7 +21,7 @@
                 @endif
                 <div>
                     <span class="block text-lg font-semibold leading-tight">{{ $company->name }}</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400">Client billing portal</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400!">Client billing portal</span>
                 </div>
             </div>
         </div>
@@ -30,7 +30,7 @@
     <main class="mx-auto max-w-5xl space-y-6 px-6 py-10">
         <div>
             <h1 class="text-2xl font-bold tracking-tight">Billing history</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ $client->name }}</p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400!">{{ $client->name }}</p>
         </div>
 
         @if ($invoices->isNotEmpty())
@@ -58,7 +58,7 @@
 
         <x-card>
             @if ($invoices->isEmpty())
-                <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">No documents to show yet.</p>
+                <p class="py-6 text-center text-sm text-gray-500 dark:text-gray-400!">No documents to show yet.</p>
             @else
                 {{-- A real WCAG 2.2 AA gap found via the axe-core browser
                      scan (Phase 06B Slice 5, mobile viewport): a
@@ -84,7 +84,7 @@
                 <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Billing history table">
                     <table class="w-full text-left text-sm">
                         <thead>
-                            <tr class="border-b border-gray-200 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:bg-gray-900/60 dark:text-gray-400">
+                            <tr class="border-b border-gray-200 bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800! dark:bg-gray-900/60! dark:text-gray-400!">
                                 <th class="px-3 py-2">Number</th>
                                 <th class="px-3 py-2">Date</th>
                                 <th class="px-3 py-2 text-right">Total</th>
@@ -98,7 +98,7 @@
                                 @php
                                     $invitation = $invoice->invitations->first();
                                 @endphp
-                                <tr class="border-b border-gray-100 dark:border-gray-800/60">
+                                <tr class="border-b border-gray-100 dark:border-gray-800/60!">
                                     <td class="px-3 py-2.5 font-medium">{{ $invoice->number }}</td>
                                     <td class="px-3 py-2.5">{{ $invoice->invoice_date?->toFormattedDateString() ?? '-' }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums">{{ $invoice->currency_code }} {{ number_format($invoice->total, 2) }}</td>
@@ -108,7 +108,7 @@
                                     </td>
                                     <td class="px-3 py-2.5 text-right">
                                         @if ($invitation)
-                                            <a href="{{ route('portal.invoice', $invitation) }}" class="font-medium text-primary-600 hover:underline dark:text-primary-400">
+                                            <a href="{{ route('portal.invoice', $invitation) }}" class="font-medium text-primary-600 hover:underline dark:text-primary-400!">
                                                 View
                                             </a>
                                         @endif
@@ -116,8 +116,8 @@
                                 </tr>
                                 @php $paymentEvents = $this->paymentEventsFor($invoice); @endphp
                                 @if (! empty($paymentEvents))
-                                    <tr class="border-b border-gray-100 dark:border-gray-800/60">
-                                        <td colspan="6" class="px-3 pb-3 pl-6 text-xs text-gray-500 dark:text-gray-400">
+                                    <tr class="border-b border-gray-100 dark:border-gray-800/60!">
+                                        <td colspan="6" class="px-3 pb-3 pl-6 text-xs text-gray-500 dark:text-gray-400!">
                                             <div class="space-y-1">
                                                 @foreach ($paymentEvents as $event)
                                                     <div class="flex justify-between">
@@ -144,10 +144,10 @@
 
         <x-card header="Company contact information">
             <dl class="space-y-1 text-sm">
-                <div><dt class="inline text-gray-500 dark:text-gray-400">Name:</dt> <dd class="inline">{{ $company->name }}</dd></div>
+                <div><dt class="inline text-gray-500 dark:text-gray-400!">Name:</dt> <dd class="inline">{{ $company->name }}</dd></div>
                 @if ($company->address_line_1)
                     <div>
-                        <dt class="inline text-gray-500 dark:text-gray-400">Address:</dt>
+                        <dt class="inline text-gray-500 dark:text-gray-400!">Address:</dt>
                         <dd class="inline">
                             {{ $company->address_line_1 }}@if ($company->address_line_2), {{ $company->address_line_2 }}@endif
                             @if ($company->city), {{ $company->city }}@endif
@@ -155,10 +155,10 @@
                     </div>
                 @endif
                 @if ($company->email)
-                    <div><dt class="inline text-gray-500 dark:text-gray-400">Email:</dt> <dd class="inline"><a href="mailto:{{ $company->email }}" class="hover:underline">{{ $company->email }}</a></dd></div>
+                    <div><dt class="inline text-gray-500 dark:text-gray-400!">Email:</dt> <dd class="inline"><a href="mailto:{{ $company->email }}" class="hover:underline">{{ $company->email }}</a></dd></div>
                 @endif
                 @if ($company->phone)
-                    <div><dt class="inline text-gray-500 dark:text-gray-400">Phone:</dt> <dd class="inline"><a href="tel:{{ $company->phone }}" class="hover:underline">{{ $company->phone }}</a></dd></div>
+                    <div><dt class="inline text-gray-500 dark:text-gray-400!">Phone:</dt> <dd class="inline"><a href="tel:{{ $company->phone }}" class="hover:underline">{{ $company->phone }}</a></dd></div>
                 @endif
             </dl>
         </x-card>

@@ -15,7 +15,7 @@
                 @endif
                 <div>
                     <span class="block text-lg font-semibold leading-tight">{{ $deliveryOrder->company->name }}</span>
-                    <span class="block text-xs text-gray-500 dark:text-gray-400">Delivery confirmation</span>
+                    <span class="block text-xs text-gray-500 dark:text-gray-400!">Delivery confirmation</span>
                 </div>
             </div>
         </div>
@@ -24,7 +24,7 @@
     <main class="mx-auto max-w-3xl space-y-6 px-6 py-10">
         <div>
             <h1 class="text-2xl font-bold tracking-tight">Delivery Order {{ $deliveryOrder->number }}</h1>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400!">
                 For {{ $job?->client?->name ?? '—' }}
                 @if ($deliveryOrder->delivery_date)
                     · delivered {{ $deliveryOrder->delivery_date->toFormattedDateString() }}
@@ -41,7 +41,7 @@
                     @interact('column_title', $row)
                         <div class="font-medium">{{ $row->salesOrderItem?->title ?? $row->description ?? '—' }}</div>
                         @if ($row->description && $row->salesOrderItem?->title)
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $row->description }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400!">{{ $row->description }}</div>
                         @endif
                     @endinteract
 
@@ -54,7 +54,7 @@
             </div>
 
             @if ($deliveryOrder->notes)
-                <div class="mt-4 border-t border-gray-200 pt-4 text-sm text-gray-600 dark:border-gray-800 dark:text-gray-400">
+                <div class="mt-4 border-t border-gray-200 pt-4 text-sm text-gray-600 dark:border-gray-800! dark:text-gray-400!">
                     <p class="whitespace-pre-line">{{ $deliveryOrder->notes }}</p>
                 </div>
             @endif
@@ -62,7 +62,7 @@
 
         <x-card header="Confirmation">
             @if ($deliveryOrder->signed_at)
-                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                <div class="flex items-start gap-2 rounded-lg bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30! dark:text-green-300!">
                     <x-icon name="check-circle" class="mt-0.5 h-5 w-5 shrink-0" />
                     <div>
                         <p>Confirmed by {{ $deliveryOrder->signed_by_name }} on {{ $deliveryOrder->signed_at->toFormattedDateString() }}.</p>
@@ -72,7 +72,7 @@
                     </div>
                 </div>
             @else
-                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <p class="mb-3 text-sm text-gray-600 dark:text-gray-400!">
                     Please confirm receipt of this delivery by typing your name and drawing your signature below.
                 </p>
 
@@ -98,8 +98,8 @@
             @endif
         </x-card>
 
-        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
-            <p class="font-medium text-gray-600 dark:text-gray-300">{{ $deliveryOrder->company->name }}</p>
+        <div class="border-t border-gray-200 pt-6 text-center text-xs text-gray-500 dark:border-gray-800! dark:text-gray-400!">
+            <p class="font-medium text-gray-600 dark:text-gray-300!">{{ $deliveryOrder->company->name }}</p>
         </div>
     </main>
 </div>
