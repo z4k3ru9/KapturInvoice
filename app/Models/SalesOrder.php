@@ -7,6 +7,7 @@ use App\Enums\SalesOrderStatus;
 use App\Enums\ServiceReportResult;
 use App\Enums\ServiceReportStatus;
 use App\Models\Concerns\BelongsToCompany;
+use App\Models\Concerns\Holdable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 ])]
 class SalesOrder extends Model
 {
-    use BelongsToCompany, SoftDeletes;
+    use BelongsToCompany, Holdable, SoftDeletes;
 
     protected function casts(): array
     {
@@ -42,6 +43,7 @@ class SalesOrder extends Model
             'operational_closed_at' => 'datetime',
             'financial_closed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'held_at' => 'datetime',
         ];
     }
 

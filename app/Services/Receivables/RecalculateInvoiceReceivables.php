@@ -43,9 +43,19 @@ class RecalculateInvoiceReceivables
         ];
 
         if (in_array($invoice->status, self::BILLABLE_STATES, true)) {
+            $isPastDue = $invoice->due_date !== null && $invoice->due_date->isPast();
+
             $attributes['status'] = match (true) {
-                $paid <= 0.0 => InvoiceStatus::Issued,
                 $balance <= 0.0 => InvoiceStatus::Paid,
+                // Overdue is itself a billable state (App\Console\Commands\
+                // MarkInvoicesOverdue is the only writer that first sets it),
+                // so it must be preserved/re-derived here rather than always
+                // falling back to Issued/Partial — otherwise an unrelated
+                // payment event on an already-Overdue invoice would silently
+                // clear the marker before the next scheduled run had a
+                // chance to re-set it.
+                $isPastDue => InvoiceStatus::Overdue,
+                $paid <= 0.0 => InvoiceStatus::Issued,
                 default => InvoiceStatus::Partial,
             };
         }
