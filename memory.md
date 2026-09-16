@@ -101,10 +101,23 @@ re-run completed audits unless new evidence contradicts them.
   `docs/rebuild/outputs/` reorganized into `planning/`/`checkpoints/`/
   `ui-rebuild/` subfolders with every cross-reference repo-wide updated
   (Phase 16, run last by design). **Deliberately not done, per explicit
-  decision:** passkey/WebAuthn login (own dedicated session, out of
-  scope here) and the live currency-API (explicitly deferred by the
-  user to "the last stage of this development"). Nothing else from this
-  repair plan remains open.
+  decision:** the live currency-API (explicitly deferred by the user to
+  "the last stage of this development"). Nothing else from this repair
+  plan remains open.
+- **Passkey login (2026-09-16) — done, merged to main.** Supersedes this
+  repair plan's earlier "passkey/WebAuthn login... out of scope" note —
+  the user explicitly asked for it later the same day. `laravel/passkeys`
+  (official package; `laragear/webauthn` was composer-flagged abandoned,
+  deliberately not used) backs `App\Models\User`. An additional sign-in
+  method only — passwords are unchanged — with a management UI at
+  `App\Livewire\TallStackAccountPasskeys` (avatar menu → "Passkeys").
+  Passkey management middleware is intentionally NOT the package's own
+  default (`password.confirm`) — this app has no password-confirmation
+  flow at all yet, for any action, and building one was out of scope for
+  this task; see `config/passkeys.php`'s own comment. Verified end-to-end
+  in a real browser (the WebAuthn ceremony genuinely reaches
+  `navigator.credentials`) — note for local dev: WebAuthn refuses a bare
+  IP origin like `127.0.0.1`, use `http://localhost:PORT` instead.
 - Flagged, not built (explicit decision needed, not silently dropped): the
   "add next blank row after meaningful content / auto-remove an untouched
   blank row / confirm before removing a populated row" dynamic-row behavior
