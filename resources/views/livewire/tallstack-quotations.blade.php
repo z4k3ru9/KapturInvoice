@@ -91,21 +91,23 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                {{-- Consolidated to one primary "Open" button + a single
+                     kebab for everything else (Download PDF and Copy
+                     acceptance link folded in here too) — was 3 standalone
+                     icon buttons + a kebab with up to 6 more items,
+                     widening an already horizontally-scrolling table
+                     further at mobile width. Matches the pattern already
+                     used on the Proposals list. --}}
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-button icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    {{-- Client-side clipboard copy of the public
-                         drawn-signature acceptance link
-                         (App\Livewire\Portal\SignQuotation) — same
-                         pattern as tallstack-client-portal-invitations.blade.php's
-                         own "Copy portal link" action. --}}
-                    <button type="button"
-                            x-on:click="window.navigator.clipboard.writeText('{{ route('portal.quotation', $row['portal_key']) }}')"
-                            title="Copy client acceptance link"
-                            class="inline-flex items-center justify-center h-9 w-9 rounded-md text-gray-600 dark:text-gray-300! hover:text-[color:var(--ts-primary)] hover:bg-gray-100 dark:hover:bg-gray-800! border border-gray-200 dark:border-gray-700! transition-colors">
-                        <x-icon name="clipboard" class="w-4 h-4" />
-                    </button>
                     <x-dropdown icon="ellipsis-vertical" scope="row-action">
+                        <x-dropdown.items text="Download PDF" icon="document-arrow-down" href="{{ route('quotations.pdf', $row['id']) }}" target="_blank" />
+                        {{-- Client-side clipboard copy of the public
+                             drawn-signature acceptance link
+                             (App\Livewire\Portal\SignQuotation) — same
+                             pattern as tallstack-client-portal-invitations.blade.php's
+                             own "Copy portal link" action. --}}
+                        <x-dropdown.items text="Copy client acceptance link" icon="clipboard" x-on:click="window.navigator.clipboard.writeText('{{ route('portal.quotation', $row['portal_key']) }}')" separator />
                         @if ($row['status'] === \App\Enums\QuotationStatus::Draft)
                             <x-dropdown.items text="Approve" icon="check-circle" wire:click="approve({{ $row['id'] }})" />
                         @endif
