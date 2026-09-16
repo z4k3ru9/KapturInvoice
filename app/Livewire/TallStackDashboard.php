@@ -19,6 +19,7 @@ use App\Support\Dashboard\SetupChecklist;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -130,6 +131,61 @@ class TallStackDashboard extends Component
         $this->chartCollected = $bucket['collected'];
 
         $this->statsLoaded = true;
+    }
+
+    /**
+     * Downloads the current period's stat cards and revenue trend as a
+     * plain CSV — the "Export summary" header button
+     * (tallstack-dashboard.blade.php), previously decorative with no
+     * `wire:click` at all. Loads the stats itself rather than trusting
+     * `$statsLoaded`: the header renders before `wire:init` fires
+     * `loadDashboardData()` on first paint, so a click in that brief
+     * window would otherwise export an empty `$this->stats` array.
+     * Returning a `streamDownload()` response directly from a component
+     * method is Livewire's own documented file-download mechanism — no
+     * separate controller/route needed, matching this being dashboard-only
+     * export, not a reusable document type.
+     */
+    public function exportSummary(): mixed
+    {
+        if (! $this->statsLoaded) {
+            $this->loadDashboardData();
+        }
+
+        $periodLabel = DashboardPeriod::resolve(['period' => $this->period])['label'];
+        $stats = $this->stats;
+
+        $rows = [
+            ["KapturInvoice \u{2014} {$this->company->name}"],
+            ["Dashboard summary \u{2014} {$periodLabel}"],
+            [],
+            ['Metric', 'Value'],
+            ['Total revenue', $stats['revenue']],
+            ['Outstanding balance', $stats['outstanding']],
+            ['Outstanding invoices', $stats['outstandingCount']],
+            ['Overdue invoices', $stats['overdueCount']],
+            ['Overdue total', $stats['overdueTotal']],
+            ['Open quotations', $stats['openQuotations']],
+            ['Active jobs', $stats['activeJobs']],
+            [],
+            ['Revenue & cash inflow trend'],
+            ['Period', 'Invoiced (legacy)', 'Cash collected'],
+            ...collect($this->chartLabels)->map(fn (string $label, int $index) => [
+                $label,
+                Money::format($this->chartInvoiced[$index] ?? 0.0, $this->company->currency_code),
+                Money::format($this->chartCollected[$index] ?? 0.0, $this->company->currency_code),
+            ])->all(),
+        ];
+
+        $filename = Str::slug($this->company->name).'-dashboard-summary-'.now()->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($handle, $row, escape: '\\');
+            }
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 
     /**

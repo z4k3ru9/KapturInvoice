@@ -40,6 +40,8 @@ class TallStackClientPortalInvitations extends Component
 
     public string $search = '';
 
+    public int $quantity = 10;
+
     /**
      * null = all, 'viewed' = only invitations that have been opened,
      * 'signed' = only invitations that have been e-signed.
@@ -94,7 +96,7 @@ class TallStackClientPortalInvitations extends Component
             ->when($this->filter === 'viewed', fn (Builder $q) => $q->whereNotNull('viewed_at'))
             ->when($this->filter === 'signed', fn (Builder $q) => $q->whereNotNull('signed_at'))
             ->orderBy($this->sort['column'], $this->sort['direction'])
-            ->paginate(10)
+            ->paginate($this->quantity)
             ->through(fn (Invitation $invitation) => [
                 'id' => $invitation->id,
                 'key' => $invitation->key,

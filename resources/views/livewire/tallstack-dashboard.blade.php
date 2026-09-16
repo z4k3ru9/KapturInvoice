@@ -22,7 +22,7 @@
                     <x-dropdown.items :text="$label" wire:click="$set('period', '{{ $value }}')" />
                 @endforeach
             </x-dropdown>
-            <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" />
+            <x-button text="Export summary" icon="arrow-down-tray" sm color="gray" class="h-9" wire:click="exportSummary" wire:loading.attr="disabled" wire:target="exportSummary" />
             {{--
                 Calls loadDashboardData() directly (not $refresh) — since
                 the heavy stats/chart query is no longer run from render(),
@@ -166,26 +166,43 @@
                     plots, just behind the headline number at low opacity
                     (the package's own default `chart.wrapper` styling).
                 --}}
-                <x-stats scope="compact" icon="banknotes">
-                    <x-slot:chart>
-                        <x-chart :series="$chartCollected" color="{{ $stats['revenueUp'] && ! $stats['revenueFlat'] ? 'green' : 'red' }}" curve="smooth" :height="64" />
-                    </x-slot:chart>
-                    <div class="flex items-center gap-1">
-                        <span class="text-xs text-gray-600 dark:text-gray-300!">Total revenue</span>
-                        @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
-                            <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
-                        @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
-                            <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
-                        @endif
-                    </div>
-                    <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['revenue'] }}</span>
-                    <x-slot:footer>{{ $periodLabel }}</x-slot:footer>
-                </x-stats>
+                {{--
+                    Two rows, not one flat 5-up grid: the two currency
+                    (Rupiah) cards below get their own wider row — a real
+                    seeded value like "Rp 101.431.740.047" needs far more
+                    than a 1-of-5 column slice, and fighting a plain count
+                    card for space is exactly what caused the mid-digit
+                    clipping this session's stress test surfaced (see
+                    memory.md). `col-span-full` lets each row-wrapper
+                    escape the parent's own `grid-cols-2/3/5` column track
+                    (unchanged, still driving the wire:loading toggle
+                    above) and lay out its own children in a grid of its
+                    own instead.
+                --}}
+                <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <x-stats scope="compact" icon="banknotes">
+                        <x-slot:chart>
+                            <x-chart :series="$chartCollected" color="{{ $stats['revenueUp'] && ! $stats['revenueFlat'] ? 'green' : 'red' }}" curve="smooth" :height="64" />
+                        </x-slot:chart>
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-600 dark:text-gray-300!">Revenue</span>
+                            @if ($stats['revenueUp'] && ! $stats['revenueFlat'])
+                                <x-icon name="arrow-trending-up" class="h-3 w-3 text-green-500 shrink-0" />
+                            @elseif (! $stats['revenueUp'] && ! $stats['revenueFlat'])
+                                <x-icon name="arrow-trending-down" class="h-3 w-3 text-red-500 shrink-0" />
+                            @endif
+                        </div>
+                        <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['revenue'] }}</span>
+                    </x-stats>
 
-                <x-stats scope="compact" title="Outstanding balance" icon="clock" color="amber">
-                    <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
-                    <x-slot:footer>{{ $stats['outstandingCount'] }} invoice{{ $stats['outstandingCount'] === 1 ? '' : 's' }}</x-slot:footer>
-                </x-stats>
+                    <x-stats scope="compact" icon="clock" color="amber">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600 dark:text-gray-300!">Outstanding</span>
+                            <x-badge text="{{ $stats['outstandingCount'] }} inv" sm light color="amber" />
+                        </div>
+                        <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
+                    </x-stats>
+                </div>
 
                 {{--
                     :number/animated (not a slot) on these three count
@@ -198,17 +215,21 @@
                     Money::format() convention for the app's headline
                     amounts).
                 --}}
-                <x-stats scope="compact" title="Overdue invoices" icon="exclamation-triangle" color="red" :number="$stats['overdueCount']" animated :duration="1">
-                    <x-slot:footer><span class="text-red-600 dark:text-red-400">{{ $stats['overdueTotal'] }} overdue</span></x-slot:footer>
-                </x-stats>
+                <div class="col-span-full grid grid-cols-3 gap-2.5">
+                    <x-stats scope="compact" icon="exclamation-triangle" color="red">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs text-gray-600 dark:text-gray-300!">Overdue</span>
+                            @if ($stats['overdueCount'] > 0)
+                                <x-badge text="{{ $stats['overdueTotal'] }}" sm light color="red" />
+                            @endif
+                        </div>
+                        <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueCount'] }}</span>
+                    </x-stats>
 
-                <x-stats scope="compact" title="Open quotations" icon="document-text" color="blue" :number="$stats['openQuotations']" animated :duration="1">
-                    <x-slot:footer>Approved or sent</x-slot:footer>
-                </x-stats>
+                    <x-stats scope="compact" title="Quotations" icon="document-text" color="blue" :number="$stats['openQuotations']" animated :duration="1" />
 
-                <x-stats scope="compact" title="Active jobs" icon="briefcase" color="blue" :number="$stats['activeJobs']" animated :duration="1">
-                    <x-slot:footer>In progress</x-slot:footer>
-                </x-stats>
+                    <x-stats scope="compact" title="Jobs" icon="briefcase" color="blue" :number="$stats['activeJobs']" animated :duration="1" />
+                </div>
             @else
                 @include('livewire.partials.tallstack-dashboard-stats-skeleton')
             @endif
