@@ -206,6 +206,11 @@ class Company extends Model
         return $this->hasMany(TaxRate::class);
     }
 
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(CompanyBankAccount::class)->orderBy('sort_order');
+    }
+
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);

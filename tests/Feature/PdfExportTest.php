@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Client;
 use App\Models\Company;
+use App\Models\CompanyBankAccount;
 use App\Models\CompanySetting;
 use App\Models\Contact;
 use App\Models\Credit;
@@ -137,6 +138,50 @@ class PdfExportTest extends TestCase
 
         $this->assertStringContainsString('CO-TAX-999', $html);
         $this->assertStringContainsString('CLIENT-TAX-123', $html);
+    }
+
+    public function test_invoice_pdf_template_includes_the_companys_bank_accounts_when_configured(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create(['company_id' => $company->id, 'client_id' => $client->id, 'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0001']);
+        CompanyBankAccount::create([
+            'company_id' => $company->id,
+            'bank_name' => 'Bank Central Asia',
+            'account_name' => 'PT Acme Indonesia',
+            'account_number' => '1234567890',
+            'branch' => 'Surabaya Darmo',
+        ]);
+        CompanyBankAccount::create([
+            'company_id' => $company->id,
+            'bank_name' => 'Bank Mandiri',
+            'account_name' => 'PT Acme Indonesia',
+            'account_number' => '9876543210',
+        ]);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        $this->assertStringContainsString('Bank Central Asia', $html);
+        $this->assertStringContainsString('1234567890', $html);
+        $this->assertStringContainsString('Surabaya Darmo', $html);
+        $this->assertStringContainsString('Bank Mandiri', $html);
+        $this->assertStringContainsString('9876543210', $html);
+    }
+
+    public function test_invoice_pdf_template_omits_payment_method_section_when_no_bank_account_configured(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'currency_code' => 'USD']);
+        $client = Client::create(['company_id' => $company->id, 'name' => 'Client Co']);
+        $invoice = Invoice::create(['company_id' => $company->id, 'client_id' => $client->id, 'type' => 'invoice', 'status' => 'sent', 'number' => 'INV-0001']);
+        $invoice->loadMissing('client', 'company', 'items');
+
+        $html = view('pdf.invoice', ['invoice' => $invoice])->render();
+
+        // The .payment-method CSS rule is always in the static <style>
+        // block; assert the actual section heading is absent, not the
+        // class name.
+        $this->assertStringNotContainsString(__('documents.payment_method'), $html);
     }
 
     public function test_credit_pdf_template_includes_company_and_client_tax_ids(): void

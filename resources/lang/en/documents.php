@@ -35,6 +35,11 @@ return [
     'notes' => 'Notes',
     'terms' => 'Terms',
 
+    'payment_method' => 'Payment Method',
+    'bank_account_number' => 'Account No.',
+    'bank_account_name' => 'Account Name',
+    'bank_branch' => 'Branch',
+
     // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa) — see
     // resources/lang/id/documents.php for the key-by-key reasoning.
     'type_quotation' => 'Quotation',
