@@ -58,8 +58,11 @@
                     </div>
                     <x-date wire:model="recurring_start_date" label="Start date" />
                     <div class="flex flex-col gap-1.5">
-                        <x-date wire:model="recurring_end_date" label="End date" :disabled="$no_end_date" />
-                        <x-toggle wire:model.live="no_end_date" label="No end date" />
+                        <div class="flex items-center justify-between">
+                            <x-label label="End date" />
+                            <x-toggle wire:model.live="no_end_date" label="No end date" sm />
+                        </div>
+                        <x-date wire:model="recurring_end_date" :disabled="$no_end_date" />
                     </div>
                 </div>
             </x-card>
