@@ -70,7 +70,16 @@ class AppServiceProvider extends ServiceProvider
         // rendered solid white in dark mode. Swapped for the same standard
         // gray-*!important treatment as every other surface in this file.
         TallStackUi::customize()->stats('compact')->block([
-            'wrapper.first' => 'dark:bg-gray-900! flex w-full flex-col rounded-lg bg-white shadow-md',
+            // overflow-hidden added on top of the package's own default
+            // (overflow: visible): at 2-column tablet widths, a genuinely
+            // large real currency value ("Rp 94.000.000") has nowhere to
+            // truncate to before the neighboring card's icon square, and
+            // the vendor's own visible overflow let it bleed straight into
+            // that neighbor — confirmed live with real (non-fixture)
+            // amounts. Clipping at the card's own rounded-lg boundary is a
+            // structural fix (works at every width/number length) rather
+            // than each page inventing its own breakpoint/truncate dance.
+            'wrapper.first' => 'dark:bg-gray-900! flex w-full flex-col overflow-hidden rounded-lg bg-white shadow-md',
             // gap-2, not gap-3: at this card width (~173px content area,
             // minus the 36px icon box), the text column has ~125-129px to
             // work with depending on title length. With gap-3 (12px) two
@@ -519,23 +528,51 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerContentSurfaceDarkModeFix(): void
     {
-        // Shared by EVERY floating popover in this app — the dropdown panel
-        // (<x-dropdown>, both scoped and unscoped), <x-dropdown.submenu>, the
-        // <x-select.styled> option list, the date/color/tag/autocomplete
-        // pickers, and the password-strength popover — because every one of
-        // those components builds its own panel on top of
-        // `Floating\Component::customization()['wrapper']` rather than
-        // defining its own background (confirmed by reading each of their
-        // `Component.php` files: they all resolve
-        // `app(Floating::class)->customization()` for their own 'floating'
-        // block). One fix here is therefore the single highest-leverage
-        // change in this method. `border-dark-200` (light mode, no `dark:`
-        // prefix) is left untouched — it's a real, unconditionally-compiled
-        // token in tallstackui.css with no cascade collision of its own, so
-        // it isn't part of this specific bug.
+        // The <x-floating> component's OWN panel (used directly, and by
+        // <x-list>'s menu etc. via their own explicit block overrides
+        // elsewhere in this method). `border-dark-200` (light mode, no
+        // `dark:` prefix) is left untouched — it's a real, unconditionally-
+        // compiled token in tallstackui.css with no cascade collision of its
+        // own, so it isn't part of this specific bug.
         TallStackUi::customize()->floating()->block([
             'wrapper' => 'dark:bg-gray-900! border-dark-200 dark:border-gray-800! absolute z-50 rounded-lg border bg-white',
         ]);
+
+        // CORRECTION (found independently by 3 separate audit passes,
+        // 2026-09-16): the comment that used to sit here claimed the fix
+        // above was "shared by every floating popover in this app... because
+        // every one of those components builds its own panel on top of
+        // Floating\Component::customization()['wrapper']". That was wrong.
+        // Reading the vendor source confirms each of these components'
+        // OWN `customization()` method calls `app(Floating::class)->
+        // customization()` directly — a fresh call to the Floating class's
+        // hardcoded package-default method, evaluated at the AFFECTED
+        // component's own construction time — and stores the result under
+        // its OWN 'floating.default' key. This does NOT go through
+        // TallStackUi::customize()'s override registry at all, so the
+        // `floating()->block(['wrapper' => ...])` call above is silently
+        // dead for every one of these components' actual floating panel.
+        // (The exception that made this hard to notice: `SideBar\Item`
+        // is ALSO built this way, but this app never relies on its
+        // 'floating.default' — `registerAppShellDarkModeFix()` sets its
+        // OWN 'group.flyout.wrapper' key directly instead, which IS read
+        // correctly, because that key belongs to SideBar\Item itself, not
+        // to a re-exported copy of Floating's.) The only real fix is the
+        // same one SideBar\Item's flyout uses: set each affected
+        // component's own 'floating.default' key directly, duplicating the
+        // Floating fix's classes rather than relying on inheritance that
+        // doesn't actually happen at runtime.
+        $sharedFloatingDefault = 'dark:bg-gray-900! border-dark-200 dark:border-gray-800! absolute z-50 rounded-lg border bg-white';
+        TallStackUi::customize()->dropdown()->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->dropdown('submenu')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->select('styled')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('password')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('autocomplete')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('color')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('date')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('time')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('tag')->block(['floating.default' => $sharedFloatingDefault]);
+        TallStackUi::customize()->form('upload')->block(['floating.default' => $sharedFloatingDefault]);
 
         // The dropdown ROW text/icon/divider colors sitting inside that now-
         // fixed panel — <x-dropdown.items> (every row action menu in this
