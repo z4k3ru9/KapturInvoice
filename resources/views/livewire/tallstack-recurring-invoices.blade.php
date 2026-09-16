@@ -34,10 +34,15 @@
 
     {{-- No enforced pause/resume mechanism exists on the backend — see
          App\Livewire\TallStackRecurringInvoices's docblock. This helper
-         line keeps the screen honest about "Generate now" always being a
-         manual, on-demand action rather than implying a running
-         scheduler. --}}
-    <p class="text-xs text-gray-400 -mt-2">Recurring invoices are generated manually with "Generate now" below — there is no automatic background scheduler in this build yet.</p>
+         line keeps the screen honest about "Generate now" being the only
+         manual trigger available here. It's no longer the only trigger,
+         full stop: `recurring-invoices:generate-due` (see routes/console.php,
+         scheduled dailyAt('06:00')) now generates, issues, and sends the
+         next invoice for every due, auto_bill-enabled template on its own
+         — see that command's own docblock. This line was never updated
+         when that command shipped and had gone stale, wrongly telling
+         auto_bill users nothing would happen without a manual click. --}}
+    <p class="text-xs text-gray-400 -mt-2">"Generate now" below creates the next invoice on demand for any template. Templates with Auto-bill enabled are also generated, issued, and sent automatically every day — no manual step needed for those.</p>
 
     <x-card>
         <x-slot:header>

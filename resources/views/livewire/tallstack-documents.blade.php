@@ -12,13 +12,29 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                {{-- File-type filter pills. --}}
+                {{-- File-type filter pills.
+                     $typeFilterOptions is built here, outside the component
+                     tag's own attribute string, because a nested-quote PHP
+                     expression (the arrow function below needed a
+                     double-quoted interpolated string inside the
+                     already-double-quoted :options="..." attribute) breaks
+                     Blade's component-tag attribute parser — confirmed
+                     live: it silently stopped parsing the tag partway
+                     through and rendered the remainder of the tag
+                     (`values()" :active="$typeFilter" method="filterType" />`)
+                     as literal page text instead of compiling it. Plain
+                     variables passed via `:options="$typeFilterOptions"`
+                     don't have this problem, so the array is computed here
+                     instead. --}}
                 @php
                     $typeLabels = ['all' => 'All', 'pdf' => 'PDFs', 'image' => 'Images', 'other' => 'Other'];
+                    $typeFilterOptions = collect($typeLabels)
+                        ->map(fn ($label, $value) => ['value' => $value, 'label' => "{$label} ({$counts[$value]})"])
+                        ->values();
                 @endphp
                 <x-tallstack.filter-dropdown
                     label="{{ $typeLabels[$typeFilter] }} ({{ $counts[$typeFilter] }})"
-                    :options="collect($typeLabels)->map(fn ($label, $value) => ['value' => $value, 'label' => \"{$label} ({$counts[$value]})\"])->values()"
+                    :options="$typeFilterOptions"
                     :active="$typeFilter"
                     method="filterType"
                 />
