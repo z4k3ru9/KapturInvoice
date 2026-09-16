@@ -32,18 +32,12 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <button type="button" wire:click="filterStatus(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        All
-                    </button>
-                    @foreach ($statuses as $case)
-                        <button type="button" wire:click="filterStatus('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $status === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                            {{ $case->getLabel() }}
-                        </button>
-                    @endforeach
-                </div>
+                <x-tallstack.filter-dropdown
+                    label="{{ $status === null ? 'All statuses' : collect($statuses)->firstWhere('value', $status)?->getLabel() }}"
+                    :options="collect([['value' => null, 'label' => 'All statuses']])->concat(collect($statuses)->map(fn ($case) => ['value' => $case->value, 'label' => $case->getLabel()]))"
+                    :active="$status"
+                    method="filterStatus"
+                />
 
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
