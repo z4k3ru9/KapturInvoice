@@ -358,8 +358,31 @@ class TallStackInvoiceForm extends Component
             && Gate::allows('update', $this->invoice);
     }
 
+    /**
+     * Header fields (client_id/pricing_mode/sales_order_id/etc.) are only
+     * ever mutable while App\Enums\InvoiceStatus::isLocked() is false —
+     * `Draft`/`Approved`. Once an invoice is Issued (or carries any other
+     * locked status, including the legacy read-only-history ones — see
+     * that method's own docblock) this form's own header/totals/tax
+     * snapshot must stay immutable per CLAUDE.md's Phase 04 rules; the
+     * only legal corrections from here on are the Amend/Void & reissue
+     * buttons this same page already renders
+     * (App\Actions\Billing\AmendIssuedInvoice/VoidAndReissueInvoice via
+     * openCorrectionModal()). Checked against the loaded model's own
+     * status — never a mutable Livewire property, since `status` is
+     * deliberately never bound as one on this form (see class docblock).
+     */
     public function save(): void
     {
+        if ($this->invoice && $this->invoice->status->isLocked()) {
+            $this->toast()->error(
+                'Could not save invoice',
+                'This invoice has already been issued and its header can no longer be edited directly. Use Amend or Void & reissue instead.'
+            )->send();
+
+            return;
+        }
+
         $sanitizer = app(RichTextSanitizer::class);
         $this->terms = $sanitizer->sanitize($this->terms);
         $this->public_notes = $sanitizer->sanitize($this->public_notes);

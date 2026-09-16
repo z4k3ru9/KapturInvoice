@@ -99,4 +99,28 @@ enum InvoiceStatus: string
     {
         return in_array($this, [self::Paid, self::Cancelled, self::Void, self::Amended], true);
     }
+
+    /**
+     * True once an invoice's header/totals/tax snapshot must be treated as
+     * immutable — the only two statuses this excludes are `Draft` and
+     * `Approved`, the sole pre-issuance states where App\Actions\Billing\
+     * IssueInvoice hasn't yet frozen a tax snapshot
+     * (App\Models\InvoiceTaxSnapshot). Every other case is locked,
+     * including the legacy-only cases (`Sent`/`Viewed`/`Cancelled` never
+     * occur on an app-created document — memory.md's "InvoiceStatus dual
+     * case set" decision: they only appear on imported/pre-migration
+     * rows, which are read-only history and must never be edited via this
+     * form either) and `Partial`/`Paid`/`Overdue`, which double as the
+     * post-issuance payment states an Issued invoice reaches
+     * (allowedNextStates() above) — exactly the same status set
+     * App\Actions\Billing\AmendIssuedInvoice/VoidAndReissueInvoice accept
+     * via canTransitionTo(Amended)/canTransitionTo(Void). Consulted by
+     * App\Livewire\TallStackInvoiceForm::save() to refuse a direct header
+     * edit once this is true — the only legal correction path from here on
+     * is Amend or Void & reissue.
+     */
+    public function isLocked(): bool
+    {
+        return ! in_array($this, [self::Draft, self::Approved], true);
+    }
 }
