@@ -59,21 +59,22 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    $extraActions[] = ['text' => $row['status'] === \App\Enums\InvoiceStatus::Draft ? 'Send' : 'Resend', 'icon' => 'paper-airplane', 'click' => 'send('.$row['id'].')'];
+                    $extraActions[] = ['text' => 'Convert to invoice', 'icon' => 'arrow-right-circle', 'click' => 'convertToInvoice('.$row['id'].')', 'confirm' => 'Convert this quote to a real invoice?'];
+                    // Only ever shown for a Draft row — the guard's full
+                    // predicate (no payments/allocations/corrections/
+                    // converted invoices) is still re-checked server-side by
+                    // App\Actions\Billing\ForceDeleteQuote.
+                    if ($row['status'] === \App\Enums\InvoiceStatus::Draft) {
+                        $extraActions[] = ['text' => 'Force delete', 'icon' => 'trash', 'color' => 'red', 'click' => 'forceDelete('.$row['id'].')', 'confirm' => 'Permanently delete this quote? This cannot be undone.'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.quotes.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
                     <x-button icon="document-arrow-down" href="{{ route('invoices.pdf', $row['id']) }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download PDF" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="{{ $row['status'] === \App\Enums\InvoiceStatus::Draft ? 'Send' : 'Resend' }}" icon="paper-airplane" wire:click="send({{ $row['id'] }})" />
-                        <x-dropdown.items text="Convert to invoice" icon="arrow-right-circle" wire:click="convertToInvoice({{ $row['id'] }})" wire:confirm="Convert this quote to a real invoice?" />
-                        {{-- Only ever shown for a Draft row — the guard's
-                             full predicate (no payments/allocations/
-                             corrections/converted invoices) is still
-                             re-checked server-side by
-                             App\Actions\Billing\ForceDeleteQuote. --}}
-                        @if ($row['status'] === \App\Enums\InvoiceStatus::Draft)
-                            <x-dropdown.items text="Force delete" icon="trash" wire:click="forceDelete({{ $row['id'] }})" wire:confirm="Permanently delete this quote? This cannot be undone." />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 

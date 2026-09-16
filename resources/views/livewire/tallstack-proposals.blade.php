@@ -74,18 +74,20 @@
             @endinteract
 
             @interact('column_actions', $row, $company)
+                @php
+                    $extraActions = [];
+                    $extraActions[] = ['text' => 'Edit', 'icon' => 'pencil-square', 'href' => route('tallstack.proposals.edit', [$company, $row['id']])];
+                    $extraActions[] = ['text' => 'Duplicate', 'icon' => 'document-duplicate', 'click' => 'duplicate('.$row['id'].')'];
+                    if ($row['status'] !== \App\Enums\ProposalStatus::Accepted) {
+                        $extraActions[] = ['text' => 'Mark accepted', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'markAccepted('.$row['id'].')'];
+                    }
+                    if ($row['status'] !== \App\Enums\ProposalStatus::Declined) {
+                        $extraActions[] = ['text' => 'Mark declined', 'icon' => 'x-circle', 'color' => 'red', 'click' => 'markDeclined('.$row['id'].')', 'confirm' => 'Mark this proposal declined?'];
+                    }
+                @endphp
                 <div class="flex items-center justify-end gap-2">
                     <x-button icon="eye" href="{{ route('tallstack.proposals.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Open" />
-                    <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                        <x-dropdown.items text="Edit" icon="pencil-square" href="{{ route('tallstack.proposals.edit', [$company, $row['id']]) }}" />
-                        <x-dropdown.items text="Duplicate" icon="document-duplicate" wire:click="duplicate({{ $row['id'] }})" />
-                        @if ($row['status'] !== \App\Enums\ProposalStatus::Accepted)
-                            <x-dropdown.items text="Mark accepted" icon="check-circle" wire:click="markAccepted({{ $row['id'] }})" />
-                        @endif
-                        @if ($row['status'] !== \App\Enums\ProposalStatus::Declined)
-                            <x-dropdown.items text="Mark declined" icon="x-circle" wire:click="markDeclined({{ $row['id'] }})" wire:confirm="Mark this proposal declined?" />
-                        @endif
-                    </x-dropdown>
+                    <x-tallstack.row-actions :items="$extraActions" />
                 </div>
             @endinteract
 
