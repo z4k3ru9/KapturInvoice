@@ -199,6 +199,17 @@ before being called a bug:
 
 ## Flagged, not fixed (documented gaps, not silent drops)
 
+> **Note (added later, doc otherwise unchanged):** the admin panel this
+> section describes was Filament at the time this checkpoint was written.
+> It has since been fully rebuilt in TallStackUI/Livewire (see CLAUDE.md's
+> Dark-mode/TallStackUI-compliance audit and post-rebuild repair-plan
+> entries) — the specific Filament internals named below (`.fi-select-
+> input-value-remove-btn`, `.fi-ta-content-ctn`, "a custom Filament panel
+> theme") no longer exist. Whether the underlying WCAG/toast/dynamic-row
+> gaps still exist under TallStackUI's own components needs re-assessment
+> against the current UI, not assumed fixed or still-open from this doc
+> alone.
+
 - **Filament's stock `.fi-select-input-value-remove-btn`** (the "Clear
   selection" button on Select fields) renders at 16×16px, under WCAG
   2.2's 24×24 minimum target size (axe: `target-size`, serious). Fixing

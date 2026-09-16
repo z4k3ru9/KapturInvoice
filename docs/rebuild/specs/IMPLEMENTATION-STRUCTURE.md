@@ -1,5 +1,16 @@
 # KapturInvoice Implementation Structure
 
+> **Note (TallStackUI migration):** §2's target structure below still shows
+> an `app/Filament/Resources/`/`Pages/`/`Widgets/` folder and §4/§5 still
+> say "Filament/Livewire UI" — that was the plan when this document was
+> written. The internal admin panel has since been fully rebuilt off
+> Filament onto a hand-built TallStackUI/Livewire admin
+> (`App\Livewire\TallStack*`, routed at `/tall/{company:slug}/...` —
+> `app/Filament` no longer exists in this codebase; see `CLAUDE.md`). Read
+> every "Filament" mention below as the equivalent TallStackUI/Livewire
+> convention; the vertical-slice/dependency-graph/stop-condition guidance
+> itself is unaffected.
+
 This document defines how Claude Code should organize the renovation. It complements the phase `Specs.md` files; it does not replace the approved product requirements.
 
 ## 1. Implementation rule
