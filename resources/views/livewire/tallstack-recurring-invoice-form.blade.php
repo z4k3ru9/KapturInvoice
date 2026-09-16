@@ -149,6 +149,12 @@
                                 <img src="{{ $row['image'] }}" alt="" class="w-8 h-8 rounded object-cover">
                             @endif
                         @endinteract
+                        @interact('column_quantity', $row)
+                            {{ $row['quantity'] }}
+                            @if ($row['unit'])
+                                <span class="text-xs text-gray-400 dark:text-gray-500!">{{ $row['unit'] }}</span>
+                            @endif
+                        @endinteract
                         @interact('column_taxes', $row)
                             @forelse ($row['taxes'] as $tax)
                                 <x-badge text="{{ $tax }}" color="gray" sm />
@@ -264,7 +270,9 @@
             <x-input wire:model="item_title" label="Title" required />
             <x-textarea wire:model="item_description" label="Description" rows="2" />
             <div class="grid grid-cols-2 gap-4">
-                <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
+                <x-input wire:model="item_quantity" label="Quantity" type="number" step="1" min="1" />
+                <x-select.styled wire:model="item_unit" label="Unit" clearable
+                    :options="collect(\App\Enums\UnitOfMeasure::cases())->map(fn ($u) => ['label' => $u->getLabel(), 'value' => $u->value])->all()" />
                 <x-currency wire:model="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
                 @if ($item_discount_is_percentage)
                     <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" suffix="%" />

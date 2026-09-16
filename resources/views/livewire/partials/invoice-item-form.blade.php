@@ -19,7 +19,9 @@
         <div class="sm:col-span-4">
             <x-textarea wire:model="item_description" label="Description" rows="2" />
         </div>
-        <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
+        <x-input wire:model="item_quantity" label="Quantity" type="number" step="1" min="1" />
+        <x-select.styled wire:model="item_unit" label="Unit" clearable
+            :options="collect(\App\Enums\UnitOfMeasure::cases())->map(fn ($u) => ['label' => $u->getLabel(), 'value' => $u->value])->all()" />
         <x-currency wire:model="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
         @if ($item_discount_is_percentage)
             <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" suffix="%" />

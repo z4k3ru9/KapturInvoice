@@ -127,6 +127,7 @@
             <tr>
                 <th>{{ __('documents.item') }}</th>
                 <th class="text-right">{{ __('documents.qty') }}</th>
+                <th class="text-left">{{ __('documents.unit') }}</th>
                 <th class="text-right">{{ __('documents.unit_price') }}</th>
                 <th class="text-right">{{ __('documents.total_column') }}</th>
             </tr>
@@ -141,6 +142,7 @@
                         @endif
                     </td>
                     <td class="text-right">{{ rtrim(rtrim($item->quantity, '0'), '.') ?: '0' }}</td>
+                    <td>{{ $item->unit?->getAbbreviation() ?? '-' }}</td>
                     <td class="text-right">{{ number_format($item->unit_cost, 2) }}</td>
                     <td class="text-right">{{ number_format($item->line_total, 2) }}</td>
                 </tr>

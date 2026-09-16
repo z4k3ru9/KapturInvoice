@@ -256,12 +256,20 @@
                                              identical pattern and
                                              updateItemInline() docblock. --}}
                                         @if ($itemsAreReorderable)
-                                            <input type="number" step="0.0001" min="0.0001"
-                                                   value="{{ $row['quantity'] }}"
-                                                   x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'quantity', $event.target.value)"
-                                                   class="w-20 h-8 rounded-md border-gray-200 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! text-right tabular-nums text-sm focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <input type="number" step="1" min="1"
+                                                       value="{{ $row['quantity'] }}"
+                                                       x-on:change="$wire.updateItemInline({{ $row['id'] }}, 'quantity', $event.target.value)"
+                                                       class="w-20 h-8 rounded-md border-gray-200 dark:border-gray-700! dark:bg-gray-800! dark:text-gray-100! text-right tabular-nums text-sm focus:border-[color:var(--ts-primary)] focus:ring-[color:var(--ts-primary)]">
+                                                @if ($row['unit'])
+                                                    <span class="text-xs text-gray-400 dark:text-gray-500!">{{ $row['unit'] }}</span>
+                                                @endif
+                                            </span>
                                         @else
                                             {{ $row['quantity'] }}
+                                            @if ($row['unit'])
+                                                <span class="text-xs text-gray-400 dark:text-gray-500!">{{ $row['unit'] }}</span>
+                                            @endif
                                         @endif
                                     </td>
                                     <td class="px-3 py-2 text-right tabular-nums">

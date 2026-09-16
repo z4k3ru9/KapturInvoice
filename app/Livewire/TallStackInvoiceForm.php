@@ -10,6 +10,7 @@ use App\Enums\InvoiceStatus;
 use App\Enums\InvoiceType;
 use App\Enums\PricingMode;
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use App\Livewire\Concerns\AutosavesDraft;
 use App\Livewire\Concerns\ManagesDocuments;
 use App\Models\Client;
@@ -155,6 +156,8 @@ class TallStackInvoiceForm extends Component
     public ?string $item_description = null;
 
     public float $item_quantity = 1;
+
+    public ?string $item_unit = null;
 
     public float $item_unit_cost = 0;
 
@@ -489,6 +492,7 @@ class TallStackInvoiceForm extends Component
         $this->item_title = $item->title;
         $this->item_description = $item->description;
         $this->item_quantity = (float) $item->quantity;
+        $this->item_unit = $item->unit?->value;
         $this->item_unit_cost = (float) $item->unit_cost;
         $this->item_discount = (float) $item->discount;
         $this->item_discount_is_percentage = (bool) $item->discount_is_percentage;
@@ -512,6 +516,7 @@ class TallStackInvoiceForm extends Component
 
         if ($product = Product::query()->where('company_id', $this->company->id)->find($value)) {
             $this->item_title = $product->name;
+            $this->item_unit = $product->unit?->value;
             $this->item_unit_cost = (float) $product->unit_cost;
             $this->item_tax_rate_ids = $product->default_tax_rate_id ? [(string) $product->default_tax_rate_id] : [];
         }
@@ -535,7 +540,8 @@ class TallStackInvoiceForm extends Component
         $data = $this->validate([
             'item_title' => ['required', 'string', 'max:255'],
             'item_description' => ['nullable', 'string'],
-            'item_quantity' => ['required', 'numeric', 'min:0.0001'],
+            'item_quantity' => ['required', 'integer', 'min:1'],
+            'item_unit' => ['nullable', Rule::enum(UnitOfMeasure::class)],
             'item_unit_cost' => ['required', 'numeric', 'min:0'],
             'item_discount' => ['numeric', 'min:0'],
             'item_discount_is_percentage' => ['boolean'],
@@ -550,6 +556,7 @@ class TallStackInvoiceForm extends Component
             'title' => $data['item_title'],
             'description' => $data['item_description'],
             'quantity' => $data['item_quantity'],
+            'unit' => $data['item_unit'],
             'unit_cost' => $data['item_unit_cost'],
             'discount' => $data['item_discount'],
             'discount_is_percentage' => $data['item_discount_is_percentage'],
@@ -614,7 +621,7 @@ class TallStackInvoiceForm extends Component
 
         $validated = validator(
             [$field => $value],
-            [$field => $field === 'quantity' ? ['required', 'numeric', 'min:0.0001'] : ['required', 'numeric', 'min:0']]
+            [$field => $field === 'quantity' ? ['required', 'integer', 'min:1'] : ['required', 'numeric', 'min:0']]
         )->validate();
 
         $item->update($validated);
@@ -651,6 +658,7 @@ class TallStackInvoiceForm extends Component
         $this->item_title = null;
         $this->item_description = null;
         $this->item_quantity = 1;
+        $this->item_unit = null;
         $this->item_unit_cost = 0;
         $this->item_discount = 0;
         $this->item_discount_is_percentage = false;
@@ -832,7 +840,7 @@ class TallStackInvoiceForm extends Component
             'correctionReason' => ['required', 'string'],
             'correctionItems' => ['required', 'array', 'min:1'],
             'correctionItems.*.title' => ['required', 'string', 'max:255'],
-            'correctionItems.*.quantity' => ['required', 'numeric', 'min:0.0001'],
+            'correctionItems.*.quantity' => ['required', 'integer', 'min:1'],
             'correctionItems.*.unit_cost' => ['required', 'numeric', 'min:0'],
         ]);
 
@@ -959,6 +967,7 @@ class TallStackInvoiceForm extends Component
                 'image' => $item->product?->getImageDataUri(),
                 'title' => $item->title,
                 'quantity' => (float) $item->quantity,
+                'unit' => $item->unit?->getAbbreviation(),
                 'unit_cost' => Money::format((float) $item->unit_cost, $currency),
                 // Raw, unformatted value for the inline quick-edit <input
                 // type="number"> below — a browser silently renders a
