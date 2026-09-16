@@ -1,4 +1,18 @@
-<div class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-16">
+{{--
+    x-init here fires Passkeys.autofill() (conditional UI / WebAuthn
+    "conditional mediation") the moment this page loads — if the
+    browser/OS already has a passkey saved for this site, it surfaces as
+    a suggestion right in the email field's own native autofill dropdown
+    (anchored by autocomplete="username webauthn" below), with no
+    separate button click needed at all. Falls through silently
+    (`undefined`) when unsupported, cancelled, or no saved passkey
+    exists — the password form and the explicit "Sign in with a
+    passkey" button underneath both still work exactly the same either
+    way; this is a convenience layered on top, not a required path.
+--}}
+<div class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-16"
+     x-data
+     x-init="window.Passkeys?.autofill().then((res) => { if (res) window.location.href = res.redirect || '/'; }).catch(() => {})">
     <div class="flex flex-col items-center">
         {{--
             KapturInvoice's own generic mark — no tenant logo, since login
@@ -21,7 +35,7 @@
         @enderror
 
         <form wire:submit="login" class="space-y-4">
-            <x-input wire:model="email" type="email" label="Email" autocomplete="username" autofocus required />
+            <x-input wire:model="email" type="email" label="Email" autocomplete="username webauthn" autofocus required />
 
             <div>
                 <div class="mb-1.5 flex items-center justify-between">

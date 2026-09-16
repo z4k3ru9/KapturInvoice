@@ -10,11 +10,20 @@
     </div>
 
     {{--
-        Segmented results — one labeled section per document type (the
-        same icon+label section-header treatment as the shell's own
-        notification bell, resources/views/components/tallstack/app.blade.php),
-        each row showing the client's name as the primary line and a
-        "number · date · total" description underneath.
+        Segmented results — one section per document type, each with a
+        richer heading than a plain label: a small colored icon badge
+        (the same rounded-square, colored-background treatment every
+        <x-stats> card on this app's list pages already uses for its own
+        icon, scaled down to fit a dropdown row — see e.g. the
+        "Outstanding balance" card on tallstack-invoices.blade.php) so a
+        section reads as a distinct, deliberate group rather than a
+        plain uppercase label. Each result row underneath shows the
+        client's name as the primary line and a "number · date · total"
+        description beneath it. Section color is per document type
+        (App\Livewire\GlobalSearch's own section builders), drawn from
+        this app's existing 5-color semantic palette (gray/red/green/
+        amber/blue — AppServiceProvider::registerActionColorPalette()),
+        never red (reserved for destructive/danger elsewhere).
     --}}
     <div x-show="open" x-cloak x-transition
          class="absolute z-50 mt-2 w-96 max-h-[28rem] overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-800! bg-white dark:bg-gray-900! shadow-xl">
@@ -26,9 +35,19 @@
             <div class="px-4 py-6 text-center text-sm text-gray-400">No results for &quot;{{ $query }}&quot;</div>
         @else
             @foreach ($sections as $section)
-                <div @class(['px-3 pt-2.5 pb-1 flex items-center gap-1.5', 'border-t border-t-gray-100 dark:border-t-gray-800!' => ! $loop->first])>
-                    <x-icon name="{{ $section['icon'] }}" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500!" />
-                    <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500!">{{ $section['label'] }}</span>
+                @php
+                    $badgeColors = match ($section['color']) {
+                        'blue' => 'bg-blue-500 text-blue-50',
+                        'amber' => 'bg-amber-500 text-amber-50',
+                        'green' => 'bg-green-500 text-green-50',
+                        default => 'bg-gray-500 text-gray-50',
+                    };
+                @endphp
+                <div @class(['px-3 pt-3 pb-1.5 flex items-center gap-2', 'border-t border-t-gray-100 dark:border-t-gray-800!' => ! $loop->first])>
+                    <span @class(['flex h-5 w-5 shrink-0 items-center justify-center rounded-md', $badgeColors])>
+                        <x-icon name="{{ $section['icon'] }}" class="w-3 h-3" />
+                    </span>
+                    <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400!">{{ $section['label'] }}</span>
                 </div>
                 @foreach ($section['results'] as $result)
                     <a href="{{ $result['url'] }}" wire:navigate

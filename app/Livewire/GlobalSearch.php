@@ -9,6 +9,7 @@ use App\Models\Proposal;
 use App\Models\Quotation;
 use App\Models\SalesOrder;
 use App\Support\Dashboard\Money;
+use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -24,10 +25,12 @@ use Livewire\Component;
  * proposal"), each row showing the client's name as the primary line and
  * a "number · date · total" description underneath. Every query relies
  * on App\Models\Concerns\BelongsToCompany's own global scope for tenant
- * isolation — by the time this component renders, the page's own
- * mount() has already called app(Tenancy::class)->set($company), so no
- * extra company_id filter is added here (matching every other
- * TallStack{Thing} list component's own convention).
+ * isolation — that scope is a no-op (returns every company's rows
+ * unfiltered) whenever App\Support\Tenancy\Tenancy has no tenant set, so
+ * mount() below calls `set($company)` itself rather than trusting that
+ * the embedding page's own mount() already did — this component
+ * receives `$company` directly and has no business assuming render
+ * order with whatever page happens to include it.
  */
 class GlobalSearch extends Component
 {
@@ -39,6 +42,13 @@ class GlobalSearch extends Component
     private const MIN_QUERY_LENGTH = 2;
 
     private const RESULTS_PER_SECTION = 5;
+
+    public function mount(Company $company): void
+    {
+        $this->company = $company;
+
+        app(Tenancy::class)->set($company);
+    }
 
     public function render(): View
     {
@@ -76,7 +86,7 @@ class GlobalSearch extends Component
                 'description' => $this->description($invoice->number, $invoice->invoice_date?->format('d M Y'), Money::format((float) $invoice->total, $currency)),
             ]);
 
-        return ['label' => 'Invoices', 'icon' => 'document-currency-dollar', 'results' => $results];
+        return ['label' => 'Invoices', 'icon' => 'document-currency-dollar', 'color' => 'blue', 'results' => $results];
     }
 
     private function quotationSection(string $term, string $currency): array
@@ -94,7 +104,7 @@ class GlobalSearch extends Component
                 'description' => $this->description($quotation->number, $quotation->quotation_date?->format('d M Y'), Money::format((float) $quotation->total, $currency)),
             ]);
 
-        return ['label' => 'Quotations', 'icon' => 'document-text', 'results' => $results];
+        return ['label' => 'Quotations', 'icon' => 'document-text', 'color' => 'amber', 'results' => $results];
     }
 
     private function jobSection(string $term, string $currency): array
@@ -112,7 +122,7 @@ class GlobalSearch extends Component
                 'description' => $this->description($job->number, $job->created_at?->format('d M Y'), Money::format((float) $job->approved_value, $currency)),
             ]);
 
-        return ['label' => 'Jobs', 'icon' => 'briefcase', 'results' => $results];
+        return ['label' => 'Jobs', 'icon' => 'briefcase', 'color' => 'green', 'results' => $results];
     }
 
     private function proposalSection(string $term, string $currency): array
@@ -133,7 +143,7 @@ class GlobalSearch extends Component
                 'description' => $this->description($proposal->title, $proposal->created_at?->format('d M Y'), Money::format((float) $proposal->amount, $currency)),
             ]);
 
-        return ['label' => 'Proposals', 'icon' => 'presentation-chart-bar', 'results' => $results];
+        return ['label' => 'Proposals', 'icon' => 'presentation-chart-bar', 'color' => 'gray', 'results' => $results];
     }
 
     private function description(?string $identifier, ?string $date, ?string $amount): string
