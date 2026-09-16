@@ -43,6 +43,11 @@ return [
     'notes' => 'Catatan',
     'terms' => 'Syarat & Ketentuan',
 
+    'payment_method' => 'Metode Pembayaran',
+    'bank_account_number' => 'No. Rekening',
+    'bank_account_name' => 'Atas Nama',
+    'bank_branch' => 'Cabang',
+
     // Phase 06B (docs/rebuild/specs/06b-ux-browser-soa) — required launch
     // document coverage for Quotation/COC, Sales Order, Receipt, Vendor
     // PO/Bill/Payment Receipt, Delivery Order, Handover Report, Tax

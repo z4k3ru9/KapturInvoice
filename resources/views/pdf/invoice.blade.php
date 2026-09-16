@@ -37,6 +37,12 @@
         table.totals tr.total td { font-weight: bold; font-size: 14px; border-top: 2px solid #1f2937; }
         .notes { margin-top: 24px; }
         .notes h4 { margin-bottom: 4px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+        .payment-method { margin-top: 24px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px 16px; }
+        .payment-method h4 { margin: 0 0 8px; color: #6b7280; font-size: 11px; text-transform: uppercase; }
+        .payment-method .bank-account { padding: 6px 0; }
+        .payment-method .bank-account + .bank-account { border-top: 1px solid #f3f4f6; }
+        .payment-method .bank-name { font-weight: bold; }
+        .payment-method .bank-detail { color: #6b7280; font-size: 11px; }
         .logo { max-height: 48px; max-width: 220px; margin-bottom: 6px; }
     </style>
 </head>
@@ -163,6 +169,29 @@
         <div class="notes">
             <h4>{{ __('documents.terms') }}</h4>
             <div>{!! $invoice->terms !!}</div>
+        </div>
+    @endif
+
+    {{-- Payment Method — App\Models\CompanyBankAccount, printed only when
+         the company has at least one configured. A company may list more
+         than one (e.g. two different banks), each shown as its own row. --}}
+    @if ($invoice->company->bankAccounts->isNotEmpty())
+        <div class="payment-method">
+            <h4>{{ __('documents.payment_method') }}</h4>
+            @foreach ($invoice->company->bankAccounts as $account)
+                <div class="bank-account">
+                    <div class="bank-name">{{ $account->bank_name }} — {{ $account->account_number }}</div>
+                    <div class="bank-detail">
+                        {{ __('documents.bank_account_name') }}: {{ $account->account_name }}
+                        @if ($account->branch)
+                            &middot; {{ __('documents.bank_branch') }}: {{ $account->branch }}
+                        @endif
+                        @if ($account->swift_code)
+                            &middot; SWIFT: {{ $account->swift_code }}
+                        @endif
+                    </div>
+                </div>
+            @endforeach
         </div>
     @endif
 
