@@ -69,7 +69,7 @@
     <div class="grid lg:grid-cols-[1.4fr_1fr] gap-4 items-start">
         <x-card>
             <x-slot:header>
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Current allocations</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Current allocations</span>
             </x-slot:header>
 
             <x-table :headers="[
@@ -82,36 +82,36 @@
 
         <x-card>
             <x-slot:header>
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Payment details</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Payment details</span>
             </x-slot:header>
             <div class="flex flex-col gap-2 text-sm">
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-500 dark:text-gray-400">Method</span>
+                    <span class="text-gray-500 dark:text-gray-400!">Method</span>
                     <span class="font-semibold">{{ $payment->method ? str_replace('_', ' ', ucfirst($payment->method)) : '—' }}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-500 dark:text-gray-400">Reference</span>
+                    <span class="text-gray-500 dark:text-gray-400!">Reference</span>
                     <span>{{ $payment->reference ?? '—' }}</span>
                 </div>
                 @if ($isCheque)
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Cheque cleared</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Cheque cleared</span>
                         <span>{{ $payment->cheque_cleared_at?->format('d M Y') ?? 'Not yet cleared' }}</span>
                     </div>
                 @endif
                 <div class="flex items-center justify-between">
-                    <span class="text-gray-500 dark:text-gray-400">Verified</span>
+                    <span class="text-gray-500 dark:text-gray-400!">Verified</span>
                     <span>{{ $payment->verified_at?->format('d M Y H:i') ?? '—' }}</span>
                 </div>
                 @if ($payment->proof_path)
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Proof of payment</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Proof of payment</span>
                         <a href="{{ route('payments.proof', $payment) }}" target="_blank" class="text-[color:var(--ts-primary)] hover:underline">View</a>
                     </div>
                 @endif
                 @if ($payment->notes)
-                    <div class="pt-1 border-t border-gray-200 dark:border-gray-800 mt-1">
-                        <span class="text-gray-500 dark:text-gray-400">Notes</span>
+                    <div class="pt-1 border-t border-gray-200 dark:border-gray-800! mt-1">
+                        <span class="text-gray-500 dark:text-gray-400!">Notes</span>
                         <p class="mt-1">{{ $payment->notes }}</p>
                     </div>
                 @endif
@@ -151,7 +151,7 @@
     {{-- Verify — a cheque requires a cleared date before it can verify. --}}
     <x-modal wire="showVerifyModal" title="Verify payment" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">Only Accountant, Admin, or Owner may verify a payment.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400!">Only Accountant, Admin, or Owner may verify a payment.</p>
             <x-date wire:model="verify_cheque_cleared_at" label="Cheque cleared on" hint="Only required for a cheque payment that hasn't cleared yet." />
         </div>
 

@@ -61,7 +61,16 @@ class AppServiceProvider extends ServiceProvider
         // icon-only square button (icon-action/row-action scopes below)
         // and every plain <x-button>/<x-badge> at the package default —
         // don't add a border.radius override for them.
+        // wrapper.first — the card's own outer background/shadow container —
+        // was missing from this scope entirely: the package default is
+        // `dark:bg-dark-800 ... bg-white` (Stats/Component.php), the same
+        // inert-token bug documented at length in
+        // registerContentSurfaceDarkModeFix() below. Confirmed live (two
+        // independent audit passes): every stat/summary card app-wide
+        // rendered solid white in dark mode. Swapped for the same standard
+        // gray-*!important treatment as every other surface in this file.
         TallStackUi::customize()->stats('compact')->block([
+            'wrapper.first' => 'dark:bg-gray-900! flex w-full flex-col rounded-lg bg-white shadow-md',
             // gap-2, not gap-3: at this card width (~173px content area,
             // minus the 36px icon box), the text column has ~125-129px to
             // work with depending on title length. With gap-3 (12px) two
@@ -86,15 +95,15 @@ class AppServiceProvider extends ServiceProvider
             // against the Stitch mockup.
             'wrapper.third' => 'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
             'icon' => 'h-5 w-5 shrink-0',
-            'title' => 'dark:text-dark-300 text-xs text-gray-600',
+            'title' => 'dark:text-gray-300! text-xs text-gray-600',
             // tabular-nums added on top of the package's own default
             // 'number' block — without it, the count-up `animated` stat
             // cards (Overdue invoices/Open quotations/Active jobs) visibly
             // jitter in width as each digit's proportional glyph changes
             // during the animation, not just at rest.
-            'number' => 'dark:text-dark-300 text-lg font-bold leading-none tabular-nums *:m-0',
+            'number' => 'dark:text-gray-300! text-lg font-bold leading-none tabular-nums *:m-0',
             'slots.footer.wrapper' => 'mx-3',
-            'slots.footer.text' => 'dark:text-dark-300 p-1 text-[11px] text-gray-600',
+            'slots.footer.text' => 'dark:text-gray-300! p-1 text-[11px] text-gray-600',
             // Matches the real card's own 36px (h-9 w-9) icon square set
             // above ('wrapper.third') — the package's own skeleton default
             // is a 48px (size-12) bar, which read as a visible size jump
