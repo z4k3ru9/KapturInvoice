@@ -1,26 +1,30 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendors']]" title="Vendors">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendors', 'icon' => 'building-storefront']]" title="Vendors">
         <x-slot:actions>
             <x-button text="New vendor" icon="plus" color="blue" sm class="h-9" wire:click="create" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    {{-- Two stacked rows: the one currency (Rupiah) card gets its own full
+         row, the two plain-count cards keep a tight row below — same
+         col-span-full pattern as the Dashboard's own stat row; the outer
+         wrapper's own classes are unchanged. Title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-3 gap-2.5">
-        <x-stats scope="compact" title="Total vendors" icon="building-storefront" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>Suppliers on record</x-slot:footer>
-        </x-stats>
+        <div class="col-span-full grid grid-cols-1 gap-2.5">
+            <x-stats scope="compact" title="Outstanding" icon="banknotes" color="amber">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
+            </x-stats>
+        </div>
+        <div class="col-span-full grid grid-cols-2 gap-2.5">
+            <x-stats scope="compact" title="Vendors" icon="building-storefront" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Outstanding bills (AP)" icon="banknotes" color="amber">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
-            <x-slot:footer>Approved / partially paid balance</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Total vendor bills" icon="clipboard-document-list" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['billsCount'] }}</span>
-            <x-slot:footer>All time</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Bills" icon="clipboard-document-list" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['billsCount'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>

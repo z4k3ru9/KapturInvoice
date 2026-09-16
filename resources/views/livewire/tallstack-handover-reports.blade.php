@@ -1,32 +1,28 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Handover Reports']]" title="Handover Reports" />
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Handover Reports', 'icon' => 'document-check']]" title="Handover Reports" />
 
     {{-- Stat row — same "compact" x-stats convention as the Delivery
          Orders register beside it. No status badge column below either:
          a HandoverReport is only ever written, complete, through
          App\Actions\Delivery\CompleteHandover — there is no draft/pending
          handover to filter by, only whether it was an Owner/Admin
-         override. --}}
+         override. All-count (no currency), title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Total handovers" icon="document-check" color="blue">
+        <x-stats scope="compact" title="Handovers" icon="document-check" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>All recorded handovers</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This month" icon="calendar-days" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisMonth'] }}</span>
-            <x-slot:footer>Handed over so far this month</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Overrides" icon="exclamation-triangle" color="amber">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overrides'] }}</span>
-            <x-slot:footer>Owner/Admin completeness override</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Jobs served" icon="briefcase" color="blue">
+        <x-stats scope="compact" title="Jobs" icon="briefcase" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['distinctJobs'] }}</span>
-            <x-slot:footer>Distinct jobs with a handover</x-slot:footer>
         </x-stats>
     </div>
 

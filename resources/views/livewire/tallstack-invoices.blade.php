@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Invoices']]" title="Invoices">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Invoices', 'icon' => 'document-currency-dollar']]" title="Invoices">
         <x-slot:actions>
             {{-- color="brand" — Primary role (AppServiceProvider::
                  registerActionColorPalette()'s docblock): this IS the
@@ -10,27 +10,30 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
-    {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard. --}}
+    {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard.
+         Two stacked rows: the two currency (Rupiah) cards get their own
+         wider row, the two plain-count cards keep a tight row below — same
+         col-span-full pattern as the Dashboard's own stat row; the outer
+         wrapper's own classes are unchanged. Title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Outstanding balance" icon="banknotes" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
-            <x-slot:footer>Issued, partial or overdue</x-slot:footer>
-        </x-stats>
+        <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <x-stats scope="compact" title="Outstanding" icon="banknotes" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstanding'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Overdue" icon="exclamation-triangle" color="red">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueCount'] }}</span>
-            <x-slot:footer>Invoices past due date</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Paid" icon="check-circle" color="green">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paidThisMonth'] }}</span>
+            </x-stats>
+        </div>
+        <div class="col-span-full grid grid-cols-2 gap-2.5">
+            <x-stats scope="compact" title="Overdue" icon="exclamation-triangle" color="red">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['overdueCount'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="In draft" icon="document-text" color="gray">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draftCount'] }}</span>
-            <x-slot:footer>Draft or approved</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Paid this month" icon="check-circle" color="green">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paidThisMonth'] }}</span>
-            <x-slot:footer>Marked paid since the 1st</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Draft" icon="document-text" color="gray">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draftCount'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>

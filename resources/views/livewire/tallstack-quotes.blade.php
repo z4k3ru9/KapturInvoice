@@ -1,22 +1,19 @@
 <div class="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotes']]" title="Quotes" />
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Quotes', 'icon' => 'document-duplicate']]" title="Quotes" />
 
-    {{-- Stat row — same "compact" x-stats scope as Invoices/Quotations. --}}
+    {{-- Stat row — same "compact" x-stats scope as Invoices/Quotations. Title + number only, no footer (see memory.md's stat-card density pass). --}}
     <div class="grid grid-cols-1 min-[820px]:!grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Total" icon="document-duplicate" color="gray">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>Legacy/imported quotes</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Converted" icon="arrow-right-circle" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['converted'] }}</span>
-            <x-slot:footer>Already turned into an invoice</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Not yet converted" icon="document-text" color="blue">
+        <x-stats scope="compact" title="Unconverted" icon="document-text" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['notConverted'] }}</span>
-            <x-slot:footer>Still just a quote</x-slot:footer>
         </x-stats>
     </div>
 

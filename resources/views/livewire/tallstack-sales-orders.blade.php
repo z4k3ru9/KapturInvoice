@@ -1,31 +1,28 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Jobs']]" title="Jobs">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Jobs', 'icon' => 'briefcase']]" title="Jobs">
         {{-- No "New job" button — a job is only ever created from an
              Accepted quotation (App\Actions\Sales\CreateSalesOrderFromQuotation),
              never a standalone create form here, matching
              SalesOrderResource's own getPages() (no create/edit page). --}}
     </x-tallstack.page-header>
 
+    {{-- All-count stat row (no currency here) — title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Total jobs" icon="briefcase" color="blue">
+        <x-stats scope="compact" title="Jobs" icon="briefcase" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>All statuses</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Active" icon="arrow-path" color="amber">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['active'] }}</span>
-            <x-slot:footer>Approved through handed over</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Draft" icon="pencil" color="gray">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
-            <x-slot:footer>Not yet approved</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Closed" icon="check-circle" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['closed'] }}</span>
-            <x-slot:footer>Operationally + financially closed</x-slot:footer>
         </x-stats>
     </div>
 

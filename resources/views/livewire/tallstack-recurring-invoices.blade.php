@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Recurring Invoices']]" title="Recurring Invoices">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Recurring Invoices', 'icon' => 'arrow-path']]" title="Recurring Invoices">
         <x-slot:actions>
             {{-- color="blue", not "primary" — see the Quotations register's
                  own "+New" button for why: a general action shouldn't
@@ -12,26 +12,23 @@
     {{-- Stat row — same "compact" x-stats scope as Quotations/Dashboard.
          "Auto-bill enabled" and "Invoices generated" are counted from real
          Invoice rows (the `auto_bill` column and the `generatedInvoices()`
-         relation), never a new stored aggregate. --}}
+         relation), never a new stored aggregate. All-count (no currency),
+         title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Active schedules" icon="arrow-path" color="green">
+        <x-stats scope="compact" title="Active" icon="arrow-path" color="green">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['active'] }}</span>
-            <x-slot:footer>No end date, or not yet reached</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Ended" icon="stop-circle" color="gray">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['ended'] }}</span>
-            <x-slot:footer>Past their end date</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Auto-bill enabled" icon="bolt" color="blue">
+        <x-stats scope="compact" title="Auto-bill" icon="bolt" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['autoBill'] }}</span>
-            <x-slot:footer>Of all schedules</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Invoices generated" icon="document-duplicate" color="blue">
+        <x-stats scope="compact" title="Generated" icon="document-duplicate" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['totalGenerated'] }}</span>
-            <x-slot:footer>All time, across every schedule</x-slot:footer>
         </x-stats>
     </div>
 

@@ -1,6 +1,6 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Credits']]" title="Credits">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Credits', 'icon' => 'receipt-refund']]" title="Credits">
         <x-slot:badge>
             <x-badge text="Read-only register" color="gray" sm />
         </x-slot:badge>
@@ -16,26 +16,29 @@
         Credits are historical records from data import and are not created from this screen.
     </p>
 
+    {{-- Two stacked rows: the three currency (Rupiah) cards get their own
+         wider row, the one plain-count card keeps a tight row below — same
+         col-span-full pattern as the Dashboard's own stat row; the outer
+         wrapper's own classes are unchanged. Title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Historical credits" icon="receipt-refund" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['count'] }}</span>
-            <x-slot:footer>Imported records</x-slot:footer>
-        </x-stats>
+        <div class="col-span-full grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <x-stats scope="compact" title="Total" icon="banknotes" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Total credit amount" icon="banknotes" color="blue">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>Across all credits</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Linked" icon="link" color="green">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['linked'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Linked to invoices" icon="link" color="green">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['linked'] }}</span>
-            <x-slot:footer>Applied against an invoice</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Unlinked balance" icon="exclamation-triangle" color="amber">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['unlinkedBalance'] }}</span>
-            <x-slot:footer>Not yet applied</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Unlinked" icon="exclamation-triangle" color="amber">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['unlinkedBalance'] }}</span>
+            </x-stats>
+        </div>
+        <div class="col-span-full grid grid-cols-1 gap-2.5">
+            <x-stats scope="compact" title="Credits" icon="receipt-refund" color="blue">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['count'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>

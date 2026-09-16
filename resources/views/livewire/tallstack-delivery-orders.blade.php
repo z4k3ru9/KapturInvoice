@@ -1,32 +1,29 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Delivery Orders']]" title="Delivery Orders" />
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Delivery Orders', 'icon' => 'truck']]" title="Delivery Orders" />
 
     {{-- Stat row — same "compact" x-stats scope as every other TALL-stack
          register (Quotations/Jobs/Invoices/Payments), computed from real
          DeliveryOrder rows. No status badge column below: a DeliveryOrder
          has no lifecycle of its own — it's only ever written, complete,
          through App\Actions\Delivery\CompleteDelivery — so there is no
-         "pending" state to surface here. --}}
+         "pending" state to surface here. All-count (no currency), title +
+         number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Total deliveries" icon="truck" color="blue">
+        <x-stats scope="compact" title="Deliveries" icon="truck" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['total'] }}</span>
-            <x-slot:footer>All recorded deliveries</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This month" icon="calendar-days" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisMonth'] }}</span>
-            <x-slot:footer>Delivered so far this month</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="This week" icon="clock" color="amber">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['thisWeek'] }}</span>
-            <x-slot:footer>Delivered so far this week</x-slot:footer>
         </x-stats>
 
-        <x-stats scope="compact" title="Jobs served" icon="briefcase" color="blue">
+        <x-stats scope="compact" title="Jobs" icon="briefcase" color="blue">
             <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['distinctJobs'] }}</span>
-            <x-slot:footer>Distinct jobs with a delivery</x-slot:footer>
         </x-stats>
     </div>
 

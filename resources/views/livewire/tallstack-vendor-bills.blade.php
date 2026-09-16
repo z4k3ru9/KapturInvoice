@@ -1,31 +1,36 @@
 <div class="w-[93%] mx-auto py-6 flex flex-col gap-5">
 
-    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendor bills']]" title="Vendor Bills">
+    <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Vendor bills', 'icon' => 'clipboard-document-list']]" title="Vendor Bills">
         <x-slot:actions>
             <x-button text="New vendor bill" icon="plus" color="blue" sm class="h-9" href="{{ route('tallstack.vendor-bills.create', $company) }}" />
         </x-slot:actions>
     </x-tallstack.page-header>
 
+    {{-- Two stacked rows: the one currency (Rupiah) card gets its own full
+         row (a large balance can't fight a count card for space — same
+         reasoning as the Dashboard's own stat row), the three plain-count
+         cards keep a tight row below. col-span-full lets each row-wrapper
+         escape this outer grid's own column track; the outer wrapper's own
+         classes are unchanged. Title + number only, no footer. --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
-        <x-stats scope="compact" title="Draft bills" icon="pencil-square" color="gray">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
-            <x-slot:footer>Not yet submitted</x-slot:footer>
-        </x-stats>
+        <div class="col-span-full grid grid-cols-1 gap-2.5">
+            <x-stats scope="compact" title="Outstanding" icon="banknotes" color="red">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
+            </x-stats>
+        </div>
+        <div class="col-span-full grid grid-cols-3 gap-2.5">
+            <x-stats scope="compact" title="Draft" icon="pencil-square" color="gray">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['draft'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Awaiting approval" icon="clock" color="amber">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['awaitingApproval'] }}</span>
-            <x-slot:footer>Submitted, review needed</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Awaiting" icon="clock" color="amber">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['awaitingApproval'] }}</span>
+            </x-stats>
 
-        <x-stats scope="compact" title="Outstanding balance" icon="banknotes" color="red">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['outstandingBalance'] }}</span>
-            <x-slot:footer>Approved / partially paid</x-slot:footer>
-        </x-stats>
-
-        <x-stats scope="compact" title="Fully paid" icon="check-circle" color="green">
-            <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paid'] }}</span>
-            <x-slot:footer>All time</x-slot:footer>
-        </x-stats>
+            <x-stats scope="compact" title="Paid" icon="check-circle" color="green">
+                <span class="dark:text-gray-300! text-lg font-bold tabular-nums break-words">{{ $stats['paid'] }}</span>
+            </x-stats>
+        </div>
     </div>
 
     <x-card>
