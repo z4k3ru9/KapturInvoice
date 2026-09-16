@@ -47,7 +47,7 @@
         <div class="flex flex-col gap-4">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Vendor purchase order</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Vendor purchase order</span>
                 </x-slot:header>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -75,7 +75,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Line items</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Line items</span>
                         @if ($purchaseOrder && $purchaseOrder->status === \App\Enums\VendorPurchaseOrderStatus::Draft)
                             <x-button text="Add line item" icon="plus" color="blue" sm wire:click="addItem" />
                         @endif
@@ -132,7 +132,7 @@
             @if ($purchaseOrder)
                 <x-card>
                     <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Variances</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Variances</span>
                     </x-slot:header>
                     @if ($variances->isEmpty())
                         <p class="text-sm text-gray-400">No variances recorded. The payment ceiling equals this PO's total.</p>
@@ -176,16 +176,16 @@
         <div class="flex flex-col gap-4">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Financial summary</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
                 </x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-900 dark:text-gray-100">Total (immutable once approved)</span>
+                        <span class="font-bold text-gray-900 dark:text-gray-100!">Total (immutable once approved)</span>
                         <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                     </div>
                     @if ($paymentCeiling)
                         <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400">Payment ceiling</span>
+                            <span class="text-gray-500 dark:text-gray-400!">Payment ceiling</span>
                             <span class="font-semibold tabular-nums">{{ $paymentCeiling }}</span>
                         </div>
                         <p class="text-[11px] text-gray-400 mt-1">Total plus every approved variance — the amount vendor bill payments against this PO may not exceed.</p>
@@ -223,7 +223,7 @@
          UI-level gate. --}}
     <x-modal wire="showVarianceModal" title="Record vendor PO variance" center="sm">
         <div class="flex flex-col gap-4">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
+            <p class="text-sm text-gray-500 dark:text-gray-400!">
                 Raises the payment ceiling without ever changing this PO's own immutable total.
             </p>
             <x-textarea wire:model="variance_reason" label="Reason" required rows="3" />

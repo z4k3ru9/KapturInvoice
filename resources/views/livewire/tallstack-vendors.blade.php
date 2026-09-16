@@ -26,7 +26,7 @@
     <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
-                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Supplier directory</span>
+                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Supplier directory</span>
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or email…" icon="magnifying-glass" clearable />
                 </div>
@@ -64,7 +64,7 @@
                 <x-input wire:model="phone" label="Phone" />
                 <x-input wire:model="website" label="Website" class="sm:col-span-2" />
             </div>
-            <div class="border-t border-gray-200 dark:border-gray-800 pt-4 grid sm:grid-cols-2 gap-4">
+            <div class="border-t border-gray-200 dark:border-gray-800! pt-4 grid sm:grid-cols-2 gap-4">
                 <x-input wire:model="address_line_1" label="Address line 1" class="sm:col-span-2" />
                 <x-input wire:model="address_line_2" label="Address line 2" class="sm:col-span-2" />
                 <x-input wire:model="city" label="City" />
