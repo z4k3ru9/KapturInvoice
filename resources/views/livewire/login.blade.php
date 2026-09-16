@@ -43,6 +43,47 @@
 
             <x-button type="submit" text="Log in" color="blue" class="w-full justify-center" wire:loading.attr="disabled" wire:target="login" />
         </form>
+
+        {{--
+            Passkeys — an additional sign-in method, never a replacement
+            for the password form above (App\Models\User implements
+            Laravel\Passkeys\Contracts\PasskeyUser; a user registers one
+            from the "Passkeys" section under their account menu once
+            logged in — see resources/views/livewire/settings/passkeys.blade.php).
+            `Passkeys.verify()` (window.Passkeys, resources/js/app.js)
+            runs the full WebAuthn assertion ceremony client-side and
+            POSTs it to the package's own `/passkeys/login` route, which
+            authenticates the user server-side and returns where to send
+            them next — this component has no server-side passkey-login
+            method of its own to call.
+        --}}
+        <div x-data="{ busy: false, error: null, supported: false }" x-init="supported = window.Passkeys?.isSupported() ?? false">
+            <template x-if="supported">
+                <div>
+                    <div class="my-4 flex items-center gap-3">
+                        <div class="h-px flex-1 bg-gray-200 dark:bg-gray-800!"></div>
+                        <span class="text-xs text-gray-400 dark:text-gray-500!">or</span>
+                        <div class="h-px flex-1 bg-gray-200 dark:bg-gray-800!"></div>
+                    </div>
+
+                    <x-button
+                        type="button"
+                        text="Sign in with a passkey"
+                        icon="finger-print"
+                        color="gray"
+                        class="w-full justify-center"
+                        x-bind:disabled="busy"
+                        x-on:click="
+                            busy = true; error = null;
+                            window.Passkeys.verify()
+                                .then((res) => { window.location.href = res.redirect || '/'; })
+                                .catch((err) => { busy = false; error = err?.message || 'Could not sign in with a passkey.'; })
+                        "
+                    />
+                    <p x-show="error" x-cloak x-text="error" class="mt-2 text-center text-sm text-red-600 dark:text-red-400!"></p>
+                </div>
+            </template>
+        </div>
     </x-card>
 
     <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400!">

@@ -665,6 +665,7 @@
                                 <div class="truncate text-xs text-gray-400">{{ auth()->user()->email }}</div>
                             </div>
                         </x-slot:header>
+                        <x-dropdown.items text="Passkeys" icon="finger-print" href="{{ route('tallstack.account.passkeys', $company) }}" navigate />
                         <x-dropdown.items separator>
                             <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
