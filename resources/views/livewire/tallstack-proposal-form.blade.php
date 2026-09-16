@@ -12,13 +12,21 @@
             <x-badge text="{{ \App\Enums\ProposalStatus::from($status)->getLabel() }}" :color="$statusColor" sm />
         </x-slot:badge>
         <x-slot:actions>
-            @if ($proposal)
-                <x-button icon="document-arrow-down" text="Preview PDF" href="{{ route('proposals.pdf', $proposal) }}" target="_blank" color="gray" sm class="h-9" />
-            @endif
-            {{-- color="blue" — see TallStackQuotationForm's own comment:
-                 a general-function button never borrows the tenant's
-                 brand color, which is reserved for identity chrome. --}}
-            <x-button text="Save" icon="document-check" color="blue" sm class="h-9" wire:click="save" />
+            {{-- Wrapped in our own flex-wrap row + whitespace-nowrap on
+                 each button — see TallStackProposals's own actions-slot
+                 comment for why: the shared page-header's actions
+                 container doesn't wrap on its own, so two buttons at a
+                 narrow width would otherwise wrap their OWN label text
+                 internally instead of wrapping as whole buttons. --}}
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($proposal)
+                    <x-button icon="document-arrow-down" text="Preview PDF" href="{{ route('proposals.pdf', $proposal) }}" target="_blank" color="gray" sm class="h-9 whitespace-nowrap" />
+                @endif
+                {{-- color="blue" — see TallStackQuotationForm's own comment:
+                     a general-function button never borrows the tenant's
+                     brand color, which is reserved for identity chrome. --}}
+                <x-button text="Save" icon="document-check" color="blue" sm class="h-9 whitespace-nowrap" wire:click="save" />
+            </div>
         </x-slot:actions>
     </x-tallstack.page-header>
 
@@ -43,7 +51,7 @@
     @endif
 
     <div class="grid lg:grid-cols-[1fr_320px] gap-4 items-start">
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 min-w-0">
             {{-- Compact header strip — Title, Client, Template, Amount,
                  Valid until, plus Status (directly editable, matching
                  ProposalForm's own select — see TallStackProposalForm's
@@ -51,7 +59,7 @@
                  action-only status). --}}
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Proposal details</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Proposal details</span>
                 </x-slot:header>
 
                 <div class="grid sm:grid-cols-2 gap-4">
@@ -81,7 +89,7 @@
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Content</span>
+                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Content</span>
                         @if ($proposal)
                             <x-button text="Insert snippet" icon="squares-plus" color="gray" sm wire:click="openSnippetPicker" />
                         @endif
@@ -103,18 +111,18 @@
         </div>
 
         {{-- Summary sidebar --}}
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 min-w-0">
             <x-card>
                 <x-slot:header>
-                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100">Summary</span>
+                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Summary</span>
                 </x-slot:header>
                 <div class="flex flex-col gap-2 text-sm">
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Amount</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Amount</span>
                         <span class="font-bold text-lg tabular-nums">{{ $amountFormatted }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                        <span class="text-gray-500 dark:text-gray-400">Valid until</span>
+                        <span class="text-gray-500 dark:text-gray-400!">Valid until</span>
                         <span>{{ $valid_until ? \Illuminate\Support\Carbon::parse($valid_until)->format('d M Y') : '—' }}</span>
                     </div>
                     <p class="text-[11px] text-gray-400 mt-1">A proposal converts to exactly one invoice — its own line item, one-way, one-time (see the action above).</p>
@@ -135,15 +143,15 @@
         <div class="flex flex-col gap-2">
             @forelse ($snippets as $snippet)
                 <button type="button" wire:click="insertSnippet({{ $snippet['id'] }})"
-                        class="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 p-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <div class="w-10 h-10 shrink-0 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 grid place-items-center">
+                        class="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800! p-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800!">
+                    <div class="w-10 h-10 shrink-0 rounded overflow-hidden bg-gray-100 dark:bg-gray-800! grid place-items-center">
                         @if ($snippet['thumbnail'])
                             <img src="{{ $snippet['thumbnail'] }}" alt="" class="w-full h-full object-cover">
                         @else
                             <x-icon name="rectangle-stack" class="w-4 h-4 text-gray-400" />
                         @endif
                     </div>
-                    <span class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ $snippet['name'] }}</span>
+                    <span class="text-sm font-medium text-gray-800 dark:text-gray-100!">{{ $snippet['name'] }}</span>
                 </button>
             @empty
                 <p class="text-sm text-gray-400">No proposal snippets yet.</p>
