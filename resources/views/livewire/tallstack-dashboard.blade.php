@@ -399,10 +399,6 @@
                 @interact('column_actions', $row, $company)
                     <div class="flex items-center justify-end gap-2">
                         <x-button icon="eye" href="{{ route('tallstack.quotations.edit', [$company, $row['id']]) }}" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Review" />
-                        <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                            <x-dropdown.items text="Extend 7 days" icon="calendar" />
-                            <x-dropdown.items text="Void quotation" icon="x-circle" />
-                        </x-dropdown>
                     </div>
                 @endinteract
                 <x-slot:empty>No quotations expiring soon.</x-slot:empty>

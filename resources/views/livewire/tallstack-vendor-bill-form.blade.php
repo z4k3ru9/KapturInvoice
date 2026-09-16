@@ -157,7 +157,9 @@
                  App\Actions\Procurement\* class the read-only Filament
                  PaymentsRelationManager's own custom actions use. --}}
             @if ($bill)
-                @php($canVerifyPayments = $this->canVerifyPayments)
+                @php
+                    $canVerifyPayments = $this->canVerifyPayments;
+                @endphp
                 <x-card>
                     <x-slot:header>
                         <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Vendor payments</span>
@@ -175,24 +177,26 @@
                             <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
                         @endinteract
                         @interact('column_actions', $row, $canVerifyPayments)
+                            @php
+                                $extraActions = [];
+                                if ($row['status'] === \App\Enums\VendorPaymentStatus::Pending && $canVerifyPayments) {
+                                    $extraActions[] = ['text' => 'Verify', 'icon' => 'check-badge', 'color' => 'green', 'click' => 'openVerifyModal('.$row['id'].')'];
+                                }
+                                if ($row['status'] === \App\Enums\VendorPaymentStatus::Verified && ! $row['has_receipt']) {
+                                    $extraActions[] = ['text' => 'Issue receipt', 'icon' => 'document-text', 'click' => 'issueReceipt('.$row['id'].')'];
+                                }
+                                if ($row['has_receipt'] && $row['status'] !== \App\Enums\VendorPaymentStatus::Reversed) {
+                                    $extraActions[] = ['text' => 'Amend', 'icon' => 'pencil-square', 'click' => 'openAmendModal('.$row['id'].')'];
+                                }
+                                if (in_array($row['status'], [\App\Enums\VendorPaymentStatus::Pending, \App\Enums\VendorPaymentStatus::Verified])) {
+                                    $extraActions[] = ['text' => 'Reverse', 'icon' => 'arrow-uturn-left', 'color' => 'red', 'click' => 'openReverseModal('.$row['id'].')'];
+                                }
+                            @endphp
                             <div class="flex items-center justify-end gap-2">
                                 @if ($row['has_receipt'])
                                     <x-button icon="document-arrow-down" href="{{ $row['receipt_url'] }}" target="_blank" sm color="gray" scope="icon-action" class="h-9 w-9" tooltip="Download receipt" />
                                 @endif
-                                <x-dropdown icon="ellipsis-vertical" scope="row-action">
-                                    @if ($row['status'] === \App\Enums\VendorPaymentStatus::Pending && $canVerifyPayments)
-                                        <x-dropdown.items text="Verify" icon="check-badge" wire:click="openVerifyModal({{ $row['id'] }})" />
-                                    @endif
-                                    @if ($row['status'] === \App\Enums\VendorPaymentStatus::Verified && ! $row['has_receipt'])
-                                        <x-dropdown.items text="Issue receipt" icon="document-text" wire:click="issueReceipt({{ $row['id'] }})" />
-                                    @endif
-                                    @if ($row['has_receipt'] && $row['status'] !== \App\Enums\VendorPaymentStatus::Reversed)
-                                        <x-dropdown.items text="Amend" icon="pencil-square" wire:click="openAmendModal({{ $row['id'] }})" />
-                                    @endif
-                                    @if (in_array($row['status'], [\App\Enums\VendorPaymentStatus::Pending, \App\Enums\VendorPaymentStatus::Verified]))
-                                        <x-dropdown.items text="Reverse" icon="arrow-uturn-left" wire:click="openReverseModal({{ $row['id'] }})" />
-                                    @endif
-                                </x-dropdown>
+                                <x-tallstack.row-actions :items="$extraActions" />
                             </div>
                         @endinteract
                         <x-slot:empty>No payments recorded yet.</x-slot:empty>
