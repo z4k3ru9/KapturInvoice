@@ -13,7 +13,7 @@
         </x-slot:actions>
     </x-tallstack.page-header>
 
-    <p class="text-xs text-gray-500 dark:text-gray-400 -mt-3">
+    <p class="text-xs text-gray-500 dark:text-gray-400! -mt-3">
         A reference catalog kept separate from your sellable Products — browse the vendor's current price sheet, then create or refresh a real Product from a chosen row.
     </p>
 
@@ -24,12 +24,12 @@
                      imported data, not an invented fixed list. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterBrand(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All brands
                     </button>
                     @foreach ($brands as $brand)
                         <button type="button" wire:click="filterBrand('{{ $brand }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === $brand ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === $brand ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $brand }}
                         </button>
                     @endforeach
@@ -43,8 +43,8 @@
 
         @if (! $hasAnyItems)
             <div class="flex flex-col items-center justify-center gap-3 py-16 text-center">
-                <x-icon name="archive-box" class="w-10 h-10 text-gray-300 dark:text-gray-700" />
-                <p class="text-sm text-gray-500 dark:text-gray-400">No pricelist imported yet — Import pricelist to get started.</p>
+                <x-icon name="archive-box" class="w-10 h-10 text-gray-300 dark:text-gray-700!" />
+                <p class="text-sm text-gray-500 dark:text-gray-400!">No pricelist imported yet — Import pricelist to get started.</p>
                 <x-button text="Import pricelist" icon="arrow-up-tray" color="blue" sm wire:click="openImportModal" />
             </div>
         @else
@@ -70,7 +70,7 @@
                 @interact('column_category', $row)
                     <div class="flex items-center gap-1.5">
                         @if ($row['category'])
-                            <span class="text-xs text-gray-600 dark:text-gray-300">{{ $row['category'] }}</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-300!">{{ $row['category'] }}</span>
                         @else
                             <span class="text-xs text-gray-400">—</span>
                         @endif
@@ -79,19 +79,19 @@
                 @endinteract
 
                 @interact('column_sku', $row)
-                    <span class="font-mono text-xs font-medium text-gray-800 dark:text-gray-100">{{ $row['sku'] }}</span>
+                    <span class="font-mono text-xs font-medium text-gray-800 dark:text-gray-100!">{{ $row['sku'] }}</span>
                 @endinteract
 
                 {{-- Truncated per prompt 14's own spec. --}}
                 @interact('column_description', $row)
-                    <span class="text-xs text-gray-600 dark:text-gray-300 line-clamp-1 max-w-md block" title="{{ $row['description'] }}">
+                    <span class="text-xs text-gray-600 dark:text-gray-300! line-clamp-1 max-w-md block" title="{{ $row['description'] }}">
                         {{ $row['description'] ? \Illuminate\Support\Str::limit($row['description'], 80) : '—' }}
                     </span>
                 @endinteract
 
                 {{-- Right-aligned, tabular numerals per prompt 14's own spec. --}}
                 @interact('column_price', $row)
-                    <span class="text-xs font-semibold text-gray-800 dark:text-gray-100" style="font-variant-numeric: tabular-nums;">{{ $row['price'] }}</span>
+                    <span class="text-xs font-semibold text-gray-800 dark:text-gray-100!" style="font-variant-numeric: tabular-nums;">{{ $row['price'] }}</span>
                 @endinteract
 
                 @interact('column_updated_relative', $row)
@@ -133,9 +133,9 @@
 
             <x-upload wire:model="file" accept=".xlsx" tip="Vendor pricelist (.xlsx)." />
 
-            <div class="rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 px-3 py-2 flex items-start gap-2">
+            <div class="rounded-lg bg-blue-50 dark:bg-blue-950/40! border border-blue-200 dark:border-blue-900! px-3 py-2 flex items-start gap-2">
                 <x-icon name="information-circle" class="w-4 h-4 shrink-0 mt-0.5 text-blue-500" />
-                <p class="text-xs text-blue-700 dark:text-blue-300">
+                <p class="text-xs text-blue-700 dark:text-blue-300!">
                     Files are matched by SKU — re-uploading a revised sheet refreshes existing rows instead of duplicating them.
                 </p>
             </div>

@@ -51,17 +51,17 @@
          it's not reproduced here — see this component's docblock). --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         <x-stats scope="compact" title="Incoming payment" icon="banknotes" color="blue">
-            <span class="text-lg font-bold tabular-nums">{{ $incomingAmount }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $incomingAmount }}</span>
             <x-slot:footer>{{ $payment->client?->name ?? '—' }} &middot; {{ $payment->payment_date?->format('d M Y') ?? '—' }}</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="Allocated total" icon="arrows-right-left" color="green">
-            <span class="text-lg font-bold tabular-nums">{{ $allocatedTotal }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $allocatedTotal }}</span>
             <x-slot:footer>Across {{ $payment->allocations->count() }} invoice(s)</x-slot:footer>
         </x-stats>
 
         <x-stats scope="compact" title="{{ $remainingIsOverpaid ? 'Overpayment' : 'Remaining' }}" icon="exclamation-triangle" :color="$remainingIsOverpaid ? 'red' : 'gray'">
-            <span class="text-lg font-bold tabular-nums">{{ $remaining }}</span>
+            <span class="text-lg font-bold tabular-nums text-gray-900 dark:text-gray-100!">{{ $remaining }}</span>
             <x-slot:footer>Unallocated balance</x-slot:footer>
         </x-stats>
     </div>

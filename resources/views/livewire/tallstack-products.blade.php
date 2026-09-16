@@ -16,12 +16,12 @@
                      an invented merged grouping. --}}
                 <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" wire:click="filterType(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                         All
                     </button>
                     @foreach ($types as $case)
                         <button type="button" wire:click="filterType('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300' }}">
+                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
                             {{ $case->getLabel() }}
                         </button>
                     @endforeach
@@ -67,7 +67,7 @@
             --}}
             @interact('column_image', $row)
                 @if ($row['image'])
-                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="w-9 h-9 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700!">
                         <img src="{{ $row['image'] }}" alt="" class="w-full h-full object-cover">
                     </div>
                 @endif
@@ -128,10 +128,10 @@
                  thumbnail column's object-cover, not by cropping the
                  source file" (DESIGN §15). --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5">Picture</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-200! mb-1.5">Picture</label>
                 @if ($existingImageDataUri && ! $photo)
                     <div class="flex items-center gap-3 mb-2">
-                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700!">
                             <img src="{{ $existingImageDataUri }}" alt="" class="w-full h-full object-cover">
                         </div>
                         <x-button text="Remove" icon="trash" color="red" sm wire:click="removePhoto" />
@@ -175,9 +175,9 @@
                  set only via the Price List Items resource's "Create/update
                  product" action (App\Services\ProductSync). --}}
             @if ($priceListItemLabel)
-                <div class="rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 px-3 py-2">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Linked price list item</p>
-                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100">{{ $priceListItemLabel }}</p>
+                <div class="rounded-lg bg-gray-50 dark:bg-gray-800/60! border border-gray-200 dark:border-gray-700! px-3 py-2">
+                    <p class="text-xs text-gray-500 dark:text-gray-400!">Linked price list item</p>
+                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100!">{{ $priceListItemLabel }}</p>
                 </div>
             @endif
 
