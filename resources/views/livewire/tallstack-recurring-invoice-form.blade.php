@@ -57,10 +57,21 @@
                         <x-toggle wire:model="auto_bill" label="Auto-bill" />
                     </div>
                     <x-date wire:model="recurring_start_date" label="Start date" />
-                    <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center justify-between">
-                            <x-label label="End date" />
-                            <x-toggle wire:model.live="no_end_date" label="No end date" sm />
+                    <div>
+                        {{-- Matches <x-date>'s own internal label exactly
+                             (mb-1 block text-sm font-medium text-gray-600
+                             dark:text-gray-300!) so this field's input lines
+                             up with Start date's, instead of a separately
+                             spaced label row pushing it down. --}}
+                        <div class="mb-1 flex items-center justify-between">
+                            <span class="block text-sm font-medium text-gray-600 dark:text-gray-300!">End date</span>
+                            <button type="button" wire:click="$toggle('no_end_date')"
+                                class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $no_end_date ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
+                                @if ($no_end_date)
+                                    <x-icon name="check-circle" class="w-3.5 h-3.5" />
+                                @endif
+                                No end date
+                            </button>
                         </div>
                         <x-date wire:model="recurring_end_date" :disabled="$no_end_date" />
                     </div>
@@ -194,7 +205,6 @@
                         <span class="font-bold text-gray-900 dark:text-gray-100!">Total per cycle</span>
                         <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above — this is the amount each generated invoice will carry, via App\Services\InvoiceTotalsCalculator.</p>
                 </div>
             </x-card>
 
