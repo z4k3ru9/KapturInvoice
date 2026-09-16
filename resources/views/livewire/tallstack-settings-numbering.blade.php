@@ -37,8 +37,8 @@
             </div>
 
             <div class="grid sm:grid-cols-2 gap-4">
-                <x-input wire:model="default_expire_after_days" label="Default expire after (days)" type="number" min="1" max="3650"
-                    hint="Prefills a new quotation's Valid until date as today plus this many days. Leave blank for no default." />
+                <x-input wire:model="default_expire_after_days" label="Default expire after (days)" type="number" min="1" max="3650" placeholder="14"
+                    hint="Prefills a new quotation's Valid until date as today plus this many days — freely editable per quotation afterward. Leave blank to use the system default of 14 days." />
             </div>
         </div>
     </x-card>
