@@ -279,7 +279,11 @@
             <div class="grid grid-cols-2 gap-4">
                 <x-input wire:model.live.debounce.500ms="item_quantity" label="Quantity" type="number" step="0.0001" />
                 <x-currency wire:model.live.debounce.500ms="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
-                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
+                @if ($item_discount_is_percentage)
+                    <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" suffix="%" />
+                @else
+                    <x-currency wire:model="item_discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                @endif
                 <div class="flex items-end pb-2 col-span-2">
                     <button type="button" wire:click="$toggle('item_discount_is_percentage')"
                         class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $item_discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">

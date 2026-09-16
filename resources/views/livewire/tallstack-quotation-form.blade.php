@@ -134,7 +134,11 @@
                                 :options="collect($jobTypes)->map(fn ($t) => ['label' => $t->getLabel(), 'value' => $t->value])->all()" />
                             <x-date wire:model="quotation_date" label="Quotation date" />
                             <x-date wire:model="valid_until" label="Valid until" />
-                            <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
+                            @if ($discount_is_percentage)
+                                <x-input wire:model="discount" label="Discount" type="number" step="0.01" suffix="%" />
+                            @else
+                                <x-currency wire:model="discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                            @endif
                             <div class="flex items-end pb-2 sm:col-span-2">
                                 <button type="button" wire:click="$toggle('discount_is_percentage')"
                                     class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">

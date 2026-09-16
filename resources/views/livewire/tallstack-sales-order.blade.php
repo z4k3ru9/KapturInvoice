@@ -66,19 +66,19 @@
          header stat row (Client / Approved value / Paid / Outstanding). --}}
     <div class="grid grid-cols-2 min-[820px]:!grid-cols-4 gap-2.5">
         <x-stats scope="compact" title="Client" icon="user" color="blue">
-            <span class="text-sm font-bold truncate block">{{ $job->client?->name ?? '—' }}</span>
+            <span class="dark:text-gray-300! text-sm font-bold break-words block">{{ $job->client?->name ?? '—' }}</span>
             <x-slot:footer>{{ $job->job_type->getLabel() }} job</x-slot:footer>
         </x-stats>
         <x-stats scope="compact" title="Approved value" icon="currency-dollar" color="green">
-            <span class="text-sm font-bold tabular-nums">{{ $overview['approvedValue'] }}</span>
+            <span class="dark:text-gray-300! text-sm font-bold tabular-nums break-words">{{ $overview['approvedValue'] }}</span>
             <x-slot:footer>Current job value</x-slot:footer>
         </x-stats>
         <x-stats scope="compact" title="Paid amount" icon="banknotes" color="blue">
-            <span class="text-sm font-bold tabular-nums">{{ $overview['paidAmount'] }}</span>
+            <span class="dark:text-gray-300! text-sm font-bold tabular-nums break-words">{{ $overview['paidAmount'] }}</span>
             <x-slot:footer>Across all invoices</x-slot:footer>
         </x-stats>
         <x-stats scope="compact" title="Outstanding balance" icon="exclamation-triangle" :color="$overview['outstandingBalance'] === $overview['paidAmount'] ? 'gray' : 'amber'">
-            <span class="text-sm font-bold tabular-nums">{{ $overview['outstandingBalance'] }}</span>
+            <span class="dark:text-gray-300! text-sm font-bold tabular-nums break-words">{{ $overview['outstandingBalance'] }}</span>
             <x-slot:footer>Active invoices only</x-slot:footer>
         </x-stats>
     </div>

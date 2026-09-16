@@ -127,7 +127,11 @@
                             :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
                         <x-date wire:model="invoice_date" label="Invoice date" />
                         <x-date wire:model="due_date" label="Due date" />
-                        <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
+                        @if ($discount_is_percentage)
+                            <x-input wire:model="discount" label="Discount" type="number" step="0.01" suffix="%" />
+                        @else
+                            <x-currency wire:model="discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                        @endif
                         <div class="flex items-end pb-2 sm:col-span-2">
                             <button type="button" wire:click="$toggle('discount_is_percentage')"
                                 class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
@@ -576,7 +580,11 @@
                             <x-currency wire:model="correctionItems.{{ $index }}.unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
                         </div>
                         <div class="col-span-6 sm:col-span-2">
-                            <x-input wire:model="correctionItems.{{ $index }}.discount" label="Discount" type="number" step="0.01" />
+                            @if ($item['discount_is_percentage'] ?? false)
+                                <x-input wire:model="correctionItems.{{ $index }}.discount" label="Discount" type="number" step="0.01" suffix="%" />
+                            @else
+                                <x-currency wire:model="correctionItems.{{ $index }}.discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                            @endif
                         </div>
                         <div class="col-span-5 sm:col-span-1 flex items-end pb-2">
                             <button type="button" wire:click="$toggle('correctionItems.{{ $index }}.discount_is_percentage')"

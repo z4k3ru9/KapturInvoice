@@ -104,7 +104,11 @@
                     <x-input wire:model.live.debounce.1750ms="po_number" label="PO number" />
                     <x-select.styled wire:model="currency_code" label="Currency" searchable
                         :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
-                    <x-input wire:model="discount" label="Discount" type="number" step="0.01" />
+                    @if ($discount_is_percentage)
+                        <x-input wire:model="discount" label="Discount" type="number" step="0.01" suffix="%" />
+                    @else
+                        <x-currency wire:model="discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                    @endif
                     <div class="flex items-end pb-2 sm:col-span-2">
                         <button type="button" wire:click="$toggle('discount_is_percentage')"
                             class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
@@ -262,7 +266,11 @@
             <div class="grid grid-cols-2 gap-4">
                 <x-input wire:model="item_quantity" label="Quantity" type="number" step="0.0001" />
                 <x-currency wire:model="item_unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />
-                <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" />
+                @if ($item_discount_is_percentage)
+                    <x-input wire:model="item_discount" label="Discount" type="number" step="0.01" suffix="%" />
+                @else
+                    <x-currency wire:model="item_discount" label="Discount" locale="id-ID" :decimals="2" :precision="4" decimal />
+                @endif
                 <div class="flex items-end pb-2 col-span-2">
                     <button type="button" wire:click="$toggle('item_discount_is_percentage')"
                         class="inline-flex items-center gap-1 text-xs font-medium transition-colors {{ $item_discount_is_percentage ? 'text-[color:var(--ts-primary)]' : 'text-gray-400 dark:text-gray-500! hover:text-gray-600 dark:hover:text-gray-300!' }}">
