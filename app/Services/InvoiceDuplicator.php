@@ -52,6 +52,16 @@ class InvoiceDuplicator
         return $invoice;
     }
 
+    /**
+     * `pricing_mode` was missing from this clone before the
+     * status-transition automation review surfaced it: a generated
+     * invoice (from either call site above) had a null `pricing_mode`,
+     * which App\Actions\Billing\IssueInvoice's TaxCalculationService call
+     * requires a real App\Enums\PricingMode for — issuing ANY
+     * duplicated invoice (a converted quote or a generated recurring
+     * instance) would throw a TypeError. Confirmed via a real Feature
+     * test attempting to issue a freshly generated recurring invoice.
+     */
     protected function cloneSharedFields(Invoice $source): Invoice
     {
         $invoice = new Invoice([
@@ -61,6 +71,7 @@ class InvoiceDuplicator
             'due_date' => $source->due_date,
             'currency_code' => $source->currency_code,
             'exchange_rate' => $source->exchange_rate,
+            'pricing_mode' => $source->pricing_mode,
             'discount' => $source->discount,
             'discount_is_percentage' => $source->discount_is_percentage,
             'terms' => $source->terms,

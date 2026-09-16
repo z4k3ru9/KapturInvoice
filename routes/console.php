@@ -22,3 +22,7 @@ Schedule::command('quotations:expire')->dailyAt('00:05');
 // for InvoiceStatus::Overdue, which had zero writers anywhere in this
 // codebase before the status-transition automation review.
 Schedule::command('invoices:mark-overdue')->dailyAt('00:10');
+
+// See App\Console\Commands\GenerateDueRecurringInvoices — the `auto_bill`
+// flag was previously decorative; this is what actually acts on it.
+Schedule::command('recurring-invoices:generate-due')->dailyAt('06:00');
