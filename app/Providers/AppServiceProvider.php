@@ -146,6 +146,19 @@ class AppServiceProvider extends ServiceProvider
             'icon.sizes.sm' => 'h-5 w-5',
         ]);
 
+        // App-wide: a button's own label was letting a narrow flex parent
+        // (e.g. page-header.blade.php's actions slot) squeeze its TEXT
+        // instead of the button itself — "New / Proposal" line-wrapping
+        // mid-label inside a still-fixed-height pill, confirmed live on
+        // several pages' header action rows at mobile width. `shrink-0`
+        // plus `whitespace-nowrap` on the package's own base wrapper class
+        // means a button can now only ever render at its full natural
+        // width — combined with `flex-wrap` on every actions row (added
+        // to page-header.blade.php and the per-page filter/status rows),
+        // a crowded row now wraps whole buttons onto a new line instead of
+        // mangling the text inside one.
+        TallStackUi::customize()->button()->block('wrapper.class')->append('shrink-0 whitespace-nowrap');
+
         // Standalone <x-icon> usage (a bare icon, not a button/dropdown
         // trigger's own icon slot — those are covered by the scopes above)
         // ALWAYS carries its own `class="h-X w-X ..."` in this app rather
