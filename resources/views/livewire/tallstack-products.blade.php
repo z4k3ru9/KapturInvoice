@@ -14,18 +14,12 @@
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 {{-- Type filter pills — every real CatalogItemType case, not
                      an invented merged grouping. --}}
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <button type="button" wire:click="filterType(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        All
-                    </button>
-                    @foreach ($types as $case)
-                        <button type="button" wire:click="filterType('{{ $case->value }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $typeFilter === $case->value ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                            {{ $case->getLabel() }}
-                        </button>
-                    @endforeach
-                </div>
+                <x-tallstack.filter-dropdown
+                    label="{{ $typeFilter === null ? 'All types' : collect($types)->first(fn ($case) => $case->value === $typeFilter)?->getLabel() }}"
+                    :options="collect([['value' => null, 'label' => 'All types']])->concat(collect($types)->map(fn ($case) => ['value' => $case->value, 'label' => $case->getLabel()]))"
+                    :active="$typeFilter"
+                    method="filterType"
+                />
 
                 <div class="w-full sm:w-64">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or SKU…" icon="magnifying-glass" clearable />

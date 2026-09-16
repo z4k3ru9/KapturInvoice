@@ -22,18 +22,12 @@
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 {{-- Brand filter pills — real distinct brand values from
                      imported data, not an invented fixed list. --}}
-                <div class="flex flex-wrap items-center gap-1.5">
-                    <button type="button" wire:click="filterBrand(null)"
-                            class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === null ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                        All brands
-                    </button>
-                    @foreach ($brands as $brand)
-                        <button type="button" wire:click="filterBrand('{{ $brand }}')"
-                                class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $brandFilter === $brand ? 'bg-[color:var(--ts-primary)] text-white' : 'bg-gray-100 dark:bg-gray-800! text-gray-600 dark:text-gray-300!' }}">
-                            {{ $brand }}
-                        </button>
-                    @endforeach
-                </div>
+                <x-tallstack.filter-dropdown
+                    label="{{ $brandFilter ?? 'All brands' }}"
+                    :options="collect([['value' => null, 'label' => 'All brands']])->concat(collect($brands)->map(fn ($brand) => ['value' => $brand, 'label' => $brand]))"
+                    :active="$brandFilter"
+                    method="filterBrand"
+                />
 
                 <div class="w-full sm:w-72">
                     <x-input wire:model.live.debounce.400ms="search" placeholder="Search SKU or description…" icon="magnifying-glass" clearable />
