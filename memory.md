@@ -36,8 +36,34 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 643 PHP tests passing as of 2026-09-16 (verified via `php -d
+- Test suite: 669 PHP tests passing as of 2026-10-01 (verified via `php -d
   memory_limit=1024M vendor/bin/phpunit`).
+- **Status-transition automation (2026-10-01) — done, merged to main.**
+  Closed four real gaps (`InvoiceStatus::Overdue` had zero writers despite
+  being read everywhere; `Invoice.auto_bill` was purely decorative;
+  `CloseJobOperationally` had no auto-trigger despite only checking an
+  already-computed condition; Quotation had no portal-view signal at
+  all), added a Hold/Release-hold override mechanism as the intended
+  pause-automation lever, and fixed two real bugs it surfaced
+  (`RecalculateInvoiceReceivables` clobbering Overdue,
+  `InvoiceDuplicator` never copying `pricing_mode`). Full detail in
+  CLAUDE.md's own entry — do not re-derive or re-litigate which
+  transitions should stay manual; that research is settled. Known
+  follow-up, not yet built: Hold/Release-hold UI on the Jobs
+  (SalesOrder) page — the actions already support it, only the Blade
+  wiring (mirroring what's on the Invoices list) is missing.
+- **Dark-mode / TallStackUI-compliance audit (2026-09-16) — done, merged
+  to main.** A second, more exhaustive pass beyond the repair plan below
+  (10 parallel per-page audits + centralized component fixes). Full
+  detail in CLAUDE.md's own entry — do not re-run this audit or
+  re-litigate the floating-panel/badge/tab-nesting root causes it found;
+  treat them as settled. One queued, not-yet-started follow-up from the
+  same conversation: a mobile/responsive redesign wave (horizontal
+  scroll on cramped rows, converting the app's copy-pasted filter-pill
+  pattern to a shared dropdown, fixing search/icon overlap, consolidating
+  per-row actions into a kebab menu) — in progress on
+  `.claude/worktrees/mobile-actions-redesign` /
+  `worktree-mobile-actions-redesign`, NOT yet merged as of this writing.
 - **Post-TallStackUI-rebuild repair plan (2026-09-16) — done, except two
   deliberately-deferred items.** A full screenshot-driven QA pass against
   the rebuilt TallStackUI admin found 31 verified issues; all were
