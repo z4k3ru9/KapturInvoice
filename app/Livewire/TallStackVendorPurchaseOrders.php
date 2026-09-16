@@ -36,6 +36,10 @@ class TallStackVendorPurchaseOrders extends Component
 
     public string $search = '';
 
+    public array $sort = ['column' => 'po_date', 'direction' => 'desc'];
+
+    public int $quantity = 10;
+
     /** Optional pre-filter from a Vendor register row link ("?vendor="). */
     #[Url]
     public ?string $vendor = null;
@@ -111,9 +115,11 @@ class TallStackVendorPurchaseOrders extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = VendorPurchaseOrder::query()->where('company_id', $this->company->id);
+        $base = VendorPurchaseOrder::query()->where('vendor_purchase_orders.company_id', $this->company->id);
 
         $pos = (clone $base)
+            ->join('vendors', 'vendors.id', '=', 'vendor_purchase_orders.vendor_id')
+            ->select('vendor_purchase_orders.*')
             ->with('vendor')
             ->withSum('variances', 'amount')
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
@@ -122,8 +128,11 @@ class TallStackVendorPurchaseOrders extends Component
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('vendor', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderByDesc('po_date')
-            ->paginate(10)
+            ->when($this->sort['column'] === 'vendor',
+                fn ($q) => $q->orderBy('vendors.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('vendor_purchase_orders.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (VendorPurchaseOrder $po) => [
                 'id' => $po->id,
                 'number' => $po->number ?? '—',

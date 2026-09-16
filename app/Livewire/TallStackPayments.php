@@ -53,6 +53,10 @@ class TallStackPayments extends Component
 
     public string $search = '';
 
+    public array $sort = ['column' => 'payment_date', 'direction' => 'desc'];
+
+    public int $quantity = 10;
+
     // --- Record payment modal --------------------------------------------
     public bool $showRecordModal = false;
 
@@ -307,9 +311,11 @@ class TallStackPayments extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = Payment::query()->where('company_id', $this->company->id);
+        $base = Payment::query()->where('payments.company_id', $this->company->id);
 
         $payments = (clone $base)
+            ->join('clients', 'clients.id', '=', 'payments.client_id')
+            ->select('payments.*')
             ->with(['client', 'invoice', 'receipt'])
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(function ($q) {
@@ -317,8 +323,11 @@ class TallStackPayments extends Component
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
                     ->orWhereHas('invoice', fn ($q) => $q->where('number', 'like', "%{$this->search}%"));
             }))
-            ->orderByDesc('payment_date')
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('payments.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Payment $payment) => [
                 'id' => $payment->id,
                 'client' => $payment->client?->name ?? '—',

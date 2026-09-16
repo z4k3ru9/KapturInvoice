@@ -52,9 +52,9 @@
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'amount', 'label' => 'Amount', 'align' => 'right'],
             ['index' => 'valid_until', 'label' => 'Valid until'],
-            ['index' => 'invoice_number', 'label' => 'Converted to invoice'],
+            ['index' => 'invoice_number', 'label' => 'Converted to invoice', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$proposals" paginate loading>
+        ]" :rows="$proposals" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             @interact('column_status', $row)
                 <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
             @endinteract
@@ -76,7 +76,6 @@
             @interact('column_actions', $row, $company)
                 @php
                     $extraActions = [];
-                    $extraActions[] = ['text' => 'Edit', 'icon' => 'pencil-square', 'href' => route('tallstack.proposals.edit', [$company, $row['id']])];
                     $extraActions[] = ['text' => 'Duplicate', 'icon' => 'document-duplicate', 'click' => 'duplicate('.$row['id'].')'];
                     if ($row['status'] !== \App\Enums\ProposalStatus::Accepted) {
                         $extraActions[] = ['text' => 'Mark accepted', 'icon' => 'check-circle', 'color' => 'green', 'click' => 'markAccepted('.$row['id'].')'];

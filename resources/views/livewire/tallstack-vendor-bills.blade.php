@@ -47,13 +47,13 @@
         <x-table :headers="[
             ['index' => 'number', 'label' => 'Number'],
             ['index' => 'vendor', 'label' => 'Vendor'],
-            ['index' => 'po_number', 'label' => 'Vendor PO'],
+            ['index' => 'po_number', 'label' => 'Vendor PO', 'sortable' => false],
             ['index' => 'bill_date', 'label' => 'Date'],
             ['index' => 'total', 'label' => 'Total', 'align' => 'right'],
             ['index' => 'balance', 'label' => 'Balance', 'align' => 'right'],
             ['index' => 'status', 'label' => 'Status'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$bills" paginate loading>
+        ]" :rows="$bills" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             @interact('column_number', $row)
                 <span class="font-mono text-xs font-medium text-gray-700 dark:text-gray-200!" title="{{ $row['number'] }}">
                     {{ \App\Support\TallStack\DocumentNumber::short($row['number']) }}

@@ -54,13 +54,13 @@
 
         <x-table :headers="[
             ['index' => 'client', 'label' => 'Client'],
-            ['index' => 'frequency_label', 'label' => 'Frequency'],
-            ['index' => 'next_date', 'label' => 'Next invoice date'],
-            ['index' => 'amount', 'label' => 'Amount', 'align' => 'right'],
-            ['index' => 'status_label', 'label' => 'Status'],
-            ['index' => 'generated_count', 'label' => 'Generated'],
+            ['index' => 'frequency_label', 'label' => 'Frequency', 'sortable' => false],
+            ['index' => 'next_date', 'label' => 'Next invoice date', 'sortable' => false],
+            ['index' => 'amount', 'label' => 'Amount', 'align' => 'right', 'sortable' => false],
+            ['index' => 'status_label', 'label' => 'Status', 'sortable' => false],
+            ['index' => 'generated_count', 'label' => 'Generated', 'sortable' => false],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$templates" paginate loading>
+        ]" :rows="$templates" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             @interact('column_client', $row)
                 <div class="flex flex-col">
                     <span class="font-medium text-gray-800 dark:text-gray-100!">{{ $row['client'] }}</span>

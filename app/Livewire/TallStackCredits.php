@@ -46,6 +46,8 @@ class TallStackCredits extends Component
 
     public array $sort = ['column' => 'credit_date', 'direction' => 'desc'];
 
+    public int $quantity = 10;
+
     public function mount(Company $company): void
     {
         abort_unless(auth()->user()->canAccessTenant($company), 403);
@@ -83,17 +85,25 @@ class TallStackCredits extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = Credit::query()->where('company_id', $this->company->id);
+        $base = Credit::query()->where('credits.company_id', $this->company->id);
 
         $credits = (clone $base)
+            // A Credit's client_id is nullable, so this must be a
+            // leftJoin — an inner join would silently drop any
+            // clientless credit from the paginated result.
+            ->leftJoin('clients', 'clients.id', '=', 'credits.client_id')
+            ->select('credits.*')
             ->with(['client', 'invoice'])
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('client', fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
                     ->orWhereHas('invoice', fn ($q) => $q->where('number', 'like', "%{$this->search}%"));
             }))
-            ->orderBy($this->sort['column'], $this->sort['direction'])
-            ->paginate(10)
+            ->when($this->sort['column'] === 'client',
+                fn ($q) => $q->orderBy('clients.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('credits.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (Credit $credit) => [
                 'id' => $credit->id,
                 'number' => $credit->number ?? '—',

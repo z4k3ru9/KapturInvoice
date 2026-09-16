@@ -37,6 +37,10 @@ class TallStackVendorBills extends Component
 
     public string $search = '';
 
+    public array $sort = ['column' => 'bill_date', 'direction' => 'desc'];
+
+    public int $quantity = 10;
+
     #[Url]
     public ?string $vendor = null;
 
@@ -127,9 +131,11 @@ class TallStackVendorBills extends Component
     {
         $currency = $this->company->currency_code;
 
-        $base = VendorBill::query()->where('company_id', $this->company->id);
+        $base = VendorBill::query()->where('vendor_bills.company_id', $this->company->id);
 
         $bills = (clone $base)
+            ->join('vendors', 'vendors.id', '=', 'vendor_bills.vendor_id')
+            ->select('vendor_bills.*')
             ->with(['vendor', 'vendorPurchaseOrder'])
             ->when($this->status, fn ($q) => $q->where('status', $this->status))
             ->when($this->vendor, fn ($q) => $q->where('vendor_id', $this->vendor))
@@ -137,8 +143,11 @@ class TallStackVendorBills extends Component
                 $q->where('number', 'like', "%{$this->search}%")
                     ->orWhereHas('vendor', fn ($q) => $q->where('name', 'like', "%{$this->search}%"));
             }))
-            ->orderByDesc('bill_date')
-            ->paginate(10)
+            ->when($this->sort['column'] === 'vendor',
+                fn ($q) => $q->orderBy('vendors.name', $this->sort['direction']),
+                fn ($q) => $q->orderBy('vendor_bills.'.$this->sort['column'], $this->sort['direction'])
+            )
+            ->paginate($this->quantity)
             ->through(fn (VendorBill $bill) => [
                 'id' => $bill->id,
                 'number' => $bill->number ?? '—',

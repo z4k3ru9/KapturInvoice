@@ -50,11 +50,11 @@
         <x-table :headers="[
             ['index' => 'number', 'label' => 'Number'],
             ['index' => 'client', 'label' => 'Client'],
-            ['index' => 'invoice_number', 'label' => 'Related invoice'],
+            ['index' => 'invoice_number', 'label' => 'Related invoice', 'sortable' => false],
             ['index' => 'amount', 'label' => 'Amount', 'align' => 'right'],
             ['index' => 'credit_date', 'label' => 'Credit date'],
             ['index' => 'actions', 'label' => '', 'sortable' => false],
-        ]" :rows="$credits" paginate loading>
+        ]" :rows="$credits" :sort="$sort" :filter="['quantity' => 'quantity']" striped paginate loading>
             {{--
                 Same dense-number convention as every other TALL-stack
                 register (see App\Support\TallStack\DocumentNumber's own
