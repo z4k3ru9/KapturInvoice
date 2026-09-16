@@ -144,6 +144,18 @@ class AppServiceProvider extends ServiceProvider
             'action.icon' => 'h-5 w-5 text-gray-50 transition',
         ]);
 
+        // Same trigger, but meant to sit flush as the trailing segment of a
+        // <x-button.group> (App\...\row-actions.blade.php) rather than as a
+        // standalone square with its own gap — rounded only on the right,
+        // and the same -ml-px overlap x-button.group itself applies to
+        // every non-first child (vendor/tallstackui/tallstackui/src/Components/Button/Group/Component.php),
+        // so the seam between the last grouped button and this trigger
+        // reads as one continuous segment instead of two adjacent pills.
+        TallStackUi::customize()->dropdown(scope: 'row-action-joined')->block([
+            'action.wrapper' => 'inline-flex h-9 w-9 -ml-px cursor-pointer items-center justify-center rounded-l-none rounded-r-md bg-gray-500 text-gray-50 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-600',
+            'action.icon' => 'h-5 w-5 text-gray-50 transition',
+        ]);
+
         // A "sm" x-button's own icon defaults to just w-3 h-3 (12px) — fine
         // next to a text label, but adrift in a lot of empty space once
         // the button is icon-only and `square` (bell, refresh, a table
