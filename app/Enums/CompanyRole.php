@@ -153,6 +153,21 @@ enum CompanyRole: string
     }
 
     /**
+     * Owner/Admin only. The override lever for the status-transition
+     * automation (Invoice auto-Overdue, recurring auto-generate/issue/
+     * send, SalesOrder auto-close-operationally): pausing automation on a
+     * specific record for moderation or a revision that needs approval.
+     * Same tier as {@see vendorPoVarianceApprovalRoles()} — an exceptional
+     * override, not a routine action.
+     *
+     * @return array<int, self>
+     */
+    public static function holdApprovalRoles(): array
+    {
+        return [self::Owner, self::Admin];
+    }
+
+    /**
      * "Staff and higher can record/approve delivery and handover" —
      * every role except the read-only Auditor, i.e. the same set as
      * {@see mutatingRoles()}.

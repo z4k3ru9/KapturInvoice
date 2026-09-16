@@ -17,3 +17,8 @@ Schedule::command('invoices:send-reminders')->dailyAt('08:00');
 // quotation expiry" gap noted in
 // docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md.
 Schedule::command('quotations:expire')->dailyAt('00:05');
+
+// See App\Console\Commands\MarkInvoicesOverdue — closes the equivalent gap
+// for InvoiceStatus::Overdue, which had zero writers anywhere in this
+// codebase before the status-transition automation review.
+Schedule::command('invoices:mark-overdue')->dailyAt('00:10');
