@@ -25,8 +25,8 @@
                     <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.quotations', $company) }}">Quotations</a> instead.
                 </span>
 
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <div class="w-full sm:w-64">
+                <div class="flex items-center gap-2 w-full sm:flex-1 sm:min-w-[240px]">
+                    <div class="flex-1 min-w-0">
                         <x-input wire:model.live.debounce.400ms="search" placeholder="Search number or client…" icon="magnifying-glass" clearable />
                     </div>
                     <x-tallstack.quantity-select />

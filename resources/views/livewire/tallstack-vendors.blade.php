@@ -31,8 +31,8 @@
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Supplier directory</span>
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <div class="w-full sm:w-64">
+                <div class="flex items-center gap-2 w-full sm:flex-1 sm:min-w-[240px]">
+                    <div class="flex-1 min-w-0">
                         <x-input wire:model.live.debounce.400ms="search" placeholder="Search name or email…" icon="magnifying-glass" clearable />
                     </div>
                     <x-tallstack.quantity-select />
