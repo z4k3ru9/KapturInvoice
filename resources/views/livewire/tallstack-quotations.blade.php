@@ -84,7 +84,16 @@
             @endinteract
 
             @interact('column_status', $row)
-                <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
+                <div class="flex items-center gap-1.5">
+                    <x-badge text="{{ $row['status_label'] }}" :color="$row['status_color']" sm light />
+                    {{-- Informational only — App\Livewire\Portal\SignQuotation
+                         writes viewed_at the first time the client opens the
+                         portal link; deliberately not a status value, see
+                         quotations.viewed_at's own migration docblock. --}}
+                    @if ($row['viewed_at'])
+                        <x-icon name="eye" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500!" title="Viewed {{ $row['viewed_at'] }}" />
+                    @endif
+                </div>
             @endinteract
 
             @interact('column_actions', $row, $company)

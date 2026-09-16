@@ -59,6 +59,25 @@ class SignQuotationPortalTest extends TestCase
             ->assertSee('Client Co');
     }
 
+    public function test_visiting_the_portal_page_records_viewed_at_once(): void
+    {
+        $company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
+        $quotation = $this->makeQuotation($company);
+
+        $this->assertNull($quotation->viewed_at);
+
+        $this->get("http://acme.test/portal/quotations/{$quotation->portal_key}")->assertOk();
+
+        $firstViewedAt = $quotation->fresh()->viewed_at;
+        $this->assertNotNull($firstViewedAt);
+
+        // A second visit doesn't move the timestamp forward.
+        $this->travel(1)->hour();
+        $this->get("http://acme.test/portal/quotations/{$quotation->portal_key}")->assertOk();
+
+        $this->assertTrue($firstViewedAt->equalTo($quotation->fresh()->viewed_at));
+    }
+
     public function test_portal_page_404s_when_the_quotation_belongs_to_a_different_company_than_the_resolved_domain(): void
     {
         $owner = Company::create(['name' => 'Acme', 'slug' => 'acme', 'domain' => 'acme.test']);
