@@ -61,12 +61,24 @@ class InvoiceDuplicator
      * duplicated invoice (a converted quote or a generated recurring
      * instance) would throw a TypeError. Confirmed via a real Feature
      * test attempting to issue a freshly generated recurring invoice.
+     *
+     * `sales_order_id` was found missing the same way during the
+     * 2026-09-17 "stale job" re-audit: App\Livewire\TallStackInvoiceForm
+     * renders its Job-link picker unconditionally (never wrapped in
+     * `@unless($this->isQuote)`), so a legacy `type=Quote` row can be
+     * manually linked to a Job. Without this line, `convertToInvoice()`
+     * silently dropped that link on every conversion — the generated
+     * invoice would never show up in the job's own cost/margin
+     * reporting. App\Actions\Billing\AmendIssuedInvoice/
+     * VoidAndReissueInvoice already carried `sales_order_id` over
+     * correctly; only this clone path had the gap.
      */
     protected function cloneSharedFields(Invoice $source): Invoice
     {
         $invoice = new Invoice([
             'company_id' => $source->company_id,
             'client_id' => $source->client_id,
+            'sales_order_id' => $source->sales_order_id,
             'po_number' => $source->po_number,
             'due_date' => $source->due_date,
             'currency_code' => $source->currency_code,

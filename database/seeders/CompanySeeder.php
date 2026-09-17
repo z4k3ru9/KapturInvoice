@@ -30,8 +30,8 @@ class CompanySeeder extends Seeder
                 // FINALIZED-DECISIONS.md's illustrative "KA" example, so
                 // continuity with the real historical numbering is kept.
                 'code' => 'KJA',
-                'domain' => 'karuniaabadi.id',
-                'email' => 'kja@karuniaabadi.id',
+                'domain' => 'example-a.com',
+                'email' => 'kja@example-a.com',
                 'phone' => '+628113549500',
                 'address_line_1' => 'Sukolilo Sukorejo 26',
                 'city' => 'Surabaya',
@@ -53,8 +53,8 @@ class CompanySeeder extends Seeder
                 'name' => 'PT. Axen Technology Indonesia',
                 'slug' => 'axen-technology-indonesia',
                 'code' => 'ATI',
-                'domain' => 'axentechnology.web.id',
-                'email' => 'ati@axentechnology.web.id',
+                'domain' => 'example-b.com',
+                'email' => 'ati@example-b.com',
                 'phone' => '+6281554549509',
                 'address_line_1' => 'Sukolilo Sukorejo 26',
                 'city' => 'Surabaya',

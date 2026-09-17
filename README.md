@@ -44,9 +44,9 @@ handover.
 ## Architecture
 
 KapturInvoice runs **two business entities** ("companies") from one
-codebase and one deployment — **Karunia Abadi** (`karuniaabadi.id`,
+codebase and one deployment — **Karunia Abadi** (`example-a.com`,
 InvoiceNinja v4 source, non-tax) and **PT. Axen Technology Indonesia**
-(`axentechnology.web.id`, InvoiceNinja v5 source, Indonesian tax-enabled).
+(`example-b.com`, InvoiceNinja v5 source, Indonesian tax-enabled).
 Companies are isolated deployments at launch — no cross-company records,
 files, portal access, or financial synchronization.
 
@@ -244,11 +244,171 @@ To see the public homepage for a specific entity locally, either point
 `/etc/hosts` at `127.0.0.1` for its domain, or send a `Host` header:
 
 ```sh
-curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/
+curl -H "Host: example-a.com" http://127.0.0.1:8000/
 ```
 
 The admin panel itself is not domain-resolved — it's always reached at
 `/tall/{company-slug}/...` regardless of which host you're on.
+
+## Production / self-hosted server setup
+
+This app is **multi-tenant by domain** for the public homepage/portal
+(`App\Http\Middleware\ResolveCompanyFromDomain` matches the request's
+`Host` header against each `companies.domain` row) but tenant-by-URL-path
+for the admin panel (`/tall/{company-slug}/...`, works on any single
+hostname). A production deploy therefore needs real DNS for **every**
+seeded company's own domain, not just one app domain — plan for that
+before provisioning.
+
+**Requirements:** PHP 8.4 (see `composer.json`'s `require.php`; run
+`php -v` to confirm) with the extensions Laravel/dompdf need (`pdo`,
+`mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `gd` or `imagick`),
+Composer 2, Node 20+ (for `npm run build`), a web server (nginx or
+Apache) with PHP-FPM, and MySQL/MariaDB (`DB_CONNECTION=sqlite` in
+`.env.example` is dev-only — see the commented `mysql` block there).
+
+1. **Get the code and install dependencies** (production flags — no dev
+   tooling, optimized autoloader):
+
+   ```sh
+   git clone <this repo's URL> /var/www/kapturinvoice
+   cd /var/www/kapturinvoice
+   composer install --no-dev --optimize-autoloader
+   npm ci
+   npm run build
+   ```
+
+2. **Configure `.env`** (`cp .env.example .env` first, then edit):
+   - `APP_ENV=production`, `APP_DEBUG=false` — never run a public
+     instance with debug on, it leaks stack traces/config.
+   - `APP_URL=https://your-primary-domain` — the admin panel's own base
+     URL (used for PDF/mail links); it does not need to be either
+     company's public domain.
+   - `APP_KEY` — generate once with `php artisan key:generate`, then
+     back it up; losing it invalidates every encrypted column
+     (`PaymentGateway::config`, etc.) and existing sessions.
+   - `DB_CONNECTION=mysql` plus `DB_HOST`/`DB_DATABASE`/`DB_USERNAME`/
+     `DB_PASSWORD` for a real MySQL/MariaDB instance (create the
+     database first — Laravel doesn't do this for you).
+   - `SESSION_DRIVER=database`, `CACHE_STORE=database`,
+     `QUEUE_CONNECTION=database` work out of the box against the same
+     MySQL database (no Redis required); swap to `redis` later if you
+     add it.
+   - `MAIL_MAILER` — set to a real transport (`smtp`, `ses`, etc.) and
+     fill in credentials; `.env.example` ships `MAIL_MAILER=log`, which
+     silently writes every invoice/quote/reminder/receipt email to the
+     log file instead of sending it.
+   - `SESSION_DOMAIN` — leave `null` unless the admin panel and a
+     company's public domain need to share a session cookie (they
+     don't, by design — see "Companies are isolated deployments" in
+     CLAUDE.md).
+
+3. **Database and storage:**
+
+   ```sh
+   php artisan migrate --force   # NEVER migrate:fresh against real data
+   php artisan db:seed --class=CompanySeeder --force   # only on a brand-new DB
+   php artisan storage:link
+   chown -R www-data:www-data storage bootstrap/cache
+   chmod -R 775 storage bootstrap/cache
+   ```
+
+   `storage/app` holds uploaded logos, signatures, and any document
+   attachments (`local` disk) — back this up alongside the database, not
+   just the database.
+
+4. **Cache the framework for production** (repeat after every deploy):
+
+   ```sh
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   php artisan event:cache
+   ```
+
+   If you change `.env` after this, `config:cache` must be re-run or the
+   old cached values keep being used.
+
+5. **Web server** — one nginx server block per company domain (plus one
+   for `APP_URL`'s own admin-panel domain if it differs from both),
+   every block pointing at the same `public/` document root and PHP-FPM
+   pool:
+
+   ```nginx
+   server {
+       listen 443 ssl http2;
+       server_name your-primary-domain example-a.com example-b.com;
+       root /var/www/kapturinvoice/public;
+       index index.php;
+
+       location / {
+           try_files $uri $uri/ /index.php?$query_string;
+       }
+
+       location ~ \.php$ {
+           fastcgi_pass unix:/run/php/php8.4-fpm.sock;
+           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+           include fastcgi_params;
+       }
+
+       location ~ /\.(?!well-known).* {
+           deny all;
+       }
+   }
+   ```
+
+   (Listing every domain on one `server_name`/cert works if they share
+   this one deployment; split into separate server blocks with their
+   own certs if you'd rather keep them independent.) Point each
+   domain's DNS `A`/`AAAA` record at this server, then issue certificates
+   (e.g. `certbot --nginx -d your-primary-domain -d example-a.com -d
+   example-b.com`).
+
+6. **Queue worker** (mail sending and other queued work use
+   `QUEUE_CONNECTION=database`, so nothing sends without a worker
+   running) — a systemd unit is simplest:
+
+   ```ini
+   # /etc/systemd/system/kapturinvoice-queue.service
+   [Unit]
+   Description=KapturInvoice queue worker
+   After=network.target mysql.service
+
+   [Service]
+   User=www-data
+   WorkingDirectory=/var/www/kapturinvoice
+   ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+   Restart=always
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   ```sh
+   systemctl enable --now kapturinvoice-queue
+   ```
+
+7. **Scheduler** — `invoices:send-reminders`, `quotations:expire`,
+   `invoices:mark-overdue`, and `recurring-invoices:generate-due`
+   (see `routes/console.php`) all run through Laravel's scheduler, which
+   needs exactly one cron entry:
+
+   ```cron
+   * * * * * cd /var/www/kapturinvoice && php artisan schedule:run >> /dev/null 2>&1
+   ```
+
+8. **Deploying an update** (repeat steps 1, 4, and the storage-link/
+   permissions half of step 3 each time; skip re-seeding):
+
+   ```sh
+   php artisan down --secret=<a-hard-to-guess-token>   # optional maintenance window
+   git pull
+   composer install --no-dev --optimize-autoloader
+   npm ci && npm run build
+   php artisan migrate --force
+   php artisan config:cache && php artisan route:cache && php artisan view:cache
+   php artisan up
+   ```
 
 ## Tests
 

@@ -145,6 +145,12 @@ php artisan serve                                    # http://127.0.0.1:8000
 
 Or just `composer setup` (runs the same steps via the composer script).
 
+This is dev/sandbox setup only — sqlite, `migrate:fresh`, `artisan serve`.
+For a real server deploy (systemd queue worker, cron scheduler, nginx per
+seeded company domain, MySQL, production `.env`), see README.md's own
+["Production / self-hosted server setup"](README.md#production--self-hosted-server-setup)
+section instead of improvising from this one.
+
 ## Login / seeded data (from `database/seeders/`)
 
 - **Admin UI:** login at `http://127.0.0.1:8000/login`
@@ -157,9 +163,9 @@ Or just `composer setup` (runs the same steps via the composer script).
   anymore (see the note near the top of this file).
 - **Two seeded companies** (`CompanySeeder`) — the two real Surabaya
   IT/security-infrastructure integrators this replaces legacy InvoiceNinja
-  installs for: **Karunia Abadi** (`karuniaabadi.id`, prefixes
+  installs for: **Karunia Abadi** (`example-a.com`, prefixes
   `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **PT. Axen
-  Technology Indonesia** (`axentechnology.web.id`, prefixes
+  Technology Indonesia** (`example-b.com`, prefixes
   `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Jump straight
   to a company's dashboard with its slug —
   `/tall/karunia-abadi/dashboard` / `/tall/axen-technology-indonesia/dashboard`
@@ -170,10 +176,10 @@ Or just `composer setup` (runs the same steps via the composer script).
 - **Public homepage** (`/`, plain Livewire) is
   resolved by the request's `Host` header, not URL path — to preview a
   specific entity locally without editing `/etc/hosts`, either send a
-  `Host` header (`curl -H "Host: karuniaabadi.id" http://127.0.0.1:8000/`)
+  `Host` header (`curl -H "Host: example-a.com" http://127.0.0.1:8000/`)
   or, for a real browser/Playwright session, launch Chromium with
-  `--host-resolver-rules="MAP karuniaabadi.id 127.0.0.1,MAP axentechnology.web.id 127.0.0.1"`
-  and navigate to `http://karuniaabadi.id:8000/` directly — Chromium
+  `--host-resolver-rules="MAP example-a.com 127.0.0.1,MAP example-b.com 127.0.0.1"`
+  and navigate to `http://example-a.com:8000/` directly — Chromium
   refuses to let you set the `Host` header itself via
   `setExtraHTTPHeaders`. An unmatched host falls back to the first
   company in local/testing envs. The homepage itself is a dark "IT

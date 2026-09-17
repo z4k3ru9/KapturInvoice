@@ -75,3 +75,47 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   not blocking for shipping this product: treat the app as ship-ready
   once the automated test suite is green and no bugs are open. Status:
   accepted — full suite verified green same day (see commit history).
+- **"Stale job" re-audit (Owner request, re-checking two things memory.md
+  flagged as left incomplete):**
+  - Portal & Homepage dark-mode/TallStackUI-compliance audit — memory.md
+    records this got stopped mid-run as stale (an agent stuck looping on
+    an unresolvable `nip.io` test-domain nav) before it finished checking
+    these pages. Re-checked all 9 Portal/Homepage Blade files
+    (`resources/views/livewire/portal/*`, `resources/views/livewire/
+    home-page.blade.php`, `resources/views/portal/unavailable.blade.php`,
+    `resources/views/components/portal/status-badge.blade.php`,
+    `resources/views/layouts/public.blade.php`) against
+    `.ai/rules/tallstackui-customization.md`'s cascade-collision rule:
+    every real `dark:` utility already carries the trailing `!`, no
+    inert `dark-*` tokens, the scrollable-table `tabindex`/`role`/
+    `aria-label` fix is present, and the homepage's own "Kinetic
+    Obsidian" design system is intentionally fixed-dark (no adaptive
+    `dark:` needed). Nothing left to fix. Status: accepted (verified
+    clean, not just re-flagged).
+  - Invoice-form "stale job" (Job-link) clearing logic
+    (`App\Livewire\TallStackInvoiceForm`) — the three-layer defense
+    (silent-ignore on `?sales_order_id=` prefill, auto-clear on client
+    change, authoritative re-check at `save()`) is sound. Tracing every
+    other path that creates an `Invoice` row surfaced a real, untested
+    gap: `App\Services\InvoiceDuplicator::cloneSharedFields()` never
+    copied `sales_order_id` — since the form's Job-link picker isn't
+    hidden for legacy `type=Quote` rows, a quote linked to a Job would
+    silently lose that link on "Convert to invoice" (same class of miss
+    as the already-fixed `pricing_mode` omission in this exact method).
+    Fixed: `sales_order_id` added to the clone, regression test
+    `InvoiceDuplicatorTest::test_converting_a_quote_preserves_its_linked_job`
+    added. `AmendIssuedInvoice`/`VoidAndReissueInvoice` already carried it
+    correctly. Status: fixed.
+- **Full PHP suite crashes (`Fatal error: Premature end of PHP process`)
+  partway through a full `php artisan test` run in this local
+  environment** — reproduces on an unrelated PDF test
+  (`PdfPageNumberFooterTest`) each time, but that test (and every test
+  around it) passes cleanly when run in isolation or in any targeted
+  subset. CLI `memory_limit` here is 128M; `php -d memory_limit=1G
+  artisan test` still crashed at the same point, so raising the limit on
+  the outer process alone isn't sufficient — Laravel's test runner
+  isn't propagating it to whatever sub-process actually renders the
+  dompdf-heavy tests. Not caused by today's changes (isolated/targeted
+  runs of everything touched here are green). Status: open — worth a
+  proper look if a genuine full-suite local run is needed; CI's own
+  `tests.yml` may have a different php.ini and not hit this at all.

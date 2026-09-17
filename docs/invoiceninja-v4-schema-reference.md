@@ -198,8 +198,8 @@ shape is:
   single route-model-bound `Company` param, not two separate panels), and
 - A **separate public homepage/marketing site** resolved by the request's
   `Host` header (`App\Http\Middleware\ResolveCompanyFromDomain`), built with
-  the same TALL stack, on each company's own domain (`karuniaabadi.id` /
-  `axentechnology.web.id` — two distinct real businesses share this
+  the same TALL stack, on each company's own domain (`example-a.com` /
+  `example-b.com` — two distinct real businesses share this
   codebase/infra, each with its own branding, client list, and invoice
   numbering).
 

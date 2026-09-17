@@ -16,7 +16,7 @@ import { existsSync } from 'node:fs';
  * Company domain resolution (App\Http\Middleware\ResolveCompanyFromDomain)
  * is Host-header-based for the public homepage/portal, not path-based —
  * see CLAUDE.md "Public homepage". There is no real DNS for
- * karuniaabadi.id/axentechnology.web.id in CI or this sandbox, so every
+ * example-a.com/example-b.com in CI or this sandbox, so every
  * project below launches Chromium with `--host-resolver-rules` mapping
  * both seeded company domains to 127.0.0.1, exactly the pattern CLAUDE.md
  * already documents for a manual Playwright session. The Filament admin
@@ -29,8 +29,8 @@ const PORT = process.env.PLAYWRIGHT_APP_PORT ?? '8123';
 export const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 /** Seeded company hostnames — see database/seeders/CompanySeeder.php. */
-export const KARUNIA_HOST = 'karuniaabadi.id';
-export const AXEN_HOST = 'axentechnology.web.id';
+export const KARUNIA_HOST = 'example-a.com';
+export const AXEN_HOST = 'example-b.com';
 
 const HOST_RESOLVER_RULES = `MAP ${KARUNIA_HOST} 127.0.0.1,MAP ${AXEN_HOST} 127.0.0.1`;
 

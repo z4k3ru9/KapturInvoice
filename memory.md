@@ -5,8 +5,11 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Current state
 
-- Repository: `z4k3ru9/KapturInvoice`. Authoritative branch: `main`. Active
-  working branch: `claude/invoiceninja-schema-reference-6s9aqc`.
+- Repository: `z4k3ru9/KapturInvoice`. Authoritative branch: `main`. As of
+  2026-09-17 `main` is also the active working branch (clean, matches
+  `origin/main`) — the `claude/invoiceninja-schema-reference-6s9aqc`
+  branch this line previously named is stale, don't assume it's current
+  without checking `git status`/`git branch` first.
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - Phases 01-06B (the job-centric rebuild) are implemented and verified —
@@ -35,8 +38,33 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 682 PHP tests passing as of 2026-09-16 (verified via `php -d
-  memory_limit=1024M vendor/bin/phpunit`).
+- Test suite: 791 PHP tests passing as of 2026-09-17 (verified via `php -d
+  memory_limit=1024M vendor/bin/phpunit` — `php artisan test`'s own
+  child process doesn't reliably inherit a `-d memory_limit` flag passed
+  to the outer `php` and can crash partway through a full run on this
+  machine's 128M CLI default; use the `vendor/bin/phpunit` form directly
+  for a full local run).
+- **Domain sanitization (2026-09-17) — done.** The two seeded companies'
+  real domains/emails (`karuniaabadi.id`/`kja@...`,
+  `axentechnology.web.id`/`ati@...`) are replaced everywhere in the repo
+  with placeholders `example-a.com`/`example-b.com` (`CompanySeeder`,
+  `playwright.config.ts`, README.md, CLAUDE.md,
+  `docs/invoiceninja-v4-schema-reference.md`) — company names, slugs,
+  addresses, phone numbers, and tax numbers were deliberately left alone
+  (only "domain" was in scope). Re-seed (`migrate:fresh --seed`) to pick
+  up the new values in an existing local DB.
+- **"Stale job" re-audit + InvoiceDuplicator fix (2026-09-17) — done.**
+  Full detail in `docs/out-of-scope-findings.md`'s 2026-09-17 entries: the
+  Portal/Homepage dark-mode audit memory.md previously flagged as
+  stopped-mid-run came back clean on re-check (nothing to fix); tracing
+  the invoice/Job link logic surfaced a real gap —
+  `InvoiceDuplicator::cloneSharedFields()` never copied `sales_order_id`,
+  so converting a Job-linked legacy Quote to an invoice silently dropped
+  the link. Fixed, with a regression test
+  (`InvoiceDuplicatorTest::test_converting_a_quote_preserves_its_linked_job`).
+  Also added a "Production / self-hosted server setup" section to
+  README.md (nginx/systemd/cron/MySQL deploy steps) — the previous
+  "Local setup" docs only covered the sqlite/`artisan serve` dev path.
 - **Company bank accounts / invoice Payment Method section (2026-09-16) —
   done, merged to main.** Closed the Payment Method gap flagged in the
   Stitch design prompt: `App\Models\CompanyBankAccount` (a company may

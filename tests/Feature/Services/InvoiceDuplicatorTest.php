@@ -6,6 +6,8 @@ use App\Enums\InvoiceType;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\Invoice;
+use App\Models\Quotation;
+use App\Models\SalesOrder;
 use App\Services\InvoiceDuplicator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,6 +50,20 @@ class InvoiceDuplicatorTest extends TestCase
         $this->assertSame($quote->id, $invoice->converted_from_quote_id);
         $this->assertCount(1, $invoice->items);
         $this->assertSame('100.00', (string) $invoice->subtotal);
+    }
+
+    /** 2026-09-17 "stale job" re-audit: converting a legacy Quote that was manually linked to a Job (App\Livewire\TallStackInvoiceForm renders that picker for quotes too) must carry the link over, not silently drop it. */
+    public function test_converting_a_quote_preserves_its_linked_job(): void
+    {
+        $quotation = Quotation::create(['company_id' => $this->company->id, 'client_id' => $this->client->id]);
+        $job = SalesOrder::create(['company_id' => $this->company->id, 'client_id' => $this->client->id, 'quotation_id' => $quotation->id]);
+
+        $quote = Invoice::create(['company_id' => $this->company->id, 'client_id' => $this->client->id, 'type' => 'quote', 'status' => 'draft', 'sales_order_id' => $job->id]);
+        $quote->items()->create(['title' => 'Design work', 'quantity' => 2, 'unit_cost' => 50]);
+
+        $invoice = app(InvoiceDuplicator::class)->convertQuoteToInvoice($quote->fresh(['items']));
+
+        $this->assertSame($job->id, $invoice->sales_order_id);
     }
 
     public function test_generating_a_recurring_invoice_creates_an_instance_and_stamps_the_template(): void
