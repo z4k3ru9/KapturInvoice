@@ -250,4 +250,46 @@ class ImportInvoiceNinjaV5Test extends TestCase
 
         $this->assertSame('0.00', Client::where('company_id', $company->id)->first()->balance);
     }
+
+    public function test_uses_first_notes_line_when_product_key_is_empty_and_once_blocks_completed_reruns(): void
+    {
+        $conn = self::CONN;
+        $db = fn (string $table) => DB::connection($conn)->table($table);
+
+        $db('companies')->insert(['id' => 2]);
+        $db('clients')->insert(['id' => 12, 'company_id' => 2, 'name' => 'Example Client']);
+        $db('invoices')->insert([
+            'id' => 22,
+            'company_id' => 2,
+            'client_id' => 12,
+            'number' => 'ATI-INV-0002',
+            'date' => '2025-01-02',
+            'line_items' => json_encode([
+                [
+                    'product_key' => '',
+                    'notes' => "Option 1\nIntel i5 9400F\nGigabyte B365M",
+                    'cost' => 9850000,
+                    'quantity' => 1,
+                    'discount' => 0,
+                    'is_amount_discount' => false,
+                ],
+            ]),
+        ]);
+
+        $company = Company::create(['name' => 'Test Co', 'slug' => 'test-co', 'currency_code' => 'IDR']);
+
+        $this->artisan('import:invoiceninja-v5', [
+            'company' => 'test-co', '--connection' => $conn, '--legacy-company-id' => 2,
+        ])->assertExitCode(0);
+
+        $item = Invoice::where('company_id', $company->id)->firstOrFail()->items()->firstOrFail();
+        $this->assertSame('Option 1', $item->title);
+        $this->assertSame("Option 1\nIntel i5 9400F\nGigabyte B365M", $item->description);
+
+        $this->artisan('import:invoiceninja-v5', [
+            'company' => 'test-co', '--connection' => $conn, '--once' => true,
+        ])->assertExitCode(0);
+
+        $this->assertSame(1, Invoice::where('company_id', $company->id)->count());
+    }
 }

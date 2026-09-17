@@ -52,7 +52,8 @@ class ImportInvoiceNinjaV5 extends Command
         {company : Target Company slug}
         {--legacy-company-id= : companies.id in the source dump to import (defaults to the only row present)}
         {--connection=legacy_v5 : Laravel DB connection name for the source dump}
-        {--resume : Skip steps already completed by the most recent Failed batch for this company/connection}';
+        {--resume : Skip steps already completed by the most recent Failed batch for this company/connection}
+        {--once : Refuse to run when this company/connection already has a completed migration batch}';
 
     protected $description = 'Import a legacy InvoiceNinja v5 dump into one KapturInvoice Company';
 
@@ -126,6 +127,17 @@ class ImportInvoiceNinjaV5 extends Command
         }
 
         $this->conn = $this->option('connection');
+
+        if ($this->option('once') && MigrationBatch::query()
+            ->where('company_id', $company->id)
+            ->where('source_system', self::SOURCE_SYSTEM)
+            ->where('connection', $this->conn)
+            ->where('status', MigrationBatchStatus::Completed)
+            ->exists()) {
+            $this->info("A completed InvoiceNinja v5 migration already exists for [{$this->argument('company')}] on connection [{$this->conn}]; nothing to do.");
+
+            return self::SUCCESS;
+        }
 
         if (! DB::connection($this->conn)->getSchemaBuilder()->hasTable('companies')) {
             $this->error("Connection [{$this->conn}] doesn't look like a restored InvoiceNinja v5 dump (no `companies` table).");
@@ -330,11 +342,17 @@ class ImportInvoiceNinjaV5 extends Command
             $product = Product::updateOrCreate(
                 ['company_id' => $company->id, 'legacy_product_id' => $row->id],
                 [
-                    'sku' => $row->product_key ?: null,
+                    'sku' => $row->product_key
+                        ? mb_substr((string) $row->product_key, 0, 255)
+                        : null,
                     // `price` is the sale price actually billed on invoices;
                     // `cost` is an (unused, always 0 in this dataset) internal
                     // cost-basis field — deliberately not imported as unit_cost.
-                    'name' => $row->notes ?: ($row->product_key ?: 'Product'),
+                    // Some real Invoice Ninja v5 dumps put the complete
+                    // product description in `notes` (well over 255 chars).
+                    // Keep the full source text in `description`, but keep
+                    // the canonical product name within the target column.
+                    'name' => mb_substr((string) ($row->product_key ?: $row->notes ?: 'Product'), 0, 255),
                     'description' => $row->notes,
                     'unit_cost' => $row->price ?? 0,
                 ],
@@ -538,8 +556,11 @@ class ImportInvoiceNinjaV5 extends Command
                 }
             }
 
+            $fallbackTitle = trim((string) ($item['product_key'] ?: $item['notes'] ?: 'Item'));
+            $fallbackTitle = preg_split('/\R/', $fallbackTitle, 2)[0] ?: 'Item';
+
             return [
-                'title' => $item['product_key'] ?: 'Item',
+                'title' => mb_substr($fallbackTitle, 0, 255),
                 'description' => $item['notes'] ?? null,
                 'quantity' => (float) ($item['quantity'] ?? 1),
                 'unit_cost' => (float) ($item['cost'] ?? 0),
