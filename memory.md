@@ -5,6 +5,29 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Current state
 
+- **HTTP-triggered production bootstrap/import routes (2026-09-17) — done,
+  not yet actually run against real production.** Owner's cPanel account
+  only gives cron, no Terminal/SSH, so there was no way to run a one-off
+  `php artisan migrate --force` on a fresh production database.
+  `GET /deploy/bootstrap` (`App\Http\Controllers\DeployBootstrapController`)
+  runs `migrate --force` + the three idempotent reference-data seeders
+  (Currency/Country/Company) + optionally creates one real Owner user from
+  `config('deploy.admin_*')` — deliberately never runs the full
+  `DatabaseSeeder`, which creates the well-known `test@example.com`/
+  `password` super-admin login. `GET /deploy/import/{company}`
+  (`DeployImportController`) runs one of the two pre-approved legacy
+  imports listed in `config('deploy.imports')` — `company` only ever
+  resolves against that allow-list, never an arbitrary artisan command/
+  connection from the request. Both 404 unless `DEPLOY_MIGRATE_TOKEN` is
+  set in `.env` (default unset); compared with `hash_equals`, rate-limited
+  via `throttle:6,1`. See `config/deploy.php`'s own docblock for the full
+  design reasoning and the exact `.env` keys. **Owner supplies real DB
+  credentials directly into `.env`, never pasted into chat.** Also
+  discovered along the way: Company A's own InvoiceNinja install has
+  since been upgraded from v4 to v5 — a second `legacy_v5_company_a`
+  connection was added (`config/database.php`) since it's a separate
+  database from Company B's existing `legacy_v5` one. 13 new tests, full
+  831/831 suite green.
 - **Settings reorganized into nine real functional tabs + per-company
   outbound mail (2026-09-17) — done, do not re-litigate the shape.**
   **Current tab set (9), all under `/tall/{company:slug}/settings/...`**:
@@ -194,7 +217,10 @@ re-run completed audits unless new evidence contradicts them.
   certified tax-compliance system; tax output is a bookkeeping aid validated
   by a tax professional (`FINALIZED-DECISIONS.md` §9). Do not add
   certification or regulatory-reporting scope without a change request.
-- Company A: InvoiceNinja 4 source, non-tax new customer transactions.
+- Company A: InvoiceNinja 5 source as of 2026-09-17 (originally v4,
+  since upgraded — import via `import:invoiceninja-v5 company-a
+  --connection=legacy_v5_company_a`, see `config/database.php`), non-tax
+  new customer transactions.
 - Company B: InvoiceNinja 5 source, Indonesian tax-enabled transactions.
 - Launch deployments remain separate by domain, database, storage, users,
   queues, schedulers, and backups. A future shared host must preserve logical

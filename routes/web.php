@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\CreditPdfController;
 use App\Http\Controllers\DeliveryOrderPdfController;
+use App\Http\Controllers\DeployBootstrapController;
+use App\Http\Controllers\DeployImportController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Http\Controllers\HandoverReportPdfController;
 use App\Http\Controllers\InvoicePdfController;
@@ -244,6 +246,20 @@ Route::get('/clients/{client}/statement-of-account/preview', StatementOfAccountP
 // per-company destination the same way a fresh login does.
 Route::get('/login', Login::class)
     ->name('login');
+
+// See App\Http\Controllers\DeployBootstrapController/DeployImportController
+// and config/deploy.php's own docblocks — a token-gated way to run
+// `migrate --force`/the reference-data seeders/the legacy InvoiceNinja
+// import over plain HTTP, for a cPanel host with cron but no Terminal/SSH.
+// Both 404 unless DEPLOY_MIGRATE_TOKEN is set in .env; `throttle` here
+// slows down guessing that token. No `auth` middleware — there may be zero
+// users in the database the first time this is ever visited.
+Route::get('/deploy/bootstrap', DeployBootstrapController::class)
+    ->middleware('throttle:6,1')
+    ->name('deploy.bootstrap');
+Route::get('/deploy/import/{company}', DeployImportController::class)
+    ->middleware('throttle:6,1')
+    ->name('deploy.import');
 
 // Standard Laravel logout: invalidate the session and regenerate both the
 // session id and CSRF token, then bounce to the new login page. A plain

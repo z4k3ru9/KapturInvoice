@@ -150,6 +150,22 @@ return [
             'prefix' => '',
         ],
 
+        // Company A's own InvoiceNinja install was on v4 when 'legacy_v4'
+        // above was first wired up; it has since been upgraded to v5 (two
+        // separate v5 databases now, one per company — not one shared
+        // 'legacy_v5' connection), so this is a second, distinct v5
+        // connection rather than a reuse of 'legacy_v5' (Company B's).
+        'legacy_v5_company_a' => [
+            'driver' => 'mariadb',
+            'host' => env('LEGACY_V5_COMPANY_A_DB_HOST', '127.0.0.1'),
+            'port' => env('LEGACY_V5_COMPANY_A_DB_PORT', '3306'),
+            'database' => env('LEGACY_V5_COMPANY_A_DB_DATABASE', 'legacy_v5_company_a'),
+            'username' => env('LEGACY_V5_COMPANY_A_DB_USERNAME', 'root'),
+            'password' => env('LEGACY_V5_COMPANY_A_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'prefix' => '',
+        ],
+
     ],
 
     /*

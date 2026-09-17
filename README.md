@@ -45,7 +45,9 @@ handover.
 
 KapturInvoice runs **two business entities** ("companies") from one
 codebase and one deployment — **Company A** (`example-a.com`,
-InvoiceNinja v4 source, non-tax) and **Company B**
+InvoiceNinja v5 source as of 2026-09-17 — was originally imported from a
+v4 dump, since upgraded, a separate `legacy_v5_company_a` connection
+covers the current source, non-tax) and **Company B**
 (`example-b.com`, InvoiceNinja v5 source, Indonesian tax-enabled).
 Companies are isolated deployments at launch — no cross-company records,
 files, portal access, or financial synchronization.
@@ -362,6 +364,21 @@ unavailable on cPanel").
    php artisan db:seed --class=CompanySeeder --force   # only on a brand-new DB
    php artisan storage:link
    ```
+
+   **No Terminal on this account?** Some cPanel plans only give you cron,
+   not an interactive shell, so the commands above can't be run by hand.
+   Set `DEPLOY_MIGRATE_TOKEN` (and optionally `DEPLOY_ADMIN_EMAIL`/
+   `DEPLOY_ADMIN_PASSWORD`, so there's a real login afterward instead of
+   none at all) in `.env`, then visit
+   `https://your-domain/deploy/bootstrap?token=<that token>` once — it
+   runs `migrate --force` plus the reference-data seeders (never the
+   dev-only `DatabaseSeeder`, which creates a well-known `test@example.com`
+   / `password` login). `GET /deploy/import/{company}?token=...` runs one
+   of the two pre-approved legacy InvoiceNinja imports the same way. Both
+   404 until `DEPLOY_MIGRATE_TOKEN` is set — see `config/deploy.php`'s own
+   docblock. **Remove `DEPLOY_MIGRATE_TOKEN` from `.env` again (and
+   `php artisan config:cache`) once you're done** — don't leave a working
+   database-bootstrap endpoint reachable indefinitely, even token-gated.
 
    No `chown`/`chmod` dance needed here unlike a VPS — cPanel's PHP
    (suPHP/CloudLinux CageFS) already runs as your own account user, the

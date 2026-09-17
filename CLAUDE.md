@@ -165,9 +165,12 @@ cPanel's own tools — instead of improvising a VPS-style deploy from this one.
 - **Two seeded companies** (`CompanySeeder`) — the two real Surabaya
   IT/security-infrastructure integrators this replaces legacy InvoiceNinja
   installs for: **Company A** (`example-a.com`, prefixes
-  `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **Company B**
-  (`example-b.com`, prefixes
-  `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Jump straight
+  `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v5 source as of
+  2026-09-17 — originally v4, since upgraded; import via
+  `import:invoiceninja-v5 company-a --connection=legacy_v5_company_a`,
+  not `-v4`) and **Company B** (`example-b.com`, prefixes
+  `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source, default
+  `legacy_v5` connection). Jump straight
   to a company's dashboard with its slug —
   `/tall/company-a/dashboard` / `/tall/company-b/dashboard`
   (`{company:slug}` route-model-binds on `Company::$slug` for every
