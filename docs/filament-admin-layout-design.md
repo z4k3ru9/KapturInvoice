@@ -1,5 +1,7 @@
 # KapturInvoice Admin Panel — Layout Design
 
+> Historical reference. Current status and remaining assignments are in the [phase index](rebuild/specs/README.md). Old TODOs, test counts and framework names are not current instructions.
+
 > **⚠️ HISTORICAL — pre-TallStackUI-rebuild architecture.** This document
 > describes the **Filament 5 admin panel**, which has since been fully
 > replaced by a hand-built TallStackUI/Livewire admin (`app/Livewire/TallStack*`,

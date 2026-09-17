@@ -16,10 +16,10 @@ the dispatching prompt only needs to state what's different about this task.
 
 ## Before you start
 
-1. Read `memory.md` (if you haven't already this run) — it names the
-   authoritative branch, the active working branch, and the current settled
-   state. Do not re-derive this from git log or re-run completed audits.
-2. Read the relevant parts of `CLAUDE.md` for the area you're touching
+1. Read `memory.md` (if you haven't already this run) — it records a dated
+   current-state snapshot. Confirm the actual assigned branch once; do not
+   assume the snapshot names the current working branch.
+2. Read `CLAUDE.md` and the relevant parts of `docs/engineering.md` for the area you're touching
    (TallStackUI conventions, financial rules, testing rules) — it takes
    precedence over your own assumptions about this codebase's patterns.
 3. If your task references a TallStackUI component doc
@@ -77,10 +77,10 @@ the dispatching prompt only needs to state what's different about this task.
   judgment — note it in your final report as a flagged finding instead
   (unless your task explicitly says otherwise, e.g. "no round limit, fix
   the root cause").
-- Never touch `docs/rebuild/specs/**/Specs.md` (locked phase specs) or
+- Update phase specifications only when your task authorizes their scope; current
+  pending assignments live there. Never touch
   `docs/rebuild/outputs/**` (dated checkpoint reports) unless your task
-  explicitly names one of them — these are intentionally-preserved
-  historical records, not living docs.
+  explicitly names one of them — these outputs are preserved historical records, not living task lists.
 - Never touch `.claude/skills/**` (installed skill packages) or this file
   itself.
 - Verify every non-trivial factual claim you're about to make (a file's

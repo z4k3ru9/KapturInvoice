@@ -9,7 +9,7 @@ This is the concise product contract for the KapturInvoice renovation. The detai
 
 KapturInvoice is a job-centric invoicing, procurement, delivery, and customer-billing workspace for two legally separate Indonesian companies:
 
-- Company A: non-tax, migrated from InvoiceNinja 4.
+- Company A: non-tax new transactions, current InvoiceNinja 5 source (upgraded from v4).
 - Company B: Indonesian tax-enabled, migrated from InvoiceNinja 5.
 
 ## Scope statement
@@ -56,7 +56,7 @@ The Sales Order / Job is the operational center. It connects the accepted commer
 
 ## Roles
 
-Owner has full company access and is the only role that can finalize an exceptional financial closure. Admin operates approved workflows and exceptions but does not physically delete issued records. Accountant issues invoices, verifies payments, and manages vendor/tax/reconciliation work. Sales owns commercial work, Staff handles delivery and handover, Auditor is read-only, Vendor has no login, and Client access is read-only and scoped.
+Owner has full company access and is the only role that can finalize an exceptional financial closure. Admin operates approved workflows and exceptions but does not physically delete issued records. Accountant issues invoices, verifies payments, and manages vendor/tax/reconciliation work. Sales owns commercial work, Staff handles delivery and handover, Auditor is read-only, Vendor has no login, and Client financial access is read-only and scoped, with the approved portal-signing exceptions in finalized decisions §11.
 
 ## Experience and operations
 
@@ -64,4 +64,4 @@ Use TallStack UI (Livewire) for the internal job-centric workspace, marketing, a
 
 ## Release condition
 
-No release occurs until financial, tenancy, authorization, document-integrity, migration, backup/restore, and production-like PDF checks pass. An Indonesian tax/accounting professional must validate final tax-document wording and manual tax-recap fields before production use.
+Apply finalized decisions §11: shipping requires a green automated suite and no open bugs. Full cutover, formal sign-off, professional review, restore verification and production PDF evidence remain documented follow-ups rather than software shipping gates. Current pending assignments and evidence are owned by Phases 07 and 08.

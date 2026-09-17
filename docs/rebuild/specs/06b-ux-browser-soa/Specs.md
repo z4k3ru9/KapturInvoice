@@ -2,7 +2,7 @@
 
 > **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" (note: the admin panel has since been rebuilt from Filament to hand-built TallStackUI/Livewire, a post-phase change documented in `memory.md`, not a reopening of this phase) and `docs/rebuild/outputs/HISTORY.md`'s Phase 06B entry and `docs/rebuild/outputs/checkpoints/22-phase-06b-terminology-sources.md`.
 
-**Status:** Required before Phase 07
+**Scope note:** Historical completion; current browser evidence and residual gaps are tracked in [Phase 08](../08-release-readiness/Specs.md).
 **Dependency:** Phase 06 backend work
 **Next phase:** `07-migration-and-cutover`
 
@@ -50,9 +50,9 @@ superseded by the accepted Phase 06B decision.
   financial action. Stale saves must be rejected rather than silently merged.
 - Failed autosaves retain browser values, show inline failure state, support
   retry, and warn before navigation that could discard unsaved values.
-- Dynamic line rows add after meaningful content, remove untouched blanks,
-  require confirmation for populated rows, and support deliberate drag and
-  keyboard reordering without per-keystroke server requests.
+- Modal line editing confirms populated-row deletion and supports deliberate
+  drag/keyboard reordering. Automatic blank-row insertion/removal was cancelled
+  by the Owner (finalized decisions §11).
 - Both company themes must work in system light/dark mode, with WCAG 2.2 AA,
   keyboard support, reduced-motion behavior, non-color status communication,
   responsive layouts, and consistent toast timing.
@@ -105,8 +105,7 @@ internal record when the customer accepts without supplying a PO.
 - Preserve local values after failed save and expose explicit retry.
 - Verify that approve, issue, verify, amend, void, archive, and delete actions
   never run through autosave.
-- Implement dynamic row behavior with batched requests and deterministic sort
-  order in persisted documents.
+- Preserve modal editing and deterministic drag/keyboard sort order.
 
 ### Slice 4: Browser test foundation
 
@@ -127,8 +126,7 @@ Cover at minimum:
 - A4 preview and PDF download for Bahasa and English documents.
 - SOA preview, generation, snapshot download, and balance reconciliation.
 - Autosave success, failure, retry, stale conflict, and navigation warning.
-- Dynamic row add, blank-row cleanup, populated-row confirmation, drag order,
-  and keyboard reorder.
+- Modal item editing, populated-row confirmation, drag and keyboard reorder.
 - Dashboard/report pagination and company scoping.
 - Loading, empty, saving, failed, restricted, and error states.
 - Toast timing, deduplication, inline errors, focus management, keyboard flows,

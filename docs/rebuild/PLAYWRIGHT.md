@@ -4,6 +4,14 @@ This guide defines the repository-owned browser-test harness. Build it once
 and reuse its fixtures and helpers. Do not place repeated login, seed, domain,
 theme, or cleanup steps inside individual tests.
 
+## Current verification status
+
+Current execution and remediation live in [Phase 08 P08-01/P08-05](specs/08-release-readiness/Specs.md).
+The suite exists and uses TallStack navigation, but three accessibility scans
+are marked `test.fixme`. Report skips separately. Automatic blank-row behavior
+is cancelled; its two `fixme` cases are not active acceptance requirements.
+Do not copy historical green-suite claims into a new release checkpoint.
+
 ## Goals
 
 - Keep browser tests deterministic, short, and cheap on a 1 GB hosting target.

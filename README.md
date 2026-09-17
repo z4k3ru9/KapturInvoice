@@ -8,7 +8,8 @@ v4/v5 installs for two real IT/security-integrator businesses. See:
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — **historical**: the original Filament admin panel's navigation/page layout, superseded by the TallStackUI admin this README now describes, kept for its still-referenced nav-group reasoning.
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — what the test suite actually verifies, domain by domain, and what's deliberately out of scope.
 - [`docs/rebuild/CLAUDE.md`](docs/rebuild/CLAUDE.md) — the approved renovation handoff (product/architecture decisions, phase order, guardrails) for the job-centric rebuild summarized below.
-- [`CLAUDE.md`](CLAUDE.md) — the full phase-by-phase build log, read this for implementation detail beyond this summary.
+- [`docs/README.md`](docs/README.md) — documentation map and on-demand reading.
+- [`CLAUDE.md`](CLAUDE.md) — concise agent entry point; build rationale lives in `docs/rebuild/outputs/HISTORY.md`.
 
 ## Stack
 
@@ -44,7 +45,7 @@ handover.
 ## Architecture
 
 KapturInvoice runs **two business entities** ("companies") from one
-codebase and one deployment — **Company A** (`example-a.com`,
+codebase, with separate launch deployments — **Company A** (`example-a.com`,
 InvoiceNinja v5 source as of 2026-09-17 — was originally imported from a
 v4 dump, since upgraded, a separate `legacy_v5_company_a` connection
 covers the current source, non-tax) and **Company B**
@@ -169,7 +170,7 @@ files, portal access, or financial synchronization.
   fully tax-exclusive, never mixed. Calculate to two decimals and round
   any final fractional Rupiah up.
 - Company B applies the approved 12% PPN / 11-12 DPP Nilai Lain factor; Company A
-  is always zero-tax.
+  is non-tax for new customer transactions; preserve historical tax and vendor gross cost.
 - A payment is an event; allocations determine balances; one verified
   event produces exactly one receipt. Post-receipt corrections create a
   linked amendment/reversal instead of modifying history.
@@ -177,10 +178,10 @@ files, portal access, or financial synchronization.
   audit events are never physically deleted — enforced by guarded
   force-delete actions on every financial resource, not just a soft-delete
   default.
-- Deferred, not built: online payment charge flow, refunds/write-offs,
+- Deferred launch scope (legacy code may exist): online payment charge flow, refunds/write-offs,
   full journal/inventory, recurring billing, generic project/task
   tracking, new credit-note creation, vendor login, client uploads, SSO,
-  electronic signing, central cross-server sync.
+  central cross-server sync. Portal signing has the approved exception in finalized decisions §11.
 
 ## Data model
 
@@ -508,7 +509,7 @@ document PDFs, portal access, legacy import idempotency) — see
 `docs/testing-coverage.md` for the full domain-by-domain breakdown of
 what's verified and what's deliberately out of scope. The Playwright
 suite (`tests/browser/`) covers full browser journeys, accessibility
-(axe-core WCAG 2.2 AA), autosave, and dynamic-row behavior across both
+(axe-core WCAG 2.2 AA), autosave, and deliberate row reordering across both
 company themes and viewport sizes.
 
 ## License

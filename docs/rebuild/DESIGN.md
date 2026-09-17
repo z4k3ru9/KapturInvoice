@@ -4,15 +4,6 @@
 **Date:** 2026-09-12  
 **Scope:** Internal admin workspace, TallStack UI portal, and marketing surfaces
 
-> **Note (TallStackUI migration):** This document was written when the internal
-> admin workspace was planned on Filament (its §1/§14 language below still
-> says "Filament"). The admin panel has since been fully rebuilt off Filament
-> onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`,
-> routed at `/tall/{company:slug}/...` — `app/Filament` no longer exists; see
-> `CLAUDE.md`). Read every "Filament" reference below as the equivalent
-> TallStackUI/Livewire+Alpine mechanism — the interaction contract itself
-> (modal semantics, loading states, motion timing) is unchanged, only the
-> framework implementing it is.
 
 This document converts the completed UI/UX grill into an execution contract. It works alongside [PRD.md](PRD.md), [CONTEXT.md](CONTEXT.md), [Specs.md](Specs.md), and [specs/FINALIZED-DECISIONS.md](specs/FINALIZED-DECISIONS.md). It describes how the approved product should feel and behave; it does not change the business rules.
 
@@ -99,7 +90,7 @@ Owner/Admin/Accountant may create a direct Job only for exceptional work and mus
 
 Essential line fields appear first: item, description, quantity, unit, price, discount, and amount. Advanced tax, cost, notes, and evidence fields progressively reveal. Use Alpine.js for provisional rows and display calculations; server-side actions remain authoritative.
 
-Show one blank row by default. Add the next blank row after meaningful content. Remove untouched empty rows automatically. Populated rows require explicit removal and confirmation when substantial. Provide drag handles and keyboard reorder controls; preserve deliberate row order in PDFs.
+Use the established modal-based line-item editing. Automatic blank-row addition/removal was cancelled by the Owner on 2026-09-17 (finalized decisions §11). Confirm populated-row deletion; provide deliberate drag and keyboard reordering and preserve that order in PDFs.
 
 ## 6. Draft, save, and validation states
 

@@ -50,17 +50,17 @@ current count) and `vendor/bin/pint --test` before every push.
 
 | Domain | What's tested | Test file(s) |
 |---|---|---|
-| Core resources (Clients, Products, Tax Rates, Invoices, Credits, Payments) | Invoice totals recalculation from items/taxes; tenant scoping proven at the model layer (`PartyScopingTest` et al.) — ⚠️ dedicated register/list-page-render feature tests for these TallStack pages themselves are a known gap, see **Known gaps from the TallStack migration** below | `InvoiceTotalsCalculatorTest`, `PartyScopingTest` |
+| Core resources | Totals/model scoping plus current Invoice/Credit/Payment sorting and pagination tests; remaining UI coverage is P08-04. | `InvoiceTotalsCalculatorTest`, `PartyScopingTest`, `TallStackInvoicesSortAndPageSizeTest`, `TallStackCreditsSortAndPaginationTest`, `TallStackPaymentsSortAndPaginationTest` |
 | Invoice/Quote/Credit numbering | `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ` format (docs/rebuild/specs/FINALIZED-DECISIONS.md §2), independent per-company/type/year sequences, annual (not monthly) reset, atomic repeated allocation without duplicates, code-locking on first issuance, missing-code error | `DocumentNumberingTest` |
 | Company/tenancy isolation (Phase 01 — docs/rebuild/specs/01-company-foundation) | Same client identity stays separate across companies, a disabled company/membership blocks tenant access and is excluded from `getTenants()` (incl. for a super admin), a disabled company's domain 404s and is excluded from the local-env fallback | `CompanyIsolationTest`, `DomainResolutionTest` |
 | Role/permission matrix (Phase 01) | Every `CompanyRole` × every protected action (create/update/delete/forceDelete/viewSettings), Auditor read-only, super-admin bypass, via the `Gate::before` hook covering every `BelongsToCompany` model | `RolePermissionMatrixTest` |
 | Company membership & period lock (Phase 01) | Invite/accept/expire/reuse-block/disable/reenable internal-user flow (each audited where required), period close/reopen role restriction | `CompanyMembershipTest`, `PeriodLockTest` |
 | Quotes & Recurring Invoices | `TallStackQuotes`/`TallStackRecurringInvoices` register lists filtered to the right rows for the current company only; Send/Convert-to-invoice/force-delete on the Quotes register; `TallStackInvoiceForm` reused for a quote (correctly sends a quote email, never self-issues); Generate-now creates a linked real invoice (denied cross-company); the edit page 404s for a template/quote belonging to another company | `TallStackQuotesTest`, `TallStackRecurringInvoicesTest` |
-| Expenses (Expenses, Vendors, Expense Categories) | Tax sync + totals recalculation (`ExpenseTotalsCalculatorTest`); document upload/delete on `TallStackExpenses`' edit modal — ⚠️ the register page's own render/CRUD and Vendor contacts aren't separately covered, see **Known gaps from the TallStack migration** below | `ExpenseTotalsCalculatorTest`, `TallStackExpenseDocumentsTest` |
+| Expenses (Expenses, Vendors, Expense Categories) | Tax sync + totals recalculation (`ExpenseTotalsCalculatorTest`); document upload/delete on `TallStackExpenses`' edit modal — ⚠️ the register page's own render/CRUD and Vendor contacts aren't separately covered, see **Current coverage follow-up** below | `ExpenseTotalsCalculatorTest`, `TallStackExpenseDocumentsTest` |
 | Projects & Tasks | ⚠️ `Project`/`Task` have no TallStackUI page or route at all (unlike the old Filament resource, which stayed reachable but hidden from nav) — legacy data only, verified untouched by the Sales-group Job migration | `ProjectsTest` (legacy `App\Models\Project` model-level assertions only, not a page test) |
 | Documents & Client Portal Invitations | `TallStackDocuments` register renders and scopes to the current company; `TallStackClientPortalInvitations` register renders, scoping, and its actions | `TallStackDocumentsTest`, `TallStackClientPortalInvitationsTest` |
-| Team (Users) | ⚠️ no dedicated `TallStackUsers` feature test yet — role/permission behavior itself is covered at the authorization layer (`RolePermissionMatrixTest`, `CompanyMembershipTest`), but the register page's own render/CRUD isn't, see **Known gaps from the TallStack migration** below | `RolePermissionMatrixTest`, `CompanyMembershipTest` |
-| Settings pages (Company & Taxes, Branding, Numbering, Email & Reminders, Client Portal, Lookups, Payment Gateways) | Email & Reminders renders + saves (`TallStackSettingsEmailTest`); Payment Gateways renders, Test Connection, and config save (`TallStackPaymentGatewaysTest`) — ⚠️ Company & Taxes/Branding/Numbering/Lookups/Client Portal pages don't have their own dedicated feature test yet, see **Known gaps from the TallStack migration** below | `TallStackSettingsEmailTest`, `TallStackPaymentGatewaysTest` |
+| Team (Users) | ⚠️ no dedicated `TallStackUsers` feature test yet — role/permission behavior itself is covered at the authorization layer (`RolePermissionMatrixTest`, `CompanyMembershipTest`), but the register page's own render/CRUD isn't, see **Current coverage follow-up** below | `RolePermissionMatrixTest`, `CompanyMembershipTest` |
+| Settings pages | Dedicated tests now cover Identity active/address behavior, Formatting, Payment Method bank accounts, Taxes period locks, Email and Client Portal. Verify remaining per-tab coverage under P08-04; gateway tests concern existing legacy code. | `TallStackSettingsIdentityActiveToggleTest`, `TallStackSettingsIdentityAddressTest`, `TallStackSettingsFormattingTest`, `TallStackSettingsPaymentMethodBankAccountsTest`, `TallStackSettingsTaxesPeriodLockTest`, `TallStackSettingsEmailTest`, `TallStackSettingsClientPortalTest`, `TallStackPaymentGatewaysTest` |
 | Proposals, Proposal Templates, Proposal Snippets | Register/create/edit render and scope correctly; Proposal Templates/Snippets CRUD and copy-into-editor behavior | `TallStackProposalsTest`, `TallStackProposalTemplatesAndSnippetsTest` |
 | Payment gateway driver | Charge request/response mapping, missing-config error, status polling, Test Connection success/failure, webhook payload mapping | `LocalApiPaymentGatewayDriverTest` |
 | Payment gateway webhook endpoint | Updates the matching Payment by `gateway_reference`, no-ops on an unknown reference, CSRF-exempt | `PaymentGatewayWebhookTest` |
@@ -81,11 +81,11 @@ current count) and `vendor/bin/pint --test` before every push.
 | Party & catalog company scoping (Phase 02) | Client/Vendor/catalog-item records with the same name in two companies stay two separate records and never leak across a tenant-scoped query | `PartyScopingTest` |
 | Contact billing-portal eligibility (Phase 02) | `contacts.is_billing_contact` designation scoped to its own client, never leaks across clients or companies even with matching contact names | `ContactBillingEligibilityTest` |
 | Soft deletion preserves history (Phase 02) | Soft-deleting a Client/catalog item never removes its invoices/line items; an invoice item keeps its own snapshotted title/unit_cost independent of the (possibly now-deleted) product row | `SoftDeletionPreservesHistoryTest` |
-| Bounded party/catalog search (Phase 02) | ⚠️ the original regression test for the unbounded-product-picker-query bug (Filament's `Select::relationship()` server-searched, asserted via query-log inspection) has no TallStack-era equivalent yet — the underlying product picker is still scoped by `BelongsToCompany`, but the specific "never eagerly loads every product" assertion is a known gap, see **Known gaps from the TallStack migration** below | — |
+| Bounded party/catalog search (Phase 02) | ⚠️ the original regression test for the unbounded-product-picker-query bug (Filament's `Select::relationship()` server-searched, asserted via query-log inspection) has no TallStack-era equivalent yet — the underlying product picker is still scoped by `BelongsToCompany`, but the specific "never eagerly loads every product" assertion is a known gap, see **Current coverage follow-up** below | — |
 | Quotation lifecycle (Phase 03 — docs/rebuild/specs/03-sales-and-job): the new `Quotation` aggregate, not the legacy `invoices`/`type=quote` rows | Every enforced state transition (`QuotationStatus::canTransitionTo()`), acceptance with a supplied customer PO, acceptance without one generating a system-flagged Customer Order Confirmation number, an invalid transition (e.g. Draft→Sent) throwing | `QuotationWorkflowTest` |
 | Job creation and state matrix (Phase 03) | A job can only be created from an Accepted quotation (denied from Draft/Rejected), the created job snapshots the quotation's total/items into `source_snapshot`/`sales_order_items`, direct full-payment and multiple custom milestones both approve when their total matches the job value, milestone approval rejects both an under- and an over-funded set, an invalid job state transition (e.g. Draft→Procurement) throws, cancellation and its terminal-state lock | `SalesOrderWorkflowTest` |
 | Job variations (Phase 03) | Owner/Admin can approve an overrun/out-of-scope/substitution variation (advancing the job's approved value and recording before/after), Staff/Sales approval attempts are denied, the source quotation's own total is unchanged after an approved variation, repeated variations accumulate rather than overwrite prior history | `JobVariationTest` |
-| Legacy project/task navigation hidden (Phase 03; further removed entirely by the TallStack migration — see **Known gaps** above) | The Sales group's Job resource is the launch "job" concept — the `Project`/`Task` data itself is untouched | `ProjectsTest` |
+| Legacy project/task navigation hidden (Phase 03; further removed entirely by the TallStack migration — see **Current coverage follow-up** below) | The Sales group's Job resource is the launch "job" concept — the `Project`/`Task` data itself is untouched | `ProjectsTest` |
 | Tax calculation engine (Phase 04 — docs/rebuild/specs/04-billing-and-receivables): `App\Services\Tax\TaxCalculationService`, pure logic, no database | The Rp10,000,000 exclusive / Rp11,100,000 inclusive round-trip (12% PPN against the 11/12 DPP Nilai Lain factor), non-tax company behavior (with and without a `CompanyTaxSetting` row at all), a `NonTaxable` line staying untaxed even for a tax-enabled company, line-percentage and document-level-nominal discounts reducing the taxable base before tax, a global percentage discount's largest-remainder allocation across uneven lines, ceiling rounding to a whole Rupiah with the pre-round/adjustment/rounded values kept | `TaxCalculationServiceTest` (unit) |
 | Invoice issuance and correction (Phase 04): `Invoice`/`InvoiceItem` extended (not replaced) with `sales_order_id`/`pricing_mode`/lifecycle timestamps, `InvoiceStatus` gains Approved/Issued/Void/Amended | `IssueInvoice` advancing Draft→Approved→Issued and writing an immutable `InvoiceTaxSnapshot` (+ a `TaxRecap` for a taxable result), a second issuance attempt denied, `AmendIssuedInvoice`/`VoidAndReissueInvoice` each creating a linked correction invoice while leaving the original's own number/total/tax snapshot untouched (only its status changes) | `InvoiceIssuanceTest` |
 | Payment verification, allocation, and receipts (Phase 04): `Payment` extended with `proof_path`/`reference`/`cheque_cleared_at`/`verified_at`, new `payment_allocations`/`payment_verification_events`/`receipts`/`receipt_amendments`/`payment_reversals` tables | Multi-invoice allocation from one payment within the same client/company (and denial across a different client), partial payment and unallocated-overpayment visibility, over-allocation denied, cleared-cheque verification (and denial without one), one receipt per verified payment (a second attempt denied), reversal preserving payment/receipt history while the invoice balance recalculates, post-receipt allocation amendment preserving the original receipt snapshot, sequential receipt numbering, unauthorized (Staff/Sales) verification denied | `PaymentWorkflowTest` |
@@ -105,127 +105,31 @@ current count) and `vendor/bin/pint --test` before every push.
 | Dynamic row reordering (Phase 06B Slice 3) — reordering on the Invoice/Quotation/VendorBill/VendorPurchaseOrder Items editor | Dragging rows into a new order persists in one batched write and is reflected by the model's own `items()` ordering (and therefore its PDF) | `DynamicRowReorderTest` |
 | Automatic quotation expiry | Scheduled `quotations:expire` command expires a `Sent` quotation past its `valid_until` date via `TransitionQuotationStatus`; skips a still-valid `Sent` quotation, a `Draft` quotation past its date, and a quotation with no `valid_until` set | `ExpireQuotationsTest` |
 | Status-transition automation (research-driven: which manual status clicks had a safe, deterministic signal to automate, and which are deliberate financial-control/compliance gates that must stay manual — see CLAUDE.md's own entry for the full candidate list and reasoning) | Scheduled `invoices:mark-overdue` marks an Issued/Partial invoice Overdue once past `due_date` with a positive balance, skips a not-yet-due/fully-paid/Draft/no-due-date/held invoice, and `RecalculateInvoiceReceivables` re-derives (never clobbers) Overdue on a later payment event; scheduled `recurring-invoices:generate-due` generates, issues, and sends the next invoice for a due `auto_bill = true` template (resolving the acting user as the company's Owner for `IssueInvoice`'s role check), skips a not-yet-due/`auto_bill = false`/past-`recurring_end_date`/held template, `--dry-run` generates nothing, and a template whose company has no active Owner generates but leaves the invoice in Draft; `App\Livewire\Portal\SignQuotation` records `viewed_at` once on first portal visit (not a new status value); `CompleteDelivery`/`CompleteHandover` auto-close a job operationally the instant its already-computed condition is met, unless held; `App\Actions\Shared\PlaceHold`/`ReleaseHold` (Owner/Admin only, reason required to place) are the override lever for all of the above, wired into the Invoices list UI | `MarkInvoicesOverdueTest`, `RecalculateInvoiceReceivablesOverdueTest`, `GenerateDueRecurringInvoicesTest`, `SignQuotationPortalTest`, `DeliveryAndHandoverTest`, `TallStackInvoicesHoldTest` |
-| Job milestone percentage (Phase 03) | ⚠️ the original regression test for the "Amount is a percentage of job value" toggle (Filament relation-manager form) has no direct TallStack-era equivalent — `SalesOrderWorkflowTest` still covers the underlying `ApproveSalesOrder` total check the bug was in, but not the percentage-to-amount live-computation UI behavior itself, see **Known gaps from the TallStack migration** below | `SalesOrderWorkflowTest` |
+| Job milestone percentage (Phase 03) | ⚠️ the original regression test for the "Amount is a percentage of job value" toggle (Filament relation-manager form) has no direct TallStack-era equivalent — `SalesOrderWorkflowTest` still covers the underlying `ApproveSalesOrder` total check the bug was in, but not the percentage-to-amount live-computation UI behavior itself, see **Current coverage follow-up** below | `SalesOrderWorkflowTest` |
 | Product picture, Quotation PDF, Proposal PDF | Optional `Product.image_path` resolves to a base64 data URI (`Product::getImageDataUri()`, same pattern as `Company::getLogoDataUri()` — dompdf can't fetch a `Storage::url()` for the `local` disk); a Quotation PDF (`QuotationPdfController`, `resources/views/pdf/quotation.blade.php`) embeds each line item's product picture; a Proposal PDF (`ProposalPdfController`, `resources/views/pdf/proposal.blade.php`) wraps the proposal's free-form `html`/`css`; both admin downloads assert 200 + `application/pdf` and 403 outside the owning company; `ProposalSnippetSync::createOrUpdateFromProduct()` (wired to Products' "Create proposal snippet" row action) generates a copy-pasteable snippet with the picture pre-embedded, and re-running it refreshes the same snippet (`proposal_snippets.product_id`-keyed) instead of duplicating it | `ProductPictureTest` |
-| Post-PR Codex review round (see CLAUDE.md's Phase 06B section for the full list) | `IssueInvoice` denies an unauthorized role and a Quote/recurring-template row; amend/void-and-reissue deny a non-Admin/Owner actor and carry over the original's document-level discount; a backdated invoice's number/tax-recap period matches its own `invoice_date`; a reminder suppression recorded well before its target date still holds, and a consumed one doesn't block a later occurrence; an Issued invoice is included in the reminder query; Draft/Approved/Cancelled invoices never inflate an SOA's closing balance, and aging reconciles as of the period end from allocation history rather than each invoice's live balance; financial job closure is blocked by unresolved vendor cost alone (zero customer balance); allocating a payment before verification still recalculates the invoice once verified; a vendor payment amendment above the PO ceiling is rejected; Vendor Bill/PO items are edit/delete/reorder-locked once their owner leaves Draft; the portal shows an allocation-based payment (with its receipt) alongside a legacy direct-linked one and excludes a reversed allocation; a receipt's `snapshot` stays the original allocation split (and a vendor payment receipt's stays the original amount) after a later amendment; a generated Statement of Account is listed and reopenable from the Client detail page; filing/adjusting a Tax Recap requires a reason only once already filed and denies an unauthorized role — ⚠️ the original action-owned-status-field-lock regression tests (`InvoiceStatusFieldLockTest`/`PaymentStatusFieldLockTest`, proving the Filament form itself couldn't set a status directly) have no TallStack-era equivalent; the underlying actions still deny an unauthorized/invalid transition, just not asserted at the form-field layer, see **Known gaps from the TallStack migration** below | `InvoiceIssuanceTest`, `ReminderSuppressionTest`, `SendInvoiceRemindersTest`, `StatementOfAccountTest`, `JobClosureTest`, `PaymentWorkflowTest`, `VendorPaymentLifecycleTest`, `VendorDocumentLockAfterWorkflowTest`, `ClientPortalHomeTest`, `FileOrAdjustTaxRecapTest`, `DynamicRowReorderTest` |
+| Post-PR Codex review round (see docs/rebuild/outputs/HISTORY.md for the full list) | `IssueInvoice` denies an unauthorized role and a Quote/recurring-template row; amend/void-and-reissue deny a non-Admin/Owner actor and carry over the original's document-level discount; a backdated invoice's number/tax-recap period matches its own `invoice_date`; a reminder suppression recorded well before its target date still holds, and a consumed one doesn't block a later occurrence; an Issued invoice is included in the reminder query; Draft/Approved/Cancelled invoices never inflate an SOA's closing balance, and aging reconciles as of the period end from allocation history rather than each invoice's live balance; financial job closure is blocked by unresolved vendor cost alone (zero customer balance); allocating a payment before verification still recalculates the invoice once verified; a vendor payment amendment above the PO ceiling is rejected; Vendor Bill/PO items are edit/delete/reorder-locked once their owner leaves Draft; the portal shows an allocation-based payment (with its receipt) alongside a legacy direct-linked one and excludes a reversed allocation; a receipt's `snapshot` stays the original allocation split (and a vendor payment receipt's stays the original amount) after a later amendment; a generated Statement of Account is listed and reopenable from the Client detail page; filing/adjusting a Tax Recap requires a reason only once already filed and denies an unauthorized role — ⚠️ the original action-owned-status-field-lock regression tests (`InvoiceStatusFieldLockTest`/`PaymentStatusFieldLockTest`, proving the Filament form itself couldn't set a status directly) have no TallStack-era equivalent; the underlying actions still deny an unauthorized/invalid transition, just not asserted at the form-field layer, see **Current coverage follow-up** below | `InvoiceIssuanceTest`, `ReminderSuppressionTest`, `SendInvoiceRemindersTest`, `StatementOfAccountTest`, `JobClosureTest`, `PaymentWorkflowTest`, `VendorPaymentLifecycleTest`, `VendorDocumentLockAfterWorkflowTest`, `ClientPortalHomeTest`, `FileOrAdjustTaxRecapTest`, `DynamicRowReorderTest` |
 
-## Known gaps from the TallStack migration
+## Current coverage follow-up
 
-The Filament admin panel was fully removed and replaced by the hand-built
-TallStackUI/Livewire admin (see `README.md`'s Architecture section). Most
-domain/business-logic test coverage above ported over unaffected, since it
-exercises `App\Actions\*`/`App\Services\*` classes directly rather than any
-particular UI layer. But a real set of Filament-specific companion tests —
-ones that specifically proved a *page* or *table action* was wired up
-correctly, not the underlying logic — were retired along with `app/Filament`
-and have not all been replaced 1:1 by an equivalent TallStack feature test
-yet. Documented here rather than left as a silent gap, per this doc's own
-purpose:
+Checked statically on 2026-09-17; no test execution in this documentation pass.
+The matrix describes test intent, not a current pass report. Newer settings,
+hold and pagination tests supersede several old “no test exists” claims.
 
-- **Register/list-page rendering** for Clients, Products, Tax Rates,
-  Invoices, Credits, Payments, Vendors, Jobs, and Quotations has no
-  dedicated feature test asserting the page itself renders/scopes
-  correctly (unlike Quotes, Recurring Invoices, Documents, Client Portal
-  Invitations, Proposals, and Payment Gateways, which do — see the matrix
-  above). The underlying data scoping is still proven at the model layer
-  (`PartyScopingTest` and friends), and the Playwright smoke suite loads
-  a handful of these pages, but a targeted `Livewire::test(...)->assertOk()`
-  per register page is missing.
-- **Team (Users)** and most of **Settings** (Company & Taxes, Branding,
-  Numbering, Lookups, Client Portal) have no dedicated page-level feature
-  test — only Email & Reminders and Payment Gateways do.
-- **Table-action UI wiring** for Invoice issuance/amend/void, Payment
-  verify/allocate/reverse/amend, Vendor Bill/PO approval, job closure, and
-  Vendor payment relation-manager actions is no longer separately tested
-  from the underlying Action class — the old `*ActionsTest` companions
-  (`InvoiceBillingActionsTest`, `PaymentReceivablesActionsTest`,
-  `ProcurementActionsTest`, `DeliveryHandoverClosureActionsTest`) are
-  gone, and no TallStack equivalent asserting a specific row action
-  actually calls the right Action class has been written yet.
-- **Client billing defaults on the Client detail page**, the unbounded
-  product-picker-query regression, the job-milestone-percentage-to-amount
-  live computation, and the action-owned-status-field-lock regression
-  (proving the invoice/payment form itself can't be used to bypass
-  Issue/Verify) all lack a direct TallStack-era test — see their
-  individual matrix rows above.
-- **`Project`/`Task`** has no TallStackUI page or route at all (the old
-  Filament resource stayed reachable-but-hidden; the new admin dropped it
-  entirely) — legacy data only, unreachable from any admin UI now.
+[Phase 08 P08-04/P08-05](rebuild/specs/08-release-readiness/Specs.md) owns the
+remaining UI action-wiring, authorization, picker-query, defaults, milestone,
+browser and accessibility verification. Check actual test assertions before
+adding a replacement. Shared browser navigation now targets TallStack routes;
+three accessibility scans are `test.fixme`, with current TallStack violations
+and a portal fixture issue documented in their comments. These must be
+reproduced and closed under P08-05; a green run with skips is not an
+accessibility pass.
 
-None of this is a known *product* regression — the financial/authorization
-rules these UI layers call into remain fully covered at the Action/Service
-layer — but the page-level "does this actually render/wire up correctly"
-net that `FullResourceCoverageTest` and the `*ActionsTest` files once
-provided has shrunk. Treat this list as the current TODO for closing that
-gap, not as evidence the underlying features are broken.
-
-## What's out of scope (and why)
-
-- **Browser/E2E tests are no longer categorically out of scope** — this
-  bullet's original "no Dusk/Playwright" stance is superseded by
-  `docs/rebuild/specs/06b-ux-browser-soa/Specs.md`. A repository-owned
-  Playwright suite exists (`tests/browser/`, `playwright.config.ts`,
-  `npm run test:browser`, wired into CI as a separate `browser-tests`
-  job) — see the coverage rows above. Slice 4 (foundation smoke tests)
-  and Slice 5 (full journey/accessibility coverage: portal, documents,
-  SOA, autosave, dynamic rows, dashboard, states, WCAG 2.2 AA) were built
-  and green across all four projects (`desktop-light`/`desktop-dark`/
-  `tablet-light`/`mobile-light`) **at the time they were written, against
-  the then-current Filament admin panel.**
-  ⚠️ **Not currently reliable — the whole suite still targets the
-  removed Filament UI, not just the three items originally flagged
-  below.** The admin panel was subsequently rewritten from Filament to
-  TallStackUI/Livewire (see CLAUDE.md's note on that removal), and this
-  suite was not migrated along with it. Confirmed by static inspection
-  (no Chromium is installed in every sandbox, so this has not been
-  re-run end-to-end since the rewrite — verify with a real
-  `npm run test:browser` before trusting this row again): `tests/browser/
-  support/tenants.ts`'s shared `loginAsOwner()`/`gotoAdminPage()`
-  helpers — used by nearly every spec, including the ones this bullet
-  used to call "green" — navigate to `/admin/login` and
-  `{BASE_URL}/admin/{company-slug}`, both of which now 404 (`php artisan
-  route:list` has no `/admin` route at all); its `pickDate()` helper
-  drives a Filament `DateTimePicker`'s DOM (`.fi-fo-date-time-picker-*`
-  classes, `vendor/filament/forms/...`), which no longer exists anywhere
-  in `resources/views/components/tallstack/` or `vendor/` (Filament is
-  fully removed from `composer.json`). Only `tests/browser/documents/
-  autosave.spec.ts` references the current `/tall/...` routes/TallStack
-  markup at all. Treat every spec under `tests/browser/` except that one
-  as unverified against the current admin UI until a dedicated pass
-  rebuilds the shared helpers and each spec's selectors against
-  TallStackUI's real markup — this is a rebuild-sized effort, not a
-  small fixup.
-  Three things Slice 5 found and deliberately did NOT build a fix for,
-  flagged rather than silently dropped, were originally
-  Filament-panel-specific: toast deduplication; a stock
-  `.fi-select-input-value-remove-btn` (16x16px, under the WCAG 2.2 24x24
-  minimum target size); and a dashboard widget's table
-  (`.fi-ta-content-ctn`) becoming horizontally scrollable with no
-  keyboard access at tablet/mobile widths (axe:
-  scrollable-region-focusable). These three exceptions' Filament
-  CSS-selector filters in `tests/browser/ux/accessibility.spec.ts` are
-  part of the same now-stale-markup problem above, not a separate gap.
-  Also still open, per `docs/filament-admin-layout-design.md` §7.05 (a
-  historical, Filament-era document — see that file's own top-of-file
-  note): the embedded-Repeater "add a blank row after meaningful content
-  / remove an untouched blank row" behavior DESIGN.md §5 describes; the
-  two corresponding tests are `test.fixme()`, not silently passing. One
-  known flake, not a product defect, from when this suite last ran
-  against a real server: `documents/autosave.spec.ts`'s two-tab
-  stale-conflict test (and, more rarely, its single-tab sibling)
-  occasionally exceeds even a 25s wait only when multiple Playwright
-  projects are running concurrently against this app's single-threaded
-  `php artisan serve` dev server, which queues their requests behind
-  each other — confirmed by re-running the file under every combination
-  of concurrently-running projects: any project can be the one that
-  times out (not always the same one — it depends on which project's
-  request happens to be queued behind another's at the 25s mark), and
-  every project passes reliably when run alone against its own server
-  instance. CI's own `retries: 1` absorbs it there.
-- **No real external services** — no live payment gateway, no real SMTP
-  server, no real InvoiceNinja import run. All faked at the Laravel
-  client layer (`Http::fake()`/`Mail::fake()`), per **Approach** above.
-- **No load/performance testing.**
+Automatic blank-row insertion/removal is cancelled, not a missing feature.
+The historical autosave flake involved concurrent projects sharing a
+single-threaded development server; record current reproduction evidence
+before changing timeouts. External SMTP/payment services and real production
+imports are not proven by fake-backed tests. Production evidence is P08-06;
+full migration comparison gaps are P07-01–07.
 
 ## Keeping this current
 

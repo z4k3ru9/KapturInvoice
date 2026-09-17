@@ -1,53 +1,14 @@
-# Claude Code Implementation Guardrail
+# Rebuild entry point
 
-Use this file as the short operational entry point for the KapturInvoice renovation. It does not replace the detailed phase specifications.
+Follow the repository [CLAUDE.md](../../CLAUDE.md). This file routes context;
+it does not duplicate the working rules.
 
-## Read before any code change
+- [Finalized decisions](specs/FINALIZED-DECISIONS.md): business rules and dated overrides.
+- [Phase index](specs/README.md): implementation status and pending assignments.
+- [PRD](PRD.md): product scope; [CONTEXT](CONTEXT.md): business vocabulary.
+- [Specs](Specs.md): detailed contracts; load relevant sections only.
+- [DESIGN](DESIGN.md): UI behavior; [PLAYWRIGHT](PLAYWRIGHT.md): browser verification.
+- [Implementation structure](specs/IMPLEMENTATION-STRUCTURE.md): code boundaries.
 
-1. Repository [`../../AGENTS.md`](../../AGENTS.md).
-2. [PRD.md](PRD.md) for product scope.
-3. [CONTEXT.md](CONTEXT.md) for canonical business language.
-4. [DESIGN.md](DESIGN.md) for the UI/UX flow and appearance contract.
-5. [Specs.md](Specs.md) for the execution contract.
-6. [specs/FINALIZED-DECISIONS.md](specs/FINALIZED-DECISIONS.md) for binding decisions.
-7. [specs/README.md](specs/README.md) and [specs/IMPLEMENTATION-STRUCTURE.md](specs/IMPLEMENTATION-STRUCTURE.md) for phase order and architecture.
-8. Only the active phase file under `specs/`.
-
-## Active-phase execution
-
-Before changing code:
-
-1. Read `../../AGENTS.md`.
-2. Read `CONTEXT.md`, `PRD.md`, `DESIGN.md`, and `specs/FINALIZED-DECISIONS.md`.
-3. Read `specs/README.md`.
-4. Read only the currently assigned phase specification in full.
-5. Treat the canonical specifications as authoritative over generated checkpoint reports.
-6. Do not modify UI while working on structure, domain, migration, or authorization tasks unless the active phase explicitly requires it.
-7. Stop at the phase checkpoint when acceptance criteria are complete or the token budget is low.
-
-`.claudeignore` excludes dependencies, secrets, runtime data, caches, and generated artifacts only. Keep source code, tests, migrations, legacy schema references, and all `docs/rebuild/` requirements visible because they are required for the reboot.
-
-This directory is the approved renovation handoff. Keep it versioned with the implementation work and update it only through explicit change control when product, financial, tax, legal, migration, or UI behavior changes.
-
-## Working rules
-
-- Begin with Gate 0. Do not start UI polish or broad rewrites.
-- Work one phase and one vertical slice at a time. Stop at each phase checkpoint with passing tests or a documented blocker.
-- Preserve existing user changes. Do not delete legacy tables until migration/reconciliation gates permit it.
-- Keep all financial logic in tested domain actions/services; UI components orchestrate but do not own calculation, numbering, authorization, or mutation rules.
-- Treat company scoping, authorization, document integrity, money precision, and audit history as blocking safety boundaries.
-- Use change control for any request that changes an approved role, tax behavior, numbering, workflow state, payment behavior, migration rule, legal output, or launch/deferred scope.
-- For UI work, follow DESIGN.md before inventing a component pattern. Keep shared interaction semantics consistent across both company themes.
-
-## Critical guards
-
-- Companies are isolated deployments at launch. No cross-company records, files, portal access, password synchronization, or financial synchronization.
-- Issued documents, verified payments, receipts, snapshots, PDFs, and audit events are never physically deleted.
-- Do not mix inclusive and exclusive taxable lines on one document. Apply discounts before tax. Use the approved two-decimal calculation and upward final-Rupiah rounding rule.
-- A payment is an event; allocations determine balances; one verified event produces one receipt. Post-receipt allocation changes create a linked receipt amendment instead of modifying history.
-- Use a Customer Order Confirmation when a customer accepts without providing a Customer PO.
-- Do not build deferred capabilities: online payment gateway, refunds, write-offs, full journal, inventory, recurring billing, generic projects/tasks, vendor login, client uploads, SSO, or central cross-server synchronization. **Exception (ratified 2026-09-15):** client e-signing via `<x-signature>` was carved out of this deferred list and built on the invoice portal plus Delivery Order/Handover Report/Quotation portal pages — see `memory.md` "Current state" and the top-level `CLAUDE.md`'s Phase 06B section. Every other item above is still out of scope without a change request.
-
-## End-of-session handoff
-
-At every pause, report the active phase, completed requirements, changed files, migrations applied locally, test commands/results, known failures, next unchecked task, and whether the phase is safe to continue. Never claim a phase is complete with failing migrations, failing tests, or unverified authorization boundaries.
+Read the assigned phase in full. Historical outputs are supporting evidence,
+not a reason to restart completed work or declare current checks passed.

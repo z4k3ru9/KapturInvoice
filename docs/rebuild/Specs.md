@@ -3,21 +3,12 @@
 **Status:** Approved execution specification  
 **Date:** 2026-09-11  
 **Repository:** `z4k3ru9/KapturInvoice`  
-**Working copy:** `~/Downloads/KapturInvoice`
+**Context:** use the current checkout; do not assume a developer-specific path.
 
-> **Note (TallStackUI migration):** §1, §5, §10-§12 below name Filament as the
-> internal admin framework — that was the plan at the time this document was
-> written. The internal admin panel has since been fully rebuilt off Filament
-> onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`,
-> routed at `/tall/{company:slug}/...` — `app/Filament` no longer exists in
-> this codebase; see `CLAUDE.md`). Read those Filament mentions as the
-> equivalent TallStackUI/Livewire mechanism; the binding requirements
-> themselves (workflow states, roles, tax rules, numbering, document
-> integrity) are unaffected and remain in force.
 
 ## Progressive execution map
 
-For pause-and-resume coding, use the phase specifications in [`specs/README.md`](specs/README.md). Execute folders in numeric order; each folder is independently checkpointed and should be completed before opening the next one.
+For pause-and-resume coding, use the phase specifications in [`specs/README.md`](specs/README.md). Respect dependencies for new work; for maintenance continue the assigned pending task rather than replaying completed phases.
 
 Read [`specs/FINALIZED-DECISIONS.md`](specs/FINALIZED-DECISIONS.md) before Phase 00. It records the approved decisions that close the requirements-grilling session and overrides earlier wording in this document if they conflict.
 
@@ -52,7 +43,7 @@ The existing stack is already the target stack:
 
 - PHP 8.3 or newer within the supported project range
 - Laravel 13
-- TallStackUI 4 (Livewire) for internal administration — originally planned on Filament 5, later rebuilt off Filament onto TallStackUI/Livewire (see the note above and `CLAUDE.md`)
+- TallStackUI 4 (Livewire) for internal administration — originally planned on Filament 5, later rebuilt off Filament onto TallStackUI/Livewire (see `../../CLAUDE.md`)
 - Livewire 4
 - Tailwind CSS 4
 - TallStack UI 4 for marketing and client portal surfaces
@@ -65,7 +56,7 @@ The existing stack is already the target stack:
 ### Company A
 
 - Name: Company A
-- Source: InvoiceNinja 4
+- Source: InvoiceNinja 5 (upgraded from v4; `legacy_v5_company_a`)
 - Tax: non-tax company
 - Brand identity: supplied Company A logo, red/near-black identity
 - Own domain, database, files, local users, settings, numbering, queue, scheduler, and backups
@@ -483,7 +474,7 @@ Enforce authorization in policies, Livewire components/actions, controllers, dow
 
 ### Client portal
 
-Use TallStack UI. The portal is read-only at launch and scoped by company, client, contact, and expiring/revocable link. Only designated billing contacts see full client history; ordinary contacts see explicitly shared documents.
+Use TallStack UI. The portal has read-only financial access plus the approved signing exceptions (finalized decisions §11), and is scoped by company, client, contact, and expiring/revocable link. Only designated billing contacts see full client history; ordinary contacts see explicitly shared documents.
 
 Client may see:
 
@@ -503,9 +494,9 @@ Client may not see:
 - tax recap adjustments;
 - other clients;
 - payment gateway controls;
-- upload, signature, or payment actions at launch.
+- upload or payment actions; signing is restricted to the approved surfaces in finalized decisions §11.
 
-Magic links expire by company configuration, default 30 days, and can be revoked or replaced. Send links only to designated contacts; forwarding is outside launch controls. Disabled portal settings must not expose the disabled feature through routes, downloads, or stale links. OTP, portal account login, and electronic signature are deferred.
+Magic links expire by company configuration, default 30 days, and can be revoked or replaced. Send links only to designated contacts; forwarding is outside launch controls. Disabled portal settings must not expose the disabled feature through routes, downloads, or stale links. OTP and portal account login are deferred. Signing follows finalized decisions §11.
 
 ### Marketing site
 
@@ -513,7 +504,7 @@ Use TallStack UI, separate by company/domain, with supplied logos and company id
 
 ## 12. Admin UI specification
 
-Use TallStackUI (Livewire) native UI — originally specified as Filament native UI; the admin panel was later rebuilt off Filament onto TallStackUI (see the note at the top of this document). The primary experience is desktop-first; tablet and phone views must remain usable for monitoring and approvals.
+Use TallStackUI (Livewire) native UI — originally specified as Filament native UI; the admin panel was later rebuilt off Filament onto TallStackUI (see `../../CLAUDE.md`). The primary experience is desktop-first; tablet and phone views must remain usable for monitoring and approvals.
 
 Navigation:
 
@@ -534,7 +525,7 @@ UI behavior:
 - Role-aware dashboard with concise top indicators, year-over-year/month-to-date summaries, custom-period graph, and actionable tasks.
 - Guided job creation, followed by free navigation between sections.
 - Dynamic line rows use Alpine.js for provisional state and immediate display calculations.
-- Show one blank row by default; remove untouched empty rows automatically.
+- Use modal line editing; automatic blank-row insertion/removal was cancelled (finalized decisions §11).
 - Populated rows require explicit removal; substantial removal requires confirmation.
 - Search begins after two characters, is debounced, bounded, and server-paginated.
 - Draft autosave occurs after 1.5-2 seconds of inactivity and on blur, in batches.
@@ -587,7 +578,7 @@ Required Indonesian labels include:
 | Tax Recap Report | Laporan Rekap Pajak |
 | Statement of Account | Laporan Rekening |
 
-All required documents must fit A4 paper with predictable margins, repeated table headers, readable text, stable item order, controlled page breaks, totals, payment terms, footnotes, and signatures where applicable. Render company legal/payment identity, signatory name/title, and optional signature/stamp image. Validate both Bahasa and English output, including grayscale readability. Electronic signatures are deferred.
+All required documents must fit A4 paper with predictable margins, repeated table headers, readable text, stable item order, controlled page breaks, totals, payment terms, footnotes, and signatures where applicable. Render company legal/payment identity, signatory name/title, and optional signature/stamp image. Validate both Bahasa and English output, including grayscale readability. Portal signing follows the limited exception in finalized decisions §11.
 
 Required document types at launch:
 
@@ -608,7 +599,7 @@ Handover Report and Job Cost report are launch requirements. Handover remains co
 
 ### Sources
 
-- Company A: InvoiceNinja 4, non-tax.
+- Company A: InvoiceNinja 5 (`legacy_v5_company_a`), non-tax for new transactions.
 - Company B: InvoiceNinja 5, tax-enabled.
 
 Use version-specific mappers. Do not assume InvoiceNinja 4 and 5 have identical tables, statuses, tax fields, or relationships.
@@ -782,7 +773,7 @@ Procurement, shared costs, delivery, handover, operational closure, and financia
 
 ### Gate 5: release and migration
 
-Portal, PDFs, reports, reminders, migration trial, final reconciliation, queue/scheduler, backup/restore, and browser journeys pass on hosting.
+Verify portal, PDFs, reports, reminders and browser journeys on the current commit. Track migration trial/final reconciliation and hosting queue/scheduler/restore/PDF evidence in Phases 07–08. Apply finalized decisions §11 to the Owner-approved non-blocking software shipping gates.
 
 ## 19. Change control
 
@@ -802,7 +793,7 @@ Each change request must state affected sections, data migration impact, tests, 
 
 ## 20. First coding task after approval
 
-Do not begin with UI polish. Begin with Slice 0 and then Slice 1. The first code-bearing deliverable should be the company/access foundation with tests for:
+For a new rebuild baseline, begin with Slice 0 and Slice 1. For the implemented repository, continue from the phase index and pending assignments; do not restart completed work. The first code-bearing deliverable should be the company/access foundation with tests for:
 
 1. active company resolution;
 2. cross-company query and download denial;

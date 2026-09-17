@@ -9,6 +9,22 @@ is, and its current status.
 Statuses: `open` (needs a decision or fix), `accepted` (a deliberate
 trade-off, no action needed), `fixed` (resolved, commit noted).
 
+## Current assignments (reviewed 2026-09-17)
+
+The canonical pending work is now in [Phase 07](rebuild/specs/07-migration-and-cutover/Specs.md)
+(P07-01–07: reconciliation, split payments, identity/rerun safety, open PR and
+cutover evidence) and [Phase 08](rebuild/specs/08-release-readiness/Specs.md)
+(P08-01–07: current checks, lifecycle conflict, deferred exposure, UI/browser
+coverage, hosting and mobile affordance). These are source-inspection findings,
+not newly executed test results. Update the owning checkbox when resolved.
+
+Jobs Hold/Release and the Users/Vendor Bills/POs/Handover row menus are present
+in current code. Do not carry their old memory TODOs forward. Existing batch
+and reconciliation wiring also supersedes the old “Phase 07 schema-only” claim.
+
+The dated entries below preserve accepted decisions and repair rationale.
+They are not a second task list.
+
 ## 2026-09-17
 
 - **`StressSeedCompany::seedJobs()` never created `SalesOrderItem` rows.**

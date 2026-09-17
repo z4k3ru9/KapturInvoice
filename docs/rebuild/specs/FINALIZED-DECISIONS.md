@@ -48,7 +48,7 @@ This decision record closes the requirements-grilling session. It is binding on 
 
 - A job may have multiple partial Delivery Orders. Where delivery is required, Handover becomes available only when required delivery items are complete; Admin/Owner may override with a reason for valid service-only or exceptional work.
 - A service/repair job records each visit as a numbered Service Report (problem reported, diagnosis, action taken, parts used, result). A job may have multiple; Handover requires at least one approved `Resolved` report and no open `Follow-up required` report, with the same Admin/Owner override-with-reason rule as delivery. See section 10.
-- No electronic signatures launch now. PDFs render configurable signatory name/title and optional signature/stamp image. Customer signatures and portal signing are deferred.
+- PDFs render configurable signatory name/title and optional signature/stamp image. Portal signing has the narrow approved exception in section 11; other signing scope remains deferred.
 - Attachments use private company-scoped storage. Accept PDF, JPG, JPEG, and PNG only, capped at 10 MB per file (Owner/Admin may lower the cap). Record uploader and timestamp; never expose public URLs or automatically delete financial evidence.
 - Only designated billing contacts see full client billing history in the portal. Ordinary contacts see explicitly shared documents only. Links are emailed to designated contacts, revocable, replaceable, expiry-configured (30-day default), and read-only; forwarding is outside launch controls.
 - Quote, invoice, receipt, and reminder emails go to designated billing contacts by default. Authorized staff may add per-document CC recipients. Do not email every client contact automatically.
@@ -58,21 +58,21 @@ This decision record closes the requirements-grilling session. It is binding on 
 
 - Preserve InvoiceNinja 4/5 historical document numbers exactly as immutable historical numbers, even when they do not follow new numbering. New numbering applies only to documents issued after cutover.
 - Handover reporting and job-cost reporting are launch requirements. Handover is conditional by job type; cost visibility is required for every job.
-- An Indonesian tax/accounting professional must validate final tax-document wording, manual tax-recap fields, and operational use before production. This is a release validation, not a new product-design decision.
+- Indonesian tax/accounting validation of wording, manual recap fields and operational use remains pending external validation; section 11 records the Owner’s decision that it is not a software shipping gate.
 
 ## 7. Historical credits, vendor payments, and release evidence
 
 - Imported InvoiceNinja credits are represented as read-only historical credit records. A confidently mapped historical credit reduces the applicable client balance and appears in the Statement of Account. An uncertain credit is quarantined and excluded from the confirmed balance until reviewed; the SOA must distinguish confirmed imported credits from unresolved exceptions. New credit-note creation, editing, refunds, and write-offs remain deferred.
 - Vendor payments use a parallel immutable event model. They support partial allocation to vendor bills and jobs, proof upload before verification, transaction references where applicable, cleared-cheque handling, one Vendor Payment Receipt per verified event, and linked amendment or reversal records for later corrections.
 - Each company deployment receives an independent release checkpoint. It records commit/version, domain and SSL, migrations, company settings, tax behavior, numbering, portal isolation, Bahasa and English PDF samples, queue/scheduler, backup/restore, browser/accessibility results, open exceptions, and approval status.
-- Shared automated tests may run once against the common codebase, but company-specific evidence is separate. The Owner signs both company checkpoints; Accountant and Admin may provide supporting reconciliation and operational evidence but cannot replace Owner approval for tax, balances, migration, backup restore, or release.
-- Claude-generated checkpoint reports are historical implementation evidence only. They do not approve the current `main` branch or release readiness. Current progressive specifications, current-branch verification, current test results, current migration/reconciliation evidence, and the Owner-approved release checkpoint are authoritative.
+- Shared automated tests may run once against the common codebase, but company-specific evidence is separate. Record approval status separately for both companies. Formal release sign-off is non-blocking under section 11; this does not grant permission to cut over production data.
+- Claude-generated checkpoint reports are historical implementation evidence only. They do not approve the current `main` branch or release readiness. Current progressive specifications, current-branch verification, current test results, current migration/reconciliation evidence, and explicitly recorded exceptions are authoritative; apply section 11 to release checkpoints.
 
 ## 8. Phase 04 billing decisions (ratified 2026-09-14)
 
 Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09-14 before Phase 04 coding began.
 
-- The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and replaces the status enum with the Phase 04 states. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
+- The legacy `invoices` table is evolved in place into the canonical invoice, not rebuilt beside itself as `quotations` was. Phase 04 adds the issuance snapshot, `document_date`, `issued_at`, pricing mode, and rounding columns and adds the Phase 04 states alongside retained legacy statuses. Imported InvoiceNinja rows remain in the same table as read-only historical documents, so the SOA, portal, payments, and reminders read one invoice list.
 - A new invoice may exist without a job. A job link is required whenever the client has an open job; a jobless invoice is exempt from the milestone-equals-approved-value guard, and the SOA must handle jobless invoices.
 - Imported historical payments receive no retroactive receipt. They are marked verified-by-import, appear on the Statement of Account, and never consume an `RCT` sequence number. The one-verified-payment-one-receipt rule applies only to payments verified after cutover.
 
@@ -100,3 +100,27 @@ Clarifications grilled and accepted by the Owner on 2026-09-14:
 - Parts recorded on a report that were not in the accepted quotation are evidence only. Sales or Admin raises a job variation by hand, with Owner/Admin approval, before anything extra is billed. The report never creates a draft variation or invoice line.
 - The technician is a Staff-or-higher user of the company for audit purposes. An optional free-text external technician name records an outsourced or vendor technician when the visit was subcontracted.
 - Installation jobs may also carry Service Reports as optional evidence (commissioning, snag fixes). Only service-type jobs use them as the handover gate; installation jobs keep the delivery gate. Goods jobs do not carry Service Reports.
+
+## 11. Recorded later decisions consolidated (2026-09-17)
+
+These restate Owner decisions already recorded in the previous memory and
+[findings log](../../out-of-scope-findings.md); this cleanup grants no new scope.
+
+- Company A upgraded to InvoiceNinja v5; use `legacy_v5_company_a`. Company B
+  uses v5 on `legacy_v5`. Preserve the v4 adapter and archive fixtures.
+- Portal e-signing was approved 2026-09-15 for invoice, quotation, Delivery
+  Order and Handover Report pages. Read-only portal language means financial
+  data access remains read-only except these explicitly authorized signing
+  actions. Client uploads, checkout and broader signing remain deferred.
+- Automatic blank-row addition/removal was cancelled 2026-09-17. Keep the
+  established modal editing, populated-row confirmation and deliberate drag/keyboard order.
+- Full Phase 07 cutover, tax-professional review, formal Owner release sign-off,
+  backup/restore verification and production PDF checks are non-blocking for
+  software shipping under the recorded Owner reprioritization. Keep unfinished
+  work visible. “Ready” still requires a green automated suite and no open bugs;
+  non-blocking evidence does not mean passed, and does not authorize a production
+  data cutover or destructive migration.
+- Legacy and Phase 04 invoice enum cases coexist. Preserve historical values;
+  do not blanket-remap them. Current overdue automation conflicts with the old
+  “derived-only” wording: resolve the contract explicitly under Phase 08 P08-02.
+- Live currency API integration remains deferred to the last development stage.

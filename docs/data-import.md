@@ -1,8 +1,8 @@
 # Legacy InvoiceNinja Data Import
 
-How `Company A`'s InvoiceNinja **v4** history and `Company B`'s
-InvoiceNinja **v5** history get into KapturInvoice's own
-schema, without losing data. Two Artisan commands, one per legacy major
+Current Company A and Company B sources are both InvoiceNinja **v5**, on
+separate connections (`legacy_v5_company_a` and `legacy_v5`). The v4 adapter
+and verification figures below describe the older archived source. Two Artisan commands, one per legacy major
 version (the two source schemas are different enough — a unified
 `invoices` table with a shared item table in v4, vs. separate
 invoices/quotes/credits tables each carrying their own `line_items` JSON
@@ -17,6 +17,10 @@ blob in v5 — that one importer covering both wasn't practical).
   inline below and in that command's docblocks.
 
 ## Running an import
+
+For current Company A v5, configure the `LEGACY_V5_COMPANY_A_DB_*` keys from
+`config/database.php` separately from Company B. Keep credentials local.
+The v4 dump setup below is archive-only, not the current Company A source.
 
 Both commands read from a **separate Laravel DB connection** pointed at a
 MySQL/MariaDB database you've already restored the legacy `.sql` dump
@@ -38,16 +42,19 @@ LEGACY_V5_DB_USERNAME=root
 # (host/port/database default to 127.0.0.1:3306 / legacy_v4 / legacy_v5 —
 # override with LEGACY_V4_DB_HOST etc. if yours differs)
 
-php artisan import:invoiceninja-v4 company-a
-php artisan import:invoiceninja-v5 company-b
+php artisan import:invoiceninja-v5 company-a --connection=legacy_v5_company_a
+php artisan import:invoiceninja-v5 company-b --connection=legacy_v5
+# Use import:invoiceninja-v4 only for an actual v4 archive.
 ```
 
 Each command prints a per-table row-count summary and a reconciliation
 check (source vs. recomputed invoice totals and payment sums) before
 exiting — a warning there means investigate before trusting the run, not
-"safe to ignore". Both are safe to re-run against a freshly-migrated
-database (they don't check for a prior run — running twice without
-`migrate:fresh` in between will double-import).
+"safe to ignore". Both importers now use legacy-ID upserts and batch checkpoints, with `--resume`
+for a failed batch. This is not blanket permission to overwrite production
+history: source identity, collisions and full reconciliation remain pending
+in [Phase 07](rebuild/specs/07-migration-and-cutover/Specs.md). Never reset a
+database merely to rerun an import.
 
 **Never commit a restored legacy database, the `.sql` dumps themselves, or
 `.env`'s legacy DB credentials** — real client names, emails, phone
@@ -133,7 +140,7 @@ share-link `key`), credits, payments, expenses.
   correct, but wasn't exercised by real nonzero data; the synthetic test
   covers it directly instead.
 
-### v4 real-import verification (Company A)
+### Historical v4 sample verification (Company A; not current cutover evidence)
 
 | Check | Source | Imported | Result |
 |---|---|---|---|
@@ -181,7 +188,7 @@ share-link `key`), credits, payments, expenses.
 - `products.cost` is unused/always 0 in this dump — `unit_cost` is
   imported from `products.price` (the real sale price) instead.
 
-### v5 real-import verification (Company B)
+### Historical v5 sample verification (Company B; not current cutover evidence)
 
 | Check | Source | Imported | Result |
 |---|---|---|---|
