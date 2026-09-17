@@ -1,10 +1,19 @@
 # Phase 07: InvoiceNinja Migration and Cutover
 
-> **Status (verified 2026-09-15):** 🚧 Only migration-tracking schema (models/enums/migrations) has been merged into `main`; the importer rework and full batch/exception/reconciliation wiring described below are still undone. **Reprioritized 2026-09-17**: the Owner has decided full migration/cutover completion is non-blocking for shipping this product — see `docs/out-of-scope-findings.md`. This does not mean the work described below is finished, only that it's no longer a launch gate.
+> **Status (verified 2026-09-17):** The v4/v5 importers, migration batches,
+> exception tracking, reconciliation wiring, guarded one-time v5 imports, and
+> cPanel procedure are implemented. Company A's historical origin is
+> InvoiceNinja v4, but its confirmed cutover source is the upgraded v5
+> database and Company A is non-tax. Company B remains a v5 tax-enabled
+> source. A live production cutover is operational work: run the documented
+> cPanel procedure, inspect the appended logs, and confirm reconciliation
+> counts before sign-off.
 
 ## Goal
 
-Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, repeatedly, and with business reconciliation.
+Import Company A's former InvoiceNinja 4 history from its upgraded InvoiceNinja
+5 database, and import Company B's InvoiceNinja 5 history safely, repeatedly,
+and with business reconciliation.
 
 ## Primary files
 
@@ -15,7 +24,8 @@ Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, rep
 
 ## Requirements
 
-- Company A source is InvoiceNinja 4 and non-tax.
+- Company A originated on InvoiceNinja 4, but its current source is the
+  upgraded InvoiceNinja 5 database and it is non-tax.
 - Company B source is InvoiceNinja 5 and tax-enabled.
 - Export and checksum source databases.
 - Keep source databases read-only archives.
@@ -36,7 +46,8 @@ Import InvoiceNinja 4 for Company A and InvoiceNinja 5 for Company B safely, rep
 
 ## Required tests
 
-- InvoiceNinja 4 fixture imports into Company A without tax behavior.
+- InvoiceNinja 5 fixture imports into Company A without new tax behavior
+  (Company A's former v4 installation was upgraded before cutover).
 - InvoiceNinja 5 fixture imports into Company B with preserved source tax values.
 - Re-running a batch creates no duplicates.
 - Failure/restart resumes safely.
