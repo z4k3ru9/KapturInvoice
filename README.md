@@ -256,6 +256,12 @@ The admin panel itself is not domain-resolved — it's always reached at
 
 ## Deploying to cPanel
 
+If the account has no SSH or Terminal, follow the complete
+[cPanel no-SSH installation guide](docs/cpanel-no-ssh-install.md). The shorter
+steps below remain the reference for hosts that provide the same cPanel tools
+plus optional shell access.
+
+
 This is the only supported production target — not a generic
 self-hosted VPS. `docs/rebuild/Specs.md`/`PRD.md` designed for it from
 the start ("MySQL-compatible hosting on cPanel", "database queue and
