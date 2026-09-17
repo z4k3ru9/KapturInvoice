@@ -2,10 +2,12 @@
 
 {{--
     Phase 12 (F29) settings consolidation — a shared tab-header wrapper for
-    the six formerly-separate settings pages (Company & Taxes, Branding,
-    Tax Rates & Lookups, Numbering, Email & Reminders, Client Portal), each
-    of which keeps its own route, its own TallStack{Thing} Livewire class,
-    and its own save()/validation logic entirely unchanged — this
+    the settings pages (Company & Taxes, Formatting, Branding, Tax Rates &
+    Lookups, Numbering, Email & Reminders, Client Portal — Formatting
+    added 2026-09-17, pulling currency/timezone/document-language off
+    Company & Taxes' own Identity card into one place, see memory.md),
+    each of which keeps its own route, its own TallStack{Thing} Livewire
+    class, and its own save()/validation logic entirely unchanged — this
     component only adds shared tab-navigation chrome around them.
 
     Uses TallStackUI's route-based `<x-tab.items href=... navigate>`
@@ -13,11 +15,32 @@
     "Route-Based Tabs" and items.blade.php's own `$shouldRender` check,
     TallStackUi\Support\Runtime\Components\TabItemsRuntime::runtime() —
     `! $href || rtrim(request()->url(), '/') === rtrim($href, '/')`) rather
-    than merging the six Livewire components into one: clicking a tab does
+    than merging the Livewire components into one: clicking a tab does
     a real Livewire::navigate() to that setting's own route, so each
     page's own mount()/validate()/save() keeps running exactly as before —
-    this file only supplies the six-item tab strip every one of those
-    pages now renders itself inside.
+    this file only supplies the tab strip every one of those pages now
+    renders itself inside. **Worked around a real vendor-interaction bug**
+    (found 2026-09-17, full root-cause writeup in
+    docs/out-of-scope-findings.md): `$shouldRender` compares
+    `request()->url()` against each tab's own `href`, which is only ever
+    true on the page's own initial GET — ANY subsequent Livewire request
+    on the page (not just a `.live` field; the plain "Save" button's
+    `wire:click="save"` hits this too, confirmed live) has a different
+    `request()->url()` (the Livewire update endpoint), so no tab's href
+    matches and `items.blade.php` omits `{{ $slot }}` from that response
+    entirely — Livewire's morph then strips the already-rendered content
+    back out of the DOM, so the whole panel goes blank right after every
+    save. Fixed here, not in vendor code: `TabItemsRuntime::runtime()`'s
+    own formula is `! $href || (url matches)` — passing `href: null` for
+    ONLY the currently-active tab (below) makes `! $href` true
+    unconditionally, so that one tab's `shouldRender` is always true
+    regardless of `request()->url()`. This doesn't touch the other tabs'
+    real hrefs (still needed for click-navigation to them) or break
+    initial tab selection (that's driven by this component's own
+    `<x-tab selected="{{ $active }}">` prop below, not by any child
+    `<x-tab.items>`'s own `x-init` fallback) — the only behavior lost is
+    that clicking the tab you're already on won't re-navigate, which
+    wasn't meaningful anyway.
 
     `active` selects which of the six tab panels below actually receives
     real content ($slot) for THIS request — the current page is the only
@@ -36,6 +59,7 @@
 @php
     $tabs = [
         'company-and-taxes' => ['title' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company)],
+        'formatting' => ['title' => 'Formatting', 'route' => route('tallstack.settings.formatting', $company)],
         'branding' => ['title' => 'Branding', 'route' => route('tallstack.settings.branding', $company)],
         'lookups' => ['title' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company)],
         'numbering' => ['title' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company)],
@@ -63,7 +87,7 @@
             entirely (the prop receives the raw string with a real `&`
             character), so `x-text` displays it correctly as one `&`.
         --}}
-        <x-tab.items :tab="$key" :title="$tab['title']" :href="$tab['route']" navigate>
+        <x-tab.items :tab="$key" :title="$tab['title']" :href="$key === $active ? null : $tab['route']" navigate>
             @if ($key === $active)
                 {{ $slot }}
             @endif

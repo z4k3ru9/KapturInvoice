@@ -234,10 +234,21 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   any `.live`-bound field on any of the 6 pages using this wrapper.
   Worked around for the Company code preview by computing it entirely
   client-side with Alpine (`x-data`/`x-on:input`/`x-text`, no Livewire
-  round-trip at all) instead of `wire:model.live` — this sidesteps the
-  bug rather than fixing it, and doesn't help the pre-existing
-  `tax_enabled` toggle, which is still broken. A real fix needs either a
-  TallStackUI vendor patch (matching this project's established
-  `PatchTallStackUi*Asset` pattern for other vendor bugs at the
-  installed version) or replacing the route-based tab mechanism with
-  something that doesn't key off `request()->url()`. Status: open.
+  round-trip at all) instead of `wire:model.live`.
+  **Fixed properly the same session**, once testing the new Period
+  Lock/Formatting save buttons showed the bug is not limited to `.live`
+  fields at all — a plain `wire:click="save"` hits the exact same
+  `request()->url()` mismatch, so it silently blanked the panel after
+  *every* save on *all seven* settings pages, not just fields wired with
+  `.live`. Real fix, no vendor patch needed:
+  `TabItemsRuntime::runtime()`'s own formula is `! $href || (url
+  matches)`, so `settings-tabs.blade.php` now passes `href: null` for
+  only the currently-active tab (`$key === $active ? null : $tab['route']`),
+  making `! $href` unconditionally true for that one tab regardless of
+  `request()->url()`. Verified live: `wire:click="save"` on Formatting,
+  Company & Taxes (including the `tax_enabled` toggle, now driven by a
+  client-side Alpine mirror instead of `.live` for the same reason), and
+  Branding all now preserve the panel's content after every save; full
+  804/804 suite green. The only behavior lost is that clicking the tab
+  you're already on no longer re-navigates, which wasn't meaningful
+  anyway. Status: fixed.

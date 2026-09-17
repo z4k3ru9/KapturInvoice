@@ -2,17 +2,19 @@
 
 namespace App\Livewire;
 
+use App\Enums\CompanyRole;
 use App\Models\Company;
 use App\Models\CompanyBankAccount;
 use App\Models\CompanyTaxSetting;
-use App\Models\Currency;
+use App\Services\PeriodLockService;
 use App\Support\Tenancy\Tenancy;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use Livewire\WithFileUploads;
+use RuntimeException;
 use TallStackUi\Traits\Interactions;
 
 /**
@@ -47,7 +49,7 @@ use TallStackUi\Traits\Interactions;
 #[Layout('components.tallstack.app')]
 class TallStackSettingsCompanyTaxes extends Component
 {
-    use Interactions, WithFileUploads;
+    use Interactions;
 
     public Company $company;
 
@@ -64,9 +66,12 @@ class TallStackSettingsCompanyTaxes extends Component
 
     public ?string $tax_number = null;
 
-    public ?string $currency_code = null;
-
-    public ?string $timezone = null;
+    // `is_active` gates login/portal access entirely (App\Models\User::
+    // canAccessTenant() checks it unconditionally, even for a
+    // super-admin) — Owner-only to change, confirmed client-side
+    // (wire:confirm) since disabling the company you're currently
+    // viewing locks you out of it immediately, not just eventually.
+    public bool $is_active = true;
 
     // --- Address — printed on the public homepage's "Get in touch" strip
     // and every generated PDF's company header, but had no Settings field
@@ -85,17 +90,6 @@ class TallStackSettingsCompanyTaxes extends Component
     public ?string $postal_code = null;
 
     public ?string $country_code = null;
-
-    // --- Branding (also editable from the dedicated Branding page). -----
-    public ?string $primary_color = null;
-
-    public ?string $secondary_color = null;
-
-    public mixed $logo = null;
-
-    public ?string $existingLogoPath = null;
-
-    public ?string $existingLogoDataUri = null;
 
     // --- Document numbering ----------------------------------------------
     public ?string $code = null;
@@ -122,6 +116,21 @@ class TallStackSettingsCompanyTaxes extends Component
     public ?int $dpp_factor_numerator = null;
 
     public ?int $dpp_factor_denominator = null;
+
+    // --- Period lock — App\Services\PeriodLockService was fully built
+    // (close/reopen, role-gated reopen with a required audited reason)
+    // but had no caller anywhere in the app until now; same
+    // build-the-backend-first-wire-the-UI-later gap the Hold/Release-hold
+    // mechanism had on Jobs. `periodLockedThrough` mirrors the current
+    // stored value (null = no lock); `closeThroughDate`/`reopenReason`
+    // are this form's own working inputs for the two actions. -----------
+    public ?string $periodLockedThrough = null;
+
+    public ?string $closeThroughDate = null;
+
+    public bool $showReopenModal = false;
+
+    public ?string $reopenReason = null;
 
     // --- Bank accounts — printed as a "Payment Method" section on the
     // Invoice PDF. A company may have more than one (e.g. two different
@@ -159,23 +168,13 @@ class TallStackSettingsCompanyTaxes extends Component
         $this->email = $company->email;
         $this->phone = $company->phone;
         $this->tax_number = $company->tax_number;
-        $this->currency_code = $company->currency_code;
-        // `timezone` is a NOT NULL column (default 'UTC') — unlike the
-        // address fields below, it can never legitimately be blank, so
-        // this falls back rather than risk mount() ever handing save() a
-        // null that would surface as a raw SQL constraint error instead
-        // of a clean validation one.
-        $this->timezone = $company->timezone ?: 'UTC';
+        $this->is_active = (bool) $company->is_active;
         $this->address_line_1 = $company->address_line_1;
         $this->address_line_2 = $company->address_line_2;
         $this->city = $company->city;
         $this->state = $company->state;
         $this->postal_code = $company->postal_code;
         $this->country_code = $company->country_code;
-        $this->primary_color = $company->primary_color;
-        $this->secondary_color = $company->secondary_color;
-        $this->existingLogoPath = $company->logo_path;
-        $this->existingLogoDataUri = $company->getLogoDataUri();
         $this->code = $company->code;
         $this->invoice_prefix = $company->invoice_prefix;
         $this->quote_prefix = $company->quote_prefix;
@@ -188,6 +187,8 @@ class TallStackSettingsCompanyTaxes extends Component
         $this->standard_tax_rate = $taxSetting->standard_tax_rate !== null ? (float) $taxSetting->standard_tax_rate : null;
         $this->dpp_factor_numerator = $taxSetting->dpp_factor_numerator;
         $this->dpp_factor_denominator = $taxSetting->dpp_factor_denominator;
+
+        $this->periodLockedThrough = $company->settings?->period_locked_through?->toDateString();
     }
 
     public function save(): void
@@ -201,16 +202,13 @@ class TallStackSettingsCompanyTaxes extends Component
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
-            'currency_code' => ['nullable', 'string', 'max:3', 'exists:currencies,code'],
-            'timezone' => ['required', 'string', 'max:64', Rule::in(\DateTimeZone::listIdentifiers())],
+            'is_active' => ['boolean'],
             'address_line_1' => ['nullable', 'string', 'max:255'],
             'address_line_2' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:255'],
             'postal_code' => ['nullable', 'string', 'max:255'],
             'country_code' => ['nullable', 'string', 'max:2'],
-            'primary_color' => ['nullable', 'string', 'max:20'],
-            'secondary_color' => ['nullable', 'string', 'max:20'],
             'code' => ['nullable', 'string', 'max:20'],
             'invoice_prefix' => ['nullable', 'string', 'max:20'],
             'quote_prefix' => ['nullable', 'string', 'max:20'],
@@ -219,7 +217,6 @@ class TallStackSettingsCompanyTaxes extends Component
             'standard_tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'dpp_factor_numerator' => ['nullable', 'integer', 'min:0', 'max:255'],
             'dpp_factor_denominator' => ['nullable', 'integer', 'min:0', 'max:255'],
-            'logo' => ['nullable', 'image', 'max:2048'],
             'dashboard_refresh_seconds' => ['nullable', 'integer', Rule::in([0, 30, 60, 120, 300])],
         ]);
 
@@ -230,18 +227,22 @@ class TallStackSettingsCompanyTaxes extends Component
             'email' => $data['email'],
             'phone' => $data['phone'],
             'tax_number' => $data['tax_number'],
-            'currency_code' => $data['currency_code'],
-            'timezone' => $data['timezone'],
             'address_line_1' => $data['address_line_1'],
             'address_line_2' => $data['address_line_2'],
             'city' => $data['city'],
             'state' => $data['state'],
             'postal_code' => $data['postal_code'],
             'country_code' => $data['country_code'],
-            'primary_color' => $data['primary_color'],
-            'secondary_color' => $data['secondary_color'],
             'dashboard_refresh_seconds' => $data['dashboard_refresh_seconds'] ?: null,
         ];
+
+        // `is_active` gates login/portal access unconditionally — Owner
+        // only, and only actually written when it's genuinely changing
+        // (never blindly re-writes the column every save).
+        if ($data['is_active'] !== $this->company->is_active) {
+            abort_unless(Auth::user()->hasCompanyRole($this->company, CompanyRole::Owner), 403);
+            $payload['is_active'] = $data['is_active'];
+        }
 
         // "Locks after the first document is issued" — same guard
         // EditCompanyProfile's own TextInput::disabled() expresses; a
@@ -254,10 +255,6 @@ class TallStackSettingsCompanyTaxes extends Component
         $payload['invoice_prefix'] = $data['invoice_prefix'];
         $payload['quote_prefix'] = $data['quote_prefix'];
         $payload['credit_prefix'] = $data['credit_prefix'];
-
-        if ($this->logo) {
-            $payload['logo_path'] = $this->logo->store('logos', config('filesystems.default'));
-        }
 
         $this->company->update($payload);
 
@@ -272,11 +269,57 @@ class TallStackSettingsCompanyTaxes extends Component
         );
 
         $this->company->refresh();
-        $this->existingLogoPath = $this->company->logo_path;
-        $this->existingLogoDataUri = $this->company->getLogoDataUri();
-        $this->logo = null;
 
         $this->toast()->success('Settings saved.')->send();
+    }
+
+    // --- Period lock ---------------------------------------------------------
+
+    /** Closing (moving the lock forward) is not itself destructive, so any settings-capable role may do it — App\Services\PeriodLockService's own docblock. */
+    public function closePeriod(): void
+    {
+        $this->authorize('viewSettings', $this->company);
+
+        $data = $this->validate(['closeThroughDate' => ['required', 'date']]);
+
+        app(PeriodLockService::class)->close($this->company, Carbon::parse($data['closeThroughDate']));
+
+        $this->company->refresh();
+        $this->periodLockedThrough = $this->company->settings?->period_locked_through?->toDateString();
+        $this->closeThroughDate = null;
+
+        $this->toast()->success('Period closed.', "Dates on or before {$this->periodLockedThrough} are now locked.")->send();
+    }
+
+    public function openReopenModal(): void
+    {
+        $this->authorize('viewSettings', $this->company);
+
+        $this->reopenReason = null;
+        $this->showReopenModal = true;
+    }
+
+    /** Reopening is restricted (Owner/Accountant, reason required, audited) — PeriodLockService::reopen() enforces the role check itself, this just surfaces its RuntimeException as a form error instead of a 500. */
+    public function reopenPeriod(): void
+    {
+        $this->authorize('viewSettings', $this->company);
+
+        $data = $this->validate(['reopenReason' => ['required', 'string', 'max:1000']]);
+
+        try {
+            app(PeriodLockService::class)->reopen($this->company, Auth::user(), $data['reopenReason']);
+        } catch (RuntimeException $e) {
+            $this->toast()->error('Could not reopen period', $e->getMessage())->send();
+
+            return;
+        }
+
+        $this->company->refresh();
+        $this->periodLockedThrough = null;
+        $this->showReopenModal = false;
+        $this->reopenReason = null;
+
+        $this->toast()->success('Period reopened.')->send();
     }
 
     // --- Bank accounts -----------------------------------------------------
@@ -400,8 +443,6 @@ class TallStackSettingsCompanyTaxes extends Component
 
         return view('livewire.tallstack-settings-company-taxes', [
             'bankAccounts' => $bankAccounts,
-            'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
-            'timezones' => collect(\DateTimeZone::listIdentifiers())->mapWithKeys(fn (string $tz) => [$tz => $tz]),
         ])
             ->layoutData([
                 'company' => $this->company,

@@ -6,17 +6,19 @@ use App\Livewire\TallStackSettingsCompanyTaxes;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
-use Database\Seeders\CurrencySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
  * `address_line_1`/`address_line_2`/`city`/`state`/`postal_code`/
- * `country_code`/`timezone` were already real #[Fillable] Company columns
- * (printed on the public homepage and every PDF's company header) with no
+ * `country_code` were already real #[Fillable] Company columns (printed
+ * on the public homepage and every PDF's company header) with no
  * Settings field of their own — a settings-UI gap, not a missing-column
  * one. Same field set/validation as TallStackVendors's own address block.
+ * (`timezone` moved to TallStackSettingsFormattingTest alongside
+ * currency/document-language in the 2026-09-17 Settings reorganization —
+ * see memory.md.)
  */
 class TallStackSettingsCompanyTaxesAddressTest extends TestCase
 {
@@ -29,8 +31,6 @@ class TallStackSettingsCompanyTaxesAddressTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->seed(CurrencySeeder::class);
 
         $this->company = Company::create(['name' => 'Acme', 'slug' => 'acme', 'code' => 'ACM', 'currency_code' => 'USD']);
         $this->user = User::factory()->create();
@@ -59,25 +59,5 @@ class TallStackSettingsCompanyTaxesAddressTest extends TestCase
         $this->assertSame('East Java', $fresh->state);
         $this->assertSame('60100', $fresh->postal_code);
         $this->assertSame('ID', $fresh->country_code);
-    }
-
-    public function test_saving_a_real_timezone_updates_the_company(): void
-    {
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
-            ->set('timezone', 'Asia/Jakarta')
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertSame('Asia/Jakarta', $this->company->fresh()->timezone);
-    }
-
-    public function test_saving_a_timezone_that_is_not_a_real_identifier_fails_validation(): void
-    {
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
-            ->set('timezone', 'Not/A_Real_Timezone')
-            ->call('save')
-            ->assertHasErrors(['timezone']);
-
-        $this->assertSame('UTC', $this->company->fresh()->timezone);
     }
 }

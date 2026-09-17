@@ -5,6 +5,49 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Current state
 
+- **Settings reorganization + real gaps closed (2026-09-17) — done, do
+  not re-litigate the shape.** Company & Taxes had accreted real
+  settings-UI gaps and duplication; closed in one pass:
+  - New **Formatting** tab (`App\Livewire\TallStackSettingsFormatting`,
+    `/tall/{company:slug}/settings/formatting`) — `currency_code`/
+    `timezone` moved off Company & Taxes' own Identity card, plus
+    `CompanySetting::default_document_language` (had no Settings field
+    anywhere despite being read by every one of the 12 launch document
+    types' own `resolveDocumentLanguage()` fallback).
+  - Removed Company & Taxes' embedded Branding card (logo/colors) —
+    duplicated the dedicated Branding tab editing the same columns; one
+    editing surface now, not two.
+  - Added an **Address** card (`address_line_1`/city/state/postal_code/
+    country_code — already real Fillable columns, printed on the
+    homepage and every PDF, no Settings field existed).
+  - Wired up `App\Services\PeriodLockService` (close/reopen, Owner/
+    Accountant-only reopen with a required audited reason) — existed
+    fully built with zero callers anywhere, same shape as the
+    Hold/Release-hold gap on Jobs.
+  - Added an Owner-only `is_active` toggle (`canAccessTenant()` checks
+    it unconditionally, even for a super-admin — deactivating locks
+    everyone out immediately, confirmed client-side via `wire:confirm`
+    and server-side via a role check that only fires when the value is
+    actually changing).
+  - **Found and fixed a real, session-blocking vendor-interaction bug**
+    along the way (not caused by this work, exposed by testing it):
+    `<x-tallstack.settings-tabs>`'s route-based active-tab detection
+    blanked the entire panel after *every* save on *all seven* settings
+    pages (TallStackUI's `TabItemsRuntime::runtime()` compares
+    `request()->url()` against each tab's href, which only matches on
+    the page's initial GET, not a Livewire AJAX request). Fixed without
+    a vendor patch — `settings-tabs.blade.php` now passes `href: null`
+    for only the active tab, which the vendor's own `! $href` fallback
+    treats as always-current. Full root-cause + fix writeup in
+    `docs/out-of-scope-findings.md` — do not reintroduce
+    `wire:model.live` on these pages without re-reading that entry
+    first, since the underlying vendor formula is still fragile even
+    though this specific failure mode is closed.
+  - 804/804 PHP tests green (`TallStackSettingsFormattingTest`,
+    `TallStackSettingsCompanyTaxesPeriodLockTest`,
+    `TallStackSettingsCompanyTaxesActiveToggleTest`, updated
+    `TallStackSettingsCompanyTaxesAddressTest`), verified live in-browser
+    on Formatting/Company & Taxes/Branding.
 - Repository: `z4k3ru9/KapturInvoice`. Authoritative branch: `main`. As of
   2026-09-17 `main` is also the active working branch (clean, matches
   `origin/main`) — the `claude/invoiceninja-schema-reference-6s9aqc`

@@ -65,6 +65,7 @@ use App\Livewire\TallStackSettingsBranding;
 use App\Livewire\TallStackSettingsClientPortal;
 use App\Livewire\TallStackSettingsCompanyTaxes;
 use App\Livewire\TallStackSettingsEmail;
+use App\Livewire\TallStackSettingsFormatting;
 use App\Livewire\TallStackSettingsLookups;
 use App\Livewire\TallStackSettingsNumbering;
 use App\Livewire\TallStackStatementOfAccount;
@@ -464,6 +465,9 @@ Route::get('/tall/{company:slug}/settings/numbering', TallStackSettingsNumbering
 Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
     ->middleware('auth')
     ->name('tallstack.settings.client-portal');
+Route::get('/tall/{company:slug}/settings/formatting', TallStackSettingsFormatting::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.formatting');
 
 // A user's own passkeys — not company data at all (App\Models\User's own
 // `passkeys()` relation carries no company_id), reachable from the

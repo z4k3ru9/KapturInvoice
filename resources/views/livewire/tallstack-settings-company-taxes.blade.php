@@ -1,4 +1,4 @@
-<div class="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+<div class="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Settings'], ['label' => 'Company & Taxes']]" title="Company & Taxes">
         <x-slot:actions>
@@ -12,17 +12,30 @@
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Identity</span>
         </x-slot:header>
 
-        <div class="grid sm:grid-cols-2 gap-4">
-            <x-input wire:model="name" label="Company name" required />
-            <x-input wire:model="slug" label="Slug" required />
-            <x-input wire:model="domain" label="Public homepage domain" />
-            <x-input wire:model="email" label="Email" type="email" />
-            <x-input wire:model="phone" label="Phone" />
-            <x-input wire:model="tax_number" label="Tax ID" hint="Printed on invoice/credit PDFs." />
-            <x-select.styled wire:model="currency_code" label="Default currency" searchable
-                :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
-            <x-select.styled wire:model="timezone" label="Timezone" searchable required
-                :options="$timezones->map(fn ($tz) => ['label' => $tz, 'value' => $tz])->all()" />
+        <div class="flex flex-col gap-5">
+            <div class="grid sm:grid-cols-2 gap-5">
+                <x-input wire:model="name" label="Company name" required />
+                <x-input wire:model="slug" label="Slug" required />
+                <x-input wire:model="domain" label="Public homepage domain" />
+                <x-input wire:model="email" label="Email" type="email" />
+                <x-input wire:model="phone" label="Phone" />
+                <x-input wire:model="tax_number" label="Tax ID" hint="Printed on invoice/credit PDFs." />
+            </div>
+
+            {{--
+                Owner-only — App\Models\User::canAccessTenant() checks
+                is_active unconditionally, even for a super-admin, so
+                turning this off locks EVERYONE (including whoever just
+                clicked it) out of this company immediately, not just
+                eventually. wire:confirm is the client-side half of that
+                warning; TallStackSettingsCompanyTaxes::save() re-checks
+                the Owner role server-side before actually writing it.
+            --}}
+            <div class="border-t border-gray-200 dark:border-gray-800! pt-5">
+                <x-toggle wire:model="is_active" label="Company active"
+                    wire:confirm="Deactivating blocks login and portal access for EVERYONE at this company immediately, including you. Are you sure?" />
+                <p class="text-[11px] text-gray-400 mt-1">Off blocks admin login and the public portal entirely for this company. Owner only.</p>
+            </div>
         </div>
     </x-card>
 
@@ -35,7 +48,7 @@
              (resources/views/livewire/home-page.blade.php) and every
              generated PDF's company header — same field set/validation as
              TallStackVendors's own address block. --}}
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 gap-5">
             <x-input wire:model="address_line_1" label="Address line 1" class="sm:col-span-2" />
             <x-input wire:model="address_line_2" label="Address line 2" class="sm:col-span-2" />
             <x-input wire:model="city" label="City" />
@@ -47,35 +60,10 @@
 
     <x-card>
         <x-slot:header>
-            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Branding</span>
-        </x-slot:header>
-
-        <div class="flex flex-col gap-4">
-            <div>
-                <x-label label="Logo" />
-                @if ($existingLogoDataUri && ! $logo)
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700!">
-                            <img src="{{ $existingLogoDataUri }}" alt="" class="w-full h-full object-cover">
-                        </div>
-                    </div>
-                @endif
-                <x-upload wire:model="logo" accept="image/jpeg,image/png,image/webp" tip="JPG, PNG, WEBP · max 2 MB." :preview="true" />
-            </div>
-
-            <div class="grid sm:grid-cols-2 gap-4">
-                <x-color wire:model="primary_color" label="Primary color" placeholder="#RRGGBB" clearable />
-                <x-color wire:model="secondary_color" label="Secondary color" placeholder="#RRGGBB" clearable />
-            </div>
-        </div>
-    </x-card>
-
-    <x-card>
-        <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Document numbering</span>
         </x-slot:header>
 
-        <div class="grid sm:grid-cols-3 gap-4">
+        <div class="grid sm:grid-cols-3 gap-5">
             <div>
                 @if ($codesLocked)
                     <x-input wire:model="code" label="Company code" disabled
@@ -137,19 +125,59 @@
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Taxes</span>
         </x-slot:header>
 
-        <div class="flex flex-col gap-4">
+        {{--
+            x-show, not @if — `wire:model.live` would hit the same
+            settings-tabs panel-blanking bug the Company code preview's
+            own comment documents above. `wire:model` (deferred) still
+            carries the real value to save(); the Alpine-only `taxEnabled`
+            mirror just drives the instant client-side show/hide, seeded
+            from the server value at mount.
+        --}}
+        <div class="flex flex-col gap-5" x-data="{ taxEnabled: @js($tax_enabled) }">
             <div>
-                <x-toggle wire:model.live="tax_enabled" label="Tax enabled" />
+                <x-toggle wire:model="tax_enabled" label="Tax enabled" x-on:click="taxEnabled = !taxEnabled" />
                 <p class="text-[11px] text-gray-400 mt-1">When off, every invoice for this company is calculated with zero tax — see App\Services\Tax\TaxCalculationService.</p>
             </div>
 
-            @if ($tax_enabled)
-                <div class="grid sm:grid-cols-3 gap-4">
-                    <x-input wire:model="standard_tax_rate" label="PPN rate" type="number" step="0.01" suffix="%" hint="Standard output/input VAT rate applied to standard-taxable lines." />
-                    <x-input wire:model="dpp_factor_numerator" label="DPP Nilai Lain — numerator" type="number" hint="e.g. 11" />
-                    <x-input wire:model="dpp_factor_denominator" label="DPP Nilai Lain — denominator" type="number" hint="e.g. 12" />
+            <div class="grid sm:grid-cols-3 gap-5" x-show="taxEnabled">
+                <x-input wire:model="standard_tax_rate" label="PPN rate" type="number" step="0.01" suffix="%" hint="Standard output/input VAT rate applied to standard-taxable lines." />
+                <x-input wire:model="dpp_factor_numerator" label="DPP Nilai Lain — numerator" type="number" hint="e.g. 11" />
+                <x-input wire:model="dpp_factor_denominator" label="DPP Nilai Lain — denominator" type="number" hint="e.g. 12" />
+            </div>
+        </div>
+    </x-card>
+
+    <x-card>
+        <x-slot:header>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Period lock</span>
+        </x-slot:header>
+
+        {{--
+            App\Services\PeriodLockService existed fully built (close/
+            reopen, role-gated reopen with a required audited reason) but
+            had no caller anywhere in the app until now — same shape as
+            the Hold/Release-hold gap the Jobs page already had.
+        --}}
+        <div class="flex flex-col gap-5">
+            @if ($periodLockedThrough)
+                <div class="flex items-center justify-between gap-4 rounded-lg border border-amber-200 dark:border-amber-800! bg-amber-50 dark:bg-amber-950! px-4 py-3">
+                    <div>
+                        <p class="text-sm font-medium text-amber-800 dark:text-amber-300!">Closed through {{ \Illuminate\Support\Carbon::parse($periodLockedThrough)->toFormattedDateString() }}</p>
+                        <p class="text-[11px] text-amber-700 dark:text-amber-400!">Dates on or before this are locked — reopening is Owner/Accountant only and requires a reason (audited).</p>
+                    </div>
+                    <x-button text="Reopen" icon="lock-open" color="amber" sm wire:click="openReopenModal" />
                 </div>
+            @else
+                <p class="text-[11px] text-gray-400">No period is currently locked.</p>
             @endif
+
+            <div class="grid sm:grid-cols-3 gap-5">
+                <x-date wire:model="closeThroughDate" label="Close through date"
+                    hint="Locks every date on or before this. Not itself destructive — any settings-capable role may close a period." />
+                <div class="flex items-end">
+                    <x-button text="Close period" icon="lock-closed" color="gray" wire:click="closePeriod" loading="closePeriod" spinner="dots" />
+                </div>
+            </div>
         </div>
     </x-card>
 
@@ -173,7 +201,7 @@
     </x-tallstack.settings-tabs>
 
     <x-modal wire="showBankAccountModal" :title="$editingBankAccountId ? 'Edit bank account' : 'Add bank account'" center="sm">
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 gap-5">
             <x-input wire:model="ba_bank_name" label="Bank name" required />
             <x-input wire:model="ba_account_name" label="Account holder name" required />
             <x-input wire:model="ba_account_number" label="Account number" required />
@@ -184,6 +212,16 @@
         <x-slot:footer>
             <x-button text="Cancel" color="gray" wire:click="$set('showBankAccountModal', false)" />
             <x-button text="Save" color="blue" wire:click="saveBankAccount" loading="saveBankAccount" spinner="dots" />
+        </x-slot:footer>
+    </x-modal>
+
+    <x-modal wire="showReopenModal" title="Reopen locked period" center="sm">
+        <p class="text-sm text-gray-600 dark:text-gray-400! mb-4">Owner/Accountant only. A reason is required and recorded in the audit log.</p>
+        <x-textarea wire:model="reopenReason" label="Reason" required rows="3" />
+
+        <x-slot:footer>
+            <x-button text="Cancel" color="gray" wire:click="$set('showReopenModal', false)" />
+            <x-button text="Reopen" color="amber" wire:click="reopenPeriod" loading="reopenPeriod" spinner="dots" />
         </x-slot:footer>
     </x-modal>
 </div>
