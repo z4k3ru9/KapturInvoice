@@ -10,6 +10,17 @@ re-run completed audits unless new evidence contradicts them.
   `origin/main`) — the `claude/invoiceninja-schema-reference-6s9aqc`
   branch this line previously named is stale, don't assume it's current
   without checking `git status`/`git branch` first.
+- **Git history was rewritten for a privacy release pass (2026-09-17,
+  Owner-approved) — do not re-run, do not assume old commit SHAs from
+  before this point still resolve anywhere but a local backup.** Every
+  commit's author/committer email that was `rp@richardpangalila.com`
+  (153 commits) is now `z4k3ru9 <12465382+z4k3ru9@users.noreply.github.com>`;
+  file content/trees are byte-identical, only identity metadata changed.
+  `origin/main` was force-pushed to the rewritten history. Full detail
+  (method, verification, the local-only `backup-before-identity-rewrite`
+  safety-net branch) in `docs/out-of-scope-findings.md`'s 2026-09-17
+  "Privacy cleanup for release" entry — read that before touching git
+  history again in this repo.
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - Phases 01-06B (the job-centric rebuild) are implemented and verified —

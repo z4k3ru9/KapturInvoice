@@ -152,3 +152,38 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   rename is consistent end-to-end) and a full green
   `php -d memory_limit=1024M vendor/bin/phpunit` run (791/791). Status:
   fixed.
+- **Privacy cleanup for release, full pass.** Beyond the identity
+  sanitization above: `CompanySeeder`'s real street address, phone
+  numbers, and (Company B's) real NPWP tax number replaced with
+  placeholders; 40 dead `public/{css,js,fonts}/filament/*` files removed
+  (orphaned publish artifacts — `composer.json` has no Filament package,
+  `app/Filament` doesn't exist, nothing references or regenerates them);
+  three doc mentions of the real local filesystem path
+  (`/Users/richardpangalila/...`) genericized to `~/...`. Audited and
+  confirmed clean: `.env` never committed (properly gitignored, verified
+  via `git log --all -- .env`), no credential files, no tracked
+  database/dump/spreadsheet files, `.mcp.json` has no secrets, CI
+  workflows have no hardcoded identifiers.
+  **The one real finding, since fixed:** git commit history itself
+  carried the real identity — 153 commits (142 as `z4k3ru9`, 11 as
+  `richardpangalila`) had `rp@richardpangalila.com` as the git
+  author/committer email, permanently, in commit metadata regardless of
+  file content. Owner explicitly approved a history rewrite + force-push
+  (confirmed destructive/irreversible-once-pushed first). Used
+  `git filter-branch --env-filter` (GitHub's own documented recipe;
+  `git-filter-repo` wasn't installed) to remap every commit with that
+  email to `z4k3ru9 <12465382+z4k3ru9@users.noreply.github.com>` (the
+  real GitHub numeric id + username noreply format, so commits stay
+  attributed to the account) — verified zero tree/content diff between
+  old and new history (`git diff <old-tip> <new-tip> --stat` empty, only
+  metadata changed), then `git push origin main --force`. Confirmed via
+  a fresh `git fetch` that `origin/main` shows only sanitized identities.
+  A local-only branch `backup-before-identity-rewrite` (never pushed)
+  keeps the true pre-rewrite history reachable in this working copy as a
+  safety net — delete it once confident, or it'll simply vanish on the
+  next fresh clone. Caveat noted to Owner: GitHub may retain the old
+  (pre-rewrite) commit objects/SHAs for some grace period server-side
+  (cached views, any existing fork/clone elsewhere) — a force-push alone
+  doesn't guarantee instant, total erasure from GitHub's own
+  infrastructure, only that the current repo view/history no longer
+  shows them. Status: fixed.
