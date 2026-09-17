@@ -2,7 +2,9 @@
 
 A job-centric billing, procurement, and invoicing platform on the **TALL
 stack** (Tailwind, Alpine, Laravel, Livewire), replacing legacy InvoiceNinja
-v4/v5 installs for two real IT/security-integrator businesses. See:
+InvoiceNinja histories for two real IT/security-integrator businesses. Company
+A originated on InvoiceNinja v4 but its current migration source is the v5
+database produced by its upgrade; Company A is non-tax. See:
 
 - [`docs/invoiceninja-v4-schema-reference.md`](docs/invoiceninja-v4-schema-reference.md) — legacy schema this was designed against + import plan.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — **historical**: the original Filament admin panel's navigation/page layout, superseded by the TallStackUI admin this README now describes, kept for its still-referenced nav-group reasoning.
