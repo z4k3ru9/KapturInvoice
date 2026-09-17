@@ -154,14 +154,17 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
       next-arrow, with accessible text and consistent placement.
 
 - [ ] **P08-09 — Image and file compression policy (discovery only; do not implement yet).**
-  Define whether uploaded images and eligible documents are compressed before
-  storage to reduce space while preserving required evidence quality. Review
-  accepted MIME types, maximum source and compressed sizes, lossless versus
-  lossy settings, orientation/metadata stripping, private-storage guarantees,
-  PDF readability, checksum/audit implications, retry behavior, and whether
-  originals must be retained for financial evidence. Acceptance requires a
-  documented per-file policy, representative quality/size measurements, and
-  tests proving compressed files remain scoped, downloadable, and renderable.
+  Owner decisions: compress every supported upload type where a safe,
+  format-specific optimization exists; retain only the compressed artifact;
+  prioritize readable, effective, lossless compression; and rescale photos to
+  a maximum 1440p-equivalent resolution. Define the per-format pipeline,
+  readable text/signature requirements, orientation and metadata handling,
+  private-storage guarantees, PDF/document renderability, checksum/audit
+  implications when the stored artifact differs from the source, retry and
+  failure behavior, and an exception path for formats that cannot be safely
+  optimized. Acceptance requires representative size/quality measurements and
+  tests proving compressed files remain scoped, downloadable and renderable;
+  no implementation is authorized by this backlog entry alone.
 
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
