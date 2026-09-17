@@ -14,8 +14,8 @@ use App\Models\CompanyTaxSetting;
  * writes here; callers (App\Actions\Billing\IssueInvoice, the Livewire tax
  * scratchpad) persist the result.
  *
- * Karunia (tax_enabled = false) always returns zero tax regardless of
- * pricing mode or line tax_category. Axen applies the approved 12% PPN /
+ * Company A (tax_enabled = false) always returns zero tax regardless of
+ * pricing mode or line tax_category. Company B applies the approved 12% PPN /
  * 11-12 DPP Nilai Lain factor (FINALIZED-DECISIONS.md §3) only to
  * StandardTaxable lines — the combined effective add-on rate is
  * numerator/denominator * rate (11/12 * 12% = 11%), which is why a

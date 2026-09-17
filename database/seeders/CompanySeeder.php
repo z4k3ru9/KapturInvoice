@@ -10,7 +10,10 @@ use Illuminate\Database\Seeder;
 /**
  * Seeds the two real entities KapturInvoice replaces the legacy InvoiceNinja
  * installs for — both Surabaya-based IT/security-infrastructure integrators
- * sharing this codebase. Real identity/branding fields below are taken
+ * sharing this codebase. `name`/`slug`/`domain`/`email` below are
+ * placeholders (`Company A`/`company-a`/`example-a.com` etc.) — the real
+ * identity was scrubbed repo-wide (2026-09-17); every other field (colors,
+ * numbering prefixes, code, address, phone, tax number) is still taken
  * straight from each company's own InvoiceNinja `accounts`/`companies` row
  * (see docs/data-import.md); `invoice_next_number` etc. start at 1 here and
  * get bumped past the real historical high-water mark by the importer
@@ -24,8 +27,8 @@ class CompanySeeder extends Seeder
         $companies = [
             [
                 // Source: chronopr_ninj226.sql (InvoiceNinja v4), accounts.id=1.
-                'name' => 'Karunia Abadi',
-                'slug' => 'karunia-abadi',
+                'name' => 'Company A',
+                'slug' => 'company-a',
                 // Matches the legacy invoice_prefix ("KJA-INV-") rather than
                 // FINALIZED-DECISIONS.md's illustrative "KA" example, so
                 // continuity with the real historical numbering is kept.
@@ -50,8 +53,8 @@ class CompanySeeder extends Seeder
             ],
             [
                 // Source: axentech_ninj876.sql (InvoiceNinja v5), companies.id=2.
-                'name' => 'PT. Axen Technology Indonesia',
-                'slug' => 'axen-technology-indonesia',
+                'name' => 'Company B',
+                'slug' => 'company-b',
                 'code' => 'ATI',
                 'domain' => 'example-b.com',
                 'email' => 'ati@example-b.com',
@@ -71,14 +74,14 @@ class CompanySeeder extends Seeder
             ],
         ];
 
-        // Karunia Abadi is non-tax; Axen Technology Indonesia uses the
+        // Company A is non-tax; Company B uses the
         // approved Indonesian PPN calculation (12% standard rate, 11/12 DPP
         // Nilai Lain factor) — see docs/rebuild/specs/FINALIZED-DECISIONS.md
         // §3. The calculation engine itself is Phase 04; this only records
         // which company is tax-enabled at all.
         $taxSettings = [
-            'karunia-abadi' => ['tax_enabled' => false],
-            'axen-technology-indonesia' => [
+            'company-a' => ['tax_enabled' => false],
+            'company-b' => [
                 'tax_enabled' => true,
                 'default_tax_mode' => 'exclusive',
                 'standard_tax_rate' => 12.00,

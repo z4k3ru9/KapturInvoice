@@ -11,7 +11,7 @@ This decision record closes the requirements-grilling session. It is binding on 
 - Internal accounts are local to each deployment. The same person may use the same email on both deployments, but passwords and permissions are not synchronized at launch.
 - Owner/Admin invite internal users by expiring email link; recipients set a local password. Disabling membership blocks access immediately while preserving history. No SSO or social login launches now.
 - Company settings include legal name, display name, code, address, tax ID where applicable, bank accounts, payment instructions, signatory name/title, optional signature or stamp image, logo, email, phone, locale, timezone, branding, portal, reminder, queue, and document-number settings.
-- Initial company codes are `KJA` for Karunia Abadi and `ATI` for Axen Technology Indonesia. Codes and document-type codes are configurable before first issuance, then locked for continuity. Historical documents never change if configuration later changes. (Ratified 2026-09-14: Karunia Abadi's code is `KJA`, not this decision's original illustrative `KA`, to match the real legacy InvoiceNinja v4 invoice prefix — `KJA-INV-`/`KJA-QUO-`/`KJA-CR-` — already carried by this codebase's historical data, so new and historical numbering stay visually continuous. Implemented since Phase 01; this entry lagged the implementation until now.)
+- Initial company codes are `KJA` for Company A and `ATI` for Company B. Codes and document-type codes are configurable before first issuance, then locked for continuity. Historical documents never change if configuration later changes. (Ratified 2026-09-14: Company A's code is `KJA`, not this decision's original illustrative `KA`, to match the real legacy InvoiceNinja v4 invoice prefix — `KJA-INV-`/`KJA-QUO-`/`KJA-CR-` — already carried by this codebase's historical data, so new and historical numbering stay visually continuous. Implemented since Phase 01; this entry lagged the implementation until now.)
 
 ## 2. Integrity, dates, numbering, and audit
 
@@ -25,13 +25,13 @@ This decision record closes the requirements-grilling session. It is binding on 
 
 ## 3. Tax, pricing, discounts, and margin
 
-- Karunia Abadi is non-tax for new customer transactions. Axen uses the approved Indonesian 12% PPN calculation with the 11/12 DPP Nilai Lain factor.
+- Company A is non-tax for new customer transactions. Company B uses the approved Indonesian 12% PPN calculation with the 11/12 DPP Nilai Lain factor.
 - Each quotation, invoice, and vendor bill selects one pricing mode: tax-exclusive or tax-inclusive. Taxable lines within that document cannot mix modes at launch. The editor automatically shows the derived counterpart for every line in real time.
-- Catalog items support `standard taxable` and `non-taxable` categories. Axen applies the approved tax rule only to standard-taxable lines. Other tax brackets are deferred.
+- Catalog items support `standard taxable` and `non-taxable` categories. Company B applies the approved tax rule only to standard-taxable lines. Other tax brackets are deferred.
 - All line and global discounts apply before tax. A global discount allocates proportionally across every eligible billable line, including taxable and non-taxable lines, using a deterministic largest-remainder policy. Negative-price lines are not permitted; explicitly discounted lines may reach zero and clearly marked zero-value informational lines are allowed.
 - Calculate values to two decimal places at most. Any final payable fractional Rupiah rounds upward to the next whole Rupiah: `Rp1.00` remains `Rp1`; `Rp1.01` and `Rp1.05` become `Rp2`. Snapshot the pre-round amount, final rounding adjustment, and rounded result.
 - A tax recap is created for each issued taxable invoice and invoice amendment, not for payments. It retains the invoice transaction period even when adjusted later, and separately records adjustment date. Recaps contain configurable fields for reporting period, external tax-system reference/serial, manual-entry status, filing/entry date, notes, and attachment/reference; adjustments require reason and audit data and never mutate the invoice snapshot.
-- Job margin equals customer sales after discounts and excluding customer tax, less allocated gross vendor/direct cost. Customer tax, vendor tax details, and unallocated purchasing cost remain separately visible. For Karunia, vendor tax is permitted and treated as nonrecoverable gross cost.
+- Job margin equals customer sales after discounts and excluding customer tax, less allocated gross vendor/direct cost. Customer tax, vendor tax details, and unallocated purchasing cost remain separately visible. For Company A, vendor tax is permitted and treated as nonrecoverable gross cost.
 
 ## 4. Commercial, billing, and payment operations
 
@@ -78,7 +78,7 @@ Surfaced by the Phase 03 checkpoint gap review; accepted by the Owner on 2026-09
 
 ## 9. Project goal and compliance posture (ratified 2026-09-14)
 
-- The main goal of the project is basic billing and invoicing for Karunia Abadi and Axen Technology Indonesia. Every phase serves that goal; features are justified by it, not by a compliance programme.
+- The main goal of the project is basic billing and invoicing for Company A and Company B. Every phase serves that goal; features are justified by it, not by a compliance programme.
 - The product is ISO-compatible in practice (immutable issued records, audit events, controlled numbering, role separation, backup and restore evidence) but is not ISO-certified, is not audited against any ISO standard, and must not describe itself as ISO-compliant in UI, documents, or marketing copy.
 - The product is not a certified tax-compliance system. Tax calculations and tax recaps are bookkeeping aids that the company's tax professional validates (section 6). The software does not file, sign, or certify tax documents and is not a substitute for the official tax authority system.
 - Do not add certification, attestation, or regulatory-reporting work without a change request that reopens this decision.

@@ -163,12 +163,12 @@ section instead of improvising from this one.
   anymore (see the note near the top of this file).
 - **Two seeded companies** (`CompanySeeder`) — the two real Surabaya
   IT/security-infrastructure integrators this replaces legacy InvoiceNinja
-  installs for: **Karunia Abadi** (`example-a.com`, prefixes
-  `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **PT. Axen
-  Technology Indonesia** (`example-b.com`, prefixes
+  installs for: **Company A** (`example-a.com`, prefixes
+  `KJA-INV-`/`KJA-QUO-`/`KJA-CR-`, InvoiceNinja v4 source) and **Company B**
+  (`example-b.com`, prefixes
   `ATI-INV-`/`ATI-QUO-`/`ATI-CR-`, InvoiceNinja v5 source). Jump straight
   to a company's dashboard with its slug —
-  `/tall/karunia-abadi/dashboard` / `/tall/axen-technology-indonesia/dashboard`
+  `/tall/company-a/dashboard` / `/tall/company-b/dashboard`
   (`{company:slug}` route-model-binds on `Company::$slug` for every
   `/tall/...` route). See `docs/data-import.md` to actually load either
   one's real historical invoices/clients/payments via
@@ -714,7 +714,7 @@ section instead of improvising from this one.
     on and system-controlled per DESIGN.md §1). `VendorResource` moved
     from `Expenses` to `Procurement`. `CompanySeeder`'s `primary_color`/
     `secondary_color` now match DESIGN.md §10's real hexes (`#E63934`/
-    `#050708` Karunia, `#5065A8`/`#64748B` Axen) — no Stitch placeholder
+    `#050708` Company A, `#5065A8`/`#64748B` Company B) — no Stitch placeholder
     logo SVGs adopted (`memory.md`).
   - **Dashboard** — `DashboardPeriod` gains a `this_quarter` option (grouped
     by month, same >60-day rule as a long custom range) and a `previous()`
@@ -853,7 +853,7 @@ section instead of improvising from this one.
     event; `ReverseVendorPayment`/`AmendVendorPayment` correct a payment
     without mutating it, mirroring `ReverseCustomerPayment`/
     `AmendPaymentAllocation`. Each `VendorBillItem` keeps net/tax/gross
-    components separately (`FINALIZED-DECISIONS.md` §3: "for Karunia,
+    components separately (`FINALIZED-DECISIONS.md` §3: "for Company A,
     vendor tax is permitted and treated as nonrecoverable gross cost" —
     no input-tax-credit engine is built).
   - **`App\Models\JobCostAllocation`** (append-only) — written only by
@@ -901,9 +901,9 @@ section instead of improvising from this one.
   - **`App\Services\Tax\TaxCalculationService`** — the pure, stateless
     engine (no model writes): line subtotal → line discount → global
     discount (deterministic largest-remainder allocation) → taxable base
-    → tax → total, per `FINALIZED-DECISIONS.md` §3. Karunia
+    → tax → total, per `FINALIZED-DECISIONS.md` §3. Company A
     (`CompanyTaxSetting::tax_enabled = false`) always returns zero tax;
-    Axen applies the approved 12% PPN / 11-12 DPP Nilai Lain factor only
+    Company B applies the approved 12% PPN / 11-12 DPP Nilai Lain factor only
     to `TaxCategory::StandardTaxable` lines (`App\Models\InvoiceItem::
     resolveTaxCategory()` falls back line → product → StandardTaxable).
     The final payable total is rounded upward to a whole Rupiah, with

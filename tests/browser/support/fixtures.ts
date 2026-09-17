@@ -27,8 +27,8 @@ export interface CompanyFixture {
 }
 
 export interface FixtureManifest {
-    'karunia-abadi': CompanyFixture;
-    'axen-technology-indonesia': CompanyFixture;
+    'company-a': CompanyFixture;
+    'company-b': CompanyFixture;
 }
 
 export function loadFixtures(): FixtureManifest {

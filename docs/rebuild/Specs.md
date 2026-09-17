@@ -64,19 +64,19 @@ The existing stack is already the target stack:
 
 ### Company A
 
-- Name: Karunia Abadi
+- Name: Company A
 - Source: InvoiceNinja 4
 - Tax: non-tax company
-- Brand identity: supplied Karunia logo, red/near-black identity
+- Brand identity: supplied Company A logo, red/near-black identity
 - Own domain, database, files, local users, settings, numbering, queue, scheduler, and backups
 - Initial document code: `KJA` (ratified 2026-09-14 in `specs/FINALIZED-DECISIONS.md` §1 to match the real legacy InvoiceNinja v4 invoice prefix; superseded this document's original `KA`)
 
 ### Company B
 
-- Name: Axen Technology Indonesia
+- Name: Company B
 - Source: InvoiceNinja 5
 - Tax: Indonesian tax-enabled company
-- Brand identity: supplied Axen logo, blue/cool-neutral identity
+- Brand identity: supplied Company B logo, blue/cool-neutral identity
 - Own domain, database, files, local users, settings, numbering, queue, scheduler, and backups
 - Initial document code: `ATI`
 
@@ -379,11 +379,11 @@ Company tax behavior is configuration-driven.
 
 ### Non-tax company
 
-Karunia Abadi has tax disabled. Tax controls and tax output are hidden or clearly marked disabled. Historical source values must still be preserved if present, but no new tax is calculated for non-tax transactions.
+Company A has tax disabled. Tax controls and tax output are hidden or clearly marked disabled. Historical source values must still be preserved if present, but no new tax is calculated for non-tax transactions.
 
 ### Tax-enabled company
 
-Axen Technology Indonesia uses the approved Indonesian calculation.
+Company B uses the approved Indonesian calculation.
 
 For tax-exclusive selling price Rp10,000,000:
 
@@ -415,7 +415,7 @@ line quantity x unit price
 
 Line and global discounts support percentage and nominal input and always apply before tax. Allocate document-level discounts proportionally across eligible taxable and non-taxable lines with a deterministic largest-remainder policy. Do not permit negative-price lines; explicitly discounted lines may reach zero and marked zero-value informational lines are allowed. Calculate to two decimal places at most, then round every final payable fractional Rupiah upward to the next whole Rupiah and snapshot the pre-round value, adjustment, and final result.
 
-Each quotation, invoice, and vendor bill selects one tax-inclusive or tax-exclusive pricing mode. Taxable lines cannot mix modes within that document at launch. The editor must show the derived counterpart for each line in real time. Axen standard-taxable lines use the approved 12%/11-12 calculation; non-taxable lines do not. Karunia calculates no new customer tax, though vendor tax can be retained as nonrecoverable gross cost.
+Each quotation, invoice, and vendor bill selects one tax-inclusive or tax-exclusive pricing mode. Taxable lines cannot mix modes within that document at launch. The editor must show the derived counterpart for each line in real time. Company B standard-taxable lines use the approved 12%/11-12 calculation; non-taxable lines do not. Company A calculates no new customer tax, though vendor tax can be retained as nonrecoverable gross cost.
 
 ### Tax scratchpad and recap
 
@@ -553,7 +553,7 @@ Global semantic status colors are non-negotiable:
 | Information, in progress | Blue |
 | Draft, inactive, neutral | Gray |
 
-Company themes must not redefine these meanings. Company identity uses logo, company name, shell/rail accent, and theme surfaces. Karunia starts red/near-black; Axen starts blue/cool-neutral. Themes must work in automatic system light/dark mode, support reduced motion, and remain readable under common color-vision deficiencies.
+Company themes must not redefine these meanings. Company identity uses logo, company name, shell/rail accent, and theme surfaces. Company A starts red/near-black; Company B starts blue/cool-neutral. Themes must work in automatic system light/dark mode, support reduced motion, and remain readable under common color-vision deficiencies.
 
 ### Notifications
 

@@ -40,7 +40,7 @@ class FileOrAdjustTaxRecapTest extends TestCase
         parent::setUp();
 
         $this->company = Company::create([
-            'name' => 'Axen Technology Indonesia', 'slug' => 'axen', 'code' => 'ATI', 'currency_code' => 'IDR',
+            'name' => 'Company B', 'slug' => 'company-b-test', 'code' => 'ATI', 'currency_code' => 'IDR',
         ]);
         CompanyTaxSetting::create([
             'company_id' => $this->company->id, 'tax_enabled' => true,

@@ -44,15 +44,26 @@ re-run completed audits unless new evidence contradicts them.
   to the outer `php` and can crash partway through a full run on this
   machine's 128M CLI default; use the `vendor/bin/phpunit` form directly
   for a full local run).
-- **Domain sanitization (2026-09-17) — done.** The two seeded companies'
-  real domains/emails (`karuniaabadi.id`/`kja@...`,
-  `axentechnology.web.id`/`ati@...`) are replaced everywhere in the repo
-  with placeholders `example-a.com`/`example-b.com` (`CompanySeeder`,
-  `playwright.config.ts`, README.md, CLAUDE.md,
-  `docs/invoiceninja-v4-schema-reference.md`) — company names, slugs,
-  addresses, phone numbers, and tax numbers were deliberately left alone
-  (only "domain" was in scope). Re-seed (`migrate:fresh --seed`) to pick
-  up the new values in an existing local DB.
+- **Identity sanitization (2026-09-17) — done, two passes, do not
+  re-litigate.** Pass 1 replaced the two seeded companies' real domains/
+  emails everywhere with placeholders `example-a.com`/`example-b.com`.
+  Pass 2 (Owner: the first pass "still saw slug...") replaced the real
+  company names/slugs themselves — `Karunia Abadi`/`karunia-abadi` and
+  `PT. Axen Technology Indonesia`/`axen-technology-indonesia` — with
+  `Company A`/`company-a` and `Company B`/`company-b` across the whole
+  repo: `CompanySeeder`, `PortfolioContent`'s match-keys/method names,
+  code comments, ~40 doc files, PHP test fixtures, and the entire
+  Playwright support layer (`tests/browser/support/*`, including the
+  `COMPANIES.karunia`/`.axen` object keys every spec imports). Full
+  detail and the handful of hand-fixed line-wrap/grammar artifacts the
+  mechanical rename produced are in `docs/out-of-scope-findings.md`'s
+  2026-09-17 entries. Company codes (`KJA`/`ATI`), numbering prefixes,
+  address, phone, and tax number were deliberately left alone (not
+  asked for; codes/prefixes feed real generated document numbers).
+  Verified via `npx playwright test --list` (193/11 files, real
+  generated fixture data) and a full green `php -d memory_limit=1024M
+  vendor/bin/phpunit` (791/791). Re-seed (`migrate:fresh --seed`) to
+  pick up new seeded values in an existing local DB.
 - **"Stale job" re-audit + InvoiceDuplicator fix (2026-09-17) — done.**
   Full detail in `docs/out-of-scope-findings.md`'s 2026-09-17 entries: the
   Portal/Homepage dark-mode audit memory.md previously flagged as
@@ -192,10 +203,8 @@ re-run completed audits unless new evidence contradicts them.
   certified tax-compliance system; tax output is a bookkeeping aid validated
   by a tax professional (`FINALIZED-DECISIONS.md` §9). Do not add
   certification or regulatory-reporting scope without a change request.
-- Company A is Karunia Abadi: InvoiceNinja 4 source, non-tax new customer
-  transactions.
-- Company B is Axen Technology Indonesia: InvoiceNinja 5 source, Indonesian
-  tax-enabled transactions.
+- Company A: InvoiceNinja 4 source, non-tax new customer transactions.
+- Company B: InvoiceNinja 5 source, Indonesian tax-enabled transactions.
 - Launch deployments remain separate by domain, database, storage, users,
   queues, schedulers, and backups. A future shared host must preserve logical
   isolation.
@@ -263,7 +272,7 @@ re-run completed audits unless new evidence contradicts them.
   amendments or reversals and never mutate issued history.
 - Discounts apply before tax. A document uses one pricing mode: inclusive or
   exclusive; taxable lines cannot mix modes.
-- Axen uses the approved 12% PPN with 11/12 DPP Nilai Lain calculation.
+- Company B uses the approved 12% PPN with 11/12 DPP Nilai Lain calculation.
 - Calculate to at most two decimals and round any final fractional Rupiah up to
   the next whole Rupiah. Preserve pre-round value and adjustment.
 - Tax recap is separate per taxable issued invoice or amendment, not per

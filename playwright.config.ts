@@ -29,10 +29,10 @@ const PORT = process.env.PLAYWRIGHT_APP_PORT ?? '8123';
 export const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 /** Seeded company hostnames — see database/seeders/CompanySeeder.php. */
-export const KARUNIA_HOST = 'example-a.com';
-export const AXEN_HOST = 'example-b.com';
+export const COMPANY_A_HOST = 'example-a.com';
+export const COMPANY_B_HOST = 'example-b.com';
 
-const HOST_RESOLVER_RULES = `MAP ${KARUNIA_HOST} 127.0.0.1,MAP ${AXEN_HOST} 127.0.0.1`;
+const HOST_RESOLVER_RULES = `MAP ${COMPANY_A_HOST} 127.0.0.1,MAP ${COMPANY_B_HOST} 127.0.0.1`;
 
 /**
  * This development sandbox pre-installs a pinned Chromium revision under
@@ -136,7 +136,7 @@ export default defineConfig({
         // Both required system color schemes (docs/rebuild/DESIGN.md §10:
         // "System-controlled light/dark mode at launch; no manual theme
         // toggle") x desktop/tablet/phone viewports (Specs.md Slice 5:
-        // "Karunia Abadi and Axen Technology Indonesia in light and dark
+        // "Company A and Company B in light and dark
         // mode on desktop, tablet, and phone viewports").
         {
             name: 'desktop-light',

@@ -22,7 +22,7 @@ Implement authoritative financial calculations and immutable customer receivable
 - Company B supports Indonesian inclusive and exclusive formulas from the root specification.
 - Use fixed-precision decimal arithmetic at no more than two decimal places. Round final payable fractional Rupiah upward and snapshot pre-round, adjustment, and rounded values.
 - Select one tax mode per quotation, invoice, and vendor bill. Taxable lines cannot mix inclusive and exclusive modes; show the derived counterpart in real time.
-- Apply the approved 12% with 11/12 DPP factor only to `standard taxable` Axen lines; non-taxable lines remain untaxed.
+- Apply the approved 12% with 11/12 DPP factor only to `standard taxable` Company B lines; non-taxable lines remain untaxed.
 - Tax scratchpad calculates realtime but persists nothing unless explicitly saved.
 - Issuance stores immutable tax snapshot and document snapshot.
 - Invoice states: `Draft`, `Approved`, `Issued`, `Partially Paid`, `Paid`, with controlled overdue/void/amended states.

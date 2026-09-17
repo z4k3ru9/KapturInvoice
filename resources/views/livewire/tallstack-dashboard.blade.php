@@ -47,14 +47,14 @@
     {{--
         Phase 12 (onboarding/zero-state) — a dashboard panel, not a
         separate route: the Stitch "First-Run & Zero-State Onboarding
-        (Axen Technology Variant)" mockup renders this content as the
+        (Company B Variant)" mockup renders this content as the
         Dashboard's own top section (same sidebar/header chrome, same
         page), not a standalone page — see
         docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md. Reuses
         App\Support\Dashboard\SetupChecklist's exact five steps and "done"
-        logic unmodified; the mockup itself shows four Axen-specific steps
+        logic unmodified; the mockup itself shows four Company B-specific steps
         (legal entity/tax registry, catalog, client+quotation, a bank
-        escrow VA) plus CSV import and a "contact Axen Finance" card — all
+        escrow VA) plus CSV import and a "contact Company B Finance" card — all
         deferred/out-of-scope features (payment gateway checkout, CSV
         import) this project's own CLAUDE.md already excludes from launch
         scope, so only the layout language (a progress-badged step-card

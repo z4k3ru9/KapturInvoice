@@ -1,7 +1,7 @@
 # Legacy InvoiceNinja Data Import
 
-How `Karunia Abadi`'s InvoiceNinja **v4** history and `PT. Axen Technology
-Indonesia`'s InvoiceNinja **v5** history get into KapturInvoice's own
+How `Company A`'s InvoiceNinja **v4** history and `Company B`'s
+InvoiceNinja **v5** history get into KapturInvoice's own
 schema, without losing data. Two Artisan commands, one per legacy major
 version (the two source schemas are different enough — a unified
 `invoices` table with a shared item table in v4, vs. separate
@@ -38,8 +38,8 @@ LEGACY_V5_DB_USERNAME=root
 # (host/port/database default to 127.0.0.1:3306 / legacy_v4 / legacy_v5 —
 # override with LEGACY_V4_DB_HOST etc. if yours differs)
 
-php artisan import:invoiceninja-v4 karunia-abadi
-php artisan import:invoiceninja-v5 axen-technology-indonesia
+php artisan import:invoiceninja-v4 company-a
+php artisan import:invoiceninja-v5 company-b
 ```
 
 Each command prints a per-table row-count summary and a reconciliation
@@ -122,18 +122,18 @@ share-link `key`), credits, payments, expenses.
   it's called out explicitly in the command too) and a shared
   `invoice_items` table — maps close to 1:1 onto this app's schema.
   `is_recurring`/`recurring_invoice_id`/`quote_id` are read directly (the
-  real Karunia Abadi dump has zero recurring invoices, so that path is
+  real Company A dump has zero recurring invoices, so that path is
   implemented but only lightly exercised).
 - `time_log` (a JSON array of `[start, end]` second-timestamp pairs) is
   reduced to the single `started_at`/`stopped_at` segment the target
   schema keeps (first start, last end) — per the existing simplification
   documented in the tasks migration.
-- Real per-invoice/per-item tax usage is **zero** in this dump (Karunia
-  Abadi doesn't charge tax) — the per-item tax import path exists and is
+- Real per-invoice/per-item tax usage is **zero** in this dump (Company A
+  doesn't charge tax) — the per-item tax import path exists and is
   correct, but wasn't exercised by real nonzero data; the synthetic test
   covers it directly instead.
 
-### v4 real-import verification (Karunia Abadi)
+### v4 real-import verification (Company A)
 
 | Check | Source | Imported | Result |
 |---|---|---|---|
@@ -181,7 +181,7 @@ share-link `key`), credits, payments, expenses.
 - `products.cost` is unused/always 0 in this dump — `unit_cost` is
   imported from `products.price` (the real sale price) instead.
 
-### v5 real-import verification (PT. Axen Technology Indonesia)
+### v5 real-import verification (Company B)
 
 | Check | Source | Imported | Result |
 |---|---|---|---|

@@ -17,7 +17,7 @@ use Tests\TestCase;
  */
 class TaxCalculationServiceTest extends TestCase
 {
-    private function axenTaxSetting(): CompanyTaxSetting
+    private function companyBTaxSetting(): CompanyTaxSetting
     {
         return new CompanyTaxSetting([
             'tax_enabled' => true,
@@ -45,7 +45,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(10_000_000)],
             PricingMode::Exclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
         );
 
         // 12% PPN against the 11/12 DPP Nilai Lain factor collapses to an
@@ -63,7 +63,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(11_100_000)],
             PricingMode::Inclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
         );
 
         // The same transaction viewed the other way round: an inclusive
@@ -105,7 +105,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(1_000_000, taxCategory: TaxCategory::NonTaxable)],
             PricingMode::Exclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
         );
 
         $this->assertSame(0.0, $result['tax_total']);
@@ -120,7 +120,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(1_000_000, discount: 10, discountIsPercentage: true)],
             PricingMode::Exclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
         );
 
         $this->assertSame(900_000.0, $result['subtotal']);
@@ -135,7 +135,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(1_000_000), $this->line(1_000_000)],
             PricingMode::Exclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
             documentDiscount: 200_000,
         );
 
@@ -174,7 +174,7 @@ class TaxCalculationServiceTest extends TestCase
         $result = $service->calculate(
             [$this->line(100_000.01)],
             PricingMode::Exclusive,
-            $this->axenTaxSetting(),
+            $this->companyBTaxSetting(),
         );
 
         $this->assertGreaterThan(0.0, $result['pre_round_total'] - floor($result['pre_round_total']));

@@ -11,8 +11,8 @@ return new class extends Migration
      *
      * One row per company, split out from `companies`/`company_settings` so
      * tax behavior is configuration-driven per
-     * docs/rebuild/specs/FINALIZED-DECISIONS.md §3: Karunia Abadi is
-     * non-tax (tax_enabled=false), Axen Technology Indonesia is
+     * docs/rebuild/specs/FINALIZED-DECISIONS.md §3: Company A is
+     * non-tax (tax_enabled=false), Company B is
      * tax-enabled with the approved 12% PPN / 11-12 DPP Nilai Lain
      * calculation. The full tax calculation engine lands in Phase 04
      * (docs/rebuild/specs/04-billing-and-receivables); this table only

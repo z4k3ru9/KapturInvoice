@@ -564,7 +564,7 @@
                     {{--
                         color="blue", not "primary": a general function
                         (create a new record) shouldn't borrow the tenant's
-                        own brand color — for Karunia Abadi (brand red)
+                        own brand color — for Company A (brand red)
                         that made "New" read identically to a destructive
                         red action elsewhere on the page. Brand color stays
                         reserved for actual identity chrome (the logo, the

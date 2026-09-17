@@ -38,7 +38,7 @@
                 color="blue" for Save — same reasoning as every other
                 general-function button on these TALL-stack pages (see
                 app.blade.php's "+New" button): "primary" is the tenant's
-                own brand color, which for Karunia Abadi is red and reads
+                own brand color, which for Company A is red and reads
                 as visually identical to the destructive-red buttons in
                 the status bar below (Reject/Cancel quotation) — brand
                 color is reserved for identity chrome, not workflow
@@ -60,7 +60,7 @@
         neutral in-progress action (Send), gray for a passive/neutral one
         (Mark expired), red for anything destructive/terminal (Reject,
         Cancel quotation) — never the tenant's own brand "primary" color.
-        Karunia Abadi's brand color happens to BE red, so an Approve/
+        Company A's brand color happens to BE red, so an Approve/
         Accept button colored "primary" was visually indistinguishable
         from the Reject/Cancel buttons right beside it, despite meaning
         the opposite thing.

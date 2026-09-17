@@ -8,18 +8,18 @@ use PHPUnit\Framework\TestCase;
 
 class PortfolioContentTest extends TestCase
 {
-    public function test_karunia_abadi_gets_bespoke_content(): void
+    public function test_company_a_gets_bespoke_content(): void
     {
-        $content = PortfolioContent::for(new Company(['slug' => 'karunia-abadi', 'name' => 'Karunia Abadi']));
+        $content = PortfolioContent::for(new Company(['slug' => 'company-a', 'name' => 'Company A']));
 
         $this->assertNotEmpty($content['services']);
         $this->assertNotEmpty($content['partners']);
         $this->assertStringContainsString('SECURITY', $content['headline_lead']);
     }
 
-    public function test_axen_technology_gets_bespoke_content(): void
+    public function test_company_b_gets_bespoke_content(): void
     {
-        $content = PortfolioContent::for(new Company(['slug' => 'axen-technology-indonesia', 'name' => 'PT. Axen Technology Indonesia']));
+        $content = PortfolioContent::for(new Company(['slug' => 'company-b', 'name' => 'Company B']));
 
         $this->assertNotEmpty($content['services']);
         $this->assertNotEmpty($content['partners']);

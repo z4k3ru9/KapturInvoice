@@ -6,7 +6,7 @@ import { COMPANIES, gotoAdminPage } from '../support/tenants';
  * "Loading, empty, saving, failed, restricted, and error states." Saving/
  * failed are covered by tests/browser/documents/autosave.spec.ts.
  */
-const company = COMPANIES.karunia;
+const company = COMPANIES.companyA;
 
 test('an empty search result shows a real empty state, not a blank table', async ({ page }) => {
     await gotoAdminPage(page, `${company.adminUrl}/clients`);

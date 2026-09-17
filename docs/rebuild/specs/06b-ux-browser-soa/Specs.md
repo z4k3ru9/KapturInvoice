@@ -133,7 +133,7 @@ Cover at minimum:
 - Loading, empty, saving, failed, restricted, and error states.
 - Toast timing, deduplication, inline errors, focus management, keyboard flows,
   reduced motion, and WCAG 2.2 AA expectations.
-- Karunia Abadi and Axen Technology Indonesia in light and dark mode on
+- Company A and Company B in light and dark mode on
   desktop, tablet, and phone viewports.
 
 ## Required tests and checks

@@ -20,7 +20,7 @@ use TallStackUi\Traits\Interactions;
  * The TALL-stack Statement of Account document view — Phase "Statement of
  * Accounts" of docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md,
  * built against Stitch screen "Statement of Account — Preview &
- * Issuance Ledger (Axen Technology Variant)" and its own prompt 17.
+ * Issuance Ledger (Company B Variant)" and its own prompt 17.
  *
  * Two modes, driven by whether a real `StatementOfAccount` row was bound:
  * - **Preview** (`statementOfAccount` null) — calls

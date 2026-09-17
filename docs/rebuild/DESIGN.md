@@ -167,8 +167,8 @@ Use one shared system with company-specific identity tokens:
 
 | Company | Identity | Initial signals |
 | --- | --- | --- |
-| Karunia Abadi | Red `#E63934`, near-black `#050708` | Logo, shell rail, restrained red accents |
-| Axen Technology Indonesia | Blue `#5065A8`, cool neutrals | Logo, shell rail, restrained blue accents |
+| Company A | Red `#E63934`, near-black `#050708` | Logo, shell rail, restrained red accents |
+| Company B | Blue `#5065A8`, cool neutrals | Logo, shell rail, restrained blue accents |
 
 Company tokens include identity, secondary accent, decorative accent, light/dark surfaces, ink, borders/focus rings, print-safe colors, and chart series. Owner/Admin may preview and update company branding within validated contrast limits; shared status tokens are not customizable.
 

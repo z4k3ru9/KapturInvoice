@@ -44,8 +44,8 @@ handover.
 ## Architecture
 
 KapturInvoice runs **two business entities** ("companies") from one
-codebase and one deployment — **Karunia Abadi** (`example-a.com`,
-InvoiceNinja v4 source, non-tax) and **PT. Axen Technology Indonesia**
+codebase and one deployment — **Company A** (`example-a.com`,
+InvoiceNinja v4 source, non-tax) and **Company B**
 (`example-b.com`, InvoiceNinja v5 source, Indonesian tax-enabled).
 Companies are isolated deployments at launch — no cross-company records,
 files, portal access, or financial synchronization.
@@ -166,7 +166,7 @@ files, portal access, or financial synchronization.
 - Apply discounts before tax; a document is either fully tax-inclusive or
   fully tax-exclusive, never mixed. Calculate to two decimals and round
   any final fractional Rupiah up.
-- Axen applies the approved 12% PPN / 11-12 DPP Nilai Lain factor; Karunia
+- Company B applies the approved 12% PPN / 11-12 DPP Nilai Lain factor; Company A
   is always zero-tax.
 - A payment is an event; allocations determine balances; one verified
   event produces exactly one receipt. Post-receipt corrections create a
@@ -234,8 +234,8 @@ php artisan serve
 `password`** (Laravel's stock `UserFactory` default) — attached as owner
 to both companies. Log in at `/login`; a successful login lands you on
 your first active company's dashboard at
-`/tall/{company-slug}/dashboard` (`karunia-abadi` or
-`axen-technology-indonesia`) — visit the other company's URL directly to
+`/tall/{company-slug}/dashboard` (`company-a` or
+`company-b`) — visit the other company's URL directly to
 switch, since this user belongs to both. To load either one's real
 historical invoices/clients/payments, see
 [`docs/data-import.md`](docs/data-import.md).

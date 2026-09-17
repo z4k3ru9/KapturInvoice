@@ -26,7 +26,7 @@ use TallStackUi\Traits\Interactions;
  * ever edited CompanyTaxSetting, so this is the first UI (admin or
  * TALL-stack) that does.
  *
- * The fetched Stitch mockup ("Company & Taxes Settings — Axen Technology
+ * The fetched Stitch mockup ("Company & Taxes Settings — Company B
  * Variant") sketches a much larger surface (DJP e-Faktur gateway/digital
  * certificate infrastructure, PPh 23/PP 55 withholding rates, NSFP quota
  * tracking, corporate banking virtual accounts/webhooks) that has no

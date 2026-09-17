@@ -44,7 +44,7 @@ use Illuminate\Support\Str;
  * right-aligned column.
  *
  * Volume target is calibrated against this app's own documented REAL
- * legacy-import numbers (docs/data-import.md: Karunia Abadi's real v4
+ * legacy-import numbers (docs/data-import.md: Company A's real v4
  * dump was 487 invoices/quotes, 134 clients, 1,972 items, 369 payments)
  * — deliberately seeded past that ceiling, not just up to it, since the
  * goal here is finding an overflow, not reproducing a typical company.

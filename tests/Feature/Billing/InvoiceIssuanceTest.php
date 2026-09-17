@@ -30,11 +30,11 @@ class InvoiceIssuanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function axenCompany(): Company
+    private function companyB(): Company
     {
         $company = Company::create([
-            'name' => 'Axen Technology Indonesia',
-            'slug' => 'axen-technology-indonesia',
+            'name' => 'Company B',
+            'slug' => 'company-b',
             'code' => 'ATI',
             'currency_code' => 'IDR',
         ]);
@@ -50,11 +50,11 @@ class InvoiceIssuanceTest extends TestCase
         return $company;
     }
 
-    private function karuniaCompany(): Company
+    private function companyA(): Company
     {
         return Company::create([
-            'name' => 'Karunia Abadi',
-            'slug' => 'karunia-abadi',
+            'name' => 'Company A',
+            'slug' => 'company-a',
             'code' => 'KA',
             'currency_code' => 'IDR',
         ]);
@@ -90,7 +90,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_rp10_000_000_exclusive_example(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -110,7 +110,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_rp11_100_000_inclusive_example(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Inclusive);
 
@@ -130,7 +130,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_non_tax_company_behavior(): void
     {
-        $company = $this->karuniaCompany();
+        $company = $this->companyA();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -150,7 +150,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_line_level_percentage_discount_applies_before_tax(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -175,7 +175,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_document_level_nominal_discount_applies_before_tax(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive, [
             'discount' => 1000000,
@@ -202,7 +202,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_ceiling_rounding_rounds_the_final_fractional_rupiah_upward(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -235,7 +235,7 @@ class InvoiceIssuanceTest extends TestCase
         // always used now() for both the sequence year and the embedded
         // YYYYMM, so an invoice backdated into an open prior month/year got
         // a number disagreeing with its own invoice_date.
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive, [
             'invoice_date' => '2025-01-15',
@@ -261,7 +261,7 @@ class InvoiceIssuanceTest extends TestCase
         // all — a Sales/Staff user's table-action click was the only
         // gate, so a direct call bypassed "Issue invoice: Accountant and
         // higher" (docs/rebuild/Specs.md §10) entirely.
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -288,7 +288,7 @@ class InvoiceIssuanceTest extends TestCase
         // regardless of `type`/`is_recurring`, so a type=Quote row or a
         // recurring template could receive a real invoice number/tax
         // snapshot/recap through this path.
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $owner = $this->owner($company);
 
@@ -301,7 +301,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_a_recurring_template_cannot_be_issued_as_an_invoice(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $owner = $this->owner($company);
 
@@ -319,7 +319,7 @@ class InvoiceIssuanceTest extends TestCase
         // discount/discount_is_percentage, so a corrected invoice with
         // otherwise-identical items recalculated with zero global
         // discount and a higher payable total than the original.
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive, [
             'discount' => 10,
@@ -353,7 +353,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_amendment_and_void_reissue_carry_over_the_corrected_item_unit(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -398,7 +398,7 @@ class InvoiceIssuanceTest extends TestCase
         // "Amend issued document: Admin/Owner for document edits" —
         // docs/rebuild/Specs.md §10 — Accountant is enough to *issue* but
         // not enough to *amend/void-and-reissue*.
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -424,7 +424,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_reissuing_an_already_issued_invoice_is_denied(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -445,7 +445,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_original_invoice_snapshot_is_retained_after_amendment(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 
@@ -486,7 +486,7 @@ class InvoiceIssuanceTest extends TestCase
 
     public function test_void_and_reissue_preserves_the_original_and_issues_a_plain_new_number(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $client = $this->client($company);
         $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
 

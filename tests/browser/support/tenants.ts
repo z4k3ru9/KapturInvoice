@@ -1,5 +1,5 @@
 import type { APIRequestContext, APIResponse, Locator, Page } from '@playwright/test';
-import { KARUNIA_HOST, AXEN_HOST, BASE_URL } from '../../../playwright.config';
+import { COMPANY_A_HOST, COMPANY_B_HOST, BASE_URL } from '../../../playwright.config';
 
 /**
  * Seeded company identity shared by browser specs — see
@@ -16,22 +16,22 @@ export const ADMIN_EMAIL = 'test@example.com';
 export const ADMIN_PASSWORD = 'password';
 
 export const COMPANIES = {
-    karunia: {
-        slug: 'karunia-abadi',
-        host: KARUNIA_HOST,
-        homepageUrl: BASE_URL.replace('127.0.0.1', KARUNIA_HOST),
+    companyA: {
+        slug: 'company-a',
+        host: COMPANY_A_HOST,
+        homepageUrl: BASE_URL.replace('127.0.0.1', COMPANY_A_HOST),
         // Base tenant path for building sub-page URLs (`${adminUrl}/clients`,
         // etc.) — there is no route at this bare path itself; land on a real
         // page with `dashboardUrl` below instead.
-        adminUrl: `${BASE_URL}/tall/karunia-abadi`,
-        dashboardUrl: `${BASE_URL}/tall/karunia-abadi/dashboard`,
+        adminUrl: `${BASE_URL}/tall/company-a`,
+        dashboardUrl: `${BASE_URL}/tall/company-a/dashboard`,
     },
-    axen: {
-        slug: 'axen-technology-indonesia',
-        host: AXEN_HOST,
-        homepageUrl: BASE_URL.replace('127.0.0.1', AXEN_HOST),
-        adminUrl: `${BASE_URL}/tall/axen-technology-indonesia`,
-        dashboardUrl: `${BASE_URL}/tall/axen-technology-indonesia/dashboard`,
+    companyB: {
+        slug: 'company-b',
+        host: COMPANY_B_HOST,
+        homepageUrl: BASE_URL.replace('127.0.0.1', COMPANY_B_HOST),
+        adminUrl: `${BASE_URL}/tall/company-b`,
+        dashboardUrl: `${BASE_URL}/tall/company-b/dashboard`,
     },
 } as const;
 

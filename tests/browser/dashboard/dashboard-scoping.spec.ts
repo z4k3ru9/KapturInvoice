@@ -9,7 +9,7 @@ import { loadFixtures } from '../support/fixtures';
 const fixtures = loadFixtures();
 
 for (const [key, company] of Object.entries(COMPANIES)) {
-    const otherSlug = company.slug === 'karunia-abadi' ? 'axen-technology-indonesia' : 'karunia-abadi';
+    const otherSlug = company.slug === 'company-a' ? 'company-b' : 'company-a';
     const other = fixtures[otherSlug as keyof typeof fixtures];
 
     test(`${key}: the dashboard never links to another company's client or invoice by id`, async ({ page }) => {
@@ -43,8 +43,8 @@ for (const [key, company] of Object.entries(COMPANIES)) {
 }
 
 test('a client from one company is not reachable by ID under a different company tenant path', async ({ page }) => {
-    const karuniaFixture = fixtures['karunia-abadi'];
+    const companyAFixture = fixtures['company-a'];
 
-    const response = await page.goto(`${COMPANIES.axen.adminUrl}/clients/${karuniaFixture.client_id}`);
+    const response = await page.goto(`${COMPANIES.companyB.adminUrl}/clients/${companyAFixture.client_id}`);
     expect(response?.status()).not.toBe(200);
 });

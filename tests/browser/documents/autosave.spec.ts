@@ -13,7 +13,7 @@ import { loadFixtures } from '../support/fixtures';
  * via resources/views/components/tallstack/autosave-status.blade.php.
  */
 const fixtures = loadFixtures();
-const company = COMPANIES.karunia;
+const company = COMPANIES.companyA;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('typing in a draft field shows the inline Saving -> Saved sequence, never a toast', async ({ page }, testInfo) => {

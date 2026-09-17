@@ -12,7 +12,7 @@ import { loadFixtures } from '../support/fixtures';
  * catch, per axe-core's own documented limits).
  */
 const fixtures = loadFixtures();
-const company = COMPANIES.karunia;
+const company = COMPANIES.companyA;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async ({ page }) => {

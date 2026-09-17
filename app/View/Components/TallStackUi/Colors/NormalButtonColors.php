@@ -28,7 +28,7 @@ use Illuminate\View\Component;
  * that color/style (confirmed from the vendor source's own `SetupColors`
  * merge logic — `data_get($override, $getter) ?? data_get($default,
  * $getter)`), so this file only ever ADDS the "brand" key; it never
- * touches Karunia/Axen's actual `black`/`gray`/`red`/`green`/`amber`
+ * touches Company A/Company B's actual `black`/`gray`/`red`/`green`/`amber`
  * button rendering.
  *
  * "brand" is NOT one of TallStackUI's built-in Tailwind palette names
@@ -38,8 +38,8 @@ use Illuminate\View\Component;
  * genuinely new color key is required, which is exactly what this
  * mechanism is for. Every class below reads the CURRENT TENANT's own
  * `--ts-primary` CSS custom property (set inline per company on <html>
- * in resources/views/components/tallstack/app.blade.php — Karunia
- * Abadi's red #E63934, Axen Technology's blue #5065A8, etc.) via
+ * in resources/views/components/tallstack/app.blade.php — Company A's
+ * red #E63934, Company B's blue #5065A8, etc.) via
  * Tailwind v4 arbitrary-value `[color:...]` syntax, the same
  * `color-mix(in srgb, var(--ts-primary) X%, ...)` technique the card
  * header brand tint already uses in this same provider — chosen over

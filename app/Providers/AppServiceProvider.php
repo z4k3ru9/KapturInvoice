@@ -317,8 +317,8 @@ class AppServiceProvider extends ServiceProvider
         // and "this is the content." Rather than a fixed accent color, this
         // tints the header with the CURRENT TENANT's own brand color —
         // `--ts-primary` (set inline on <html> per company in
-        // components/tallstack/app.blade.php: Karunia Abadi's red,
-        // Axen's blue, etc.) — via `color-mix(..., transparent)`. Mixing
+        // components/tallstack/app.blade.php: Company A's red,
+        // Company B's blue, etc.) — via `color-mix(..., transparent)`. Mixing
         // toward `transparent` (not a literal white/dark hex) means the
         // result is a translucent brand wash that alpha-composites
         // correctly over whatever sits behind it, so ONE class works in
@@ -1004,21 +1004,21 @@ class AppServiceProvider extends ServiceProvider
      *
      * | Role                  | `color=`  | Used for                                                                 |
      * |------------------------|-----------|---------------------------------------------------------------------------|
-     * | Primary                | `brand`   | The single main create/commit action of the current page or modal (e.g. "New invoice", the invoice form's "Save", a modal's non-Cancel submit button) — the current tenant's own `--ts-primary` brand color (Karunia's red, Axen's blue), never a fixed hex, so "the button that does the main thing" always reads as that company's own identity. |
+     * | Primary                | `brand`   | The single main create/commit action of the current page or modal (e.g. "New invoice", the invoice form's "Save", a modal's non-Cancel submit button) — the current tenant's own `--ts-primary` brand color (Company A's red, Company B's blue), never a fixed hex, so "the button that does the main thing" always reads as that company's own identity. |
      * | Neutral / secondary     | `gray`    | Cancel, Back, and any non-primary structural/utility action (Export, Refresh, "Add line item", icon-only row actions like view/edit/download). Already the package default gray — unchanged. |
      * | Success / confirm       | `green`   | A forward, non-destructive state transition that finalizes something (Issue, Verify a payment). Standard "green = approved/confirmed" convention — unchanged from this app's existing usage. |
      * | Destructive             | `red`     | Delete, Void & reissue, Reverse, Remove — anything that ends, cancels, or undoes a record. Standard "red = destructive" convention — unchanged. |
      * | Caution / sensitive     | `amber`   | Non-destructive but sensitive overrides (Test connection, Record/Approve a vendor PO variance) — already this app's existing usage, kept as-is. |
-     * | Info / communicate      | `blue`    | Outbound communication (Send/Resend an invoice) and read-only navigation (a dashboard's "View all"/"View" links). Kept as its own role, distinct from Primary, specifically so a toolbar like the invoice form's Issue/Send/Amend/Void row — four buttons that DO sit side by side — never has two of them collapse onto the same hue (Primary reusing the tenant's OWN brand red for Karunia would otherwise land visually on top of the Destructive red two buttons over). |
+     * | Info / communicate      | `blue`    | Outbound communication (Send/Resend an invoice) and read-only navigation (a dashboard's "View all"/"View" links). Kept as its own role, distinct from Primary, specifically so a toolbar like the invoice form's Issue/Send/Amend/Void row — four buttons that DO sit side by side — never has two of them collapse onto the same hue (Primary reusing the tenant's OWN brand red for Company A would otherwise land visually on top of the Destructive red two buttons over). |
      *
      * Primary (`brand`) and Destructive (`red`) are the one pair worth
-     * flagging explicitly: Karunia Abadi's own brand color IS a red
+     * flagging explicitly: Company A's own brand color IS a red
      * (`#E63934`), so on that tenant a Primary button and a Destructive
      * button are both, unavoidably, "a red button" — the two are never
      * rendered inside the same toolbar/button-group in this app today
      * (verified across every page this palette was applied to), so they
      * are never seen side by side, but a future page that puts a Primary
-     * "brand" action directly next to a Destructive "red" one on Karunia's
+     * "brand" action directly next to a Destructive "red" one on Company A's
      * tenant would read as two shades of the same color, not two distinct
      * actions — worth a real design pass (a different style, e.g.
      * `outline`, for one of the two) if that layout ever comes up, rather

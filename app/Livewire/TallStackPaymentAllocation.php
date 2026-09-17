@@ -24,7 +24,7 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack allocation panel for a single Payment — the sibling
  * detail page to App\Livewire\TallStackPayments, matching the "Payments &
- * Receipts - Allocation Panel (Axen Technology Variant)" Stitch mockup:
+ * Receipts - Allocation Panel (Company B Variant)" Stitch mockup:
  * an incoming-payment summary, an allocated/remaining balance readout, and
  * a per-invoice allocation table for the payment's own client.
  *

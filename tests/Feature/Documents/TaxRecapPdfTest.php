@@ -76,11 +76,11 @@ class TaxRecapPdfTest extends TestCase
         }
     }
 
-    private function axenCompany(): Company
+    private function companyB(): Company
     {
         $company = Company::create([
-            'name' => 'Axen Technology Indonesia',
-            'slug' => 'axen-technology-indonesia',
+            'name' => 'Company B',
+            'slug' => 'company-b',
             'code' => 'ATI',
             'currency_code' => 'IDR',
         ]);
@@ -132,7 +132,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_issuing_a_taxable_invoice_assigns_a_tax_coded_number_to_its_tax_recap(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
 
         $issued = $this->issuedTaxableInvoice($company);
 
@@ -146,7 +146,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_renders_bahasa_indonesia_labels_by_default(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $issued = $this->issuedTaxableInvoice($company);
         $taxRecap = $issued->taxRecap;
         $taxRecap->loadMissing('invoice.client', 'invoice.company', 'invoice.taxSnapshot');
@@ -160,7 +160,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_renders_english_labels_when_document_language_override_is_en(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $issued = $this->issuedTaxableInvoice($company);
 
         $taxRecap = $issued->taxRecap;
@@ -175,7 +175,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_falls_back_to_company_default_document_language(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         CompanySetting::create(['company_id' => $company->id, 'default_document_language' => 'en']);
 
         $issued = $this->issuedTaxableInvoice($company);
@@ -191,7 +191,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_downloads_for_a_user_who_belongs_to_the_owning_company(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $user = User::factory()->create();
         $company->users()->attach($user, ['role' => 'owner']);
 
@@ -206,7 +206,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_is_forbidden_for_a_user_outside_the_owning_company(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $issued = $this->issuedTaxableInvoice($company);
         $taxRecap = $issued->taxRecap;
 
@@ -219,7 +219,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_renders_the_parent_invoices_terms(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $issued = $this->issuedTaxableInvoice($company);
         $issued->forceFill(['terms' => '<p>Payment due within 30 days.</p>'])->save();
 
@@ -234,7 +234,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_tax_recap_pdf_omits_the_terms_section_when_the_invoice_has_no_terms(): void
     {
-        $company = $this->axenCompany();
+        $company = $this->companyB();
         $issued = $this->issuedTaxableInvoice($company);
 
         $taxRecap = $issued->taxRecap;
@@ -247,7 +247,7 @@ class TaxRecapPdfTest extends TestCase
 
     public function test_non_taxable_invoice_never_creates_a_tax_recap(): void
     {
-        $company = Company::create(['name' => 'Karunia Abadi', 'slug' => 'karunia-abadi', 'code' => 'KA', 'currency_code' => 'IDR']);
+        $company = Company::create(['name' => 'Company A', 'slug' => 'company-a', 'code' => 'KA', 'currency_code' => 'IDR']);
         $client = Client::create(['company_id' => $company->id, 'name' => 'Test Client']);
 
         $invoice = Invoice::create([

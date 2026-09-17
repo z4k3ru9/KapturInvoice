@@ -59,7 +59,7 @@ use Livewire\WithPagination;
  *   FileOrAdjustTaxRecap for the exact semantics reused here), each row
  *   linking to the existing tax-recaps.pdf download route unmodified. For
  *   a company with tax disabled (CompanyTaxSetting::tax_enabled = false,
- *   e.g. Karunia Abadi) this section renders an explanatory disabled
+ *   e.g. Company A) this section renders an explanatory disabled
  *   state instead of an empty table — matching the same "explain why,
  *   don't just look broken" pattern already used on Credits' info line
  *   and Tax Rates' tax-disabled empty state.

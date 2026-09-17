@@ -21,10 +21,10 @@ setup('authenticate as the seeded owner', async ({ page }) => {
     // long-lived `php artisan serve` process. The list page and the edit
     // page compile genuinely different view trees, so both are warmed,
     // solo, before anything else.
-    await gotoAdminPage(page, `${COMPANIES.karunia.adminUrl}/invoices`);
+    await gotoAdminPage(page, `${COMPANIES.companyA.adminUrl}/invoices`);
 
     const fixtures = loadFixtures();
-    await gotoAdminPage(page, `${COMPANIES.karunia.adminUrl}/invoices/${fixtures['karunia-abadi'].draft_invoice_id}`);
+    await gotoAdminPage(page, `${COMPANIES.companyA.adminUrl}/invoices/${fixtures['company-a'].draft_invoice_id}`);
 
     await page.context().storageState({ path: AUTH_FILE });
 });

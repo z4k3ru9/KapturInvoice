@@ -11,7 +11,7 @@ return new class extends Migration
      * components." `line_total` is the gross cost (net_amount + tax_amount)
      * — the value job-cost allocation and margin reporting use; the split
      * is kept only for visibility (FINALIZED-DECISIONS.md §3: "For
-     * Karunia, vendor tax is permitted and treated as nonrecoverable gross
+     * Company A, vendor tax is permitted and treated as nonrecoverable gross
      * cost" — no input-tax-credit engine is built here).
      */
     public function up(): void

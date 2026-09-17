@@ -38,7 +38,7 @@ class PlaywrightFixturesSeeder extends Seeder
     {
         $owner = User::query()->where('email', 'test@example.com')->first();
 
-        foreach (Company::query()->whereIn('slug', ['karunia-abadi', 'axen-technology-indonesia'])->get() as $company) {
+        foreach (Company::query()->whereIn('slug', ['company-a', 'company-b'])->get() as $company) {
             $this->manifest[$company->slug] = $this->seedForCompany($company, $owner);
         }
 

@@ -9,8 +9,8 @@ This is the concise product contract for the KapturInvoice renovation. The detai
 
 KapturInvoice is a job-centric invoicing, procurement, delivery, and customer-billing workspace for two legally separate Indonesian companies:
 
-- Karunia Abadi: non-tax, migrated from InvoiceNinja 4.
-- Axen Technology Indonesia: Indonesian tax-enabled, migrated from InvoiceNinja 5.
+- Company A: non-tax, migrated from InvoiceNinja 4.
+- Company B: Indonesian tax-enabled, migrated from InvoiceNinja 5.
 
 ## Scope statement
 
@@ -47,7 +47,7 @@ The Sales Order / Job is the operational center. It connects the accepted commer
 - Company data must never cross company boundaries.
 - Issued financial records, verified payments, receipts, document snapshots, PDFs, and audit events are immutable and never physically deleted.
 - New documents follow `COMPANY-DOCUMENTTYPE-YEARMONTHSEQ`; historical InvoiceNinja numbers remain unchanged.
-- Axen uses approved Indonesian PPN calculations; Karunia does not calculate new customer tax.
+- Company B uses approved Indonesian PPN calculations; Company A does not calculate new customer tax.
 - A document uses one tax pricing mode: inclusive or exclusive. Taxable lines may not mix modes at launch.
 - Discounts always reduce the taxable base before tax.
 - Final payable fractional Rupiah rounds upward to the next whole Rupiah, while calculations retain at most two decimal places.

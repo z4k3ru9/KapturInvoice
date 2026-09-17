@@ -37,7 +37,7 @@
     @if ($tab === 'tax-rates')
         <x-card>
             @if (! $taxEnabled)
-                {{-- "Karunia Abadi's CompanyTaxSetting.tax_enabled is false
+                {{-- "Company A's CompanyTaxSetting.tax_enabled is false
                      by design, this table should never invite adding
                      rates that will never apply" (prompt 13). --}}
                 <div class="flex flex-col items-center justify-center text-center py-14 px-6">

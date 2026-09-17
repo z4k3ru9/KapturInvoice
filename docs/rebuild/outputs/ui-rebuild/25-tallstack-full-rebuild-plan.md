@@ -37,8 +37,8 @@ before building each area: **`DESIGN.md`** and
 **`kapturinvoice-stitch-prompts.md`** (screens titled exactly that in the
 project — fetch via `get_screen`, they're `text/markdown`).
 
-Most screens exist in two variants — a Karunia Abadi-style plain variant and
-an **"(Axen Technology Variant)"** — plus some have a dark-mode variant.
+Most screens exist in two variants — a Company A-style plain variant and
+an **"(Company B Variant)"** — plus some have a dark-mode variant.
 Build against whichever variant is the closer match to the tenant's own
 `primary_color`/`secondary_color` (see `CompanySeeder`), the same way the
 Dashboard mockup comparison worked earlier this session.
@@ -47,27 +47,27 @@ Dashboard mockup comparison worked earlier this session.
 
 | App area | Stitch screen titles found | Filament resource it replaces |
 |---|---|---|
-| Dashboard | "Dashboard - Company Overview" (+ Axen variant) | `App\Filament\Pages\Dashboard` — **done** |
+| Dashboard | "Dashboard - Company Overview" (+ Company B variant) | `App\Filament\Pages\Dashboard` — **done** |
 | Quotations | "Quotations Register", "Quotation Creation & Line Editor", "Quotation A4 Print & PDF Preview", "Quotation A4 Print Preview (Non-Tax / Non-PKP Variant)" | `App\Filament\Resources\Quotations` |
-| Job (SalesOrder) workspace | "Job Workspace - Overview/Activity/Billing/Commercial/Delivery/Procurement/Margin Tab" (each has an Axen variant; Overview also has a dark-mode Axen variant) | `App\Filament\Resources\SalesOrders` — richest single area, 7 tabs |
-| Invoices | "Customer Invoice Detail & e-Faktur Issuance", "Customer Invoices Register" (plain + Non-Tax/Non-PKP + Axen variants) | `App\Filament\Resources\Invoices` |
+| Job (SalesOrder) workspace | "Job Workspace - Overview/Activity/Billing/Commercial/Delivery/Procurement/Margin Tab" (each has a Company B variant; Overview also has a dark-mode Company B variant) | `App\Filament\Resources\SalesOrders` — richest single area, 7 tabs |
+| Invoices | "Customer Invoice Detail & e-Faktur Issuance", "Customer Invoices Register" (plain + Non-Tax/Non-PKP + Company B variants) | `App\Filament\Resources\Invoices` |
 | Payments | "Payments & Receipts - Allocation Panel" | `App\Filament\Resources\Payments` |
 | Vendors / Procurement | "Vendors & Vendor Bills Register", "Vendor Bill Detail & Shared Allocation", "Vendor Purchase Order Creation & Line Planning", "Vendor Purchase Orders Register" | `App\Filament\Resources\Vendors`, `VendorBills`, `VendorPurchaseOrders` |
 | Delivery / Handover | "Delivery Order Detail & Logistics Verification", "Delivery Orders & Handover Register", "Handover Reports Register", "Driver Field Logistics Mobile Sign-Off" (mobile) | delivery/handover relation managers on `SalesOrders` — no standalone Filament resource today, this would be new top-level pages |
-| Products / Catalog | "Products - Picture Upload & Thumbnail Placement" (+ Axen variant) | `App\Filament\Resources\Products` |
+| Products / Catalog | "Products - Picture Upload & Thumbnail Placement" (+ Company B variant) | `App\Filament\Resources\Products` |
 | Settings | "Company & Taxes Settings" | `App\Filament\Pages\Settings\*` |
 | Reports | "Financial Analytics & Tax Reports" | `App\Filament\Widgets\JobMarginReport` and friends — no dedicated Filament page today |
-| Client portal | "Client Read-Only Portal (TallStack UI - Axen Technology)" — literally already speccing TallStackUI, "Client Portal - Access Expired & Security Verification" | `App\Livewire\Portal\*` — **already Livewire, not Filament**, but restyle to match this mockup |
+| Client portal | "Client Read-Only Portal (TallStack UI - Company B)" — literally already speccing TallStackUI, "Client Portal - Access Expired & Security Verification" | `App\Livewire\Portal\*` — **already Livewire, not Filament**, but restyle to match this mockup |
 | Onboarding | "First-Run & Zero-State Onboarding" | `App\Filament\Support\SetupChecklist` dashboard widget |
-| Assets | "KapturInvoice Logo", "Axen Technology Indonesia Logo" (SVG) | reference art, not a page |
-| Clients | "Clients — Register and Detail View" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\Clients` |
+| Assets | "KapturInvoice Logo", "Company B Logo" (SVG) | reference art, not a page |
+| Clients | "Clients — Register and Detail View" (+ "(Company A)" variant) | `App\Filament\Resources\Clients` |
 | Users & roles | "Users & Roles — Company Permissions" | `App\Filament\Resources\Users` |
 | Proposals | "Proposals — Register & SOW Rich Editor" | `App\Filament\Resources\Proposals`/`ProposalTemplates`/`ProposalSnippets` |
 | Settings — small lookups | "Settings — Tax Rates & Small Lookups" (one representative screen covering Tax Rates, Expense Categories, Task Statuses per prompt 13's own scoping) | `App\Filament\Resources\TaxRates`/`ExpenseCategories`/`TaskStatuses` |
-| Price List Items | "Price List Items — Vendor Catalog Reference" (+ "(Karunia Abadi)" variant) | `App\Filament\Resources\PriceListItems` |
-| Credits | "Credits — Register (Karunia Abadi Variant)" | `App\Filament\Resources\Credits` |
+| Price List Items | "Price List Items — Vendor Catalog Reference" (+ "(Company A)" variant) | `App\Filament\Resources\PriceListItems` |
+| Credits | "Credits — Register (Company A Variant)" | `App\Filament\Resources\Credits` |
 | Recurring Invoices | "Recurring Invoices — Register & Schedule Editor" | `App\Filament\Resources\RecurringInvoices` |
-| Statement of Account | "Statement of Account — Document Preview & Issuance Ledger" (2 copies), "Statement of Accounts — Master Register (Karunia Abadi Variant)", "Statement of Account — Preview & Issuance Ledger" (+ "(Axen Technology Variant)") — confirmed present via `list_screens` on 2026-09-15. Three earlier `generate_screen_from_text` calls against prompt 17 (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) had each timed out client-side at 60s with no completion visible in a `list_screens` check shortly after; at least one of those calls evidently finished server-side sometime later, since these screens were already present before a fourth generation call was needed this session. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
+| Statement of Account | "Statement of Account — Document Preview & Issuance Ledger" (2 copies), "Statement of Accounts — Master Register (Company A Variant)", "Statement of Account — Preview & Issuance Ledger" (+ "(Company B Variant)") — confirmed present via `list_screens` on 2026-09-15. Three earlier `generate_screen_from_text` calls against prompt 17 (design system `assets/65c636e1ab2f48abadb2b452c83a381f`) had each timed out client-side at 60s with no completion visible in a `list_screens` check shortly after; at least one of those calls evidently finished server-side sometime later, since these screens were already present before a fourth generation call was needed this session. | `App\Models\StatementOfAccount` / `App\Actions\Reports\GenerateStatementOfAccount` — no Filament resource (Client-detail row action only) |
 
 **Formerly "no dedicated Stitch screen found" for**: Clients, Users,
 Proposals/Proposal Templates/Snippets, Tax Rates, Expense Categories, Task
@@ -265,11 +265,11 @@ Read first, in order:
 Fetch the Stitch mockup(s) for this phase via the Google Stitch MCP tools:
 projectId = 17287642508359312726 ("KapturInvoice Admin Workflow UI"),
 screen(s): [screen title(s) from the plan doc's table, e.g.
-"Quotations Register (Axen Technology Variant)"]. Use
+"Quotations Register (Company B Variant)"]. Use
 mcp__Google_Stich__get_screen for each screen's HTML/screenshot. Prefer
-the Axen Technology variant when both plain and Axen variants exist,
+the Company B variant when both plain and Company B variants exist,
 matching this session's Dashboard precedent — but if a screen has no
-Axen variant, use what exists.
+Company B variant, use what exists.
 
 Build:
 - A new App\Livewire\[ComponentName] full-page Livewire component,
@@ -411,13 +411,13 @@ status checklist.
       derived the same pending/filed/adjusted way
       App\Actions\Billing\FileOrAdjustTaxRecap already treats those
       columns), each linking to the existing tax-recaps.pdf route, with
-      a tax-disabled explanatory empty state for Karunia Abadi mirroring
+      a tax-disabled explanatory empty state for Company A mirroring
       Tax Rates' own. No report-viewing role gate exists anywhere in this
       codebase (JobMarginReport itself has none), so access matches every
       other read-mostly TALL-stack register: any authenticated company
-      member. Only an Axen Technology Stitch variant exists for this
-      screen ("Financial Analytics & Tax Reports (Axen Technology
-      Variant)") — used directly, no Karunia variant to compare against.
+      member. Only a Company B Stitch variant exists for this
+      screen ("Financial Analytics & Tax Reports (Company B
+      Variant)") — used directly, no Company A variant to compare against.
       `App\Livewire\TallStackReports`.)
 - [x] Phase 11 — Client portal restyle (`App\Livewire\Portal\ViewInvoice`/
       `ClientPortalHome` restyled in place, matching the Client
@@ -506,8 +506,8 @@ status checklist.
       fetched Stitch screenshot — a deliberate scope trade-off, noted for
       anyone who wants a closer visual pass later. Mockup: ("Statement of
       Account — Document Preview & Issuance Ledger" /
-      "Statement of Accounts — Master Register (Karunia Abadi Variant)" /
-      "Statement of Account — Preview & Issuance Ledger" + Axen Technology
+      "Statement of Accounts — Master Register (Company A Variant)" /
+      "Statement of Account — Preview & Issuance Ledger" + Company B
       Variant) confirmed present in the Stitch project as of 2026-09-15,
       after three earlier `generate_screen_from_text` attempts timed out
       client-side with no completion confirmed at the time — at least one

@@ -20,13 +20,13 @@ class PortfolioContent
     public static function for(Company $company): array
     {
         return match ($company->slug) {
-            'karunia-abadi' => self::karuniaAbadi(),
-            'axen-technology-indonesia' => self::axenTechnology(),
+            'company-a' => self::companyA(),
+            'company-b' => self::companyB(),
             default => self::default($company),
         };
     }
 
-    private static function karuniaAbadi(): array
+    private static function companyA(): array
     {
         return [
             'eyebrow' => 'SECURITY • IT • HARDWARE SERVICES',
@@ -76,7 +76,7 @@ class PortfolioContent
         ];
     }
 
-    private static function axenTechnology(): array
+    private static function companyB(): array
     {
         return [
             'eyebrow' => 'NETWORKING • SURVEILLANCE • IT INFRASTRUCTURE',

@@ -404,7 +404,7 @@
                         e-Faktur / Tax Recap issuance — only exists once IssueInvoice
                         itself decided this invoice was taxable (App\Models\
                         Company\CompanyTaxSetting::tax_enabled plus a nonzero tax
-                        total; Karunia Abadi's own tax_enabled=false never creates
+                        total; Company A's own tax_enabled=false never creates
                         one). Every field/action here mirrors
                         InvoiceInfolist::fileOrAdjustTaxRecapAction() exactly.
                     --}}

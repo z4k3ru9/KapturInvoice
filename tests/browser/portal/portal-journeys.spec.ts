@@ -64,11 +64,11 @@ for (const [key, company] of Object.entries(COMPANIES)) {
 }
 
 test('a portal link only works under its own company domain — cross-company access 404s', async ({ page }) => {
-    const karunia = fixtures['karunia-abadi'];
-    const axenHost = COMPANIES.axen.homepageUrl;
+    const companyA = fixtures['company-a'];
+    const companyBHost = COMPANIES.companyB.homepageUrl;
 
-    // Karunia's own active link, requested under Axen's resolved domain.
-    const response = await page.goto(`${axenHost}/portal/link/${karunia.active_portal_link_key}`);
+    // Company A's own active link, requested under Company B's resolved domain.
+    const response = await page.goto(`${companyBHost}/portal/link/${companyA.active_portal_link_key}`);
 
     expect(response?.status()).toBe(404);
 });

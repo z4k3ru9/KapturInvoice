@@ -41,7 +41,7 @@ use TallStackUi\Traits\Interactions;
  * TallStackClients/TallStackVendors) with an in-page create/edit modal
  * rather than separate routes — per the build prompt's own instruction to
  * match "Expense's small-resource shape", and matching the fetched Stitch
- * mockup ("Expenses Register & Edit Modal (Karunia Abadi)") which only
+ * mockup ("Expenses Register & Edit Modal (Company A)") which only
  * ever shows a modal, never a standalone detail page.
  */
 #[Layout('components.tallstack.app')]

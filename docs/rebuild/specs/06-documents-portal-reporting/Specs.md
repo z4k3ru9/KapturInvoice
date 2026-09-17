@@ -29,7 +29,7 @@ Deliver customer-facing output, read-only client access, operational reports, an
 - No client upload, payment, or signature action at launch.
 - Outgoing document and reminder email targets designated billing contacts by default, with authorized per-document CC recipients. Reminder schedule defaults to 7 days before due, due date, and 7/14/30 days overdue; suppression requires reason and audit.
 - Filament admin uses job-centric navigation and role-aware dashboard.
-- Company themes distinguish Karunia red/black and Axen blue/cool neutrals.
+- Company themes distinguish Company A red/black and Company B blue/cool neutrals.
 - Global status palette is fixed: green complete/paid/verified; amber pending/warning; red error/overdue/void; blue info/in-progress; gray draft/inactive.
 - System light/dark mode follows OS; reduced motion is respected.
 - Liquid glass/parallax is limited to marketing/selected portal header.

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * One row per company: whether it calculates tax at all, and the default
  * mode/rate/DPP-factor configuration for the ones that do. See
- * docs/rebuild/specs/FINALIZED-DECISIONS.md §3 — Karunia Abadi is non-tax,
- * Axen Technology Indonesia uses the approved 12% PPN / 11-12 DPP Nilai
+ * docs/rebuild/specs/FINALIZED-DECISIONS.md §3 — Company A is non-tax,
+ * Company B uses the approved 12% PPN / 11-12 DPP Nilai
  * Lain calculation. The calculation engine itself (App\Services\Tax\*)
  * lands in Phase 04; this table only scaffolds the per-company switch.
  */

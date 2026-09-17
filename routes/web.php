@@ -578,7 +578,7 @@ Route::get('/tall/{company:slug}/documents', TallStackDocuments::class)
 
 // Credits — register only (deferred-scope item, no earlier phase number;
 // see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's "Deferred"
-// list — a Stitch mockup ("Credits — Register (Karunia Abadi Variant)")
+// list — a Stitch mockup ("Credits — Register (Company A Variant)")
 // was generated later in that session, mockup prompt 15).
 // Read-only: Credits are imported historical records only
 // (docs/rebuild/specs/FINALIZED-DECISIONS.md §7 — "New credit-note

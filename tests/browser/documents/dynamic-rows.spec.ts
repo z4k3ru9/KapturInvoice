@@ -27,7 +27,7 @@ import { loadFixtures } from '../support/fixtures';
  * omitted.
  */
 const fixtures = loadFixtures();
-const company = COMPANIES.karunia;
+const company = COMPANIES.companyA;
 const fixture = fixtures[company.slug as keyof typeof fixtures];
 
 test('the Items table shows a per-row drag handle to reorder', async ({ page }) => {
