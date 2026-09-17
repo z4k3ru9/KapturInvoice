@@ -177,7 +177,8 @@ Every migration must be safe to run on a clean database and must not assume impo
 Use adapters for legacy data and behavior:
 
 ```text
-InvoiceNinja 4 mapper -> canonical Company A records
+InvoiceNinja 5 mapper -> canonical Company A records (former v4 install,
+upgraded before cutover)
 InvoiceNinja 5 mapper -> canonical Company B records
 Legacy payment relation -> payment event + allocation records
 Legacy mutable invoice -> immutable document snapshot + revision history
