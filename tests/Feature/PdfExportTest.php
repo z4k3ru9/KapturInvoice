@@ -347,8 +347,7 @@ class PdfExportTest extends TestCase
     }
 
     /**
-     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
-     * item 7: an "Amount paid" row when amount_paid > 0, absent otherwise.
+     * Invoice PDF gap-analysis item 7: an "Amount paid" row when amount_paid > 0, absent otherwise.
      */
     public function test_invoice_pdf_shows_amount_paid_row_only_when_something_has_been_paid(): void
     {
@@ -391,8 +390,7 @@ class PdfExportTest extends TestCase
     }
 
     /**
-     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
-     * item 7: a percentage discount also shows the computed nominal amount,
+     * Invoice PDF gap-analysis item 7: a percentage discount also shows the computed nominal amount,
      * derived from the invoice's own already-persisted subtotal/tax_total/
      * total (never a fresh calculation — see resources/views/pdf/invoice.blade.php's
      * own comment).
@@ -421,8 +419,7 @@ class PdfExportTest extends TestCase
     }
 
     /**
-     * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/04-invoices-payments.md
-     * item 7: tax rows broken out per tax name from the normalized
+     * Invoice PDF gap-analysis item 7: tax rows broken out per tax name from the normalized
      * invoice_item_taxes rows instead of one generic "Tax" line.
      */
     public function test_invoice_pdf_breaks_out_tax_rows_by_name_when_normalized_tax_rows_exist(): void

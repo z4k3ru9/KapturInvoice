@@ -79,10 +79,9 @@
                 ['key' => 'vendor-bills', 'label' => 'Vendor bills', 'route' => route('tallstack.vendor-bills', $company), 'icon' => 'clipboard-document-list'],
                 ['key' => 'vendor-purchase-orders', 'label' => 'Purchase orders', 'route' => route('tallstack.vendor-purchase-orders', $company), 'icon' => 'shopping-cart'],
                 ['key' => 'vendors', 'label' => 'Vendors', 'route' => route('tallstack.vendors', $company), 'icon' => 'building-storefront'],
-                // Pre-Filament-removal gap audit item
-                // (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-                // prompt 19) — mirrors the equivalent resource's own
-                // navigationGroup ('Procurement') from the pre-TallStackUI
+                // Pre-Filament-removal gap audit item — mirrors the
+                // equivalent resource's own navigationGroup ('Procurement')
+                // from the pre-TallStackUI
                 // Filament admin, folded into this SAME
                 // 'Procurement' key, never a second 'Procurement' => [...]
                 // block (see this file's own duplicate-key warning further
@@ -106,10 +105,9 @@
             'icon' => 'identification',
             'items' => [
                 ['key' => 'clients', 'label' => 'Clients', 'route' => route('tallstack.clients', $company), 'icon' => 'user-group'],
-                // Pre-Filament-removal gap audit item
-                // (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-                // prompt 21) — mirrors the equivalent resource's own
-                // navigationGroup ('Clients') from the pre-TallStackUI
+                // Pre-Filament-removal gap audit item — mirrors the
+                // equivalent resource's own navigationGroup ('Clients')
+                // from the pre-TallStackUI
                 // Filament admin, folded into this SAME
                 // 'Clients' key, never a second 'Clients' => [...] block (see
                 // this file's own duplicate-key warning further down).
@@ -128,9 +126,8 @@
                 ['key' => 'price-list-items', 'label' => 'Price List', 'route' => route('tallstack.price-list-items', $company), 'icon' => 'currency-dollar'],
             ],
         ],
-        // Pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-        // prompt 22) — mirrors the equivalent resource's own
-        // navigationGroup ('Documents', a group of its own, placed
+        // Pre-Filament-removal gap audit item — mirrors the equivalent
+        // resource's own navigationGroup ('Documents', a group of its own, placed
         // right after Catalog/before Reports in AdminPanelProvider's own
         // pinned nav-group order) — a genuinely new top-level array entry,
         // never folded into an existing group (see this file's own
@@ -195,9 +192,9 @@
                 // strip would misrepresent what they are.
                 ['key' => 'settings', 'label' => 'Settings', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'cog-6-tooth'],
                 ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
-                // Pre-Filament-removal audit gap (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-                // prompt 20) — folded into this SAME 'Settings' key, never a
-                // second 'Settings' => [...] block (see this file's own
+                // Pre-Filament-removal audit gap — folded into this SAME
+                // 'Settings' key, never a second 'Settings' => [...] block
+                // (see this file's own
                 // duplicate-key warning above).
                 ['key' => 'payment-gateways', 'label' => 'Payment Gateways', 'route' => route('tallstack.payment-gateways', $company), 'icon' => 'credit-card'],
             ],

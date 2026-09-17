@@ -14,8 +14,7 @@ Artisan::command('inspire', function () {
 Schedule::command('invoices:send-reminders')->dailyAt('08:00');
 
 // See App\Console\Commands\ExpireQuotations — closes the "no automatic
-// quotation expiry" gap noted in
-// docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md.
+// quotation expiry" gap noted during Phase 03 (Sales and Job).
 Schedule::command('quotations:expire')->dailyAt('00:05');
 
 // See App\Console\Commands\MarkInvoicesOverdue — closes the equivalent gap

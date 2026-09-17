@@ -27,8 +27,7 @@ use TallStackUi\Traits\Interactions;
  *
  * Proposal Templates and Proposal Snippets (the two supporting library
  * resources) are now real TallStackUI pages —
- * App\Livewire\TallStackProposalTemplates/TallStackProposalSnippets, per
- * docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt 23. The
+ * App\Livewire\TallStackProposalTemplates/TallStackProposalSnippets. The
  * secondary links below open those instead of the Filament admin pages.
  */
 #[Layout('components.tallstack.app')]

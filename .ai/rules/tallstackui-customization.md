@@ -90,3 +90,46 @@ Tailwind `gray-*` shade (by `oklch` lightness — `dark-800`→`gray-900`,
 — see `App\Providers\AppServiceProvider::registerContentSurfaceDarkModeFix()`'s
 own docblock for the full lightness table), THEN add `!important` per the
 rule above.
+
+
+## Established component gotchas (avoid rediscovering)
+
+From the original Filament→TallStackUI admin rebuild, still true today:
+
+- **`App\Support\TallStack\StatusColor::map()`**: every status enum's
+  `getColor()` returns a Filament-era semantic name (gray/info/success/
+  warning/danger), but TallStackUI's `<x-badge>` color prop expects a
+  literal Tailwind palette name (gray/blue/green/amber/red/...) and
+  silently renders an unstyled black-outline badge for any name it doesn't
+  recognize. Always wrap an enum's `getColor()` through `StatusColor::
+  map()` before passing it to `<x-badge>`/`<x-stats>`'s `color` prop —
+  never pass an enum's `getColor()` result straight through.
+- **`@interact('column_name', $row, $extra1, $extra2, ...)`** for
+  `<x-table>` custom columns — any outer Blade variable used inside the
+  column (like `$company`) must be listed as an extra argument, or it's
+  `Undefined variable` — closures don't inherit scope automatically. Each
+  extra argument compiles straight into the closure's `use()` clause, so
+  it must be a plain variable, never `$this` or any other non-variable
+  expression — `@interact('column_actions', $row, $this)` is a fatal
+  "Cannot use $this as lexical variable". Precompute what you need into a
+  plain `$variable` via `@php(...)` before the table and pass that instead.
+- **`<x-icon>` sizing**: give a flex-item icon (or its wrapper) `shrink-0`,
+  or a longer sibling text node will silently squeeze it.
+- **Icon-only square buttons**: use the `icon-action` button scope (20px
+  icon in a 36px box, registered in
+  `AppServiceProvider::registerTallStackUiCustomizations()`) rather than
+  the package's default `sm` icon size (12px, looks adrift in a square box
+  with no text beside it).
+- **`<x-input>`/`<x-textarea>`/`<x-select.styled>` have zero left padding
+  by default** — already fixed globally via
+  `TallStackUi::customize()->form('input')->block('input.base')->append('px-3')`
+  (+ the same for `form('textarea')` and `select('styled')->block
+  ('input.wrapper.base')`) in `AppServiceProvider::
+  registerTallStackUiCustomizations()`. Never add a per-call-site
+  `class="px-3"` workaround instead — if a field still looks flush against
+  its ring border, the fix belongs in that one registration, not the view.
+- **Verification discipline**: after any visual change, `npm run build`
+  (Tailwind won't pick up new Blade files/classes otherwise), `php artisan
+  view:clear` + `config:clear` if a `TallStackUi::customize()` call
+  changed, then check actual computed styles/bounding boxes — not just a
+  screenshot — before claiming something is fixed.

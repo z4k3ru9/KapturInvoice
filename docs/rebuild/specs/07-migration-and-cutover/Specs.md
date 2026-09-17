@@ -1,6 +1,6 @@
 # Phase 07: InvoiceNinja Migration and Cutover
 
-> **Status (verified 2026-09-15):** 🚧 In progress — see branch `claude/phase-07-migration-cutover` (not yet merged into `main`). Recent work there: migration-tracking foundation (batches, exceptions, reconciliation runs), batch tracking/checkpoint/restart and credit quarantine wired into both legacy importers, and persisted (not console-only) reconciliation output.
+> **Status (verified 2026-09-15):** 🚧 Only migration-tracking schema (models/enums/migrations) has been merged into `main`; the importer rework and full batch/exception/reconciliation wiring described below are still undone. **Reprioritized 2026-09-17**: the Owner has decided full migration/cutover completion is non-blocking for shipping this product — see `docs/out-of-scope-findings.md`. This does not mean the work described below is finished, only that it's no longer a launch gate.
 
 ## Goal
 

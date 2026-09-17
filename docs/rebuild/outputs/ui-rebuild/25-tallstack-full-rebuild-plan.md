@@ -76,10 +76,10 @@ Accounts — all now have generated Stitch screens, listed in the table
 above. Statement of Accounts was the last of the nine to be confirmed
 (2026-09-15) — the mockup existing is not the same as the screen being
 built in TallStackUI; see the status checklist below for that distinction.
-The prompts for all nine areas live in
-[`26-stitch-missing-screens-prompts.md`](26-stitch-missing-screens-prompts.md)
-(numbered 10-17, continuing the original project's own
-`kapturinvoice-stitch-prompts.md` 1-9).
+The prompts for all nine areas (numbered 10-17, continuing the original
+project's own `kapturinvoice-stitch-prompts.md` 1-9) were consolidated
+away 2026-09-17, all nine screens having since been built — see
+`docs/rebuild/outputs/HISTORY.md`.
 
 ## Phase order
 
@@ -514,7 +514,8 @@ status checklist.
       evidently finished server-side later. This was the last item in the
       phases above did.
 - [x] Filament-parity gap closure — pre-removal audit found 9 real gaps
-      (see `docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md`).
+      (prompt docs consolidated away 2026-09-17, all closed — see
+      `docs/rebuild/outputs/HISTORY.md`).
       Closing them one worktree-agent at a time (max 3 concurrent), each
       built against its own generated Stitch mockup:
       - [x] Company registration/onboarding (`/register-company`,
@@ -560,10 +561,10 @@ status checklist.
             here by design (uploads happen from the owning record).
             Matched against the "Documents & File Library — Company
             Scoped Reference Register" Stitch mockup.
-      - [ ] Proposal Templates & Snippets — mockup generated ("Proposal
-            Templates & Snippets Library"), build in progress.
-- [ ] Filament removal (`app/Filament/**`, `filament/filament` package) —
-      **not started, not scheduled** until every gap above (including
-      login) is closed and verified; the user has already given a
-      conditional go-ahead ("Yes, remove Filament now too") once that
-      holds.
+      - [x] Proposal Templates & Snippets — mockup generated ("Proposal
+            Templates & Snippets Library"), built
+            (`App\Livewire\TallStackProposalTemplates`/
+            `TallStackProposalSnippets`; `TallStackProposalTemplatesAndSnippetsTest`).
+- [x] Filament removal (`app/Filament/**`, `filament/filament` package) —
+      **done.** `app/Filament` no longer exists in this codebase (confirm
+      with `ls app/`) — see CLAUDE.md's top-of-file note.

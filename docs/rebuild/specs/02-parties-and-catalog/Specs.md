@@ -1,6 +1,6 @@
 # Phase 02: Parties and Catalog
 
-> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" and `docs/rebuild/outputs/checkpoints/16-phase-02-checkpoint-report.md`.
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" and `docs/rebuild/outputs/HISTORY.md`'s Phase 02 entry.
 
 ## Goal
 

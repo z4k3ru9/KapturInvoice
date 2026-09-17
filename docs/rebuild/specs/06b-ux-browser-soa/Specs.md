@@ -1,6 +1,6 @@
 # Phase 06B: UX, Browser QA, and Statement of Account Completion
 
-> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" (note: the admin panel has since been rebuilt from Filament to hand-built TallStackUI/Livewire, a post-phase change documented in `memory.md`, not a reopening of this phase) and `docs/rebuild/outputs/checkpoints/23-phase-06b-checkpoint-report.md`.
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. See `memory.md` "Current state" (note: the admin panel has since been rebuilt from Filament to hand-built TallStackUI/Livewire, a post-phase change documented in `memory.md`, not a reopening of this phase) and `docs/rebuild/outputs/HISTORY.md`'s Phase 06B entry and `docs/rebuild/outputs/checkpoints/22-phase-06b-terminology-sources.md`.
 
 **Status:** Required before Phase 07
 **Dependency:** Phase 06 backend work

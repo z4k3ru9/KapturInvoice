@@ -6,9 +6,8 @@
         </x-slot:badge>
     </x-tallstack.page-header>
 
-    {{-- No "New Credit" action anywhere on this page — per prompt 15
-         (docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md) and
-         FINALIZED-DECISIONS.md §7, new credit-note creation is deferred
+    {{-- No "New Credit" action anywhere on this page — per its Stitch
+         mockup prompt and FINALIZED-DECISIONS.md §7, new credit-note creation is deferred
          scope. A muted explanatory line rather than a disabled/greyed-out
          button is the deliberate UX: it explains the screen's own limits
          instead of reading as unfinished. --}}

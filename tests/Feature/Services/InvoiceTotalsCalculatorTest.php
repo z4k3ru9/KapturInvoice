@@ -63,8 +63,7 @@ class InvoiceTotalsCalculatorTest extends TestCase
     }
 
     /**
-     * Regression test for the discount-order bug flagged in
-     * docs/REFACTOR_PLAN.md §1.3: a document/invoice-level discount must
+     * Regression test for a document/invoice-level discount: it must
      * reduce the taxable base before tax is applied, not just the post-tax
      * total. 100 units @ 100 = 10,000 subtotal, 10% document discount =
      * 9,000 taxable, 10% VAT on 9,000 = 900 tax, total 9,900 — not

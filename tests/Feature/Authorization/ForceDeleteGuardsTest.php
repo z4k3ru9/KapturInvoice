@@ -43,7 +43,7 @@ use Tests\TestCase;
  * "physical deletion is Owner-only" rule holds through the new Action
  * (not just at the bare Gate level).
  *
- * docs/REFACTOR_PLAN.md drift audit this originally caught: Filament's
+ * The real drift this originally caught: Filament's
  * stock ForceDeleteBulkAction only hid itself while the Trashed filter
  * wasn't set — once switched to "With Trashed"/"Only Trashed", any
  * selected row (regardless of status) got `forceDelete()`'d directly,

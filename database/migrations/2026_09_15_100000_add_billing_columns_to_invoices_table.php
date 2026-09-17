@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Phase 04 (docs/rebuild/specs/04-billing-and-receivables): extends the
      * existing `invoices` table rather than splitting a new one out (unlike
-     * Quotation/SalesOrder in Phase 03) — per docs/REFACTOR_PLAN.md §2's
-     * phase table, real invoices are MODIFY (major), not BUILD NEW, since
-     * already-imported financial history already lives here.
+     * Quotation/SalesOrder in Phase 03) — real invoices are MODIFY (major),
+     * not BUILD NEW, since already-imported financial history already
+     * lives here.
      *
      * - `sales_order_id`: optional link to the Phase 03 Job aggregate this
      *   invoice bills against (a legacy/already-imported invoice has none).

@@ -8,8 +8,7 @@ use App\Models\Product;
 use App\Models\Quotation;
 
 /**
- * The first-run/zero-state setup checklist — see
- * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md O1.
+ * The first-run/zero-state setup checklist.
  * Four steps, each linking to the existing TALL-stack page that completes
  * it: company profile & numbering, at least one catalog item, at least
  * one client, and the first quotation.

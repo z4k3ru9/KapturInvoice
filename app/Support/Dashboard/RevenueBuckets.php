@@ -11,11 +11,9 @@ use Illuminate\Support\Carbon;
 
 /**
  * The revenue-trend bucket computation shared by the dashboard's chart and
- * its accessible-table alternative — see
- * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md D5/
- * D6. Kept out of the presentation layer so the chart and the table sum
- * the exact same numbers, and so the query logic is unit-testable without
- * Livewire.
+ * its accessible-table alternative. Kept out of the presentation layer so
+ * the chart and the table sum the exact same numbers, and so the query
+ * logic is unit-testable without Livewire.
  *
  * "Invoiced" reads the legacy `invoices` table (`type = invoice`, not
  * Draft) by `invoice_date` — an interim stand-in until the canonical

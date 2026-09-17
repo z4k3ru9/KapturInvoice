@@ -14,9 +14,7 @@ return new class extends Migration
      * existing `invoices` table's `type = 'quote'` rows (see
      * App\Livewire\TallStackQuotes's docblock — the Filament
      * `QuoteResource` this originally referenced no longer exists, per
-     * CLAUDE.md's note on the Filament removal — and
-     * docs/REFACTOR_PLAN.md §1.2's "MODIFY (major) ... becomes its own
-     * QuotationResource over the new quotations table"). Per
+     * CLAUDE.md's note on the Filament removal). Per
      * docs/rebuild/specs/IMPLEMENTATION-STRUCTURE.md §7 ("Introduce new
      * canonical classes beside legacy classes until the migration wave
      * proves the replacement"), the legacy Invoice/type=quote rows stay

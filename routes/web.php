@@ -475,8 +475,7 @@ Route::get('/tall/{company:slug}/account/passkeys', TallStackAccountPasskeys::cl
     ->name('tallstack.account.passkeys');
 
 // Payment Gateways — register and configuration (pre-Filament-removal
-// audit gap; docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-// prompt 20). Same explicit company-ownership re-check pattern as every
+// audit gap). Same explicit company-ownership re-check pattern as every
 // other TALL-stack route, plus the same CompanyPolicy::viewSettings()
 // (Owner/Admin only) gate the other Settings-group pages above already
 // apply, checked in the component's own mount().
@@ -488,9 +487,8 @@ Route::get('/tall/{company:slug}/payment-gateways', TallStackPaymentGateways::cl
 // earlier phase number; see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
 // "Deferred, no Stitch mockup" list — a Stitch mockup ("Proposals —
 // Register & SOW Rich Editor") was generated for it later in that
-// session, per docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md
-// prompt 12). Same explicit company-ownership re-check pattern as
-// Quotations above.
+// session (mockup prompt 12). Same explicit company-ownership re-check
+// pattern as Quotations above.
 Route::get('/tall/{company:slug}/proposals', TallStackProposals::class)
     ->middleware('auth')
     ->name('tallstack.proposals');
@@ -503,9 +501,8 @@ Route::get('/tall/{company:slug}/proposals/{proposal}/edit', TallStackProposalFo
 
 // Proposal Templates & Snippets — Proposals' own small supporting
 // library, reached via the tab-style links on TallStackProposals's own
-// header (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt
-// 23). Deliberately NOT a top-level nav entry — same "reached via the
-// parent register's own tabs" scoping prompt 13 already established for
+// header. Deliberately NOT a top-level nav entry — same "reached via the
+// parent register's own tabs" scoping already established for
 // Tax Rates/Expense Categories/Task Statuses.
 Route::get('/tall/{company:slug}/proposals/templates', TallStackProposalTemplates::class)
     ->middleware('auth')
@@ -515,8 +512,8 @@ Route::get('/tall/{company:slug}/proposals/snippets', TallStackProposalSnippets:
     ->name('tallstack.proposal-snippets');
 
 // "Users & roles" (docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's
-// "Deferred, no Stitch mockup" list — a mockup was generated later, see
-// docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 11).
+// "Deferred, no Stitch mockup" list — a mockup was generated later,
+// mockup prompt 11).
 // canAccessTenant() plus the Owner/Admin-only CompanyPolicy::manageMembership
 // check both happen in the component's mount(), same pattern as every
 // other TALL-stack page.
@@ -555,9 +552,9 @@ Route::get('/tall/{company:slug}/vendor-bills/{vendorBill}/edit', TallStackVendo
     ->middleware('auth')
     ->name('tallstack.vendor-bills.edit');
 
-// Expenses — pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-// prompt 19), TALL-stack-native alongside the equivalent resource from
-// the pre-TallStackUI Filament admin. A plain non-job cost bucket,
+// Expenses — pre-Filament-removal gap audit item, TALL-stack-native
+// alongside the equivalent resource from the pre-TallStackUI Filament
+// admin. A plain non-job cost bucket,
 // separate from Vendor Bills (which ARE tied to a job/PO) — register/list
 // + modal create/edit only, no separate route, matching this app's
 // small-resource convention (see Clients/Vendors) and the fetched Stitch
@@ -567,9 +564,9 @@ Route::get('/tall/{company:slug}/expenses', TallStackExpenses::class)
     ->middleware('auth')
     ->name('tallstack.expenses');
 
-// Documents — pre-Filament-removal gap audit item (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-// prompt 22), TALL-stack-native alongside the equivalent resource from
-// the pre-TallStackUI Filament admin. A flat,
+// Documents — pre-Filament-removal gap audit item, TALL-stack-native
+// alongside the equivalent resource from the pre-TallStackUI Filament
+// admin. A flat,
 // company-scoped "every file we have" register/list-only page — no
 // create route, since a Document is always uploaded from its owning
 // record elsewhere in the app. Download reuses the existing
@@ -582,8 +579,7 @@ Route::get('/tall/{company:slug}/documents', TallStackDocuments::class)
 // Credits — register only (deferred-scope item, no earlier phase number;
 // see docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md's "Deferred"
 // list — a Stitch mockup ("Credits — Register (Karunia Abadi Variant)")
-// was generated later in that session, per
-// docs/rebuild/outputs/ui-rebuild/26-stitch-missing-screens-prompts.md prompt 15).
+// was generated later in that session, mockup prompt 15).
 // Read-only: Credits are imported historical records only
 // (docs/rebuild/specs/FINALIZED-DECISIONS.md §7 — "New credit-note
 // creation, editing, refunds, and write-offs remain deferred"), so unlike
@@ -594,8 +590,7 @@ Route::get('/tall/{company:slug}/credits', TallStackCredits::class)
     ->middleware('auth')
     ->name('tallstack.credits');
 
-// Client Portal Invitations — pre-Filament-removal gap audit item
-// (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt 21),
+// Client Portal Invitations — pre-Filament-removal gap audit item,
 // TALL-stack-native alongside the equivalent resource from the
 // pre-TallStackUI Filament admin. Read-mostly,
 // same reasoning as Credits above: invitations are generated

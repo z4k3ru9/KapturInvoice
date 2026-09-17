@@ -12,8 +12,8 @@ return new class extends Migration
      * Phase 02 (docs/rebuild/specs/02-parties-and-catalog/Specs.md):
      * broadens `Product` into a general catalog item — a line a
      * quotation/invoice can sell that isn't necessarily a physical good.
-     * Per docs/REFACTOR_PLAN.md §1.1 this is an additive extension of the
-     * existing table/model, not a new `catalog_items` table — `Product`
+     * This is an additive extension of the existing table/model, not a
+     * new `catalog_items` table — `Product`
      * already cleanly separates "reference catalog" (`PriceListItem`) from
      * "sellable item", so the only real gap was the type/tax/stock fields
      * below.

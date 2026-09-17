@@ -19,13 +19,10 @@ use App\Models\VendorBill;
 
 /**
  * The dashboard's role-aware "Action queue" — see docs/rebuild/DESIGN.md
- * §3 for the approved per-role queue contents and
- * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md D10
- * for the implementation constraint: every link goes to a plain
- * TALL-stack register/index page (no `?tableFilters=` deep link — that
- * needs status-filter wiring this slice deliberately doesn't touch, see
- * the Track A/B split in
- * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md).
+ * §3 for the approved per-role queue contents. Implementation constraint:
+ * every link goes to a plain TALL-stack register/index page (no
+ * `?tableFilters=` deep link — that needs status-filter wiring this slice
+ * deliberately doesn't touch).
  * Auditor sees the same items as Owner/Admin but with every `url` null
  * (read-only, no interactive queue — DESIGN §3).
  *

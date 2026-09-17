@@ -14,8 +14,7 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
- * the Proposal Templates library — Proposals' own supporting resource,
- * per docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md prompt 23.
+ * the Proposal Templates library — Proposals' own supporting resource.
  * Reached via the "Proposal Templates" tab link on
  * App\Livewire\TallStackProposals's header (previously a placeholder
  * link straight to the Filament admin resource — now this page).

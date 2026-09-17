@@ -10,10 +10,9 @@ re-run completed audits unless new evidence contradicts them.
 - Main is the source of truth. Claude-generated branch checkpoint reports are
   historical evidence only and do not approve current work.
 - Phases 01-06B (the job-centric rebuild) are implemented and verified —
-  see `docs/rebuild/outputs/checkpoints/23-phase-06b-checkpoint-report.md` and
-  CLAUDE.md's own Phase 06B section for the full slice-by-slice and
-  Codex-review detail. Do not re-derive this history from git log or
-  re-run completed audits; treat it as settled.
+  see CLAUDE.md's own Phase 06B section and `docs/rebuild/outputs/HISTORY.md`
+  for the full slice-by-slice and Codex-review detail. Do not re-derive this
+  history from git log or re-run completed audits; treat it as settled.
 - **The Filament admin panel has been fully removed** (`app/Filament` no
   longer exists) and replaced by a hand-built TallStackUI/Livewire admin —
   every resource has a `TallStack*` Livewire component under
@@ -216,16 +215,16 @@ re-run completed audits unless new evidence contradicts them.
   (`IssueInvoice`/`AmendIssuedInvoice`/`VoidAndReissueInvoice`). Do not
   backfill/remap legacy rows onto Phase 04 statuses — a legacy `Partial`,
   for example, has no faithful Phase 04 equivalent, so mapping would
-  destroy real historical distinctions for no functional gain. Closes
-  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
-  C2.
+  destroy real historical distinctions for no functional gain. This closes
+  the last open item from the original Filament→TallStackUI gap analysis
+  (consolidated away 2026-09-17 — see `docs/rebuild/outputs/HISTORY.md`).
 
 - Stitch UI layout work (ratified 2026-09-14, superseded in practice by the
   full TallStackUI rebuild above): the Stitch renders remain layout
   references only, never adopted verbatim (placeholder logos and the
-  Inter webfont were rejected). See
-  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/` for the original
-  slice-order decisions if picking up unfinished Stitch-tracked work.
+  Inter webfont were rejected). The original gap-analysis/slice-order docs
+  that tracked this were consolidated away 2026-09-17 (fully built by
+  then, nothing left unfinished) — see `docs/rebuild/outputs/HISTORY.md`.
 
 ## Financial rules
 

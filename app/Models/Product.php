@@ -18,7 +18,7 @@ use Throwable;
  * `App\Enums\CatalogItemType`) means this models any quotation/invoice
  * line source: a physical product, a service, labor, or a miscellaneous
  * "other" line, not only physical goods. Kept as `Product`/`products`
- * (not renamed to `CatalogItem`) per docs/REFACTOR_PLAN.md §1.1 — the
+ * (not renamed to `CatalogItem`) — the
  * class already had the right shape (a sellable line distinct from the
  * vendor reference catalog, `PriceListItem`), so Phase 02
  * (docs/rebuild/specs/02-parties-and-catalog/Specs.md) only needed to add

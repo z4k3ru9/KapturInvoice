@@ -25,9 +25,9 @@ use Livewire\Component;
 
 /**
  * A TALL-stack-native (TallStackUI components, no Filament) rendering of
- * the Dashboard — see
- * docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md for
- * the visual-fidelity design this was built against. Reuses
+ * the Dashboard, built against the original Google Stitch shell/dashboard
+ * mockup's visual-fidelity design — see CLAUDE.md's "Stitch UI remake"
+ * section for the current, condensed shape. Reuses
  * DashboardPeriod/RevenueBuckets/SetupChecklist (App\Support\Dashboard)
  * unmodified. This page no longer renders its own "Action queue" card —
  * App\Support\Dashboard\ActionQueue is now surfaced only from the shell's

@@ -1,6 +1,6 @@
 # Phase 03: Sales, Customer PO, and Job
 
-> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. `App\Models\Quotation`/`SalesOrder`/`JobVariation` exist and are wired. See `memory.md` "Current state" and `docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md`.
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. `App\Models\Quotation`/`SalesOrder`/`JobVariation` exist and are wired. See `memory.md` "Current state".
 
 ## Goal
 

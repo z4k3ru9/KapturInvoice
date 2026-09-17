@@ -685,12 +685,12 @@ Or just `composer setup` (runs the same steps via the composer script).
     reduced the balance differently depending only on which side of the
     period boundary its `verified_at` fell — both now use the full
     verified-payment-amount basis.
-- **Stitch UI remake — Track A1 (shell) + A2 (dashboard)** — per
-  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
-  Track A, implemented pre-PR#4-merge since these files don't overlap that
-  branch's diff. Full detail in
-  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md`;
-  see `docs/filament-admin-layout-design.md` §1/§9 for the nav-group/
+- **Stitch UI remake — Track A1 (shell) + A2 (dashboard)** — Track A of the
+  original Filament→Stitch-mockup gap analysis, implemented pre-PR#4-merge
+  since these files don't overlap that branch's diff (the gap-analysis
+  docs themselves were consolidated away 2026-09-17 — see
+  `docs/rebuild/outputs/HISTORY.md`). See `docs/filament-admin-layout-design.md`
+  §1/§9 for the nav-group/
   dashboard-widget state *as it stood under Filament*
   (pre-TallStackUI-rebuild architecture; see current TallStackUI
   conventions in this file instead — the Dashboard bullet above and the
@@ -734,9 +734,9 @@ Or just `composer setup` (runs the same steps via the composer script).
   `docs/rebuild/specs/06-documents-portal-reporting/Specs.md`. Scoped to
   the backend-testable, high-value pieces; full visual QA/WCAG/browser
   testing was deliberately NOT built — see
-  `docs/rebuild/outputs/checkpoints/21-phase-06-checkpoint-report.md` for why this
-  matches, rather than contradicts, this project's already-established
-  "no browser/E2E suite" policy (`docs/testing-coverage.md` "What's out
+  `docs/rebuild/outputs/HISTORY.md`'s Phase 06 entry for why this matches,
+  rather than contradicts, this project's already-established "no
+  browser/E2E suite" policy (`docs/testing-coverage.md` "What's out
   of scope").
   - **Document localization** — `Invoice`/`Credit` gain a
     `document_language` column (nullable; falls back to the new
@@ -796,11 +796,12 @@ Or just `composer setup` (runs the same steps via the composer script).
     (still Phase 04's own deferred item), a Statement of Account (`SOA`)
     document type, autosave/Alpine dynamic-row work, company theme
     tokens beyond what already exists, and any browser/visual-QA/WCAG
-    test suite — see the checkpoint report for the full reasoning.
+    test suite — all correctly Phase 06B scope.
 - **Renovation Phase 05 (procurement and delivery)** — connects vendor
   purchasing and physical fulfillment to each job, per
-  `docs/rebuild/specs/05-procurement-and-delivery/Specs.md`. Resolves
-  `docs/REFACTOR_PLAN.md` §2 risk #6 (Expense vs. Vendor Bill): builds a
+  `docs/rebuild/specs/05-procurement-and-delivery/Specs.md`. Resolves the
+  pre-Phase-01 audit's open Expense-vs-Vendor-Bill question (see
+  `docs/rebuild/outputs/HISTORY.md`): builds a
   wholly new aggregate beside the legacy `Expense` model rather than
   renaming/absorbing it — `Expense` doesn't map 1:1 to "a vendor payable
   that may be paid in parts, tied to a job's cost" (no PO linkage, no
@@ -881,17 +882,15 @@ Or just `composer setup` (runs the same steps via the composer script).
     same `isReadOnly()`-plus-custom-`Action::make()` pattern
     `VariationsRelationManager` established in Phase 03) and two new
     row actions (Close operationally/Close financially).
-  - Deliberately not built this phase (see
-    `docs/rebuild/outputs/checkpoints/20-phase-05-checkpoint-report.md`): vendor PO/
-    bill PDF export, a dedicated job-cost/margin report, and any
-    attachment/evidence upload beyond the existing pattern — all
-    correctly Phase 06 (`documents-portal-reporting`) scope.
+  - Deliberately not built this phase: vendor PO/bill PDF export, a
+    dedicated job-cost/margin report, and any attachment/evidence upload
+    beyond the existing pattern — all correctly Phase 06
+    (`documents-portal-reporting`) scope.
 - **Renovation Phase 04 (billing and receivables)** — authoritative
   calculation and immutable customer receivables, per
   `docs/rebuild/specs/04-billing-and-receivables/Specs.md`. Extends
   (rather than replaces) the legacy `Invoice`/`InvoiceItem`/`Payment`
-  classes, per `docs/REFACTOR_PLAN.md`'s phase table — unlike
-  `Quotation`/`SalesOrder` in Phase 03, real invoice/payment history
+  classes — unlike `Quotation`/`SalesOrder` in Phase 03, real invoice/payment history
   already lives here:
   - **`App\Services\Tax\TaxCalculationService`** — the pure, stateless
     engine (no model writes): line subtotal → line discount → global
@@ -941,16 +940,14 @@ Or just `composer setup` (runs the same steps via the composer script).
     catching `RuntimeException` into a danger `Notification` — see
     `App\Filament\Resources\Invoices\Tables\InvoicesTable`/
     `App\Filament\Resources\Payments\Tables\PaymentsTable`.
-  - Deliberately not built this phase (see
-    `docs/rebuild/outputs/checkpoints/18-phase-04-checkpoint-report.md` for the
-    full breakdown): the Livewire tax scratchpad UI, PDF rendering of
-    tax snapshots/recaps, `Credit`/`RecurringInvoice` nav deprecation,
-    and any procurement/job-cost/delivery work — all correctly Phase
+  - Deliberately not built this phase: the Livewire tax scratchpad UI,
+    PDF rendering of tax snapshots/recaps, `Credit`/`RecurringInvoice`
+    nav deprecation, and any procurement/job-cost/delivery work — all
+    correctly Phase
     05/06 scope.
 - **Renovation Phase 03 (sales and job)** — the job-centric aggregate
   from `docs/rebuild/specs/03-sales-and-job/Specs.md`, built as new
-  canonical classes beside (not replacing) the legacy resources, per
-  `docs/REFACTOR_PLAN.md` §2 risk #3:
+  canonical classes beside (not replacing) the legacy resources:
   - **`App\Models\Quotation`/`QuotationItem`** (own `quotations`/
     `quotation_items` tables, `App\Filament\Resources\Quotations`,
     Sales nav group) — a full lifecycle
@@ -992,9 +989,8 @@ Or just `composer setup` (runs the same steps via the composer script).
     The resources/data are untouched, just no longer in the sidebar.
   - Full tax computation against `Quotation::pricing_mode`, generating
     invoices from milestones, and procurement/delivery/handover/job-cost
-    relation managers are deliberately not built here — see
-    `docs/rebuild/outputs/checkpoints/17-phase-03-checkpoint-report.md` for the full
-    scope breakdown (Phase 04/05 work).
+    relation managers are deliberately not built here — that's Phase
+    04/05 work.
 - **Renovation Phase 02 (parties and catalog)** — `App\Models\Product`
   now models any sellable catalog item, not just physical goods:
   `type` (`App\Enums\CatalogItemType`: product/service/labor/other),
@@ -1006,9 +1002,9 @@ Or just `composer setup` (runs the same steps via the composer script).
   deferred launch scope). `Contact::is_billing_contact` designates which
   of a client's contacts sees full billing history in the future portal
   (`FINALIZED-DECISIONS.md` §5) — everyone else sees only explicitly
-  shared documents. See `docs/rebuild/outputs/checkpoints/16-phase-02-checkpoint-report.md`
-  for the full slice report, including a real unbounded-query bug found
-  and fixed in the invoice Items relation manager's product picker.
+  shared documents. This phase also found and fixed a real unbounded-query
+  bug in the invoice Items relation manager's product picker (see
+  `docs/rebuild/outputs/HISTORY.md`'s Phase 02 entry).
 - **Public homepage content** (`App\Support\Homepage\PortfolioContent`) —
   the dark "Kinetic Obsidian" portfolio-style design
   (`resources/views/livewire/home-page.blade.php`), per the Google Stitch

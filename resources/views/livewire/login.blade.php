@@ -60,10 +60,9 @@
                 <div class="mb-1.5 flex items-center justify-between">
                     <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-200!">Password</label>
                     {{--
-                        This app has no working password-reset flow yet
-                        (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
-                        §24) — a clearly-labeled, disabled placeholder
-                        rather than a link that goes nowhere.
+                        This app has no working password-reset flow yet —
+                        a clearly-labeled, disabled placeholder rather than
+                        a link that goes nowhere.
                     --}}
                     <span class="cursor-not-allowed text-xs text-gray-400 dark:text-gray-600!" title="Password reset isn't available yet — contact your Owner/Admin.">
                         Forgot password?

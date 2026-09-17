@@ -1,6 +1,6 @@
 # Phase 08: Release Readiness
 
-> **Status (verified 2026-09-15):** ⛔ Not started. No code, docs, or branch work found for this phase.
+> **Status (verified 2026-09-15):** ⛔ Not started. No code, docs, or branch work found for this phase. **Reprioritized 2026-09-17**: the Owner has decided the human/compliance gates this phase describes (tax-professional sign-off, formal Owner sign-off) are non-blocking for shipping — "ready" is defined as a green automated test suite with no open bugs, per `docs/out-of-scope-findings.md`. Backup/restore verification and production PDF checks remain worth doing but are not launch-blocking either.
 
 ## Goal
 

@@ -30,8 +30,7 @@ use TallStackUi\Traits\Interactions;
  * field-for-field and that same resource's table "Test connection" action
  * exactly (same PaymentGatewayManager::driverFor() call, same three caught
  * exception types) — only the result surfaces as an inline success/error
- * banner per row (docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md
- * prompt 20) instead of a Filament Notification toast.
+ * banner per row instead of a Filament Notification toast.
  *
  * Authorization: the equivalent Filament payment gateway resource declared
  * no PaymentGateway-specific Policy of its own, so Filament's

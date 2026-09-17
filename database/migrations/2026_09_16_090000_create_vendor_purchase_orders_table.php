@@ -14,8 +14,7 @@ return new class extends Migration
      * doesn't map 1:1 to "a vendor payable that may be paid in parts,
      * tied to a job's cost," so it stays frozen as a parallel non-job
      * cost bucket rather than being renamed/absorbed (mirrors the
-     * Quotation/SalesOrder precedent from Phase 03,
-     * docs/REFACTOR_PLAN.md §2 risk #3/#6).
+     * Quotation/SalesOrder precedent from Phase 03).
      *
      * The PO's own `total` is immutable once recorded — a bill exceeding
      * it is handled by `vendor_po_variances`, never by editing this row

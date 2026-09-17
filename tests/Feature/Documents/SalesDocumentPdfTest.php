@@ -277,9 +277,8 @@ class SalesDocumentPdfTest extends TestCase
     }
 
     /**
-     * Mirrors the Invoice PDF fix (docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/03-quotations.md
-     * Screen 2: "Discount total line in summary: compute subtotal - total
-     * from stored columns") — a percentage discount also shows the computed
+     * Mirrors the Invoice PDF fix ("Discount total line in summary: compute
+     * subtotal - total from stored columns") — a percentage discount also shows the computed
      * nominal amount, derived from App\Services\QuotationTotalsCalculator's
      * own already-persisted subtotal/total (never a fresh calculation).
      */

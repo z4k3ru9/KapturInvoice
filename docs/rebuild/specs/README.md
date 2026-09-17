@@ -34,8 +34,8 @@ top of that phase's own `Specs.md`. Re-verify against `memory.md`'s
 | [05 Procurement and delivery](05-procurement-and-delivery/Specs.md) | ✅ Complete, merged into `main` |
 | [06 Documents, portal, and reporting](06-documents-portal-reporting/Specs.md) | ✅ Complete, merged into `main` |
 | [06B UX, browser QA, and SOA completion](06b-ux-browser-soa/Specs.md) | ✅ Complete, merged into `main` |
-| [07 Migration and cutover](07-migration-and-cutover/Specs.md) | 🚧 In progress — on unmerged branch `claude/phase-07-migration-cutover` |
-| [08 Release readiness](08-release-readiness/Specs.md) | ⛔ Not started |
+| [07 Migration and cutover](07-migration-and-cutover/Specs.md) | 🚧 Only migration-tracking schema (models/enums/migrations) merged to `main`; the importer rework and full batch/exception/reconciliation wiring are still undone. **Reprioritized 2026-09-17**: the Owner has decided this is non-blocking for shipping — see `docs/out-of-scope-findings.md`. |
+| [08 Release readiness](08-release-readiness/Specs.md) | ⛔ Not started. **Reprioritized 2026-09-17**: the Owner has decided the human/compliance gates here (tax-professional sign-off, formal Owner sign-off) are non-blocking for shipping — "ready" is defined as a green automated test suite with no open bugs. Backup/restore verification and production PDF checks remain worth doing but are not launch-blocking either. See `docs/out-of-scope-findings.md`. |
 
 ## Pause protocol
 

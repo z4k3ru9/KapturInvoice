@@ -1,6 +1,6 @@
 # Phase 01: Company and Access Foundation
 
-> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. `App\Models\Concerns\BelongsToCompany` and company-scoped access are wired throughout the codebase. See `memory.md` "Current state" and `docs/rebuild/outputs/checkpoints/15-phase-01-checkpoint-report.md`.
+> **Status (verified 2026-09-15):** ✅ Complete, merged into `main`. `App\Models\Concerns\BelongsToCompany` and company-scoped access are wired throughout the codebase. See `memory.md` "Current state" and `docs/rebuild/outputs/HISTORY.md`'s Phase 01 entry.
 
 ## Goal
 

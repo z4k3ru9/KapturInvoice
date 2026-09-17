@@ -28,8 +28,7 @@ class CompanySeeder extends Seeder
                 'slug' => 'karunia-abadi',
                 // Matches the legacy invoice_prefix ("KJA-INV-") rather than
                 // FINALIZED-DECISIONS.md's illustrative "KA" example, so
-                // continuity with the real historical numbering is kept —
-                // see docs/REFACTOR_PLAN.md §1.1.
+                // continuity with the real historical numbering is kept.
                 'code' => 'KJA',
                 'domain' => 'karuniaabadi.id',
                 'email' => 'kja@karuniaabadi.id',

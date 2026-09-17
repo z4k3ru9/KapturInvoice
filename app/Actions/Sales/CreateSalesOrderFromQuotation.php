@@ -26,8 +26,8 @@ use RuntimeException;
  * Also copies the quotation's `job_type` onto the job and derives
  * `requires_handover` from it (false only for Goods) —
  * FINALIZED-DECISIONS.md §10. This was previously left at the column's
- * blanket default regardless of job type (see docs/REFACTOR_PLAN.md's
- * drift audit); every job now gets the value its own job type implies.
+ * blanket default regardless of job type; every job now gets the value
+ * its own job type implies.
  */
 class CreateSalesOrderFromQuotation
 {

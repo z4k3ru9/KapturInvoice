@@ -27,9 +27,7 @@ use Livewire\WithPagination;
  * instead of relying on BelongsToCompany.
  *
  * See App\Livewire\TallStackCredits' docblock for the established
- * read/browse-only register pattern this follows, and
- * docs/rebuild/outputs/ui-rebuild/27-filament-parity-gap-prompts.md §21 for the exact
- * table/filter/empty-state spec.
+ * read/browse-only register pattern this follows.
  */
 #[Layout('components.tallstack.app')]
 class TallStackClientPortalInvitations extends Component

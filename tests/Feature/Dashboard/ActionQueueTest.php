@@ -17,9 +17,8 @@ use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
- * The role-aware dashboard action queue — see docs/rebuild/DESIGN.md §3
- * and docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md
- * D10. Links go to plain TALL-stack register/index pages (no
+ * The role-aware dashboard action queue — see docs/rebuild/DESIGN.md §3.
+ * Links go to plain TALL-stack register/index pages (no
  * `?tableFilters=` deep link this slice — see the class docblock).
  *
  * Ported from the pre-TallStackUI Filament admin's own test during the

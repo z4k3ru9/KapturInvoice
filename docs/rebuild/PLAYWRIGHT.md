@@ -149,3 +149,35 @@ Phase 06B cannot close until the harness has reusable fixtures, focused
 commands, both company/theme projects, failure artifacts, CI execution, and
 the required portal, document, SOA, autosave, accessibility, and responsive
 journeys. A test count alone is not evidence of useful coverage.
+
+## Gotchas worth re-verifying if this suite is rebuilt
+
+The full suite currently targets a removed Filament UI and is unverified
+against TallStackUI except one spec (see `docs/testing-coverage.md`).
+These framework-level lessons from the original Phase 06B build are
+independent of Filament vs. TallStackUI and worth checking again whenever
+the suite is next touched:
+
+- Playwright's real device presets (`devices['iPad (gen 7)']`, `devices
+  ['iPhone 14']`) silently set `defaultBrowserType: 'webkit'`, which
+  Playwright Test reads as that project's `browserName` unless overridden
+  — spreading a device preset into a project's `use` block opts that whole
+  project into a different browser engine, not just a different
+  viewport/UA/touch emulation. Force `browserName: 'chromium'` explicitly
+  on any project that needs a device preset's viewport/UA but this app's
+  actual (Chromium) rendering.
+- A stale orphaned `php artisan serve` process left running from earlier
+  manual debugging can be silently reused by `reuseExistingServer`,
+  serving a database seeded before a fixture change — produces a
+  confusing 404 that looks like a fixture bug. Diagnose by naming the
+  actual PID (`ss -ltnp` / `lsof -iTCP:PORT`) before assuming the fixture
+  is wrong.
+- Under `fullyParallel` mode, two tests sharing one seeded row can race an
+  optimistic-concurrency column (e.g. a `*_version` column) even though
+  neither test's own logic is wrong — give each test its own dedicated
+  fixture row rather than debugging the concurrency logic itself.
+- axe-core's `color-contrast` check reports the actual
+  `getComputedStyle()`-resolved color, which can disagree with what a
+  static read of the compiled CSS suggests should apply — trust the
+  runtime-computed value over reasoning about selector/cascade order from
+  the file alone when the two disagree.

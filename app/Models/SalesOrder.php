@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * The "Job" aggregate (docs/rebuild/specs/03-sales-and-job/Specs.md) — a
  * NEW aggregate, never an extension of the frozen `Project`/`Task` models
- * (see docs/REFACTOR_PLAN.md §2 risk #3 and Project's own docblock). Only
- * ever created from an Accepted Quotation via
+ * (see Project's own docblock). Only ever created from an Accepted
+ * Quotation via
  * App\Actions\Sales\CreateSalesOrderFromQuotation, which also snapshots
  * `source_snapshot` and copies items into `sales_order_items` — the two
  * are never re-synced from the quotation afterward.

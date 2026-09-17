@@ -17,8 +17,7 @@ enum InvoiceStatus: string
     // Issued, Partially Paid, Paid, with controlled overdue/void/amended
     // states." `Partial` above already covers "Partially Paid"; these four
     // are new. Adding cases to an existing string-backed enum is safe for
-    // already-imported legacy rows (their values are untouched) — see
-    // docs/REFACTOR_PLAN.md §2 risk #2's note on this same enum.
+    // already-imported legacy rows (their values are untouched).
     case Approved = 'approved';
     case Issued = 'issued';
     case Void = 'void';

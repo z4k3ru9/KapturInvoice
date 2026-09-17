@@ -29,8 +29,7 @@ shows and how it's grouped. ✅ = built and covered by a feature test (see
 
 Filament's sidebar is organized into `navigationGroup`s. `AdminPanelProvider`
 pins the order of the six DESIGN.md §2/Stitch-shell groups via
-`->navigationGroups([...])` (Phase 06B/Stitch Track A1 — see
-`docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/01-shell-dashboard.md` §0);
+`->navigationGroups([...])` (Phase 06B/Stitch Track A1);
 every other group (Billing, Clients, Expenses, Documents, Team, Proposals)
 renders after them in whatever order Filament discovers it, since those are
 legacy-only groups this slice deliberately left unpinned:
@@ -41,7 +40,7 @@ legacy-only groups this slice deliberately left unpinned:
 | **Procurement** | Vendors ✅ (`VendorResource`, moved here from Billing/Expenses — Stitch Track A1), Vendor Purchase Orders ✅ (`VendorPurchaseOrderResource`, Phase 05), Vendor Bills ✅ (`VendorBillResource`, Phase 05) |
 | **Delivery** | ⚠️ no dedicated resources yet — Delivery Orders/Handover Reports are read-only relation managers on `SalesOrderResource` (Phase 05); a placeholder group in the pinned order for when/if they get their own top-level resources. |
 | **Catalog** | Products ✅, Tax Rates ✅, Price List ✅ |
-| **Reports** | ⚠️ no dedicated Reports page yet — `JobMarginReport` ships as a dashboard widget (Phase 06); a placeholder group per DESIGN.md §2's shell contract (see `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md` Track C4). |
+| **Reports** | ⚠️ no dedicated Reports page yet — `JobMarginReport` ships as a dashboard widget (Phase 06); a placeholder group per DESIGN.md §2's shell contract. |
 | **Settings** | Company Profile ✅ (tenant profile page), Branding ✅ (logo/colors, also editable from Company Profile), Invoice & Numbering ✅, Email & Reminders ✅, Payment Gateways ✅, Client Portal ✅ |
 | **Billing** *(unpinned, legacy)* | Invoices ✅, Recurring Invoices ✅ (hidden from nav), Quotes ✅ (legacy — see §2.0), Credits ✅ (hidden from nav), Payments ✅ |
 | **Clients** *(unpinned)* | Clients ✅ (+ Contacts relation manager ✅), Client Portal Invitations ✅ |
@@ -78,7 +77,7 @@ summarized only where relevant to keep this doc focused on what's new.
 
 The canonical job-centric aggregate from
 [`docs/rebuild/specs/03-sales-and-job/Specs.md`](rebuild/specs/03-sales-and-job/Specs.md)
-— see `docs/REFACTOR_PLAN.md` §2 risk #3 for why this is new rather than an
+— a genuinely new aggregate rather than an
 extension of `QuoteResource`/`ProjectResource` (both stay exactly as they
 are, for already-imported legacy data only):
 
@@ -260,7 +259,8 @@ Phase 05 (docs/rebuild/specs/05-procurement-and-delivery) — it stays
 exactly as-is (still fully usable for overhead/reimbursable costs), but
 any cost that needs a Vendor PO, partial payments, or job-cost allocation
 goes through the new **Procurement** group (§2.9) instead. See
-`docs/REFACTOR_PLAN.md` §2 risk #6 for the mapping decision.
+`docs/rebuild/outputs/HISTORY.md`'s pre-Phase-01 risk audit entry for the
+mapping decision.
 
 ### 2.5 Projects group ⚠️ (frozen and hidden from navigation as of Phase 03)
 
@@ -826,9 +826,7 @@ was always the point — see §5, item 10.
   (read-only, per DESIGN §3). Every link is a plain resource index page —
   no `?tableFilters=` deep link yet (that needs status-filter wiring on
   `InvoicesTable`/`QuotationsTable`/`SalesOrdersTable` this slice
-  deliberately didn't touch, per
-  `docs/rebuild/outputs/ui-rebuild/18-stitch-ui-gap-analysis/00-scoped-backlog.md`
-  Track A2/B1 split) — flagged as a Track B follow-up.
+  deliberately didn't touch) — flagged as a Track B follow-up.
 - **`SetupChecklistWidget`** (`Widget`) + **`App\Filament\Support\
   SetupChecklist`** — the first-run zero-state (Stitch Track A2 O1): five
   steps (company profile, numbering prefix, first catalog item, first

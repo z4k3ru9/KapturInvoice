@@ -9,9 +9,9 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * The "Job" aggregate (docs/rebuild/specs/03-sales-and-job/Specs.md,
-     * docs/REFACTOR_PLAN.md §2 risk #3): a NEW aggregate, never an
-     * extension of the legacy `projects`/`tasks` tables — those stay
+     * The "Job" aggregate (docs/rebuild/specs/03-sales-and-job/Specs.md):
+     * a NEW aggregate, never an extension of the legacy
+     * `projects`/`tasks` tables — those stay
      * frozen and hidden from launch navigation (see
      * App\Models\Project's docblock). A sales order can only be created
      * from an already-Accepted quotation (see
