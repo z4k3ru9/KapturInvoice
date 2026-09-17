@@ -92,6 +92,67 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   scroll affordance. Verify current phone behavior and implement or explicitly
   accept it. Jobs Hold and Users/Vendor Bills/POs/Handover row menus already exist.
 
+- [ ] **P08-08 — Owner-requested product backlog (discovery only; do not implement from this list).**
+  Preserve the numbering below when these requests are reviewed. Each item
+  needs a code-path check, an explicit decision, and focused acceptance tests
+  before implementation is authorized:
+  1. Verify whether Send already issues/sends the document and whether a
+     separate Issue action is redundant; removing it must not create a lost
+     transition or bypass authorization.
+  2. Review mobile page width (target about 98% where safe), edit controls that
+     leave the viewport, and whether mobile editing should use a modal.
+  3. Consider an inline/expandable description preview on each item row.
+  4. Consolidate mobile row actions beside the section header behind a menu.
+  5. Use distinct, semantic colors for View and Edit actions.
+  6. Make Client modal sections card-based and collapsible.
+  7. Define a global footer for terms and conditions and payment terms.
+  8. Decide whether new documents default to tax-inclusive pricing; reconcile
+     this with finalized tax decisions before changing any default.
+  9. Replace percentage links with simple checkbox wording for “Discount is a
+     percentage” and “No End Date”; preserve saved values and accessibility.
+  10. Add chart hover values/tooltips where the current charts provide none.
+  11. Fix the Financial Report Revenue Rp 0 stat wrapping to match peer cards.
+  12. Fix payment-allocation overflow and the Incoming Stats one-line wrapping.
+  13. Verify Hold is unavailable for sent, cancelled, or paid records while
+      retaining the intended override behavior for eligible states.
+  14. Add configurable Item Units/Metrics under Settings and propagate the
+      choice through forms, validation, tables, PDFs and imports.
+  15. Define separate labor cost and item cost on quote/invoice lines and in
+      consolidated reporting; preserve margin and tax semantics.
+  16. Hide discount percentages from clients and show only total discount in
+      the portal; retain staff/owner detail.
+  17. When an item discount exists, show its value in the PDF and client portal.
+  18. Conditionally show Tax and Discount columns: hide Tax when disabled;
+      show Discount when populated; show both when applicable.
+  19. For staff/owner views, render discount value first and the percentage on
+      a smaller second line.
+  20. Recalculate combined global and per-item discount percentages and show
+      discount values on items, financial summary and PDF.
+  21. After quote conversion, verify Converted status persistence and removal
+      of the Convert action without losing the resulting invoice/job link.
+  22. Resolve the Issue-versus-Send behavior consistently with item 1.
+  23. Keep contextual actions in one stable location beside Download PDF/Save.
+  24. Label Save/Amend from the current status; audit every status-dependent
+      form action for the same mismatch.
+  25. Make sent invoices fully read-only, including hiding Add line item and
+      preventing mutation through alternate form paths.
+  26. Remove the “Links this invoice to a job...” footer/help text if it is no
+      longer accurate; preserve the scoped open-job picker and numbering rules.
+  27. Verify payment verification allocates an immutable receipt number
+      automatically and never exposes manual receipt-number entry.
+  28. Audit receipt and other PDFs for bank_transfer and every payment-method
+      label; add regression coverage for rendered output.
+  29. Add subtle, readable status watermarks to payment PDFs for draft, paid,
+      reversed and amended states after the document contract is approved.
+  30. When a payment is reversed, invalidate/remove amendment-allocation
+      actions while preserving the already-issued receipt number and history.
+  31. Design automatic allocation to the earliest eligible invoice for the
+      payment amount, with a reviewable override and no cross-client leakage.
+  32. Fix the allocation/amend-payment icon sizing and verify touch targets.
+  33. Audit action semantics globally: Save green/floppy, Delete red/cross,
+      View green/eye, Download PDF orange, Resend blue/plane, Convert gold/
+      next-arrow, with accessible text and consistent placement.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
