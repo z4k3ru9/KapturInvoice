@@ -1,0 +1,76 @@
+name: Claude Code Workflow Router
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+  issue_comment:
+    types: [created]
+
+jobs:
+  route-agent:
+    # Run on pull requests, or when a comment explicitly tags @claude.
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Agent Configuration
+        id: config
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          # Tier 1: light tasks -> Haiku.
+          if [[ "$LABELS" == *"lint"* ]] || [[ "$LABELS" == *"formatting"* ]] || [[ "$COMMENT_BODY" == *"/fix-typo"* ]]; then
+            echo "MODEL=claude-3-5-haiku-20241022" >> "$GITHUB_OUTPUT"
+            echo "MAX_TURNS=5" >> "$GITHUB_OUTPUT"
+            echo "PROMPT_TYPE=micro-fix" >> "$GITHUB_OUTPUT"
+
+          # Tier 3: complex multi-file refactoring -> Sonnet.
+          elif [[ "$LABELS" == *"refactor"* ]] || [[ "$COMMENT_BODY" == *"/refactor"* ]]; then
+            echo "MODEL=claude-3-5-sonnet-20241022" >> "$GITHUB_OUTPUT"
+            echo "MAX_TURNS=12" >> "$GITHUB_OUTPUT"
+            echo "PROMPT_TYPE=heavy-refactor" >> "$GITHUB_OUTPUT"
+
+          # Tier 2: standard reviews and audits -> Sonnet.
+          else
+            echo "MODEL=claude-3-5-sonnet-20241022" >> "$GITHUB_OUTPUT"
+            echo "MAX_TURNS=8" >> "$GITHUB_OUTPUT"
+            echo "PROMPT_TYPE=pr-review" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract Changed Files Diff
+        id: diff
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: git diff "origin/${BASE_REF}"...HEAD > pr_changes.diff
+
+      - name: Run Claude Code Agent
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: >-
+            --model ${{ steps.config.outputs.MODEL }}
+            --max-turns ${{ steps.config.outputs.MAX_TURNS }}
+            --allowedTools "Read,Edit,Grep,Glob,Bash(npm run lint),Bash(npm test)"
+          prompt: |
+            Task Type: ${{ steps.config.outputs.PROMPT_TYPE }}
+
+            Review and process the changed files in `pr_changes.diff` from this PR.
+            The workflow has intentionally provided only the PR diff to limit context.
+
+            Instructions:
+            1. If task is `micro-fix`, make targeted inline edits and run formatting scripts.
+            2. If task is `pr-review`, audit security, breaking API changes, and missing tests. Post a summary as a PR comment.
+            3. If task is `heavy-refactor`, follow the repository's CLAUDE.md rules and keep diffs focused.
