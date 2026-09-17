@@ -422,6 +422,43 @@ unavailable on cPanel").
    php artisan up
    ```
 
+**Consolidating from two separate existing hosting accounts:** if each
+company already has its own cPanel account/domain from before this app
+existed, you can't split one Laravel install and one shared MySQL
+database across two separate servers — pick one of the two accounts as
+the real host (steps 1-9 above) and treat the other purely as a DNS
+problem, not an application one:
+
+1. Add **both** companies' domains as Addon Domains on the one primary
+   account you picked (step 2 above), regardless of which account each
+   domain originally came from.
+2. Repoint the *other* domain at the primary account:
+   - **Clean cutover** — change that domain's nameservers at the
+     registrar to the primary host's nameservers, so its DNS zone lives
+     there going forward (matches the addon-domain setup in step 1).
+   - **Split DNS**, if you want to keep something running on the old
+     account (most commonly its existing mailboxes) — leave nameservers
+     alone and just update that domain's `A`/`AAAA` record to the
+     primary server's IP. Web traffic reaches the new app; `MX`/mail
+     keeps working wherever it already does.
+3. Only request/renew that domain's AutoSSL cert on the primary account
+   once its DNS actually resolves there — AutoSSL validates over HTTP
+   against whatever IP currently resolves, so it won't issue against a
+   domain still pointed at the old host.
+4. Once the cutover is confirmed working, the second account has
+   nothing pointing at its web server anymore. Options from there:
+   cancel it, keep it solely for that domain's email (if you used split
+   DNS), or repurpose its storage as an off-site backup target — a cron
+   job on the primary account can push database dumps and `storage/app`
+   there (see **Backups** below; this app has no such tooling built in,
+   so already-paid-for storage on a second account is a reasonable
+   place to put it).
+5. If the old site being retired has its own real data that was never
+   migrated into KapturInvoice (a legacy invoicing system, its own
+   client records), that's a one-time import, not a hosting question —
+   see `docs/data-import.md` if the source is InvoiceNinja, or plan a
+   bespoke import otherwise before decommissioning that account.
+
 **Backups:** this app has no built-in backup command (no
 `spatie/laravel-backup` or similar). Use cPanel's own **Backup
 Wizard**/**JetBackup** (whichever your host provides) for full-account
