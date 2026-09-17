@@ -146,10 +146,12 @@ php artisan serve                                    # http://127.0.0.1:8000
 Or just `composer setup` (runs the same steps via the composer script).
 
 This is dev/sandbox setup only — sqlite, `migrate:fresh`, `artisan serve`.
-For a real server deploy (systemd queue worker, cron scheduler, nginx per
-seeded company domain, MySQL, production `.env`), see README.md's own
-["Production / self-hosted server setup"](README.md#production--self-hosted-server-setup)
-section instead of improvising from this one.
+Production is **cPanel-only** (no root, no persistent daemons — the
+architecture was designed for this, see `docs/rebuild/Specs.md`/`PRD.md`),
+covered by README.md's own
+["Deploying to cPanel"](README.md#deploying-to-cpanel) section — cron-driven
+scheduler and queue, per-domain document root/Addon Domain setup, MySQL via
+cPanel's own tools — instead of improvising a VPS-style deploy from this one.
 
 ## Login / seeded data (from `database/seeders/`)
 

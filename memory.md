@@ -91,6 +91,14 @@ re-run completed audits unless new evidence contradicts them.
   Also added a "Production / self-hosted server setup" section to
   README.md (nginx/systemd/cron/MySQL deploy steps) — the previous
   "Local setup" docs only covered the sqlite/`artisan serve` dev path.
+  **Superseded 2026-09-17**: production is cPanel-only (no root, no
+  persistent daemons — see docs/rebuild/Specs.md/PRD.md, this was the
+  design intent from the start), so that nginx/systemd section was
+  replaced with README.md's "Deploying to cPanel" (Addon-Domain/
+  document-root setup per company, cron-driven scheduler+queue instead
+  of a worker daemon, MySQL/SSL via cPanel's own tools). Don't
+  reintroduce a systemd/root-assuming deploy guide without a real
+  change in hosting target.
 - **Company bank accounts / invoice Payment Method section (2026-09-16) —
   done, merged to main.** Closed the Payment Method gap flagged in the
   Stitch design prompt: `App\Models\CompanyBankAccount` (a company may

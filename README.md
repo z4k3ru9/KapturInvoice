@@ -250,74 +250,128 @@ curl -H "Host: example-a.com" http://127.0.0.1:8000/
 The admin panel itself is not domain-resolved — it's always reached at
 `/tall/{company-slug}/...` regardless of which host you're on.
 
-## Production / self-hosted server setup
+## Deploying to cPanel
 
-This app is **multi-tenant by domain** for the public homepage/portal
-(`App\Http\Middleware\ResolveCompanyFromDomain` matches the request's
-`Host` header against each `companies.domain` row) but tenant-by-URL-path
-for the admin panel (`/tall/{company-slug}/...`, works on any single
-hostname). A production deploy therefore needs real DNS for **every**
-seeded company's own domain, not just one app domain — plan for that
-before provisioning.
+This is the only supported production target — not a generic
+self-hosted VPS. `docs/rebuild/Specs.md`/`PRD.md` designed for it from
+the start ("MySQL-compatible hosting on cPanel", "database queue and
+cPanel cron where persistent workers are unavailable", "target is
+approximately 1 GB RAM cPanel hosting"), and nothing in the app shells
+out (`exec`/`proc_open`/`shell_exec` — none used anywhere), so a
+locked-down account with those disabled is still fine. **Caveat:**
+`docs/rebuild/specs/08-release-readiness/Specs.md` (the spec that walks
+through verifying exactly this) is still "⛔ Not started" — the
+architecture accounts for cPanel, but nobody has run through a real
+cPanel deploy yet. Budget time for the first one to surface
+host-specific surprises.
 
-**Requirements:** PHP 8.4 (see `composer.json`'s `require.php`; run
-`php -v` to confirm) with the extensions Laravel/dompdf need (`pdo`,
-`mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `gd` or `imagick`),
-Composer 2, Node 20+ (for `npm run build`), a web server (nginx or
-Apache) with PHP-FPM, and MySQL/MariaDB (`DB_CONNECTION=sqlite` in
-`.env.example` is dev-only — see the commented `mysql` block there).
+This app is also **multi-tenant by domain** for the public homepage/
+portal (`App\Http\Middleware\ResolveCompanyFromDomain` matches the
+request's `Host` header against each `companies.domain` row) but
+tenant-by-URL-path for the admin panel (`/tall/{company-slug}/...`,
+works on any single hostname). Both seeded companies' own domains need
+to point at this one cPanel account, not just one app domain — plan
+that before provisioning.
 
-1. **Get the code and install dependencies** (production flags — no dev
-   tooling, optimized autoloader):
+**Requirements:** PHP 8.4 (`composer.json`'s `require.php`), selected
+per-domain via cPanel's **Select PHP Version**/**MultiPHP Manager** —
+no root needed. Enable `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`,
+`xml`, `ctype`, and `gd` or `imagick` (for dompdf) there if they aren't
+on by default. A MySQL database via cPanel's **MySQL® Databases** tool
+(`DB_CONNECTION=sqlite` in `.env.example` is dev-only). Composer/Node
+availability in cPanel's **Terminal** varies by host — check with
+`composer --version`/`node --version` there before assuming either
+exists; if neither does, build locally/in CI and upload the results
+(Phase 08's own guidance: "Build assets outside production when Node is
+unavailable on cPanel").
+
+1. **Get the code onto the account, outside the web root.** Put it at
+   `~/kapturinvoice`, never directly in `~/public_html` (that's the
+   default document root and would expose every source file). Either
+   cPanel's **Git™ Version Control** feature (paste the repo URL, clone
+   path `kapturinvoice`) or a plain clone from **Terminal**:
 
    ```sh
-   git clone <this repo's URL> /var/www/kapturinvoice
-   cd /var/www/kapturinvoice
-   composer install --no-dev --optimize-autoloader
-   npm ci
-   npm run build
+   git clone <this repo's URL> ~/kapturinvoice
+   cd ~/kapturinvoice
    ```
 
-2. **Configure `.env`** (`cp .env.example .env` first, then edit):
-   - `APP_ENV=production`, `APP_DEBUG=false` — never run a public
-     instance with debug on, it leaks stack traces/config.
-   - `APP_URL=https://your-primary-domain` — the admin panel's own base
-     URL (used for PDF/mail links); it does not need to be either
-     company's public domain.
-   - `APP_KEY` — generate once with `php artisan key:generate`, then
-     back it up; losing it invalidates every encrypted column
-     (`PaymentGateway::config`, etc.) and existing sessions.
-   - `DB_CONNECTION=mysql` plus `DB_HOST`/`DB_DATABASE`/`DB_USERNAME`/
-     `DB_PASSWORD` for a real MySQL/MariaDB instance (create the
-     database first — Laravel doesn't do this for you).
-   - `SESSION_DRIVER=database`, `CACHE_STORE=database`,
-     `QUEUE_CONNECTION=database` work out of the box against the same
-     MySQL database (no Redis required); swap to `redis` later if you
-     add it.
-   - `MAIL_MAILER` — set to a real transport (`smtp`, `ses`, etc.) and
-     fill in credentials; `.env.example` ships `MAIL_MAILER=log`, which
-     silently writes every invoice/quote/reminder/receipt email to the
-     log file instead of sending it.
-   - `SESSION_DOMAIN` — leave `null` unless the admin panel and a
-     company's public domain need to share a session cookie (they
-     don't, by design — see "Companies are isolated deployments" in
-     CLAUDE.md).
+2. **Point each company's domain at `~/kapturinvoice/public`.** Add
+   both as Addon Domains (cPanel → **Domains**). If your host lets you
+   set a custom document root per domain, point each straight at
+   `~/kapturinvoice/public` and skip to step 3. If it doesn't (some
+   budget hosts force `public_html/<domain>`), use the standard
+   Laravel-on-shared-hosting workaround instead: point the domain at its
+   normal `public_html/<domain>` folder, copy `public/`'s contents
+   (`.htaccess`, `index.php`, `build/`, etc.) there, then edit that
+   copied `index.php`'s two `require`s to the real app path:
 
-3. **Database and storage:**
+   ```php
+   require __DIR__.'/../../kapturinvoice/vendor/autoload.php';
+   $app = require_once __DIR__.'/../../kapturinvoice/bootstrap/app.php';
+   ```
+
+   (adjust the `../..` depth to wherever `public_html/<domain>` actually
+   sits relative to `~/kapturinvoice`). Repeat per domain — every copy
+   points at the same one `~/kapturinvoice` app.
+
+3. **Install dependencies** (Terminal, if Composer/Node are available
+   there):
+
+   ```sh
+   composer install --no-dev --optimize-autoloader
+   npm ci && npm run build
+   ```
+
+   If either isn't available on the account, run both **locally**
+   against the same PHP 8.4 target, then upload the resulting `vendor/`
+   and `public/build/` directories (rsync/SFTP/cPanel File Manager's
+   zip-upload-then-extract) instead of running them on the server.
+
+4. **Configure `.env`** (`cp .env.example .env`, then edit):
+   - `APP_ENV=production`, `APP_DEBUG=false` — never leave debug on
+     publicly, it leaks stack traces/config.
+   - `APP_URL=https://your-primary-domain` — the admin panel's own base
+     URL (used for PDF/mail links); doesn't need to be either company's
+     own public domain.
+   - `APP_KEY` — `php artisan key:generate` once, then back it up
+     somewhere outside the account; losing it invalidates every
+     encrypted column (`PaymentGateway::config`, etc.) and session.
+   - `DB_CONNECTION=mysql` plus `DB_HOST=localhost`/`DB_DATABASE`/
+     `DB_USERNAME`/`DB_PASSWORD` from cPanel's MySQL Databases tool —
+     note cPanel prefixes both the database name and username with your
+     account username (`accountuser_kapturinvoice`, not
+     `kapturinvoice`).
+   - `SESSION_DRIVER=database`, `CACHE_STORE=database`,
+     `QUEUE_CONNECTION=database` — all work against the same MySQL
+     database with nothing extra to provision (no Redis, which most
+     cPanel plans don't offer without root anyway).
+   - `MAIL_MAILER` — set to a real transport (`smtp` against a cPanel
+     email account you create under **Email Accounts**, or a
+     transactional API like SES); `.env.example` ships
+     `MAIL_MAILER=log`, which silently writes every invoice/quote/
+     reminder/receipt email to a log file instead of sending it.
+   - `SESSION_DOMAIN` — leave `null` (the admin panel and a company's
+     public domain deliberately never share a session cookie — see
+     "Companies are isolated deployments" in CLAUDE.md).
+
+5. **Database and storage:**
 
    ```sh
    php artisan migrate --force   # NEVER migrate:fresh against real data
    php artisan db:seed --class=CompanySeeder --force   # only on a brand-new DB
    php artisan storage:link
-   chown -R www-data:www-data storage bootstrap/cache
-   chmod -R 775 storage bootstrap/cache
    ```
 
-   `storage/app` holds uploaded logos, signatures, and any document
-   attachments (`local` disk) — back this up alongside the database, not
-   just the database.
+   No `chown`/`chmod` dance needed here unlike a VPS — cPanel's PHP
+   (suPHP/CloudLinux CageFS) already runs as your own account user, the
+   same one that owns every file, so `storage/`/`bootstrap/cache/` are
+   already writable. `storage/app` holds uploaded logos, signatures, and
+   document attachments (`local` disk) — back it up alongside the
+   database, not just the database (see the backups note below — this
+   app has no built-in backup command).
 
-4. **Cache the framework for production** (repeat after every deploy):
+6. **Cache the framework for production** (repeat after every deploy):
 
    ```sh
    php artisan config:cache
@@ -326,89 +380,65 @@ Apache) with PHP-FPM, and MySQL/MariaDB (`DB_CONNECTION=sqlite` in
    php artisan event:cache
    ```
 
-   If you change `.env` after this, `config:cache` must be re-run or the
-   old cached values keep being used.
+   Re-run `config:cache` after any `.env` change or the old cached
+   values keep being used.
 
-5. **Web server** — one nginx server block per company domain (plus one
-   for `APP_URL`'s own admin-panel domain if it differs from both),
-   every block pointing at the same `public/` document root and PHP-FPM
-   pool:
+7. **SSL** — cPanel's **AutoSSL** (free Let's Encrypt) issues a
+   certificate per domain automatically once DNS resolves to the
+   account; nothing to run by hand. Confirm both companies' domains show
+   a valid cert under **SSL/TLS Status**.
 
-   ```nginx
-   server {
-       listen 443 ssl http2;
-       server_name your-primary-domain example-a.com example-b.com;
-       root /var/www/kapturinvoice/public;
-       index index.php;
-
-       location / {
-           try_files $uri $uri/ /index.php?$query_string;
-       }
-
-       location ~ \.php$ {
-           fastcgi_pass unix:/run/php/php8.4-fpm.sock;
-           fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-           include fastcgi_params;
-       }
-
-       location ~ /\.(?!well-known).* {
-           deny all;
-       }
-   }
-   ```
-
-   (Listing every domain on one `server_name`/cert works if they share
-   this one deployment; split into separate server blocks with their
-   own certs if you'd rather keep them independent.) Point each
-   domain's DNS `A`/`AAAA` record at this server, then issue certificates
-   (e.g. `certbot --nginx -d your-primary-domain -d example-a.com -d
-   example-b.com`).
-
-6. **Queue worker** (mail sending and other queued work use
-   `QUEUE_CONNECTION=database`, so nothing sends without a worker
-   running) — a systemd unit is simplest:
-
-   ```ini
-   # /etc/systemd/system/kapturinvoice-queue.service
-   [Unit]
-   Description=KapturInvoice queue worker
-   After=network.target mysql.service
-
-   [Service]
-   User=www-data
-   WorkingDirectory=/var/www/kapturinvoice
-   ExecStart=/usr/bin/php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-   Restart=always
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-
-   ```sh
-   systemctl enable --now kapturinvoice-queue
-   ```
-
-7. **Scheduler** — `invoices:send-reminders`, `quotations:expire`,
-   `invoices:mark-overdue`, and `recurring-invoices:generate-due`
-   (see `routes/console.php`) all run through Laravel's scheduler, which
-   needs exactly one cron entry:
+8. **Cron jobs, not a persistent worker or systemd unit** — a locked-down
+   account can't run either. Add both of these under cPanel's own
+   **Cron Jobs** tool (find the right PHP binary path first, from
+   Terminal: `which php`):
 
    ```cron
-   * * * * * cd /var/www/kapturinvoice && php artisan schedule:run >> /dev/null 2>&1
+   * * * * * cd ~/kapturinvoice && php artisan schedule:run >> /dev/null 2>&1
+   * * * * * cd ~/kapturinvoice && php artisan queue:work --stop-when-empty --max-time=50 >> /dev/null 2>&1
    ```
 
-8. **Deploying an update** (repeat steps 1, 4, and the storage-link/
-   permissions half of step 3 each time; skip re-seeding):
+   The first drives `invoices:send-reminders`/`quotations:expire`/
+   `invoices:mark-overdue`/`recurring-invoices:generate-due` (see
+   `routes/console.php`). The second stands in for a persistent queue
+   worker: it wakes every minute, drains whatever's queued, then exits
+   (`--stop-when-empty`) — `--max-time=50` keeps it from still running
+   when the next minute's cron fires. This is more than enough headroom:
+   only one thing in the entire app is actually queued
+   (`App\Mail\UserInvitationMail`, sent when inviting a teammate) —
+   everything else (invoice/quote/payment/reminder emails) already sends
+   synchronously, so nothing depends on this cron firing promptly.
+
+9. **Deploying an update** — cPanel's Git Version Control has an "Update
+   from Remote"/pull button, or do it from Terminal:
 
    ```sh
    php artisan down --secret=<a-hard-to-guess-token>   # optional maintenance window
    git pull
-   composer install --no-dev --optimize-autoloader
-   npm ci && npm run build
+   composer install --no-dev --optimize-autoloader   # skip if built+uploaded locally
+   npm ci && npm run build                           # skip if built+uploaded locally
    php artisan migrate --force
    php artisan config:cache && php artisan route:cache && php artisan view:cache
    php artisan up
    ```
+
+**Backups:** this app has no built-in backup command (no
+`spatie/laravel-backup` or similar). Use cPanel's own **Backup
+Wizard**/**JetBackup** (whichever your host provides) for full-account
+backups, and confirm it actually covers both the MySQL database and
+`storage/app` (uploaded files aren't in the database). If your host's
+backups aren't reliable enough on their own, add a third cron entry
+running a plain `mysqldump` alongside a `storage/app` archive to
+somewhere off-account.
+
+**What's different from a generic VPS deploy, at a glance:** no
+persistent daemon of any kind (queue runs via cron instead, and it's a
+non-issue given how little is actually queued); PHP's `memory_limit` is
+whatever your plan/MultiPHP INI Editor allows, not something you set
+freely — watch this specifically for PDF generation (dompdf is
+memory-hungry) and raise it there if a large invoice/statement PDF
+fails; no custom services, reverse proxies, or firewall rules — cPanel
+already terminates SSL and routes each domain to PHP-FPM/suPHP itself.
 
 ## Tests
 
