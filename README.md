@@ -388,6 +388,96 @@ unavailable on cPanel").
    database, not just the database (see the backups note below — this
    app has no built-in backup command).
 
+### Clean one-time InvoiceNinja v5 migration on cPanel
+
+Use this procedure when the target KapturInvoice database may contain a
+previous test import and you want to start again. It is intentionally
+destructive: `migrate:fresh` drops every table in the target database. Do
+not run it against a database that contains production data you need to
+keep. Take a cPanel/JetBackup backup first.
+
+The source databases are read-only inputs. Because the old InvoiceNinja v4
+install was upgraded to v5, use `import:invoiceninja-v5`; do not use the v4
+importer for that dump.
+
+1. **Prepare the target.** The safest option is to create a new empty MySQL
+   database in cPanel, assign the KapturInvoice database user to it, and
+   update `DB_DATABASE` in `.env`. If reusing the current target database,
+   `migrate:fresh --force` in the one-time cron below will erase its tables.
+
+2. **Configure the source connections.** The connection name must match the
+   company being imported:
+
+   ```dotenv
+   # Company A — the former v4 install, now v5
+   LEGACY_V5_COMPANY_A_DB_HOST=localhost
+   LEGACY_V5_COMPANY_A_DB_DATABASE=account_ninja_company_a
+   LEGACY_V5_COMPANY_A_DB_USERNAME=account_ninja_company_a
+   LEGACY_V5_COMPANY_A_DB_PASSWORD=replace-with-the-real-password
+
+   # Company B — v5 source
+   LEGACY_V5_DB_HOST=localhost
+   LEGACY_V5_DB_DATABASE=account_ninja_company_b
+   LEGACY_V5_DB_USERNAME=account_ninja_company_b
+   LEGACY_V5_DB_PASSWORD=replace-with-the-real-password
+   ```
+
+   cPanel usually prefixes database and user names with the hosting account
+   name. Run one import per source database; never point both connection
+   names at the same source unless that is deliberate.
+
+3. **Choose the schema setup path.** For a completely clean redo, let the
+   one-time cron below run `migrate:fresh --force`; do not run the bootstrap
+   URL before that cron because `migrate:fresh` will erase it again. The cron
+   seeds the schema and reference data, but it cannot create the Owner login.
+   After the cron completes, set `DEPLOY_MIGRATE_TOKEN`,
+   `DEPLOY_ADMIN_EMAIL`, and `DEPLOY_ADMIN_PASSWORD`, clear cached config,
+   visit `/deploy/bootstrap?token=...` once to create the real Owner login,
+   then remove the token and run `config:cache`.
+
+   If the target is already empty and you do not need `migrate:fresh`, you
+   may use the bootstrap URL before the import instead: it runs `migrate`,
+   the safe reference seeders, and creates the Owner login. Do not combine
+   that non-destructive bootstrap path with the destructive reset path.
+
+4. **Create exactly one cPanel cron entry.** Schedule it for a time when no
+   one is using the application. Replace the two source database values in
+   `.env` first. This command uses two marker files:
+   `migration.running` prevents a retry after an interrupted/failed run, and
+   `migration.done` prevents every later cron tick. It also uses the
+   command's `--once` database guard.
+
+   ```cron
+   /bin/sh -c 'app=/home/chronopr/public_html; log=/home/chronopr/invoice-ninja-migration.log; done=/home/chronopr/invoice-ninja-migration.done; running=/home/chronopr/invoice-ninja-migration.running; if [ -e "$done" ] || [ -e "$running" ]; then exit 0; fi; touch "$running" || exit 1; cd "$app" || exit 1; /usr/local/bin/php artisan config:clear >> "$log" 2>&1 && /usr/local/bin/php artisan migrate:fresh --force >> "$log" 2>&1 && /usr/local/bin/php artisan db:seed --class="Database\Seeders\CurrencySeeder" --force >> "$log" 2>&1 && /usr/local/bin/php artisan db:seed --class="Database\Seeders\CountrySeeder" --force >> "$log" 2>&1 && /usr/local/bin/php artisan db:seed --class="Database\Seeders\CompanySeeder" --force >> "$log" 2>&1 && /usr/local/bin/php artisan import:invoiceninja-v5 company-a --connection=legacy_v5_company_a --once >> "$log" 2>&1 && /usr/local/bin/php artisan import:invoiceninja-v5 company-b --connection=legacy_v5 --once >> "$log" 2>&1 && mv "$running" "$done"'
+   ```
+
+   If only one company is being migrated, remove the other company's import
+   segment. For Company A only, keep the `company-a` command and remove the
+   `company-b` command. The cron line exits silently after success because
+   `migration.done` exists. Leave the cron entry in place or delete it after
+   confirming completion; either way, it cannot rerun while the marker file
+   remains.
+
+5. **Check the appended log before going live:**
+
+   ```text
+   /home/chronopr/invoice-ninja-migration.log
+   ```
+
+   Confirm that each import ends with exit code 0, a completed reconciliation,
+   and the expected counts for clients, invoices, quotes, line items,
+   payments, and expenses. The marker must exist at:
+
+   ```text
+   /home/chronopr/invoice-ninja-migration.done
+   ```
+
+   If the log shows a failure, do not delete `migration.running` blindly.
+   Fix the reported database/schema problem, remove the running marker only
+   after review, and rerun deliberately with `--resume` if a failed batch was
+   recorded. A completed `--once` migration must not be rerun on the same
+   target database.
+
 6. **Cache the framework for production** (repeat after every deploy):
 
    ```sh
