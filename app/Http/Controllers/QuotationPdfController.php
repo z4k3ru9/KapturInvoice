@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Quotation;
 use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -26,7 +27,12 @@ class QuotationPdfController extends Controller
         // product picture, when the linked product has one.
         $quotation->loadMissing('client', 'company', 'items.product');
 
+        $filename = (string) Str::of((string) $quotation->number)
+            ->replaceMatches('/[\/\\\\:*?"<>|]+/', '-')
+            ->replaceMatches('/\s+/', ' ')
+            ->trim('- .');
+
         return PageNumberFooter::apply(Pdf::loadView('pdf.quotation', ['quotation' => $quotation]))
-            ->stream("{$quotation->number}.pdf");
+            ->stream(($filename !== '' ? $filename : 'quote-'.$quotation->id).'.pdf');
     }
 }
