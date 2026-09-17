@@ -66,6 +66,26 @@ class TallStackSettingsCompanyTaxes extends Component
 
     public ?string $currency_code = null;
 
+    public ?string $timezone = null;
+
+    // --- Address — printed on the public homepage's "Get in touch" strip
+    // and every generated PDF's company header, but had no Settings field
+    // of its own until now (address_line_1/2, city, state, postal_code,
+    // country_code were already real #[Fillable] Company columns — this
+    // was a settings-UI gap, not a missing-column one). Same field set/
+    // validation as TallStackVendors's own address block. ------------------
+    public ?string $address_line_1 = null;
+
+    public ?string $address_line_2 = null;
+
+    public ?string $city = null;
+
+    public ?string $state = null;
+
+    public ?string $postal_code = null;
+
+    public ?string $country_code = null;
+
     // --- Branding (also editable from the dedicated Branding page). -----
     public ?string $primary_color = null;
 
@@ -140,6 +160,18 @@ class TallStackSettingsCompanyTaxes extends Component
         $this->phone = $company->phone;
         $this->tax_number = $company->tax_number;
         $this->currency_code = $company->currency_code;
+        // `timezone` is a NOT NULL column (default 'UTC') — unlike the
+        // address fields below, it can never legitimately be blank, so
+        // this falls back rather than risk mount() ever handing save() a
+        // null that would surface as a raw SQL constraint error instead
+        // of a clean validation one.
+        $this->timezone = $company->timezone ?: 'UTC';
+        $this->address_line_1 = $company->address_line_1;
+        $this->address_line_2 = $company->address_line_2;
+        $this->city = $company->city;
+        $this->state = $company->state;
+        $this->postal_code = $company->postal_code;
+        $this->country_code = $company->country_code;
         $this->primary_color = $company->primary_color;
         $this->secondary_color = $company->secondary_color;
         $this->existingLogoPath = $company->logo_path;
@@ -170,6 +202,13 @@ class TallStackSettingsCompanyTaxes extends Component
             'phone' => ['nullable', 'string', 'max:255'],
             'tax_number' => ['nullable', 'string', 'max:255'],
             'currency_code' => ['nullable', 'string', 'max:3', 'exists:currencies,code'],
+            'timezone' => ['required', 'string', 'max:64', Rule::in(\DateTimeZone::listIdentifiers())],
+            'address_line_1' => ['nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:255'],
+            'country_code' => ['nullable', 'string', 'max:2'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'code' => ['nullable', 'string', 'max:20'],
@@ -192,6 +231,13 @@ class TallStackSettingsCompanyTaxes extends Component
             'phone' => $data['phone'],
             'tax_number' => $data['tax_number'],
             'currency_code' => $data['currency_code'],
+            'timezone' => $data['timezone'],
+            'address_line_1' => $data['address_line_1'],
+            'address_line_2' => $data['address_line_2'],
+            'city' => $data['city'],
+            'state' => $data['state'],
+            'postal_code' => $data['postal_code'],
+            'country_code' => $data['country_code'],
             'primary_color' => $data['primary_color'],
             'secondary_color' => $data['secondary_color'],
             'dashboard_refresh_seconds' => $data['dashboard_refresh_seconds'] ?: null,
@@ -355,6 +401,7 @@ class TallStackSettingsCompanyTaxes extends Component
         return view('livewire.tallstack-settings-company-taxes', [
             'bankAccounts' => $bankAccounts,
             'currencies' => Currency::query()->orderBy('code')->pluck('code', 'code'),
+            'timezones' => collect(\DateTimeZone::listIdentifiers())->mapWithKeys(fn (string $tz) => [$tz => $tz]),
         ])
             ->layoutData([
                 'company' => $this->company,

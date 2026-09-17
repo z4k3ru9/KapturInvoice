@@ -21,6 +21,27 @@
             <x-input wire:model="tax_number" label="Tax ID" hint="Printed on invoice/credit PDFs." />
             <x-select.styled wire:model="currency_code" label="Default currency" searchable
                 :options="$currencies->map(fn ($code) => ['label' => $code, 'value' => $code])->all()" />
+            <x-select.styled wire:model="timezone" label="Timezone" searchable required
+                :options="$timezones->map(fn ($tz) => ['label' => $tz, 'value' => $tz])->all()" />
+        </div>
+    </x-card>
+
+    <x-card>
+        <x-slot:header>
+            <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Address</span>
+        </x-slot:header>
+
+        {{-- Printed on the public homepage's "Get in touch" strip
+             (resources/views/livewire/home-page.blade.php) and every
+             generated PDF's company header — same field set/validation as
+             TallStackVendors's own address block. --}}
+        <div class="grid sm:grid-cols-2 gap-4">
+            <x-input wire:model="address_line_1" label="Address line 1" class="sm:col-span-2" />
+            <x-input wire:model="address_line_2" label="Address line 2" class="sm:col-span-2" />
+            <x-input wire:model="city" label="City" />
+            <x-input wire:model="state" label="State" />
+            <x-input wire:model="postal_code" label="Postal code" />
+            <x-input wire:model="country_code" label="Country code" maxlength="2" />
         </div>
     </x-card>
 
