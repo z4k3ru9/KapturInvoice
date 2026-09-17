@@ -1,5 +1,7 @@
 # KapturInvoice Rebuild — Consolidated Phase History
 
+> Historical reference. Current status and remaining assignments are in the [phase index](../specs/README.md). Old TODOs, test counts and framework names are not current instructions.
+
 > **Historical record only.** This file does not approve the current `main`
 > branch or release readiness — the canonical specs
 > (`docs/rebuild/{PRD,CONTEXT,DESIGN,Specs}.md`, `docs/rebuild/specs/

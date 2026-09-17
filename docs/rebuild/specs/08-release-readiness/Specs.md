@@ -1,6 +1,6 @@
 # Phase 08: Release Readiness
 
-> **Status (verified 2026-09-15):** ⛔ Not started. No code, docs, or branch work found for this phase. **Reprioritized 2026-09-17**: the Owner has decided the human/compliance gates this phase describes (tax-professional sign-off, formal Owner sign-off) are non-blocking for shipping — "ready" is defined as a green automated test suite with no open bugs, per `docs/out-of-scope-findings.md`. Backup/restore verification and production PDF checks remain worth doing but are not launch-blocking either.
+> **Status (2026-09-17):** Current release evidence remains unverified in this docs-only review. Existing tests and operations documentation are present; do not label all work “not started.” Apply finalized decisions §11 to non-blocking human/operations evidence.
 
 ## Goal
 
@@ -15,7 +15,7 @@ Prove the renovated system is safe to operate on the actual hosting plan.
 - Verify failed job visibility and retry behavior.
 - Verify daily backups, retention, and restore procedure.
 - Verify A4 PDF output on the production-like environment.
-- Obtain Indonesian tax/accounting review of final tax-document wording and manual tax-recap fields before production use.
+- Record pending/completed Indonesian tax/accounting review of wording and recap fields (non-blocking for software shipping).
 - Verify portal expiry, revocation, replacement, and company isolation.
 - Verify role permissions for all protected actions.
 - Verify no deferred launch feature appears in active navigation or accessible launch routes.
@@ -34,14 +34,65 @@ Prove the renovated system is safe to operate on the actual hosting plan.
 - Shared vendor purchasing and job margin.
 - Delivery-only and installation handover closure.
 - Bahasa/English A4 documents.
-- Read-only client portal.
+- Company/contact-scoped portal with only the approved signing exceptions.
 - InvoiceNinja 4/5 migration reconciliation.
 - Backup/restore and queue/scheduler operation.
 
 ## Release decision
 
-Release only when every acceptance item passes or has an explicitly approved written exception with owner, consequence, and recovery plan. A failing financial, tenancy, authorization, document-integrity, or migration check blocks release.
+Software shipping follows finalized decisions §11: a green automated suite and no open bugs. Human sign-off, full cutover, restore verification and production PDF evidence remain tracked but are non-blocking under the recorded Owner decision. Do not equate missing evidence with a pass or waive known financial, tenancy, authorization or document-integrity defects.
 
 ## Pause checkpoint
 
 This is the final phase. Produce a release report, deployment checklist, rollback procedure, and post-cutover monitoring schedule.
+
+## Pending assignments (2026-09-17 audit)
+
+- [ ] **P08-01 — Capture current verification (implementation owner).** Run the
+  required PHP, migration, asset and browser checks against one recorded commit;
+  record failures and skips separately. Existing 818/831 counts and historical
+  phase completion markers cannot satisfy this task. Include both company
+  themes, portal boundaries, document languages and the final matrix above.
+- [ ] **P08-02 — Reconcile invoice lifecycle contract (domain owner + implementation owner).**
+  The previous memory said overdue was derived-only and legacy statuses appeared
+  only on imports. `MarkInvoicesOverdue` writes Overdue on Issued/Partial records
+  and is scheduled daily. Compare `InvoiceStatus`, receivables recalculation,
+  imports, reminders, SOA and hold behavior; record the approved lifecycle and
+  add transition regressions. Do not silently remap historical statuses.
+- [ ] **P08-03 — Audit deferred-feature exposure (implementation owner; scope decision by Owner).**
+  `routes/console.php` schedules recurring auto-billing despite recurring billing
+  being deferred; legacy gateway/proposal/credit/recurring components also exist.
+  Check routes, navigation, cron and existing templates, then disable unintended
+  launch execution or record an explicit scope exception. Acceptance: direct
+  URLs and scheduled jobs cannot bypass the approved launch boundary.
+- [ ] **P08-04 — Close remaining UI regression evidence (implementation owner).**
+  Reconcile the [coverage matrix](../../../testing-coverage.md) against current tests.
+  Existing settings, hold and pagination tests replace some stale gaps. Verify
+  role/scoping and financial action wiring, invoice/payment status bypasses,
+  product-picker query bounds, client defaults and milestone computation.
+  Add only missing meaningful regressions; list exact tests and results.
+- [ ] **P08-05 — Verify browser coverage and accepted exceptions (implementation owner).**
+  Shared login/navigation now uses TallStack routes; the old “whole suite uses
+  /admin” claim is stale. `tests/browser/support/tenants.ts::pickDate` retains
+  Filament selectors. Three accessibility scans (dashboard, invoice form and
+  public portal) are explicitly `test.fixme` in `ux/accessibility.spec.ts`.
+  Their comments report accessible-name, invalid ARIA target, contrast,
+  nested-interactive and target-size problems, plus an unavailable portal
+  fixture. Reproduce each, repair the current cause and re-enable the scans;
+  a skipped scan is not a WCAG pass. Audit callers, dead helpers and exclusions;
+  run actual journeys before closing. Remove cancelled blank-row tests from
+  active requirements; retain reorder/delete-confirmation coverage. Record
+  autosave concurrency failures with project/server configuration.
+- [ ] **P08-06 — Record hosting validation (operator; non-blocking evidence).**
+  Per company: bootstrap/import result, deployed commit, SSL/mail/storage, cron
+  queue/scheduler, failed-job retry, backup/restore and production-like A4 samples.
+  Disable the deployment token after setup. This review did not execute these.
+- [ ] **P08-07 — Verify remaining small UI follow-up (UI owner; low priority).**
+  Settings tabs are mobile-scrollable but the prior memory requested a visible
+  scroll affordance. Verify current phone behavior and implement or explicitly
+  accept it. Jobs Hold and Users/Vendor Bills/POs/Handover row menus already exist.
+
+Deferred, not open bugs: live currency API (last development stage), gateway
+checkout, proposal portal/send flow and automatic PDF email attachments need
+explicit task/scope confirmation before expansion. Cancelled: automatic blank
+line insertion/removal. Do not turn either category into a release defect.

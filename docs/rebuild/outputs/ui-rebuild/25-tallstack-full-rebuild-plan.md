@@ -1,5 +1,7 @@
 # TallStackUI Full Admin Rebuild — Plan & Resume Point
 
+> Historical reference. Current status and remaining assignments are in the [phase index](../../specs/README.md). Old TODOs, test counts and framework names are not current instructions.
+
 Status: **planning + Phase 0 done**. This file is the resume point if the
 session working on this is cut off — read it first, before re-deriving
 anything from `app/Filament/**` or re-fetching the Stitch project.

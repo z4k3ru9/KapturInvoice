@@ -12,7 +12,7 @@ Deliver customer-facing output, read-only client access, operational reports, an
 
 - localized document services, translation resources, PDF views, and download policies
 - TallStack UI marketing and portal pages
-- Filament job-centric dashboard, reports, statements, and notification policies
+- TallStackUI/Livewire job-centric dashboard, reports, statements, and notification policies
 - theme tokens, company identity, autosave, Alpine dynamic rows, and browser tests
 
 ## Requirements
@@ -21,14 +21,14 @@ Deliver customer-facing output, read-only client access, operational reports, an
 - Printed documents default to Bahasa Indonesia with per-document English override.
 - Required document labels use the approved Indonesian glossary.
 - All required documents fit A4 with repeated headers, controlled breaks, totals, terms, footnotes, and signatures.
-- Documents render configurable company legal/payment identity and signatory details with optional signature/stamp image; electronic signatures are deferred.
+- Documents render configurable company legal/payment identity and signatory details with optional signature/stamp image; portal signatures follow finalized decisions §11.
 - Preserve document snapshots and original PDFs.
 - Portal is company/client/contact scoped, read-only, expiring, revocable, and replaceable. Only designated billing contacts see complete client history; ordinary contacts see explicitly shared documents.
 - Portal shows invoices, receipts, payment history, balances, statuses, PDFs, and company contact information.
 - Portal hides vendor cost, margin, internal approval, audit, and tax recap adjustments.
-- No client upload, payment, or signature action at launch.
+- No client upload or payment action; only approved portal signing is allowed (finalized decisions §11).
 - Outgoing document and reminder email targets designated billing contacts by default, with authorized per-document CC recipients. Reminder schedule defaults to 7 days before due, due date, and 7/14/30 days overdue; suppression requires reason and audit.
-- Filament admin uses job-centric navigation and role-aware dashboard.
+- TallStackUI/Livewire admin uses job-centric navigation and role-aware dashboard.
 - Company themes distinguish Company A red/black and Company B blue/cool neutrals.
 - Global status palette is fixed: green complete/paid/verified; amber pending/warning; red error/overdue/void; blue info/in-progress; gray draft/inactive.
 - System light/dark mode follows OS; reduced motion is respected.
@@ -44,7 +44,7 @@ Deliver customer-facing output, read-only client access, operational reports, an
 - Portal cannot expose disabled actions through stale links.
 - Theme contrast and status color semantics in light/dark mode.
 - Autosave failure and stale draft conflict.
-- Dynamic row add/remove behavior without per-keystroke requests.
+- Modal line editing, populated-row delete confirmation and deliberate reordering; automatic blank rows are cancelled.
 - Dashboard and reports are company-scoped and paginated/cached.
 - Visual QA covers both company themes, system light/dark mode, responsive layouts, reduced motion, WCAG 2.2 AA behavior, keyboard flows, toast timing, editor/preview layouts, and all loading/empty/error/restricted states.
 
