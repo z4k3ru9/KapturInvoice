@@ -1,12 +1,16 @@
 # Legacy InvoiceNinja Data Import
 
-How `Company A`'s InvoiceNinja **v4** history and `Company B`'s
-InvoiceNinja **v5** history get into KapturInvoice's own
-schema, without losing data. Two Artisan commands, one per legacy major
-version (the two source schemas are different enough — a unified
-`invoices` table with a shared item table in v4, vs. separate
-invoices/quotes/credits tables each carrying their own `line_items` JSON
-blob in v5 — that one importer covering both wasn't practical).
+How the two InvoiceNinja histories get into KapturInvoice's own schema,
+without losing data. Company A originally came from InvoiceNinja **v4**, was
+upgraded to **v5**, and must therefore be imported from its current v5
+database. Company A is non-tax for new customer transactions. Company B is a
+v5 source and is tax-enabled. The v4 importer remains available only when a
+source is still a direct v4 dump.
+
+The two source schemas are different enough — a unified `invoices` table with
+a shared item table in v4, versus separate invoices/quotes/credits tables
+each carrying their own `line_items` JSON blob in v5 — that one importer
+covering both wasn't practical.
 
 - `php artisan import:invoiceninja-v4 {company-slug}` — see
   `app/Console/Commands/ImportInvoiceNinjaV4.php`, source schema in
@@ -118,6 +122,10 @@ share-link `key`), credits, payments, expenses.
 
 ## v4-specific notes (`ImportInvoiceNinjaV4`)
 
+These notes describe the direct-v4 importer and the historical v4 validation
+fixture. They do not describe the current Company A cutover source: Company A
+uses `ImportInvoiceNinjaV5` after its InvoiceNinja upgrade.
+
 - One unified `invoices` table (`invoice_type_id`: **1 = invoice, 2 =
   quote** — confirmed against the real dump, where type=1 rows carry the
   `KJA/INV/...` number prefix; this is the opposite of what you'd
@@ -136,7 +144,7 @@ share-link `key`), credits, payments, expenses.
   correct, but wasn't exercised by real nonzero data; the synthetic test
   covers it directly instead.
 
-### v4 real-import verification (Company A)
+### Historical v4 real-import verification (Company A before upgrade)
 
 | Check | Source | Imported | Result |
 |---|---|---|---|
@@ -191,6 +199,18 @@ share-link `key`), credits, payments, expenses.
 | Invoice+quote totals | 665,692,209 | 665,266,069 | within 0.1% ✅ |
 | Payments | 257,743,759 | 257,743,759 | exact ✅ |
 | Rows | 16 invoices, 2 quotes, 87 items, 8 payments, 7 clients, 8 contacts, 3 vendors, 1 credit, 3 expenses | all imported | — |
+
+### Current Company A cutover source
+
+The confirmed cutover source for Company A is the InvoiceNinja v5 database
+created by upgrading its former v4 installation. Configure it as
+`legacy_v5_company_a` and run `import:invoiceninja-v5 company-a`; do not use
+`legacy_v4` or `import:invoiceninja-v4` for this upgraded source. Company A's
+tax setting is disabled, so the importer preserves any historical source
+values but the target does not calculate new customer tax for this company.
+The supplied Ninja export also confirms that quotes are stored in the v5
+`quotes` table with `line_items` JSON, and that many empty `product_key`
+values require the first `notes` line to become the visible item title.
 
 ## Known gaps (not imported)
 
