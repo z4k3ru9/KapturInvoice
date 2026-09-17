@@ -1,23 +1,12 @@
 # KapturInvoice Implementation Structure
 
-> **Note (TallStackUI migration):** §2's target structure below still shows
-> an `app/Filament/Resources/`/`Pages/`/`Widgets/` folder and §4/§5 still
-> say "Filament/Livewire UI" — that was the plan when this document was
-> written. The internal admin panel has since been fully rebuilt off
-> Filament onto a hand-built TallStackUI/Livewire admin
-> (`App\Livewire\TallStack*`, routed at `/tall/{company:slug}/...` —
-> `app/Filament` no longer exists in this codebase; see `CLAUDE.md`). Read
-> every "Filament" mention below as the equivalent TallStackUI/Livewire
-> convention; the vertical-slice/dependency-graph/stop-condition guidance
-> itself is unaffected.
-
 This document defines how Claude Code should organize the renovation. It complements the phase `Specs.md` files; it does not replace the approved product requirements.
 
 ## 1. Implementation rule
 
 Build vertical slices around business capabilities. Each slice owns its migration, models, actions/services, policies, UI, and tests. Avoid creating a large shared “services” folder where unrelated business rules accumulate.
 
-Use the existing Laravel/Filament conventions where they are healthy. Introduce new canonical classes beside legacy classes until the migration wave proves the replacement. Remove legacy paths only after the relevant phase gate passes.
+Use the existing Laravel/Livewire conventions where they are healthy. Introduce new canonical classes beside legacy classes until the migration wave proves the replacement. Remove legacy paths only after the relevant phase gate passes.
 
 ## 2. Target application structure
 
@@ -45,18 +34,14 @@ app/
     Reporting/
     Migration/
   Enums/
-  Filament/
-    Resources/
-    Pages/
-    Widgets/
   Http/
     Controllers/
     Middleware/
     Requests/
   Livewire/
-    Admin/
+    TallStack*.php
+    Concerns/
     Portal/
-    PublicSite/
   Models/
   Policies/
   Services/
@@ -84,10 +69,10 @@ resources/
 tests/
   Unit/
   Feature/
-  Browser/
+  browser/
 ```
 
-Keep a class in the narrowest folder that owns its meaning. For example, Indonesian tax calculation belongs in `Domain/Billing` or `Services/Tax`, while a Filament invoice form belongs in `Filament/Resources/Invoices`.
+Keep a class in the narrowest folder that owns its meaning. For example, Indonesian tax calculation belongs in `Domain/Billing` or `Services/Tax`, while the invoice form belongs in `app/Livewire/TallStackInvoiceForm.php`.
 
 ## 3. Slice dependency graph
 
@@ -106,6 +91,8 @@ Keep a class in the narrowest folder that owns its meaning. For example, Indones
    |
 06 PDFs/portal/reports/UX completion
    |
+06B Browser QA/SOA
+   |
 07 Migration/cutover
    |
 08 Release readiness
@@ -122,7 +109,7 @@ Every phase should produce the following, in this order:
 3. Failing feature tests for transactions, policies, and persistence.
 4. Migrations and models.
 5. Actions/services containing authoritative rules.
-6. Filament/Livewire UI that calls those actions.
+6. TallStackUI/Livewire UI that calls those actions.
 7. Browser coverage for the user journey.
 8. A migration impact note for InvoiceNinja import.
 9. A checkpoint report with tests, changed files, and known limitations.
@@ -177,8 +164,8 @@ Every migration must be safe to run on a clean database and must not assume impo
 Use adapters for legacy data and behavior:
 
 ```text
-InvoiceNinja 4 mapper -> canonical Company A records
-InvoiceNinja 5 mapper -> canonical Company B records
+InvoiceNinja 4 mapper -> retained archive compatibility
+InvoiceNinja 5 mapper -> current Company A/B records on separate connections
 Legacy payment relation -> payment event + allocation records
 Legacy mutable invoice -> immutable document snapshot + revision history
 Legacy project/task -> migration/archive reference, not launch workflow
