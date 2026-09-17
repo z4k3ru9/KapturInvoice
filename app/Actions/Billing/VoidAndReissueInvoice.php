@@ -43,7 +43,7 @@ class VoidAndReissueInvoice
     ) {}
 
     /**
-     * @param  array<int, array{title: string, description?: ?string, quantity: float|string, unit_cost: float|string, discount?: float|string, discount_is_percentage?: bool, product_id?: ?int, tax_category?: mixed}>  $newItems
+     * @param  array<int, array{title: string, description?: ?string, quantity: float|string, unit?: ?string, unit_cost: float|string, discount?: float|string, discount_is_percentage?: bool, product_id?: ?int, tax_category?: mixed}>  $newItems
      */
     public function voidAndReissue(Invoice $original, string $reason, array $newItems, User $actor): Invoice
     {
@@ -131,6 +131,7 @@ class VoidAndReissueInvoice
                 'title' => $item['title'],
                 'description' => $item['description'] ?? null,
                 'quantity' => $quantity,
+                'unit' => $item['unit'] ?? null,
                 'unit_cost' => $unitCost,
                 'discount' => $discount,
                 'discount_is_percentage' => $discountIsPercentage,

@@ -6,6 +6,7 @@ platform replacing a legacy InvoiceNinja v4 install. Full background:
 - [`docs/price-list-import.md`](docs/price-list-import.md) — vendor pricelist (Hikvision/HiLook, Ruijie/Reyee) import: parser design, verified row counts, "update this regularly" upsert semantics.
 - [`docs/filament-admin-layout-design.md`](docs/filament-admin-layout-design.md) — pre-TallStackUI-rebuild admin panel nav/page layout design (✅/⚠️ markers). Describes the Filament admin panel that has since been fully removed — see the note immediately below. Kept as historical reference for the nav-group/page-composition reasoning it recorded; the current UI conventions are described in this file instead.
 - [`docs/testing-coverage.md`](docs/testing-coverage.md) — test-design doc: what's actually verified, domain by domain, and what's deliberately out of scope.
+- [`docs/out-of-scope-findings.md`](docs/out-of-scope-findings.md) — running log of gaps/judgment calls noticed while debugging or running tests that weren't the task at hand. Append an entry here (don't just report it in chat) whenever you find one; check it for still-open items before starting new work in an area it covers.
 - [`docs/rebuild/CLAUDE.md`](docs/rebuild/CLAUDE.md) — approved renovation handoff for the job-centric rebuild. Read this before coding the new product flow, data model, migration, documents, portal, or UI/UX work.
 - [`README.md`](README.md) — stack table, architecture, setup.
 
@@ -546,15 +547,16 @@ Or just `composer setup` (runs the same steps via the composer script).
     Filament's native drag-reorder persists in one batched write (never
     per keystroke), and every one of those models' `items()` relation
     (and PDF view) already orders by this same column
-    (`DynamicRowReorderTest`). ⚠️ **Not built**: the "add the next blank
-    row after meaningful content / remove an untouched blank row
-    automatically / confirm before removing a populated row" behavior
-    DESIGN.md §5 describes literally requires an embedded, Alpine-driven
-    Repeater UI in place of this project's established RelationManager-
-    plus-modal line-editing pattern (used consistently since Phase 02) —
-    a genuine UI-pattern replacement across several resources, not a
-    slice-sized addition. Flagged here rather than silently built or
-    silently dropped; needs an explicit decision before undertaking it.
+    (`DynamicRowReorderTest`). **Cancelled (2026-09-17, Owner decision)**:
+    the "add the next blank row after meaningful content / remove an
+    untouched blank row automatically / confirm before removing a
+    populated row" behavior DESIGN.md §5 describes would require
+    replacing this project's established RelationManager-plus-modal (now
+    TallStackUI inline-form) line-editing pattern with an embedded,
+    Alpine-driven Repeater UI — a genuine UI-pattern replacement across
+    several resources, not a slice-sized addition. TallStackUI has no
+    native support for it either. Owner decided not to build it; stays
+    off the roadmap unless explicitly revisited.
   - **Slice 5 (full browser journeys and accessibility)** — the
     remaining `tests/browser/` coverage beyond Slice 4's smoke tests:
     portal journeys (billing/ordinary contact, cross-company/client,

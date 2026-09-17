@@ -8,6 +8,7 @@ use App\Actions\Billing\VoidAndReissueInvoice;
 use App\Enums\InvoiceStatus;
 use App\Enums\PricingMode;
 use App\Enums\TaxCategory;
+use App\Enums\UnitOfMeasure;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\CompanyTaxSetting;
@@ -348,6 +349,48 @@ class InvoiceIssuanceTest extends TestCase
         $this->assertTrue((bool) $amended->discount_is_percentage);
         // Same discounted total as the original, not the undiscounted total.
         $this->assertSame($issued->fresh()->total, $amended->total);
+    }
+
+    public function test_amendment_and_void_reissue_carry_over_the_corrected_item_unit(): void
+    {
+        $company = $this->axenCompany();
+        $client = $this->client($company);
+        $invoice = $this->draftInvoice($company, $client, PricingMode::Exclusive);
+
+        InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'title' => 'Cable',
+            'quantity' => 5,
+            'unit' => UnitOfMeasure::Roll,
+            'unit_cost' => 100000,
+            'tax_category' => TaxCategory::StandardTaxable,
+        ]);
+
+        $issued = app(IssueInvoice::class)->issue($invoice, $this->owner($company));
+
+        $amended = app(AmendIssuedInvoice::class)->amend($issued->fresh(), 'Corrected unit', [
+            [
+                'title' => 'Cable (corrected)',
+                'quantity' => 5,
+                'unit' => UnitOfMeasure::Meter->value,
+                'unit_cost' => 100000,
+                'tax_category' => TaxCategory::StandardTaxable,
+            ],
+        ], $this->owner($company));
+
+        $this->assertSame(UnitOfMeasure::Meter, $amended->items->first()->unit);
+
+        $reissued = app(VoidAndReissueInvoice::class)->voidAndReissue($amended->fresh(), 'Wrong unit again', [
+            [
+                'title' => 'Cable (final)',
+                'quantity' => 5,
+                'unit' => UnitOfMeasure::Roll->value,
+                'unit_cost' => 100000,
+                'tax_category' => TaxCategory::StandardTaxable,
+            ],
+        ], $this->owner($company));
+
+        $this->assertSame(UnitOfMeasure::Roll, $reissued->items->first()->unit);
     }
 
     public function test_amendment_is_denied_for_an_unauthorized_role(): void

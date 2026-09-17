@@ -22,6 +22,7 @@ use App\Models\Proposal;
 use App\Models\Quotation;
 use App\Models\QuotationItem;
 use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
 use App\Models\Vendor;
 use App\Models\VendorBill;
 use App\Models\VendorBillItem;
@@ -265,7 +266,9 @@ class StressSeedCompany extends Command
                 'status' => $status,
                 'number' => 'STRESS-'.$this->runToken.'-INV-'.str_pad((string) ($i + 1), 5, '0', STR_PAD_LEFT),
                 'invoice_date' => fake()->dateTimeBetween('-2 years', 'now'),
-                'due_date' => fake()->dateTimeBetween('now', '+60 days'),
+                'due_date' => $status === InvoiceStatus::Overdue
+                    ? fake()->dateTimeBetween('-60 days', '-1 days')
+                    : fake()->dateTimeBetween('now', '+60 days'),
                 'currency_code' => $company->currency_code,
                 'discount' => 0,
                 'discount_is_percentage' => false,
@@ -344,6 +347,7 @@ class StressSeedCompany extends Command
         $i = 0;
         foreach ($pool as $quotation) {
             $i++;
+            $quotation->loadMissing('items');
             $job = SalesOrder::create([
                 'company_id' => $company->id,
                 'client_id' => $quotation->client_id,
@@ -353,6 +357,24 @@ class StressSeedCompany extends Command
                 'approved_value' => $quotation->total,
                 'job_type' => fake()->randomElement(['goods', 'installation', 'service']),
             ]);
+
+            foreach ($quotation->items as $item) {
+                SalesOrderItem::create([
+                    'sales_order_id' => $job->id,
+                    'quotation_item_id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'title' => $item->title,
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_cost' => $item->unit_cost,
+                    'discount' => $item->discount,
+                    'discount_is_percentage' => $item->discount_is_percentage,
+                    'line_total' => $item->line_total,
+                    'sort_order' => $item->sort_order,
+                ]);
+            }
+
             $created->push($job);
         }
 

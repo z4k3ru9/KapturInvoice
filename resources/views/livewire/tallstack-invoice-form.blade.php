@@ -334,6 +334,135 @@
                     </x-tallstack.reorderable-items-table>
                 @endif
             </x-card>
+
+            @if ($invoice)
+                <div class="flex flex-col gap-4 mt-4">
+                    <x-card>
+                        <x-slot:header>
+                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
+                        </x-slot:header>
+                        <div class="flex flex-col gap-2 text-sm">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400!">Subtotal</span>
+                                <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400!">Discount</span>
+                                <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-500 dark:text-gray-400!">Tax</span>
+                                <span class="tabular-nums">{{ $taxTotal }}</span>
+                            </div>
+                            <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-900 dark:text-gray-100!">Total</span>
+                                <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
+                            </div>
+                            @if ($invoice)
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400!">Paid</span>
+                                    <span class="tabular-nums">{{ $amountPaid }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="font-semibold text-gray-900 dark:text-gray-100!">Balance</span>
+                                    <span class="font-semibold tabular-nums">{{ $balance }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </x-card>
+
+                    @if ($invoice && ($invoice->originalInvoice || $invoice->correction))
+                        <x-card>
+                            <x-slot:header>
+                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Correction history</span>
+                            </x-slot:header>
+                            <div class="flex flex-col gap-2 text-sm">
+                                @if ($invoice->originalInvoice)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-500 dark:text-gray-400!">Corrects</span>
+                                        <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
+                                    </div>
+                                @endif
+                                @if ($invoice->correction)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-500 dark:text-gray-400!">Corrected by</span>
+                                        <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
+                                    </div>
+                                @endif
+                                @if ($invoice->void_reason)
+                                    <p class="text-gray-500 dark:text-gray-400!">Void reason: {{ $invoice->void_reason }}</p>
+                                @endif
+                                @if ($invoice->correction_reason)
+                                    <p class="text-gray-500 dark:text-gray-400!">Correction reason: {{ $invoice->correction_reason }}</p>
+                                @endif
+                            </div>
+                        </x-card>
+                    @endif
+
+                    {{--
+                        e-Faktur / Tax Recap issuance — only exists once IssueInvoice
+                        itself decided this invoice was taxable (App\Models\
+                        Company\CompanyTaxSetting::tax_enabled plus a nonzero tax
+                        total; Karunia Abadi's own tax_enabled=false never creates
+                        one). Every field/action here mirrors
+                        InvoiceInfolist::fileOrAdjustTaxRecapAction() exactly.
+                    --}}
+                    @if ($invoice?->taxRecap)
+                        <x-card>
+                            <x-slot:header>
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Tax recap (e-Faktur)</span>
+                                    <x-button icon="document-arrow-down" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('tax-recaps.pdf', $invoice->taxRecap) }}" target="_blank" tooltip="Download PDF" />
+                                </div>
+                            </x-slot:header>
+                            <div class="flex flex-col gap-2 text-sm">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400!">Number</span>
+                                    <span class="font-semibold">{{ $invoice->taxRecap->number ?? '—' }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400!">Reporting period</span>
+                                    <span>{{ $invoice->taxRecap->reporting_period }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400!">Status</span>
+                                    <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500 dark:text-gray-400!">Filing date</span>
+                                    <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
+                                </div>
+                                {{-- color="brand" — this card's own single commit action (Primary role). --}}
+                                <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="brand" sm class="mt-1" wire:click="openTaxRecapModal" />
+                            </div>
+                        </x-card>
+                    @endif
+
+                    @if ($invoice?->salesOrder)
+                        <x-card>
+                            <x-slot:header>
+                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job</span>
+                            </x-slot:header>
+                            <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
+                        </x-card>
+                    @endif
+
+                    {{-- Cross-reference to the quotation this invoice's job descended
+                         from — App\Models\Invoice::salesOrder()->quotation(), not a
+                         direct link on Invoice itself (an invoice only ever knows
+                         its own job; the job carries the quotation reference). Same
+                         plain-text visual pattern as the "Job" card above. --}}
+                    @if ($invoice?->salesOrder?->quotation)
+                        <x-card>
+                            <x-slot:header>
+                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">From quotation</span>
+                            </x-slot:header>
+                            <p class="text-sm">{{ $invoice->salesOrder->quotation->number }}</p>
+                        </x-card>
+                    @endif
+                </div>
+            @endif
         </x-tab.items>
 
         <x-tab.items tab="notes" title="Notes">
@@ -355,136 +484,6 @@
                     </div>
                 </div>
             </x-card>
-        </x-tab.items>
-
-        <x-tab.items tab="financial-summary" title="Financial Summary">
-            <div class="flex flex-col gap-4">
-                <x-card>
-                    <x-slot:header>
-                        <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Financial summary</span>
-                    </x-slot:header>
-                    <div class="flex flex-col gap-2 text-sm">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400!">Subtotal</span>
-                            <span class="font-semibold tabular-nums">{{ $subtotal }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400!">Discount</span>
-                            <span class="tabular-nums">{{ $discount_is_percentage ? $discount.'%' : \App\Support\Dashboard\Money::format($discount, $currency) }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 dark:text-gray-400!">Tax</span>
-                            <span class="tabular-nums">{{ $taxTotal }}</span>
-                        </div>
-                        <div class="border-t border-gray-200 dark:border-gray-800! my-1"></div>
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-gray-900 dark:text-gray-100!">Total</span>
-                            <span class="font-bold text-lg tabular-nums">{{ $total }}</span>
-                        </div>
-                        @if ($invoice)
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400!">Paid</span>
-                                <span class="tabular-nums">{{ $amountPaid }}</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="font-semibold text-gray-900 dark:text-gray-100!">Balance</span>
-                                <span class="font-semibold tabular-nums">{{ $balance }}</span>
-                            </div>
-                        @endif
-                        <p class="text-[11px] text-gray-400 mt-1">Recomputed automatically from the line items above. Totals and balance are frozen once issued — see App\Actions\Billing\IssueInvoice.</p>
-                    </div>
-                </x-card>
-
-                @if ($invoice && ($invoice->originalInvoice || $invoice->correction))
-                    <x-card>
-                        <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Correction history</span>
-                        </x-slot:header>
-                        <div class="flex flex-col gap-2 text-sm">
-                            @if ($invoice->originalInvoice)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400!">Corrects</span>
-                                    <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->originalInvoice]) }}">{{ $invoice->originalInvoice->number }}</a>
-                                </div>
-                            @endif
-                            @if ($invoice->correction)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400!">Corrected by</span>
-                                    <a class="font-semibold text-blue-600 dark:text-blue-400! hover:underline" href="{{ route('tallstack.invoices.edit', [$company, $invoice->correction]) }}">{{ $invoice->correction->number }}</a>
-                                </div>
-                            @endif
-                            @if ($invoice->void_reason)
-                                <p class="text-gray-500 dark:text-gray-400!">Void reason: {{ $invoice->void_reason }}</p>
-                            @endif
-                            @if ($invoice->correction_reason)
-                                <p class="text-gray-500 dark:text-gray-400!">Correction reason: {{ $invoice->correction_reason }}</p>
-                            @endif
-                        </div>
-                    </x-card>
-                @endif
-
-                {{--
-                    e-Faktur / Tax Recap issuance — only exists once IssueInvoice
-                    itself decided this invoice was taxable (App\Models\
-                    Company\CompanyTaxSetting::tax_enabled plus a nonzero tax
-                    total; Karunia Abadi's own tax_enabled=false never creates
-                    one). Every field/action here mirrors
-                    InvoiceInfolist::fileOrAdjustTaxRecapAction() exactly.
-                --}}
-                @if ($invoice?->taxRecap)
-                    <x-card>
-                        <x-slot:header>
-                            <div class="flex items-center justify-between w-full">
-                                <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Tax recap (e-Faktur)</span>
-                                <x-button icon="document-arrow-down" sm color="gray" scope="icon-action" class="h-9 w-9" href="{{ route('tax-recaps.pdf', $invoice->taxRecap) }}" target="_blank" tooltip="Download PDF" />
-                            </div>
-                        </x-slot:header>
-                        <div class="flex flex-col gap-2 text-sm">
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400!">Number</span>
-                                <span class="font-semibold">{{ $invoice->taxRecap->number ?? '—' }}</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400!">Reporting period</span>
-                                <span>{{ $invoice->taxRecap->reporting_period }}</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400!">Status</span>
-                                <x-badge text="{{ $taxRecapStatusLabel }}" :color="$taxRecapStatusColor" sm />
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-500 dark:text-gray-400!">Filing date</span>
-                                <span>{{ $invoice->taxRecap->filing_date?->format('d M Y') ?? '—' }}</span>
-                            </div>
-                            {{-- color="brand" — this card's own single commit action (Primary role). --}}
-                            <x-button text="{{ $taxRecapAlreadyFiled ? 'Adjust filing' : 'File' }}" icon="document-check" color="brand" sm class="mt-1" wire:click="openTaxRecapModal" />
-                        </div>
-                    </x-card>
-                @endif
-
-                @if ($invoice?->salesOrder)
-                    <x-card>
-                        <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">Job</span>
-                        </x-slot:header>
-                        <p class="text-sm">{{ $invoice->salesOrder->number }}</p>
-                    </x-card>
-                @endif
-
-                {{-- Cross-reference to the quotation this invoice's job descended
-                     from — App\Models\Invoice::salesOrder()->quotation(), not a
-                     direct link on Invoice itself (an invoice only ever knows
-                     its own job; the job carries the quotation reference). Same
-                     plain-text visual pattern as the "Job" card above. --}}
-                @if ($invoice?->salesOrder?->quotation)
-                    <x-card>
-                        <x-slot:header>
-                            <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100!">From quotation</span>
-                        </x-slot:header>
-                        <p class="text-sm">{{ $invoice->salesOrder->quotation->number }}</p>
-                    </x-card>
-                @endif
-            </div>
         </x-tab.items>
 
         <x-tab.items tab="documents" title="Documents">
@@ -578,11 +577,15 @@
 
                 @foreach ($correctionItems as $index => $item)
                     <div wire:key="correction-item-{{ $index }}" class="grid grid-cols-12 gap-2 items-start border border-gray-200 dark:border-gray-800! rounded-lg p-3">
-                        <div class="col-span-12 sm:col-span-4">
+                        <div class="col-span-12 sm:col-span-3">
                             <x-input wire:model="correctionItems.{{ $index }}.title" label="Title" required />
                         </div>
-                        <div class="col-span-6 sm:col-span-2">
+                        <div class="col-span-6 sm:col-span-1">
                             <x-input wire:model="correctionItems.{{ $index }}.quantity" label="Qty" type="number" step="1" min="1" />
+                        </div>
+                        <div class="col-span-6 sm:col-span-2">
+                            <x-select.styled wire:model="correctionItems.{{ $index }}.unit" label="Unit" clearable
+                                :options="collect(\App\Enums\UnitOfMeasure::cases())->map(fn ($u) => ['label' => $u->getLabel(), 'value' => $u->value])->all()" />
                         </div>
                         <div class="col-span-6 sm:col-span-2">
                             <x-currency wire:model="correctionItems.{{ $index }}.unit_cost" label="Unit cost" locale="id-ID" :decimals="2" :precision="4" decimal />

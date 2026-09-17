@@ -799,6 +799,7 @@ class TallStackInvoiceForm extends Component
             'title' => $item->title,
             'description' => $item->description,
             'quantity' => (float) $item->quantity,
+            'unit' => $item->unit?->value,
             'unit_cost' => (float) $item->unit_cost,
             'discount' => (float) $item->discount,
             'discount_is_percentage' => (bool) $item->discount_is_percentage,
@@ -814,6 +815,7 @@ class TallStackInvoiceForm extends Component
             'title' => '',
             'description' => null,
             'quantity' => 1,
+            'unit' => null,
             'unit_cost' => 0,
             'discount' => 0,
             'discount_is_percentage' => false,
@@ -841,6 +843,7 @@ class TallStackInvoiceForm extends Component
             'correctionItems' => ['required', 'array', 'min:1'],
             'correctionItems.*.title' => ['required', 'string', 'max:255'],
             'correctionItems.*.quantity' => ['required', 'integer', 'min:1'],
+            'correctionItems.*.unit' => ['nullable', Rule::enum(UnitOfMeasure::class)],
             'correctionItems.*.unit_cost' => ['required', 'numeric', 'min:0'],
         ]);
 
@@ -849,6 +852,7 @@ class TallStackInvoiceForm extends Component
             'title' => $item['title'],
             'description' => $item['description'] ?? null,
             'quantity' => $item['quantity'],
+            'unit' => filled($item['unit'] ?? null) ? $item['unit'] : null,
             'unit_cost' => $item['unit_cost'],
             'discount' => $item['discount'] ?? 0,
             'discount_is_percentage' => $item['discount_is_percentage'] ?? false,
