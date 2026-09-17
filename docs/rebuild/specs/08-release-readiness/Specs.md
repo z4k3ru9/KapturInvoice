@@ -166,6 +166,54 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   tests proving compressed files remain scoped, downloadable and renderable;
   no implementation is authorized by this backlog entry alone.
 
+- [ ] **P08-10 — Evaluate a fit-to-page PDF renderer (discovery only; do not implement yet).**
+  Assess whether a small Python `fpdf2` rendering service or build step should
+  replace the current PHP `barryvdh/laravel-dompdf` path. `fpdf2` is a Python
+  3.10+ library with explicit page geometry, margins, tables, automatic page
+  breaks, Unicode TrueType subset embedding, images, links, headers and
+  footers; it is not a drop-in Blade/HTML renderer and its HTML conversion is
+  basic. The proposal must therefore compare measurable output quality and
+  operating cost before any dependency change.
+
+  Discovery must inventory every current PDF entry point, mail attachment,
+  immutable snapshot, localization path, logo/product-image embedding path,
+  watermark/page-number helper, and test that currently assumes dompdf or a
+  Blade view. Define a canonical document DTO/JSON contract so rendering is
+  independent of Livewire, Laravel models and tenant queries. Do not let a
+  Python process receive arbitrary model IDs or bypass the existing
+  authorization, tenant, snapshot, filename and audit checks.
+
+  Compare three deployment options: keep dompdf; run `fpdf2` as a separately
+  versioned Python service/worker; or use a checked, host-supported Python
+  runtime during release generation. cPanel/no-SSH is a hard constraint:
+  document whether the target host can run Python through cron or WSGI, or
+  whether PDFs must be generated in CI and uploaded as immutable artifacts.
+  No design may require a persistent daemon, shell access, unrestricted
+  outbound networking, or a new public endpoint without an explicit approval.
+
+  Build a representative proof-of-concept matrix before deciding: invoice,
+  quotation/COC, sales order, receipt, vendor documents, delivery/service/
+  handover reports, tax recap, statement of account, proposal HTML/CSS, long
+  descriptions, many line items, mixed Bahasa/English text, embedded logos and
+  product images, page numbering, status watermarks, and narrow/overflowing
+  tables. Check A4 fit, intentional page breaks, repeated table headers,
+  orphan/widow behavior, exact monetary values, fonts/glyphs, image quality,
+  links, accessibility metadata where required, byte size, generation time,
+  peak memory, failure diagnostics, and visual diffs against approved samples.
+
+  Preserve the document contract: issued/amended/reversed PDFs remain
+  immutable snapshots; regenerated historical PDFs must be explicitly marked
+  and reconciled; Bahasa is default with an English override; private files
+  stay company-scoped; and mail attachments use the same verified bytes as the
+  download route. Define a feature flag and rollback path that can select the
+  existing dompdf renderer per document type until fpdf2 reaches parity.
+
+  Exit criteria: a written recommendation with dependency/licensing and
+  security review, cPanel feasibility result, benchmark and visual-diff
+  artifacts, a renderer adapter/API design, a migration and rollback plan,
+  updated PDF/browser/mail tests, and explicit owner approval. This entry is
+  analysis only; it does not authorize removing dompdf or adding Python code.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
