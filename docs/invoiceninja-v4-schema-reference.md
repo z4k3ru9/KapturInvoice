@@ -1,5 +1,7 @@
 # InvoiceNinja v4 (Legacy) Database — Reference for KapturInvoice
 
+> Historical reference. Current status and remaining assignments are in the [phase index](rebuild/specs/README.md). Old TODOs, test counts and framework names are not current instructions.
+
 Source: `chronopr_ninj226.sql` (phpMyAdmin dump, MariaDB 10.5, InvoiceNinja **v4**
 schema — the classic Laravel 5-era Eloquent/Omnipay codebase, not the v5 rewrite).
 73 tables. This document distills that schema into something usable as a design
