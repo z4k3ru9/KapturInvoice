@@ -214,6 +214,52 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   updated PDF/browser/mail tests, and explicit owner approval. This entry is
   analysis only; it does not authorize removing dompdf or adding Python code.
 
+- [ ] **P08-11 — Evaluate Spatie Laravel Passkeys migration (discovery only; do not implement yet).**
+  The repository already declares `laravel/passkeys` and has passkey routes,
+  configuration, user integration and account-management UI. Compare that
+  implementation with `spatie/laravel-passkeys`: the package requires PHP 8.4+
+  and Laravel 12+, stores credentials in published database migrations, uses
+  `@simplewebauthn/browser`, adds `Route::passkeys()`, and supplies Blade/
+  Livewire registration and authentication components. Confirm the package
+  version supports this Laravel 13 application before changing dependencies.
+
+  Inventory the current login, logout, password reset, invitation, session,
+  remember-device, account passkey registration/removal, tenant membership,
+  role checks, throttling and recovery paths. Define a staged compatibility
+  plan: keep password login and recovery available, add passkey login as an
+  explicit option, require recent authenticated re-check plus confirmation
+  before adding/removing a credential, and never let a passkey ceremony choose
+  or switch the active company. Check WebAuthn relying-party ID/origins for the
+  admin host and both company domains, HTTPS/local-development behavior,
+  multi-device credentials, lost-device recovery, audit events, CSRF/session
+  fixation, rate limits, and browser support. Acceptance requires tests for
+  successful, cancelled, expired, cross-origin, cross-tenant and revoked-user
+  ceremonies. No password or current passkey may be removed until recovery is
+  proven and Owner approval is recorded.
+
+- [ ] **P08-12 — Evaluate Spatie Laravel PDF migration and driver choice (discovery only; do not implement yet).**
+  Compare the current direct `barryvdh/laravel-dompdf` calls with
+  `spatie/laravel-pdf` v2's driver-based API. The package requires PHP 8.2+
+  and Laravel 11+, can retain a pure-PHP DOMPDF driver, or use Browsershot/
+  Chromium, Gotenberg, Cloudflare, WeasyPrint or Chrome drivers. The package
+  can render existing Blade views, set A4/margins/scale/headers/footers,
+  attach PDFs to mail, queue generation, and provide PDF fakes/assertions; the
+  richer drivers add modern CSS, page counters, tagged PDFs and outlines but
+  introduce binaries, services or network dependencies.
+
+  Inventory every controller, mail attachment, immutable snapshot, page-number
+  helper, watermark, localized Blade view, image/data-URI path and test. Choose
+  a driver per hosting tier, with cPanel/no-SSH retaining a no-binary fallback
+  unless the host explicitly supports the selected runtime. Prove that the
+  same authorized tenant-scoped snapshot bytes are used for downloads, portal
+  views and mail; preserve filenames, audit records, status watermarks,
+  Bahasa/English output and historical immutability. Benchmark the current
+  driver against the candidate on all launch document types, long tables,
+  embedded images, exact monetary values, A4 fit, page breaks, memory, time,
+  output size and failure diagnostics. Use a feature flag and per-document
+  rollback path; do not remove dompdf or alter `composer.json` until visual,
+  browser, mail and PDF-content tests pass and cPanel feasibility is approved.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
