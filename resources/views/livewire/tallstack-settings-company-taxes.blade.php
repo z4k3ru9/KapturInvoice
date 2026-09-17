@@ -77,8 +77,33 @@
 
         <div class="grid sm:grid-cols-3 gap-4">
             <div>
-                <x-input wire:model="code" label="Company code" :disabled="$codesLocked"
-                    :hint="$codesLocked ? 'Locked: this company has already issued a numbered document.' : 'Used in new document numbers, e.g. KJA-INV-2026090001. Locks after the first document is issued.'" />
+                @if ($codesLocked)
+                    <x-input wire:model="code" label="Company code" disabled
+                        hint="Locked: this company has already issued a numbered document." />
+                @else
+                    {{--
+                        Live preview, computed entirely client-side (no
+                        wire:model.live round-trip) — <x-tallstack.settings-tabs>'s
+                        route-based active-tab detection compares
+                        request()->url() against each tab's own href, which is
+                        only ever true on the page's own initial GET; on any
+                        Livewire AJAX request (a .live update, or even the
+                        existing tax_enabled toggle's own wire:model.live) that
+                        URL is the Livewire update endpoint instead, so nothing
+                        matches and the whole tab panel — not just this field —
+                        renders empty. Confirmed live in-browser: typing into a
+                        wire:model.live field on this page blanks the entire
+                        panel. Real vendor-interaction bug, not something to
+                        route more Livewire traffic through — see
+                        docs/out-of-scope-findings.md. Doing this preview
+                        client-side sidesteps it entirely and is instant besides.
+                    --}}
+                    <div x-data="{ code: @js($code) }">
+                        <x-input wire:model="code" label="Company code" x-on:input="code = $event.target.value" />
+                        <span class="dark:text-gray-400! mt-1 block text-sm text-gray-500"
+                            x-text="'Used in new document numbers, e.g. ' + (code || 'COM').toUpperCase() + '-INV-{{ now()->format('Ym') }}0001. Locks after the first document is issued.'"></span>
+                    </div>
+                @endif
             </div>
             <x-input wire:model="invoice_prefix" label="Invoice prefix" />
             <x-input wire:model="quote_prefix" label="Quote prefix" />

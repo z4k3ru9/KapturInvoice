@@ -208,3 +208,36 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   doesn't guarantee instant, total erasure from GitHub's own
   infrastructure, only that the current repo view/history no longer
   shows them. Status: fixed.
+- **`<x-tallstack.settings-tabs>` blanks the entire active tab panel on
+  ANY Livewire AJAX request on a Settings page — not a new bug, a
+  pre-existing one this session's work exposed and root-caused.**
+  Reproduced live in-browser two ways: (1) adding `wire:model.live` to
+  `TallStackSettingsCompanyTaxes`'s "Company code" field for a live
+  document-number preview — every keystroke blanked the whole panel; (2)
+  confirmed independently on the page's own pre-existing, untouched
+  `<x-toggle wire:model.live="tax_enabled">` — clicking it blanks the
+  panel too. Root cause: the shared tab wrapper
+  (`resources/views/components/tallstack/settings-tabs.blade.php`) uses
+  TallStackUI's vendor `<x-tab.items href=... navigate>` mechanism,
+  whose `$shouldRender` check
+  (`TallStackUi\Support\Runtime\Components\TabItemsRuntime::runtime()`)
+  is `! $href || rtrim(request()->url(), '/') === rtrim($href, '/')` —
+  true only on the page's own initial GET. On any subsequent Livewire
+  AJAX request (any `.live` field, any `wire:click` action —
+  fundamentally not specific to one field), `request()->url()` is the
+  Livewire update endpoint (`/livewire-xxx/update`), which matches no
+  tab's href, so `$shouldRender` is false for every tab including the
+  active one — the whole panel's content is silently omitted from that
+  render. Not a thrown exception (confirmed via `storage/logs/
+  laravel.log` — nothing logged for it), so it won't surface via normal
+  error monitoring; only reproducible by actually clicking/typing into
+  any `.live`-bound field on any of the 6 pages using this wrapper.
+  Worked around for the Company code preview by computing it entirely
+  client-side with Alpine (`x-data`/`x-on:input`/`x-text`, no Livewire
+  round-trip at all) instead of `wire:model.live` — this sidesteps the
+  bug rather than fixing it, and doesn't help the pre-existing
+  `tax_enabled` toggle, which is still broken. A real fix needs either a
+  TallStackUI vendor patch (matching this project's established
+  `PatchTallStackUi*Asset` pattern for other vendor bugs at the
+  installed version) or replacing the route-based tab mechanism with
+  something that doesn't key off `request()->url()`. Status: open.
