@@ -55,7 +55,7 @@ class TallStackSettingsFormatting extends Component
 
         $this->currency_code = $company->currency_code;
         // NOT NULL column (default 'UTC') — see the identical fallback
-        // in TallStackSettingsCompanyTaxes::mount() for why this can
+        // in TallStackSettingsIdentity::mount() for why this can
         // never be left blank.
         $this->timezone = $company->timezone ?: 'UTC';
 

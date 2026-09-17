@@ -63,11 +63,13 @@ use App\Livewire\TallStackSalesOrder;
 use App\Livewire\TallStackSalesOrders;
 use App\Livewire\TallStackSettingsBranding;
 use App\Livewire\TallStackSettingsClientPortal;
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsDocumentsNumbering;
 use App\Livewire\TallStackSettingsEmail;
 use App\Livewire\TallStackSettingsFormatting;
+use App\Livewire\TallStackSettingsIdentity;
 use App\Livewire\TallStackSettingsLookups;
-use App\Livewire\TallStackSettingsNumbering;
+use App\Livewire\TallStackSettingsPaymentMethod;
+use App\Livewire\TallStackSettingsTaxes;
 use App\Livewire\TallStackStatementOfAccount;
 use App\Livewire\TallStackUsers;
 use App\Livewire\TallStackVendorBillForm;
@@ -447,27 +449,38 @@ Route::get('/tall/{company:slug}/clients/{client}/statement-of-account/{statemen
 // CompanyPolicy::viewSettings() (Owner/Admin only) gate those Filament
 // pages already use, explicitly in mount() — same reasoning as every
 // other TALL-stack route.
-Route::get('/tall/{company:slug}/settings/company-and-taxes', TallStackSettingsCompanyTaxes::class)
+// 2026-09-17 Settings reorganization (see memory.md): the former
+// "company-and-taxes" mega-route/page was split into Identity/Documents &
+// Numbering/Payment Method/Taxes, each a genuinely single category —
+// nothing left behind an old "company-and-taxes" URL, it never shipped
+// beyond this same working session so no redirect/back-compat is needed.
+Route::get('/tall/{company:slug}/settings/identity', TallStackSettingsIdentity::class)
     ->middleware('auth')
-    ->name('tallstack.settings.company-and-taxes');
-Route::get('/tall/{company:slug}/settings/email-and-reminders', TallStackSettingsEmail::class)
-    ->middleware('auth')
-    ->name('tallstack.settings.email');
-Route::get('/tall/{company:slug}/settings/branding', TallStackSettingsBranding::class)
-    ->middleware('auth')
-    ->name('tallstack.settings.branding');
-Route::get('/tall/{company:slug}/settings/lookups', TallStackSettingsLookups::class)
-    ->middleware('auth')
-    ->name('tallstack.settings.lookups');
-Route::get('/tall/{company:slug}/settings/numbering', TallStackSettingsNumbering::class)
-    ->middleware('auth')
-    ->name('tallstack.settings.numbering');
-Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
-    ->middleware('auth')
-    ->name('tallstack.settings.client-portal');
+    ->name('tallstack.settings.identity');
 Route::get('/tall/{company:slug}/settings/formatting', TallStackSettingsFormatting::class)
     ->middleware('auth')
     ->name('tallstack.settings.formatting');
+Route::get('/tall/{company:slug}/settings/branding', TallStackSettingsBranding::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.branding');
+Route::get('/tall/{company:slug}/settings/documents-and-numbering', TallStackSettingsDocumentsNumbering::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.documents-numbering');
+Route::get('/tall/{company:slug}/settings/payment-method', TallStackSettingsPaymentMethod::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.payment-method');
+Route::get('/tall/{company:slug}/settings/taxes', TallStackSettingsTaxes::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.taxes');
+Route::get('/tall/{company:slug}/settings/lookups', TallStackSettingsLookups::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.lookups');
+Route::get('/tall/{company:slug}/settings/email-and-reminders', TallStackSettingsEmail::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.email');
+Route::get('/tall/{company:slug}/settings/client-portal', TallStackSettingsClientPortal::class)
+    ->middleware('auth')
+    ->name('tallstack.settings.client-portal');
 
 // A user's own passkeys — not company data at all (App\Models\User's own
 // `passkeys()` relation carries no company_id), reachable from the

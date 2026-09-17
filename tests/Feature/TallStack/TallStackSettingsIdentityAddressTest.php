@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\TallStack;
 
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsIdentity;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
@@ -20,7 +20,7 @@ use Tests\TestCase;
  * currency/document-language in the 2026-09-17 Settings reorganization —
  * see memory.md.)
  */
-class TallStackSettingsCompanyTaxesAddressTest extends TestCase
+class TallStackSettingsIdentityAddressTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -42,7 +42,7 @@ class TallStackSettingsCompanyTaxesAddressTest extends TestCase
 
     public function test_saving_address_fields_updates_the_company(): void
     {
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('address_line_1', 'Jl. Contoh No. 1')
             ->set('address_line_2', 'Suite 2')
             ->set('city', 'Surabaya')

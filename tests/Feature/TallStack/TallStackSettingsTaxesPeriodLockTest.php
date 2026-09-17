@@ -3,7 +3,7 @@
 namespace Tests\Feature\TallStack;
 
 use App\Enums\CompanyRole;
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsTaxes;
 use App\Models\Company;
 use App\Models\CompanySetting;
 use App\Models\User;
@@ -19,7 +19,7 @@ use Tests\TestCase;
  * as the Hold/Release-hold gap Jobs already had. 2026-09-17 Settings
  * reorganization — see memory.md and docs/out-of-scope-findings.md.
  */
-class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
+class TallStackSettingsTaxesPeriodLockTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -47,7 +47,7 @@ class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
     {
         $this->actingAsRole(CompanyRole::Admin);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsTaxes::class, ['company' => $this->company])
             ->set('closeThroughDate', '2026-01-31')
             ->call('closePeriod')
             ->assertHasNoErrors();
@@ -59,7 +59,7 @@ class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
     {
         $this->actingAsRole(CompanyRole::Owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsTaxes::class, ['company' => $this->company])
             ->set('closeThroughDate', '')
             ->call('closePeriod')
             ->assertHasErrors(['closeThroughDate']);
@@ -70,7 +70,7 @@ class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
         CompanySetting::query()->create(['company_id' => $this->company->id, 'period_locked_through' => '2026-01-31']);
         $this->actingAsRole(CompanyRole::Owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsTaxes::class, ['company' => $this->company])
             ->set('reopenReason', 'Correcting a backdated invoice')
             ->call('reopenPeriod')
             ->assertHasNoErrors()
@@ -90,7 +90,7 @@ class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
         CompanySetting::query()->create(['company_id' => $this->company->id, 'period_locked_through' => '2026-01-31']);
         $this->actingAsRole(CompanyRole::Admin);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsTaxes::class, ['company' => $this->company])
             ->set('reopenReason', 'Trying anyway')
             ->call('reopenPeriod');
 
@@ -102,7 +102,7 @@ class TallStackSettingsCompanyTaxesPeriodLockTest extends TestCase
         CompanySetting::query()->create(['company_id' => $this->company->id, 'period_locked_through' => '2026-01-31']);
         $this->actingAsRole(CompanyRole::Owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsTaxes::class, ['company' => $this->company])
             ->set('reopenReason', '')
             ->call('reopenPeriod')
             ->assertHasErrors(['reopenReason']);

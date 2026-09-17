@@ -3,7 +3,7 @@
 namespace Tests\Feature\TallStack;
 
 use App\Enums\CompanyRole;
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsIdentity;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Tenancy\Tenancy;
@@ -19,7 +19,7 @@ use Tests\TestCase;
  * just clicked it, out of the company immediately. 2026-09-17 Settings
  * reorganization — see memory.md.
  */
-class TallStackSettingsCompanyTaxesActiveToggleTest extends TestCase
+class TallStackSettingsIdentityActiveToggleTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -46,7 +46,7 @@ class TallStackSettingsCompanyTaxesActiveToggleTest extends TestCase
     {
         $this->actingAsRole(CompanyRole::Owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('is_active', false)
             ->set('name', $this->company->name)
             ->set('slug', $this->company->slug)
@@ -61,7 +61,7 @@ class TallStackSettingsCompanyTaxesActiveToggleTest extends TestCase
     {
         $this->actingAsRole(CompanyRole::Admin);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('is_active', false)
             ->set('name', $this->company->name)
             ->set('slug', $this->company->slug)
@@ -76,7 +76,7 @@ class TallStackSettingsCompanyTaxesActiveToggleTest extends TestCase
     {
         $this->actingAsRole(CompanyRole::Admin);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('name', 'Acme Renamed')
             ->set('slug', $this->company->slug)
             ->set('is_active', true)

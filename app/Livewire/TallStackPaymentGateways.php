@@ -43,7 +43,7 @@ use TallStackUi\Traits\Interactions;
  * settings-adjacent and holds encrypted API credentials, VIEWING this page
  * additionally requires App\Policies\CompanyPolicy::viewSettings()
  * (Owner/Admin only) — the exact same gate every other TALL-stack Settings
- * page in this nav group (App\Livewire\TallStackSettingsCompanyTaxes and
+ * page in this nav group (App\Livewire\TallStackSettingsIdentity and
  * friends) already applies for the same "Settings" sidebar group, not a
  * new gate invented for this page alone.
  */

@@ -113,15 +113,15 @@ class RolePermissionMatrixTest extends TestCase
     public static function settingsPagesProvider(): array
     {
         return [
+            'identity' => ['tallstack.settings.identity'],
+            'formatting' => ['tallstack.settings.formatting'],
             'branding' => ['tallstack.settings.branding'],
-            'client portal' => ['tallstack.settings.client-portal'],
-            'email' => ['tallstack.settings.email'],
-            'numbering' => ['tallstack.settings.numbering'],
-            'company profile' => ['tallstack.settings.company-and-taxes'],
-            // Phase 12 (F29) settings consolidation added the shared
-            // tab-wrapper component every one of these routes now renders
-            // through — this route previously had no coverage here at all.
+            'documents and numbering' => ['tallstack.settings.documents-numbering'],
+            'payment method' => ['tallstack.settings.payment-method'],
+            'taxes' => ['tallstack.settings.taxes'],
             'lookups' => ['tallstack.settings.lookups'],
+            'email' => ['tallstack.settings.email'],
+            'client portal' => ['tallstack.settings.client-portal'],
         ];
     }
 
@@ -157,7 +157,7 @@ class RolePermissionMatrixTest extends TestCase
     }
 
     /**
-     * Phase 12 (F29): the six settings pages were consolidated behind one
+     * Phase 12 (F29), reorganized into nine tabs 2026-09-17: the settings pages are consolidated behind one
      * shared tab-header component (resources/views/components/tallstack/
      * settings-tabs.blade.php). TallStackUI's tab labels are only ever
      * materialized client-side by Alpine (`x-text` inside a `<template
@@ -182,15 +182,18 @@ class RolePermissionMatrixTest extends TestCase
     {
         $this->userWithRole('owner');
 
-        $html = $this->get(route('tallstack.settings.company-and-taxes', $this->company))
+        $html = $this->get(route('tallstack.settings.identity', $this->company))
             ->assertOk()
             ->getContent();
 
         $expectedTitles = [
-            'company-and-taxes' => 'Company \u0026 Taxes',
+            'identity' => 'Identity',
+            'formatting' => 'Formatting',
             'branding' => 'Branding',
+            'documents-numbering' => 'Documents \u0026 Numbering',
+            'payment-method' => 'Payment Method',
+            'taxes' => 'Taxes',
             'lookups' => 'Tax Rates \u0026 Lookups',
-            'numbering' => 'Numbering',
             'email' => 'Email \u0026 Reminders',
             'client-portal' => 'Client Portal',
         ];

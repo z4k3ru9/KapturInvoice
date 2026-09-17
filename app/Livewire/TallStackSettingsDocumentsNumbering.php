@@ -12,16 +12,16 @@ use Livewire\Component;
 use TallStackUi\Traits\Interactions;
 
 /**
- * The TALL-stack "Numbering" settings screen — see
- * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the established
- * pattern this follows (presentation-layer swap only). Mirrors the
- * equivalent pre-TallStackUI Filament numbering settings page field-for-
- * field, minus invoice_prefix/quote_prefix/credit_prefix, which already live on the
- * TallStack Company & Taxes page — only the fields not already built
- * anywhere in TallStackUI are duplicated here: the three `_next_number`
- * live sequence counters (App\Services\DocumentNumberGenerator's source of
- * truth for the very next document's number), default_payment_terms, and
- * default_tax_rate_1_id/default_tax_rate_2_id.
+ * The TALL-stack "Documents & Numbering" settings screen — everything
+ * about how documents get numbered, in one place. Previously split
+ * across two pages for no functional reason (the company code/prefixes
+ * lived on the former "Company & Taxes" mega-page while the next-number
+ * counters and document defaults lived here) — merged in the 2026-09-17
+ * Settings reorganization (see memory.md). `invoice_prefix`/
+ * `quote_prefix`/`credit_prefix` are edited here but, worth knowing,
+ * `App\Services\DocumentNumberGenerator::next()` never actually reads
+ * them — it builds numbers from `company->code` plus a hardcoded
+ * document-type constant instead (see docs/out-of-scope-findings.md).
  *
  * Authorization: same "View settings: Owner/Admin ... Auditor never" gate
  * (App\Enums\CompanyRole::settingsRoles(), CompanyPolicy::viewSettings())
@@ -31,25 +31,28 @@ use TallStackUi\Traits\Interactions;
  *
  * `default_expire_after_days` (repair plan Phase 11 / decision gate G5):
  * prefills a new Quotation's `valid_until` (today + N days) on
- * TallStackQuotationForm::mount(). It lives here rather than a new
- * settings screen because it's another document-creation default,
- * exactly like the fields above it. G5 also called for a "default Terms"
- * and a "default payment-method/instructions" settings field, but both
- * already exist unwired — `default_payment_terms` right above (now wired
- * into TallStackInvoiceForm/TallStackQuotationForm/
- * TallStackRecurringInvoiceForm/TallStackVendorPurchaseOrderForm's own
- * `mount()`) and `Company::payment_instructions`/`bank_name`/
- * `bank_account_number`/`bank_account_name` (editable on
- * TallStackSettingsBranding, still with no consuming form/PDF field
- * anywhere in the app) — so only this one column was genuinely missing.
+ * TallStackQuotationForm::mount().
  */
 #[Layout('components.tallstack.app')]
-class TallStackSettingsNumbering extends Component
+class TallStackSettingsDocumentsNumbering extends Component
 {
     use Interactions;
 
     public Company $company;
 
+    // --- Document code/prefixes — moved in from the former Company &
+    // Taxes page. --------------------------------------------------------
+    public ?string $code = null;
+
+    public ?string $invoice_prefix = null;
+
+    public ?string $quote_prefix = null;
+
+    public ?string $credit_prefix = null;
+
+    public bool $codesLocked = false;
+
+    // --- Next-number counters and document-creation defaults ------------
     public ?int $invoice_next_number = null;
 
     public ?int $quote_next_number = null;
@@ -75,6 +78,11 @@ class TallStackSettingsNumbering extends Component
 
         app(Tenancy::class)->set($company);
 
+        $this->code = $company->code;
+        $this->invoice_prefix = $company->invoice_prefix;
+        $this->quote_prefix = $company->quote_prefix;
+        $this->credit_prefix = $company->credit_prefix;
+        $this->codesLocked = filled($company->codes_locked_at);
         $this->invoice_next_number = $company->invoice_next_number;
         $this->quote_next_number = $company->quote_next_number;
         $this->credit_next_number = $company->credit_next_number;
@@ -102,6 +110,10 @@ class TallStackSettingsNumbering extends Component
         $this->authorize('viewSettings', $this->company);
 
         $data = $this->validate([
+            'code' => ['nullable', 'string', 'max:20'],
+            'invoice_prefix' => ['nullable', 'string', 'max:20'],
+            'quote_prefix' => ['nullable', 'string', 'max:20'],
+            'credit_prefix' => ['nullable', 'string', 'max:20'],
             'invoice_next_number' => ['required', 'integer', 'min:1'],
             'quote_next_number' => ['required', 'integer', 'min:1'],
             'credit_next_number' => ['required', 'integer', 'min:1'],
@@ -111,8 +123,27 @@ class TallStackSettingsNumbering extends Component
             'default_expire_after_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
         ]);
 
-        $this->company->update($data);
+        $payload = [
+            'invoice_prefix' => $data['invoice_prefix'],
+            'quote_prefix' => $data['quote_prefix'],
+            'credit_prefix' => $data['credit_prefix'],
+            'invoice_next_number' => $data['invoice_next_number'],
+            'quote_next_number' => $data['quote_next_number'],
+            'credit_next_number' => $data['credit_next_number'],
+            'default_payment_terms' => $data['default_payment_terms'],
+            'default_tax_rate_1_id' => $data['default_tax_rate_1_id'],
+            'default_tax_rate_2_id' => $data['default_tax_rate_2_id'],
+            'default_expire_after_days' => $data['default_expire_after_days'],
+        ];
 
+        // "Locks after the first document is issued" — a disabled field
+        // never round-trips through Livewire's wire:model anyway, but
+        // this makes the same rule explicit server-side too.
+        if (! $this->codesLocked) {
+            $payload['code'] = $data['code'];
+        }
+
+        $this->company->update($payload);
         $this->company->refresh();
 
         $this->toast()->success('Settings saved.')->send();
@@ -120,11 +151,11 @@ class TallStackSettingsNumbering extends Component
 
     public function render(): View
     {
-        return view('livewire.tallstack-settings-numbering')
+        return view('livewire.tallstack-settings-documents-numbering')
             ->layoutData([
                 'company' => $this->company,
                 'active' => 'settings',
-                'title' => 'Numbering',
+                'title' => 'Documents & Numbering',
             ]);
     }
 }

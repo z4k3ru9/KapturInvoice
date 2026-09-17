@@ -252,3 +252,38 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   804/804 suite green. The only behavior lost is that clicking the tab
   you're already on no longer re-navigates, which wasn't meaningful
   anyway. Status: fixed.
+- **Settings split from 6 tabs into 9 + per-company outbound mail —
+  real gaps closed, not just a reshuffle.** Second restructure pass the
+  same day, per Owner instruction to "rearrange the settings tab by
+  real category and function... slice through the function." Company &
+  Taxes (Identity/Address/tax fields/Period Lock/bank accounts/code
+  &numbering all on one page) split into `TallStackSettingsIdentity`,
+  `TallStackSettingsTaxes`, `TallStackSettingsPaymentMethod` (Owner:
+  keep Payment Method on its own tab, not merged into Documents &
+  Numbering as first proposed — "Payment method can be used on
+  different tabs instead, since it's a different information"), and
+  `TallStackSettingsDocumentsNumbering` absorbed code/prefix fields. Two
+  real, previously-unaddressed gaps closed in the same pass: (1)
+  `TallStackSettingsClientPortal`'s `portal_allow_client_payments`/
+  `portal_require_signature` — both already real, actively-read
+  `CompanySetting` columns (gate the portal Pay section and
+  e-signature capture) with zero Settings UI exposure before this;
+  (2) outbound mail was single, app-wide, `.env`-only
+  (`config/mail.php`'s default mailer) — every company silently shared
+  one SMTP identity with no way to send "from" its own domain. New
+  `CompanySetting::mail_config` (`encrypted:array`, mirrors
+  `PaymentGateway::config`'s existing convention exactly) +
+  `App\Services\CompanyMailerResolver` (registers a mailer at runtime
+  via `config(["mail.mailers.{$name}" => ...])` + `Mail::mailer($name)`,
+  no `config/mail.php` pre-declaration) wired into both
+  `BillingMailer` and `QuotationMailer`'s send call sites; a blank host
+  is a legitimate opt-out (falls back to the app default), not an
+  error state. All mechanical fallout (test renames, docblocks,
+  `RolePermissionMatrixTest`'s route/title tables,
+  `SetupChecklist`'s "company_profile" step split into two accurate
+  steps, the sidebar's Settings link, every component's
+  `layoutData(['active' => 'settings'])` sidebar-key) tracked and
+  fixed. 818/818 tests green, Pint clean, verified live in-browser
+  across all 9 tabs including a `tax_enabled` toggle test and a real
+  save (`wire:click="save"`) confirming the panel-blanking bug above
+  stays fixed under the new tab set. Status: fixed.

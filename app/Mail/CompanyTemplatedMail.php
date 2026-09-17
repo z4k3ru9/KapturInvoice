@@ -24,12 +24,24 @@ class CompanyTemplatedMail extends Mailable
         public string $subjectLine,
         public string $bodyText,
         public array $pdfAttachments = [],
+        public ?string $fromAddress = null,
+        public ?string $fromName = null,
     ) {}
 
     public function build(): self
     {
-        return $this->subject($this->subjectLine)
+        $mail = $this->subject($this->subjectLine)
             ->view('emails.plain', ['body' => $this->bodyText]);
+
+        // Only overrides the global config('mail.from') default when the
+        // sending company has its own CompanySetting::mail_config on file
+        // (App\Services\CompanyMailerResolver) — most sends still use the
+        // app-wide default untouched.
+        if (filled($this->fromAddress)) {
+            $mail->from($this->fromAddress, $this->fromName);
+        }
+
+        return $mail;
     }
 
     /**

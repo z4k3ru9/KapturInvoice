@@ -9,9 +9,9 @@ use App\Models\Quotation;
 
 /**
  * The first-run/zero-state setup checklist.
- * Four steps, each linking to the existing TALL-stack page that completes
- * it: company profile & numbering, at least one catalog item, at least
- * one client, and the first quotation.
+ * Five steps, each linking to the existing TALL-stack page that completes
+ * it: company profile (Identity), numbering (Documents & Numbering), at
+ * least one catalog item, at least one client, and the first quotation.
  */
 class SetupChecklist
 {
@@ -23,15 +23,15 @@ class SetupChecklist
         $steps = [
             [
                 'key' => 'company_profile',
-                'label' => 'Set up your company profile and numbering',
-                'done' => filled($company->code) && filled($company->address_line_1),
-                'url' => route('tallstack.settings.company-and-taxes', $company),
+                'label' => 'Set up your company profile',
+                'done' => filled($company->address_line_1),
+                'url' => route('tallstack.settings.identity', $company),
             ],
             [
                 'key' => 'numbering',
-                'label' => 'Confirm your invoice numbering prefix',
-                'done' => filled($company->invoice_prefix),
-                'url' => route('tallstack.settings.numbering', $company),
+                'label' => 'Set your company code and invoice numbering prefix',
+                'done' => filled($company->code) && filled($company->invoice_prefix),
+                'url' => route('tallstack.settings.documents-numbering', $company),
             ],
             [
                 'key' => 'catalog',

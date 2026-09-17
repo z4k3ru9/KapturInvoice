@@ -5,21 +5,56 @@ re-run completed audits unless new evidence contradicts them.
 
 ## Current state
 
-- **Settings reorganization + real gaps closed (2026-09-17) — done, do
-  not re-litigate the shape.** Company & Taxes had accreted real
-  settings-UI gaps and duplication; closed in one pass:
-  - New **Formatting** tab (`App\Livewire\TallStackSettingsFormatting`,
-    `/tall/{company:slug}/settings/formatting`) — `currency_code`/
-    `timezone` moved off Company & Taxes' own Identity card, plus
-    `CompanySetting::default_document_language` (had no Settings field
-    anywhere despite being read by every one of the 12 launch document
-    types' own `resolveDocumentLanguage()` fallback).
-  - Removed Company & Taxes' embedded Branding card (logo/colors) —
-    duplicated the dedicated Branding tab editing the same columns; one
-    editing surface now, not two.
-  - Added an **Address** card (`address_line_1`/city/state/postal_code/
-    country_code — already real Fillable columns, printed on the
-    homepage and every PDF, no Settings field existed).
+- **Settings reorganized into nine real functional tabs + per-company
+  outbound mail (2026-09-17) — done, do not re-litigate the shape.**
+  Two passes same day: an initial pass added a Formatting tab/Address
+  card/Period Lock/`is_active` toggle to the old six-tab "Company &
+  Taxes" mega-page (see git history for that intermediate shape); a
+  second pass — triggered by "rearrange the settings tab by real
+  category and function... slice through the function and categorize"
+  — split Company & Taxes itself into three focused tabs and added
+  per-company mail transport config. **Current tab set (9), all under
+  `/tall/{company:slug}/settings/...`**: Identity, Formatting, Branding,
+  Documents & Numbering, Payment Method, Taxes, Tax Rates & Lookups,
+  Email & Reminders, Client Portal.
+  - **`TallStackSettingsCompanyTaxes` no longer exists** — split into
+    `TallStackSettingsIdentity` (name/slug/domain/email/phone/tax
+    number/`is_active`/address/dashboard refresh interval),
+    `TallStackSettingsTaxes` (tax_enabled + PPN rate/DPP fields +
+    Period Lock), and `TallStackSettingsPaymentMethod` (bank account
+    CRUD) — **Payment Method is its own tab by explicit Owner
+    instruction**, not merged into Documents & Numbering as originally
+    proposed, since "Payment method can be used on different tabs
+    instead, since it's a different information."
+  - **Tax detail fields are conditionally hidden**: `TallStackSettingsTaxes`
+    shows only the `tax_enabled` toggle when off; PPN rate/DPP
+    numerator/denominator fields appear live (Alpine, no round-trip)
+    the instant it's switched on — exact Owner spec: "Make the tax
+    active toggle shown on the taxes while hiding every settings if
+    inactive and show the other cards if enabled."
+  - `TallStackSettingsDocumentsNumbering` (renamed from
+    `TallStackSettingsNumbering`) now also owns company code/invoice/
+    quote/credit prefixes and the live document-number preview (moved
+    in from the old Company & Taxes page).
+  - **Per-company outbound mail** (`App\Services\CompanyMailerResolver`,
+    `CompanySetting::mail_config` — `encrypted:array`, same convention
+    as `PaymentGateway::config`) — Owner spec: "ensure if API key for
+    email and url also port is configurable from Email & Reminders page
+    instead of hardcoded into the settings." A blank SMTP host means
+    "use the app's own `.env` mailer" (opt-in, not required); wired into
+    `BillingMailer` and `QuotationMailer`'s send call sites via
+    `Mail::mailer()`'s runtime-registration API — no `config/mail.php`
+    pre-declaration needed. UI: a collapsed-by-default "Outbound mail"
+    card on `TallStackSettingsEmail` (host/port/encryption/username/
+    password/from address/from name).
+  - `TallStackSettingsClientPortal` gained `portal_allow_client_payments`/
+    `portal_require_signature` toggles — both were already real, actively
+    -read `CompanySetting` columns (gating the portal's Pay section and
+    e-signature capture) with no Settings UI field anywhere; a settings
+    -UI gap, not a missing-column one.
+  - Removed Company & Taxes' embedded Branding card (logo/colors) in the
+    first pass — duplicated the dedicated Branding tab editing the same
+    columns; one editing surface now, not two.
   - Wired up `App\Services\PeriodLockService` (close/reopen, Owner/
     Accountant-only reopen with a required audited reason) — existed
     fully built with zero callers anywhere, same shape as the
@@ -32,22 +67,32 @@ re-run completed audits unless new evidence contradicts them.
   - **Found and fixed a real, session-blocking vendor-interaction bug**
     along the way (not caused by this work, exposed by testing it):
     `<x-tallstack.settings-tabs>`'s route-based active-tab detection
-    blanked the entire panel after *every* save on *all seven* settings
-    pages (TallStackUI's `TabItemsRuntime::runtime()` compares
-    `request()->url()` against each tab's href, which only matches on
-    the page's initial GET, not a Livewire AJAX request). Fixed without
-    a vendor patch — `settings-tabs.blade.php` now passes `href: null`
-    for only the active tab, which the vendor's own `! $href` fallback
-    treats as always-current. Full root-cause + fix writeup in
-    `docs/out-of-scope-findings.md` — do not reintroduce
+    blanked the entire panel after *every* save or `.live` field commit
+    on *every* settings page (TallStackUI's `TabItemsRuntime::runtime()`
+    compares `request()->url()` against each tab's href, which only
+    matches on the page's initial GET, not a Livewire AJAX request).
+    Fixed without a vendor patch — `settings-tabs.blade.php` now passes
+    `href: null` for only the active tab, which the vendor's own
+    `! $href` fallback treats as always-current. Full root-cause + fix
+    writeup in `docs/out-of-scope-findings.md` — do not reintroduce
     `wire:model.live` on these pages without re-reading that entry
     first, since the underlying vendor formula is still fragile even
     though this specific failure mode is closed.
-  - 804/804 PHP tests green (`TallStackSettingsFormattingTest`,
-    `TallStackSettingsCompanyTaxesPeriodLockTest`,
-    `TallStackSettingsCompanyTaxesActiveToggleTest`, updated
-    `TallStackSettingsCompanyTaxesAddressTest`), verified live in-browser
-    on Formatting/Company & Taxes/Branding.
+  - Sidebar's own "Settings" nav link and every settings component's
+    `layoutData(['active' => ...])` must both be the literal string
+    `'settings'` (the sidebar's own item key) — separate from the
+    per-tab `active` prop on `<x-tallstack.settings-tabs>`, which
+    selects which TAB renders. Confusing the two silently un-highlights
+    the sidebar item; watch for this on any future new settings page.
+  - `<x-card minimize>` applied across every settings card for
+    collapsible sections (Owner: "Collapsible cards is appreciated on
+    this design"); the Outbound mail card defaults collapsed
+    (`minimize="mount"`) since it's opt-in and empty by default.
+  - 818/818 PHP tests green, Pint clean, verified live in-browser across
+    all 9 tabs (tab navigation, live document-number preview,
+    `tax_enabled` show/hide, Payment Method as its own tab, Outbound
+    mail card, Client Portal's two new toggles, save-without-blanking,
+    zero console/server errors).
 - Repository: `z4k3ru9/KapturInvoice`. Authoritative branch: `main`. As of
   2026-09-17 `main` is also the active working branch (clean, matches
   `origin/main`) — the `claude/invoiceninja-schema-reference-6s9aqc`
@@ -92,7 +137,7 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 791 PHP tests passing as of 2026-09-17, plain `php artisan
+- Test suite: 818 PHP tests passing as of 2026-09-17, plain `php artisan
   test` (no flags needed). The earlier "crashes partway through a full
   local run on a 128M CLI default" issue is fixed —
   `phpunit.xml`'s `<php>` block now sets `<ini name="memory_limit"

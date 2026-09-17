@@ -1,4 +1,4 @@
-<div class="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-5">
+<div class="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
 
     <x-tallstack.page-header :crumbs="[['label' => $company->name], ['label' => 'Settings'], ['label' => 'Email & Reminders']]" title="Email & Reminders">
         <x-slot:actions>
@@ -7,7 +7,7 @@
     </x-tallstack.page-header>
 
     <x-tallstack.settings-tabs :company="$company" active="email">
-    <x-card>
+    <x-card minimize>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Templates</span>
         </x-slot:header>
@@ -35,7 +35,7 @@
         </div>
     </x-card>
 
-    <x-card>
+    <x-card minimize>
         <x-slot:header>
             <div>
                 <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Reminders</span>
@@ -59,7 +59,7 @@
         </div>
     </x-card>
 
-    <x-card>
+    <x-card minimize>
         <x-slot:header>
             <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Late fees</span>
         </x-slot:header>
@@ -71,6 +71,35 @@
                     <x-input wire:model="lateFees.{{ $n }}.percent" label="Tier {{ $n }} percent" type="number" step="0.001" />
                 </div>
             @endforeach
+        </div>
+    </x-card>
+
+    <x-card minimize="mount">
+        <x-slot:header>
+            <div>
+                <span class="font-semibold text-sm text-gray-900 dark:text-gray-100!">Outbound mail</span>
+                <p class="text-xs text-gray-400">Optional — leave the host blank to keep using this server's own default mailer for this company.</p>
+            </div>
+        </x-slot:header>
+
+        {{--
+            CompanySetting::mail_config, an encrypted array
+            (App\Services\CompanyMailerResolver) — previously every
+            company silently shared the single app-wide .env mailer, with
+            no way to configure a company's own SMTP/API credentials from
+            here at all. Starts collapsed (minimize="mount") since most
+            companies will never touch it.
+        --}}
+        <div class="grid sm:grid-cols-2 gap-5">
+            <x-input wire:model="mail_host" label="SMTP host" placeholder="smtp.mailgun.org" />
+            <x-input wire:model="mail_port" label="Port" type="number" placeholder="587" />
+            <x-select.styled wire:model="mail_encryption" label="Encryption" clearable
+                :options="[['label' => 'TLS', 'value' => 'tls'], ['label' => 'SSL', 'value' => 'ssl']]" />
+            <x-input wire:model="mail_username" label="Username" />
+            <x-input wire:model="mail_password" label="Password / API key" type="password" />
+            <div></div>
+            <x-input wire:model="mail_from_address" label="From address" type="email" />
+            <x-input wire:model="mail_from_name" label="From name" />
         </div>
     </x-card>
     </x-tallstack.settings-tabs>

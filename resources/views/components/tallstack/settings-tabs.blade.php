@@ -1,12 +1,14 @@
 @props(['company', 'active'])
 
 {{--
-    Phase 12 (F29) settings consolidation — a shared tab-header wrapper for
-    the settings pages (Company & Taxes, Formatting, Branding, Tax Rates &
-    Lookups, Numbering, Email & Reminders, Client Portal — Formatting
-    added 2026-09-17, pulling currency/timezone/document-language off
-    Company & Taxes' own Identity card into one place, see memory.md),
-    each of which keeps its own route, its own TallStack{Thing} Livewire
+    Phase 12 (F29) settings consolidation, reorganized 2026-09-17 (see
+    memory.md) into nine genuinely single-category tabs — Identity,
+    Formatting, Branding, Documents & Numbering, Payment Method, Taxes,
+    Tax Rates & Lookups, Email & Reminders, Client Portal. Replaces the
+    original six-tab set, whose "Company & Taxes" tab had accreted seven
+    unrelated concerns (identity, address, document numbering, bank
+    accounts, tax config, period lock, a dashboard preference) over time.
+    Each tab keeps its own route, its own TallStack{Thing} Livewire
     class, and its own save()/validation logic entirely unchanged — this
     component only adds shared tab-navigation chrome around them.
 
@@ -42,11 +44,11 @@
     that clicking the tab you're already on won't re-navigate, which
     wasn't meaningful anyway.
 
-    `active` selects which of the six tab panels below actually receives
+    `active` selects which of the nine tab panels below actually receives
     real content ($slot) for THIS request — the current page is the only
     one with anything to render into `$slot` in the first place (this
     component is invoked once, per page, from that page's own view), so
-    the other five panels are intentionally left empty here; they render
+    the other eight panels are intentionally left empty here; they render
     real content only once their own route is the one being requested.
 
     Tab titles are static strings — a reactive count/badge in a tab's
@@ -58,11 +60,13 @@
 --}}
 @php
     $tabs = [
-        'company-and-taxes' => ['title' => 'Company & Taxes', 'route' => route('tallstack.settings.company-and-taxes', $company)],
+        'identity' => ['title' => 'Identity', 'route' => route('tallstack.settings.identity', $company)],
         'formatting' => ['title' => 'Formatting', 'route' => route('tallstack.settings.formatting', $company)],
         'branding' => ['title' => 'Branding', 'route' => route('tallstack.settings.branding', $company)],
+        'documents-numbering' => ['title' => 'Documents & Numbering', 'route' => route('tallstack.settings.documents-numbering', $company)],
+        'payment-method' => ['title' => 'Payment Method', 'route' => route('tallstack.settings.payment-method', $company)],
+        'taxes' => ['title' => 'Taxes', 'route' => route('tallstack.settings.taxes', $company)],
         'lookups' => ['title' => 'Tax Rates & Lookups', 'route' => route('tallstack.settings.lookups', $company)],
-        'numbering' => ['title' => 'Numbering', 'route' => route('tallstack.settings.numbering', $company)],
         'email' => ['title' => 'Email & Reminders', 'route' => route('tallstack.settings.email', $company)],
         'client-portal' => ['title' => 'Client Portal', 'route' => route('tallstack.settings.client-portal', $company)],
     ];

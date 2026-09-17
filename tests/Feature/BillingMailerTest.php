@@ -298,6 +298,51 @@ class BillingMailerTest extends TestCase
     }
 
     /**
+     * `CompanySetting::mail_config` (Email & Reminders settings page) is
+     * opt-in per company — App\Services\CompanyMailerResolver falls back
+     * to the app's own default mailer/from address when it's unset, which
+     * is what every other test in this file exercises implicitly. This
+     * confirms the override path itself actually reaches the outgoing
+     * Mailable when a company has configured its own.
+     */
+    public function test_a_companys_own_mail_config_overrides_the_from_address(): void
+    {
+        Mail::fake();
+
+        CompanySetting::query()->create([
+            'company_id' => $this->company->id,
+            'mail_config' => [
+                'host' => 'smtp.acme-mail.test',
+                'port' => 587,
+                'encryption' => 'tls',
+                'username' => 'acme',
+                'password' => 'secret-api-key',
+                'from_address' => 'billing@acme.test',
+                'from_name' => 'Acme Billing',
+            ],
+        ]);
+
+        $invoice = Invoice::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'type' => 'invoice',
+            'status' => 'sent',
+            'number' => 'INV-0010',
+        ]);
+        $payment = Payment::create([
+            'company_id' => $this->company->id,
+            'client_id' => $this->client->id,
+            'invoice_id' => $invoice->id,
+            'amount' => 50,
+            'status' => 'completed',
+        ]);
+
+        app(BillingMailer::class)->sendPaymentReceipt($payment);
+
+        Mail::assertSent(CompanyTemplatedMail::class, fn (CompanyTemplatedMail $mail) => $mail->fromAddress === 'billing@acme.test' && $mail->fromName === 'Acme Billing');
+    }
+
+    /**
      * The body template moved from a plain-text field to TallStackUI's
      * <x-editor> (App\Livewire\TallStackSettingsEmail) — resources/views/
      * emails/plain.blade.php now renders it raw once it looks like real

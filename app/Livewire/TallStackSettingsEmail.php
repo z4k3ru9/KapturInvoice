@@ -8,6 +8,7 @@ use App\Support\Html\RichTextSanitizer;
 use App\Support\Tenancy\Tenancy;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use TallStackUi\Traits\Interactions;
@@ -17,7 +18,7 @@ use TallStackUi\Traits\Interactions;
  * equivalent pre-TallStackUI Filament email settings page field-for-field:
  * every invoice/quote/quotation/payment subject+body template, the reminder1-4
  * enabled/days/direction/field config, and the late-fee tiers. See
- * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the shared
+ * App\Livewire\TallStackSettingsIdentity's docblock for the shared
  * authorization/presentation-layer-swap reasoning this and every other
  * Settings page in this phase follows.
  */
@@ -49,6 +50,25 @@ class TallStackSettingsEmail extends Component
 
     /** @var array<int, array{amount: ?float, percent: ?float}> */
     public array $lateFees = [];
+
+    // --- Outbound mail transport — CompanySetting::mail_config, an
+    // encrypted array (App\Services\CompanyMailerResolver). Opt-in: blank
+    // host means "use the app's own default mailer", not an error. Was
+    // previously only settable via the single app-wide .env mailer, which
+    // every company silently shared. -------------------------------------
+    public ?string $mail_host = null;
+
+    public ?int $mail_port = null;
+
+    public ?string $mail_encryption = null;
+
+    public ?string $mail_username = null;
+
+    public ?string $mail_password = null;
+
+    public ?string $mail_from_address = null;
+
+    public ?string $mail_from_name = null;
 
     public function mount(Company $company): void
     {
@@ -87,6 +107,15 @@ class TallStackSettingsEmail extends Component
                 'percent' => $settings->{"late_fee{$n}_percent"} !== null ? (float) $settings->{"late_fee{$n}_percent"} : null,
             ];
         }
+
+        $mailConfig = $settings->mail_config ?? [];
+        $this->mail_host = $mailConfig['host'] ?? null;
+        $this->mail_port = $mailConfig['port'] ?? null;
+        $this->mail_encryption = $mailConfig['encryption'] ?? null;
+        $this->mail_username = $mailConfig['username'] ?? null;
+        $this->mail_password = $mailConfig['password'] ?? null;
+        $this->mail_from_address = $mailConfig['from_address'] ?? null;
+        $this->mail_from_name = $mailConfig['from_name'] ?? null;
     }
 
     public function save(): void
@@ -114,6 +143,13 @@ class TallStackSettingsEmail extends Component
             'reminders.*.field' => ['required', 'in:due_date,invoice_date'],
             'lateFees.*.amount' => ['nullable', 'numeric', 'min:0'],
             'lateFees.*.percent' => ['nullable', 'numeric', 'min:0'],
+            'mail_host' => ['nullable', 'string', 'max:255'],
+            'mail_port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'mail_encryption' => ['nullable', 'string', Rule::in(['tls', 'ssl'])],
+            'mail_username' => ['nullable', 'string', 'max:255'],
+            'mail_password' => ['nullable', 'string', 'max:255'],
+            'mail_from_address' => ['nullable', 'email', 'max:255'],
+            'mail_from_name' => ['nullable', 'string', 'max:255'],
         ]);
 
         $payload = [
@@ -138,6 +174,23 @@ class TallStackSettingsEmail extends Component
             $payload["late_fee{$n}_amount"] = $data['lateFees'][$n]['amount'];
             $payload["late_fee{$n}_percent"] = $data['lateFees'][$n]['percent'];
         }
+
+        // Blank host means "use the app's own default mailer" —
+        // App\Services\CompanyMailerResolver treats a blank/missing host
+        // as opt-out, so an empty form here is a legitimate, common state,
+        // not an error. Stored as one encrypted array, matching
+        // PaymentGateway::config's own convention exactly (including
+        // that convention's same-page-shows-the-real-secret-back
+        // behavior — see TallStackPaymentGateways for precedent).
+        $payload['mail_config'] = filled($data['mail_host']) ? [
+            'host' => $data['mail_host'],
+            'port' => $data['mail_port'] ?: 587,
+            'encryption' => $data['mail_encryption'],
+            'username' => $data['mail_username'],
+            'password' => $data['mail_password'],
+            'from_address' => $data['mail_from_address'],
+            'from_name' => $data['mail_from_name'],
+        ] : null;
 
         CompanySetting::query()->updateOrCreate(['company_id' => $this->company->id], $payload);
 

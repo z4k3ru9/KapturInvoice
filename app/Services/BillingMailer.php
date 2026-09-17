@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\InvoiceStatus;
 use App\Mail\CompanyTemplatedMail;
+use App\Models\Company;
 use App\Models\CompanySetting;
 use App\Models\Invitation;
 use App\Models\Invoice;
@@ -14,7 +15,6 @@ use App\Services\Concerns\ResolvesBillingContact;
 use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Closes the gap flagged in docs/filament-admin-layout-design.md §3.3 —
@@ -30,7 +30,22 @@ class BillingMailer
 {
     use ResolvesBillingContact;
 
-    public function __construct(private EmailTemplateRenderer $renderer) {}
+    public function __construct(
+        private EmailTemplateRenderer $renderer,
+        private CompanyMailerResolver $mailerResolver,
+    ) {}
+
+    /**
+     * @return array{0: ?string, 1: ?string} [from address, from name] —
+     *                                       both null unless the company has its own CompanySetting::mail_config
+     *                                       on file with a from address set.
+     */
+    private function mailFrom(Company $company): array
+    {
+        $config = $company->settings?->mail_config;
+
+        return [$config['from_address'] ?? null, $config['from_name'] ?? null];
+    }
 
     /**
      * @param  array<int, string>  $cc
@@ -72,9 +87,13 @@ class BillingMailer
             '{{amount}}' => number_format((float) $payment->amount, 2),
         ];
 
-        Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
+        [$fromAddress, $fromName] = $this->mailFrom($payment->company);
+
+        $this->mailerResolver->for($payment->company)->to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->renderHtml($bodyTemplate, $tokens),
+            fromAddress: $fromAddress,
+            fromName: $fromName,
         ));
     }
 
@@ -100,9 +119,13 @@ class BillingMailer
             '{{expires_at}}' => $link->expires_at?->toFormattedDateString() ?? 'never',
         ];
 
-        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+        [$fromAddress, $fromName] = $this->mailFrom($link->company);
+
+        $this->mailerResolver->for($link->company)->to($contact->email)->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->renderHtml($bodyTemplate, $tokens),
+            fromAddress: $fromAddress,
+            fromName: $fromName,
         ));
     }
 
@@ -135,10 +158,14 @@ class BillingMailer
 
         $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.statement-of-account', ['statementOfAccount' => $statementOfAccount]))->output();
 
-        Mail::to($contact->email)->send(new CompanyTemplatedMail(
+        [$fromAddress, $fromName] = $this->mailFrom($statementOfAccount->company);
+
+        $this->mailerResolver->for($statementOfAccount->company)->to($contact->email)->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$statementOfAccount->number}.pdf")->withMime('application/pdf')],
+            $fromAddress,
+            $fromName,
         ));
     }
 
@@ -180,10 +207,14 @@ class BillingMailer
         // both live on the same `invoices` table.
         $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.invoice', ['invoice' => $invoice]))->output();
 
-        Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
+        [$fromAddress, $fromName] = $this->mailFrom($invoice->company);
+
+        $this->mailerResolver->for($invoice->company)->to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$invoice->number}.pdf")->withMime('application/pdf')],
+            $fromAddress,
+            $fromName,
         ));
 
         $invitation->forceFill(['sent_at' => now()])->save();

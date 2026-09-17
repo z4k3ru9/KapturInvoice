@@ -4,12 +4,12 @@ namespace App\Services\Sales;
 
 use App\Mail\CompanyTemplatedMail;
 use App\Models\Quotation;
+use App\Services\CompanyMailerResolver;
 use App\Services\Concerns\ResolvesBillingContact;
 use App\Services\EmailTemplateRenderer;
 use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Mail\Mailables\Attachment;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Emails a job-centric `App\Models\Quotation` (Phase 03) with its PDF
@@ -30,7 +30,10 @@ class QuotationMailer
 {
     use ResolvesBillingContact;
 
-    public function __construct(private EmailTemplateRenderer $renderer) {}
+    public function __construct(
+        private EmailTemplateRenderer $renderer,
+        private CompanyMailerResolver $mailerResolver,
+    ) {}
 
     /**
      * @param  array<int, string>  $cc
@@ -61,10 +64,14 @@ class QuotationMailer
         // Blade template.
         $pdf = PageNumberFooter::apply(Pdf::loadView('pdf.quotation', ['quotation' => $quotation]))->output();
 
-        Mail::to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
+        $mailConfig = $quotation->company->settings?->mail_config;
+
+        $this->mailerResolver->for($quotation->company)->to($contact->email)->cc(array_values($cc))->send(new CompanyTemplatedMail(
             $this->renderer->render($subjectTemplate, $tokens),
             $this->renderer->renderHtml($bodyTemplate, $tokens),
             [Attachment::fromData(fn () => $pdf, "{$quotation->number}.pdf")->withMime('application/pdf')],
+            $mailConfig['from_address'] ?? null,
+            $mailConfig['from_name'] ?? null,
         ));
     }
 }

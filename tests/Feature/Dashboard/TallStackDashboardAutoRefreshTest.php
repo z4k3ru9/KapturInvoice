@@ -3,7 +3,7 @@
 namespace Tests\Feature\Dashboard;
 
 use App\Livewire\TallStackDashboard;
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsIdentity;
 use App\Models\Company;
 use App\Models\User;
 use Database\Seeders\CurrencySeeder;
@@ -81,7 +81,7 @@ class TallStackDashboardAutoRefreshTest extends TestCase
     {
         $this->actingAs($this->owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('dashboard_refresh_seconds', 120)
             ->call('save');
 
@@ -93,7 +93,7 @@ class TallStackDashboardAutoRefreshTest extends TestCase
         $this->company->update(['dashboard_refresh_seconds' => 60]);
         $this->actingAs($this->owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('dashboard_refresh_seconds', 0)
             ->call('save');
 
@@ -104,7 +104,7 @@ class TallStackDashboardAutoRefreshTest extends TestCase
     {
         $this->actingAs($this->owner);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsIdentity::class, ['company' => $this->company])
             ->set('dashboard_refresh_seconds', 45)
             ->call('save')
             ->assertHasErrors(['dashboard_refresh_seconds']);

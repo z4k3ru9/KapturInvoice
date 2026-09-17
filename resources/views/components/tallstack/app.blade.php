@@ -190,7 +190,7 @@
                 // not simple one-row-per-tenant settings forms like the six
                 // that were consolidated, so folding them into the same tab
                 // strip would misrepresent what they are.
-                ['key' => 'settings', 'label' => 'Settings', 'route' => route('tallstack.settings.company-and-taxes', $company), 'icon' => 'cog-6-tooth'],
+                ['key' => 'settings', 'label' => 'Settings', 'route' => route('tallstack.settings.identity', $company), 'icon' => 'cog-6-tooth'],
                 ['key' => 'users', 'label' => 'Users & Roles', 'route' => route('tallstack.users', $company), 'icon' => 'user-group'],
                 // Pre-Filament-removal audit gap — folded into this SAME
                 // 'Settings' key, never a second 'Settings' => [...] block

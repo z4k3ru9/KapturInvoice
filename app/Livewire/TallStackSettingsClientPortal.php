@@ -13,7 +13,7 @@ use TallStackUi\Traits\Interactions;
 
 /**
  * The TALL-stack "Client Portal" settings screen — see
- * App\Livewire\TallStackSettingsCompanyTaxes's docblock for the established
+ * App\Livewire\TallStackSettingsIdentity's docblock for the established
  * pattern this follows (presentation-layer swap only). Mirrors the
  * equivalent pre-TallStackUI Filament client portal settings page's single
  * `portal_enabled` field on App\Models\CompanySetting exactly — this admin
@@ -35,6 +35,14 @@ class TallStackSettingsClientPortal extends Component
 
     public bool $portal_enabled = false;
 
+    // Both were already real, actively-read CompanySetting columns
+    // (view-invoice.blade.php:169/239 gate the Pay section and the
+    // e-signature capture on these respectively) with no Settings field
+    // anywhere — a settings-UI gap, not a missing-column one.
+    public bool $portal_allow_client_payments = false;
+
+    public bool $portal_require_signature = false;
+
     public function mount(Company $company): void
     {
         $user = Auth::user();
@@ -48,6 +56,8 @@ class TallStackSettingsClientPortal extends Component
 
         $setting = CompanySetting::query()->firstOrCreate(['company_id' => $company->id]);
         $this->portal_enabled = (bool) $setting->portal_enabled;
+        $this->portal_allow_client_payments = (bool) $setting->portal_allow_client_payments;
+        $this->portal_require_signature = (bool) $setting->portal_require_signature;
     }
 
     public function save(): void
@@ -56,6 +66,8 @@ class TallStackSettingsClientPortal extends Component
 
         $data = $this->validate([
             'portal_enabled' => ['boolean'],
+            'portal_allow_client_payments' => ['boolean'],
+            'portal_require_signature' => ['boolean'],
         ]);
 
         CompanySetting::query()->updateOrCreate(

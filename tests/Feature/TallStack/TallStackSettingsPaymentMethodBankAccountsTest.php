@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\TallStack;
 
-use App\Livewire\TallStackSettingsCompanyTaxes;
+use App\Livewire\TallStackSettingsPaymentMethod;
 use App\Models\Company;
 use App\Models\CompanyBankAccount;
 use App\Models\User;
@@ -18,7 +18,7 @@ use Tests\TestCase;
  * coverage). A company may have more than one — the CRUD here is
  * deliberately generic (add/edit/delete), not a fixed two-slot form.
  */
-class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
+class TallStackSettingsPaymentMethodBankAccountsTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -40,7 +40,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
 
     public function test_a_bank_account_can_be_created(): void
     {
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company])
             ->call('openCreateBankAccountModal')
             ->set('ba_bank_name', 'Bank Central Asia')
             ->set('ba_account_name', 'PT Acme Indonesia')
@@ -58,7 +58,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
 
     public function test_a_company_can_have_more_than_one_bank_account(): void
     {
-        $component = Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company]);
+        $component = Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company]);
 
         $component->call('openCreateBankAccountModal')
             ->set('ba_bank_name', 'Bank Central Asia')
@@ -84,7 +84,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
             'account_number' => '1234567890',
         ]);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company])
             ->call('openEditBankAccountModal', $account->id)
             ->assertSet('ba_bank_name', 'Bank Central Asia')
             ->set('ba_account_number', '9999999999')
@@ -102,7 +102,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
             'account_number' => '1234567890',
         ]);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company])
             ->call('deleteBankAccount', $account->id);
 
         $this->assertSoftDeleted('company_bank_accounts', ['id' => $account->id]);
@@ -118,7 +118,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
             'account_number' => '1234567890',
         ]);
 
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company])
             ->call('openEditBankAccountModal', $account->id)
             ->assertSet('showBankAccountModal', false)
             ->call('deleteBankAccount', $account->id);
@@ -128,7 +128,7 @@ class TallStackSettingsCompanyTaxesBankAccountsTest extends TestCase
 
     public function test_required_fields_are_validated(): void
     {
-        Livewire::test(TallStackSettingsCompanyTaxes::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsPaymentMethod::class, ['company' => $this->company])
             ->call('openCreateBankAccountModal')
             ->call('saveBankAccount')
             ->assertHasErrors(['ba_bank_name', 'ba_account_name', 'ba_account_number']);

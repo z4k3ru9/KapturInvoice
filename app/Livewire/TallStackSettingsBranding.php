@@ -14,13 +14,14 @@ use TallStackUi\Traits\Interactions;
 /**
  * The TALL-stack "Branding" settings screen — mirrors the equivalent
  * pre-TallStackUI Filament branding settings page field-for-field:
- * logo/primary_color/secondary_color (the same Company columns
- * App\Livewire\TallStackSettingsCompanyTaxes's own Branding section
- * edits — both forms save to the same row, per CLAUDE.md's documented
- * dual-entry-point pattern) plus the signatory/banking fields
+ * logo/primary_color/secondary_color plus the signatory/banking fields
  * (signatory_name/title/signature image, bank_name/account_number/
  * account_name, payment_instructions) added to that Filament page since
- * this app's original branding-settings docblock was written.
+ * this app's original branding-settings docblock was written. Used to
+ * also be duplicated on the former "Company & Taxes" mega-page's own
+ * embedded Branding card — removed from there in an earlier pass
+ * (real editing-surface duplication, not a deliberate dual-entry-point);
+ * this page is the only place logo/colors are editable now.
  */
 #[Layout('components.tallstack.app')]
 class TallStackSettingsBranding extends Component

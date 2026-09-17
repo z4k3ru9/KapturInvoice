@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'portal_enabled', 'portal_allow_client_payments', 'portal_show_tasks', 'portal_require_signature',
     'period_locked_through',
     'default_document_language',
+    'mail_config',
 ])]
 class CompanySetting extends Model
 {
@@ -53,6 +54,11 @@ class CompanySetting extends Model
             'portal_show_tasks' => 'boolean',
             'portal_require_signature' => 'boolean',
             'period_locked_through' => 'date',
+            // Mirrors PaymentGateway::config's own encrypted:array
+            // pattern exactly — host/port/username/password-or-API-key/
+            // encryption/from address/from name, never stored plain.
+            // Null means "use the app's own default mailer".
+            'mail_config' => 'encrypted:array',
         ];
     }
 

@@ -7,7 +7,7 @@ use App\Enums\InvoiceType;
 use App\Livewire\TallStackInvoiceForm;
 use App\Livewire\TallStackQuotationForm;
 use App\Livewire\TallStackRecurringInvoiceForm;
-use App\Livewire\TallStackSettingsNumbering;
+use App\Livewire\TallStackSettingsDocumentsNumbering;
 use App\Livewire\TallStackVendorBillForm;
 use App\Livewire\TallStackVendorPurchaseOrderForm;
 use App\Models\Client;
@@ -34,7 +34,7 @@ use Tests\TestCase;
  * 2. `Company::default_expire_after_days` is new (the only genuinely
  *    missing settings field — `default_payment_terms` and
  *    `payment_instructions` already existed, just unwired; see
- *    App\Livewire\TallStackSettingsNumbering's docblock). It prefills a
+ *    App\Livewire\TallStackSettingsDocumentsNumbering's docblock). It prefills a
  *    new Quotation's `valid_until`. `default_payment_terms` prefills the
  *    `terms` field on every create form that has one (Invoice, Quotation,
  *    Recurring Invoice template, Vendor Purchase Order) — never on edit,
@@ -223,7 +223,7 @@ class TallStackDocumentDefaultsTest extends TestCase
 
     public function test_numbering_settings_saves_default_expire_after_days(): void
     {
-        Livewire::test(TallStackSettingsNumbering::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsDocumentsNumbering::class, ['company' => $this->company])
             ->assertSet('default_expire_after_days', 30)
             ->set('default_expire_after_days', 45)
             ->call('save')
@@ -234,7 +234,7 @@ class TallStackDocumentDefaultsTest extends TestCase
 
     public function test_numbering_settings_rejects_a_non_positive_expire_after_days(): void
     {
-        Livewire::test(TallStackSettingsNumbering::class, ['company' => $this->company])
+        Livewire::test(TallStackSettingsDocumentsNumbering::class, ['company' => $this->company])
             ->set('default_expire_after_days', 0)
             ->call('save')
             ->assertHasErrors(['default_expire_after_days']);
