@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Support\Pdf\PageNumberFooter;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -24,7 +25,12 @@ class InvoicePdfController extends Controller
 
         $invoice->loadMissing('client', 'company', 'items');
 
+        $filename = (string) Str::of((string) $invoice->number)
+            ->replaceMatches('/[\/\\\\:*?"<>|]+/', '-')
+            ->replaceMatches('/\s+/', ' ')
+            ->trim('- .');
+
         return PageNumberFooter::apply(Pdf::loadView('pdf.invoice', ['invoice' => $invoice]))
-            ->stream("{$invoice->number}.pdf");
+            ->stream(($filename !== '' ? $filename : 'invoice-'.$invoice->id).'.pdf');
     }
 }
