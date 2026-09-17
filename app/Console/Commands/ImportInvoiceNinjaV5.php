@@ -52,7 +52,8 @@ class ImportInvoiceNinjaV5 extends Command
         {company : Target Company slug}
         {--legacy-company-id= : companies.id in the source dump to import (defaults to the only row present)}
         {--connection=legacy_v5 : Laravel DB connection name for the source dump}
-        {--resume : Skip steps already completed by the most recent Failed batch for this company/connection}';
+        {--resume : Skip steps already completed by the most recent Failed batch for this company/connection}
+        {--once : Refuse to run when this company/connection already has a completed migration batch}';
 
     protected $description = 'Import a legacy InvoiceNinja v5 dump into one KapturInvoice Company';
 
@@ -126,6 +127,17 @@ class ImportInvoiceNinjaV5 extends Command
         }
 
         $this->conn = $this->option('connection');
+
+        if ($this->option('once') && MigrationBatch::query()
+            ->where('company_id', $company->id)
+            ->where('source_system', self::SOURCE_SYSTEM)
+            ->where('connection', $this->conn)
+            ->where('status', MigrationBatchStatus::Completed)
+            ->exists()) {
+            $this->info("A completed InvoiceNinja v5 migration already exists for [{$this->argument('company')}] on connection [{$this->conn}]; nothing to do.");
+
+            return self::SUCCESS;
+        }
 
         if (! DB::connection($this->conn)->getSchemaBuilder()->hasTable('companies')) {
             $this->error("Connection [{$this->conn}] doesn't look like a restored InvoiceNinja v5 dump (no `companies` table).");
