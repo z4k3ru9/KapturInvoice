@@ -45,9 +45,12 @@ php artisan import:invoiceninja-v5 company-b
 Each command prints a per-table row-count summary and a reconciliation
 check (source vs. recomputed invoice totals and payment sums) before
 exiting — a warning there means investigate before trusting the run, not
-"safe to ignore". Both are safe to re-run against a freshly-migrated
-database (they don't check for a prior run — running twice without
-`migrate:fresh` in between will double-import).
+"safe to ignore". For a one-time production import, pass `--once`: the
+command returns successfully without importing when a completed batch already
+exists for the same target company and source connection. A failed batch can
+be continued with `--resume` after the underlying problem is fixed. A clean
+redo requires a disposable/backup target and `migrate:fresh` first; never
+use a fresh migration against data you need to preserve.
 
 **Never commit a restored legacy database, the `.sql` dumps themselves, or
 `.env`'s legacy DB credentials** — real client names, emails, phone
