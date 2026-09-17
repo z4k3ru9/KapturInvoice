@@ -153,6 +153,16 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
       View green/eye, Download PDF orange, Resend blue/plane, Convert gold/
       next-arrow, with accessible text and consistent placement.
 
+- [ ] **P08-09 — Image and file compression policy (discovery only; do not implement yet).**
+  Define whether uploaded images and eligible documents are compressed before
+  storage to reduce space while preserving required evidence quality. Review
+  accepted MIME types, maximum source and compressed sizes, lossless versus
+  lossy settings, orientation/metadata stripping, private-storage guarantees,
+  PDF readability, checksum/audit implications, retry behavior, and whether
+  originals must be retained for financial evidence. Acceptance requires a
+  documented per-file policy, representative quality/size measurements, and
+  tests proving compressed files remain scoped, downloadable, and renderable.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
