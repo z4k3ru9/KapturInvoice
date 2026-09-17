@@ -9,7 +9,7 @@ Make the repository reproducible and record the pre-renovation behavior before c
 ## Inputs
 
 - Root `Specs.md`
-- Repository `/Users/richardpangalila/Downloads/KapturInvoice`
+- Repository `~/Downloads/KapturInvoice`
 - Repository `AGENTS.md`
 - Existing `composer.lock`, `package-lock.json`, `.env.example`, migrations, and tests
 

@@ -3,7 +3,7 @@
 **Status:** Approved execution specification  
 **Date:** 2026-09-11  
 **Repository:** `z4k3ru9/KapturInvoice`  
-**Working copy:** `/Users/richardpangalila/Downloads/KapturInvoice`
+**Working copy:** `~/Downloads/KapturInvoice`
 
 > **Note (TallStackUI migration):** §1, §5, §10-§12 below name Filament as the
 > internal admin framework — that was the plan at the time this document was

@@ -10,15 +10,17 @@ use Illuminate\Database\Seeder;
 /**
  * Seeds the two real entities KapturInvoice replaces the legacy InvoiceNinja
  * installs for — both Surabaya-based IT/security-infrastructure integrators
- * sharing this codebase. `name`/`slug`/`domain`/`email` below are
- * placeholders (`Company A`/`company-a`/`example-a.com` etc.) — the real
- * identity was scrubbed repo-wide (2026-09-17); every other field (colors,
- * numbering prefixes, code, address, phone, tax number) is still taken
- * straight from each company's own InvoiceNinja `accounts`/`companies` row
- * (see docs/data-import.md); `invoice_next_number` etc. start at 1 here and
- * get bumped past the real historical high-water mark by the importer
- * commands once historical data is loaded (never rely on these seeded
- * starting values once real invoices have been imported).
+ * sharing this codebase. `name`/`slug`/`domain`/`email`/`phone`/
+ * `address_line_1`/`postal_code`/`tax_number` below are all placeholders —
+ * the real identity was scrubbed repo-wide for release (2026-09-17,
+ * 2026-09-18). `code`/`invoice_prefix`/`quote_prefix`/`credit_prefix`,
+ * `city`/`state`/`country_code` (Surabaya/East Java/ID), and the brand
+ * colors are still taken straight from each company's own InvoiceNinja
+ * `accounts`/`companies` row (see docs/data-import.md) since they're not
+ * personally/commercially identifying on their own; `invoice_next_number`
+ * etc. start at 1 here and get bumped past the real historical high-water
+ * mark by the importer commands once historical data is loaded (never rely
+ * on these seeded starting values once real invoices have been imported).
  */
 class CompanySeeder extends Seeder
 {
@@ -35,11 +37,11 @@ class CompanySeeder extends Seeder
                 'code' => 'KJA',
                 'domain' => 'example-a.com',
                 'email' => 'kja@example-a.com',
-                'phone' => '+628113549500',
-                'address_line_1' => 'Sukolilo Sukorejo 26',
+                'phone' => '+62811-0000-001',
+                'address_line_1' => 'Jl. Contoh No. 1',
                 'city' => 'Surabaya',
                 'state' => 'East Java',
-                'postal_code' => '60118',
+                'postal_code' => '60100',
                 'country_code' => 'ID',
                 'currency_code' => 'IDR',
                 // DESIGN.md §10 hexes — see memory.md "Stitch UI layout
@@ -58,14 +60,14 @@ class CompanySeeder extends Seeder
                 'code' => 'ATI',
                 'domain' => 'example-b.com',
                 'email' => 'ati@example-b.com',
-                'phone' => '+6281554549509',
-                'address_line_1' => 'Sukolilo Sukorejo 26',
+                'phone' => '+62811-0000-002',
+                'address_line_1' => 'Jl. Contoh No. 2',
                 'city' => 'Surabaya',
                 'state' => 'East Java',
-                'postal_code' => '60112',
+                'postal_code' => '60100',
                 'country_code' => 'ID',
                 'currency_code' => 'IDR',
-                'tax_number' => '63.611.560.2-619.000',
+                'tax_number' => '00.000.000.0-000.000',
                 'primary_color' => '#5065A8',
                 'secondary_color' => '#64748B',
                 'invoice_prefix' => 'ATI-INV-',

@@ -121,7 +121,7 @@ re-run completed audits unless new evidence contradicts them.
   deliberately-deferred items.** A full screenshot-driven QA pass against
   the rebuilt TallStackUI admin found 31 verified issues; all were
   designed into a 16-phase plan
-  (`/Users/richardpangalila/.claude/plans/dreamy-fluttering-willow.md`)
+  (`~/.claude/plans/dreamy-fluttering-willow.md`)
   and landed via parallel background workers, each individually
   rebased/tested/merged to `main`: shared toggle/badge/icon conventions
   (Phase 1), sidebar/dark-mode root-cause fix (Phase 2), DocumentNumber
