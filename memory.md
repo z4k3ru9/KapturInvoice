@@ -49,12 +49,16 @@ re-run completed audits unless new evidence contradicts them.
   `ManagesDocuments` Livewire concerns. Admin pages use a
   `w-[93%] mx-auto py-6` width wrapper (deliberately excludes the
   marketing homepage and the narrower client-portal home).
-- Test suite: 791 PHP tests passing as of 2026-09-17 (verified via `php -d
-  memory_limit=1024M vendor/bin/phpunit` — `php artisan test`'s own
-  child process doesn't reliably inherit a `-d memory_limit` flag passed
-  to the outer `php` and can crash partway through a full run on this
-  machine's 128M CLI default; use the `vendor/bin/phpunit` form directly
-  for a full local run).
+- Test suite: 791 PHP tests passing as of 2026-09-17, plain `php artisan
+  test` (no flags needed). The earlier "crashes partway through a full
+  local run on a 128M CLI default" issue is fixed —
+  `phpunit.xml`'s `<php>` block now sets `<ini name="memory_limit"
+  value="1024M"/>`, which `ini_set()`s during PHPUnit's own bootstrap
+  regardless of how it's invoked. (A `-d memory_limit=...` flag on the
+  invoking `php` command never worked for this: `php artisan test` runs
+  PHPUnit in a genuinely separate child process that starts fresh with
+  the system php.ini, not inheriting the parent's `-d` overrides — don't
+  reach for that flag again, fix belongs in `phpunit.xml`.)
 - **Identity sanitization (2026-09-17) — done, two passes, do not
   re-litigate.** Pass 1 replaced the two seeded companies' real domains/
   emails everywhere with placeholders `example-a.com`/`example-b.com`.

@@ -426,3 +426,7 @@ what's verified and what's deliberately out of scope. The Playwright
 suite (`tests/browser/`) covers full browser journeys, accessibility
 (axe-core WCAG 2.2 AA), autosave, and dynamic-row behavior across both
 company themes and viewport sizes.
+
+## License
+
+[MIT](LICENSE).

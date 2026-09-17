@@ -249,7 +249,8 @@ class LineItemQuantityAndUnitTest extends TestCase
         $this->assertStringContainsString('hour', $html);
     }
 
-    public function test_invoice_pdf_shows_a_dash_when_a_legacy_item_has_no_unit(): void
+    /** Unit is rendered inline after the quantity (matching vendor-bill/vendor-purchase-order and the admin item tables' own "20 roll" convention — see docs/out-of-scope-findings.md's PDF-unit-column-style entry), so a legacy item with no unit shows a bare quantity and no dangling suffix at all. */
+    public function test_invoice_pdf_shows_a_bare_quantity_when_a_legacy_item_has_no_unit(): void
     {
         $invoice = $this->draftInvoice();
         InvoiceItem::create(['invoice_id' => $invoice->id, 'title' => 'Legacy item', 'quantity' => 1, 'unit_cost' => 100, 'line_total' => 100]);
@@ -258,7 +259,7 @@ class LineItemQuantityAndUnitTest extends TestCase
 
         $html = view('pdf.invoice', ['invoice' => $invoice])->render();
 
-        $this->assertStringContainsString('>-<', $html);
+        $this->assertStringContainsString('>1</td>', $html);
     }
 
     public function test_quotation_pdf_shows_the_unit_abbreviation_next_to_quantity(): void

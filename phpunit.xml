@@ -18,6 +18,23 @@
         </include>
     </source>
     <php>
+        <!--
+            The dompdf-heavy Feature tests (invoice/quotation/vendor-bill/etc.
+            PDF rendering, multi-page footer tests) can exceed a CLI's
+            default 128M memory_limit partway through a full run — this
+            manifests as "Fatal error: Premature end of PHP process" from
+            whichever process actually executes PHPUnit. A `-d
+            memory_limit=...` flag on the invoking `php` command does NOT
+            reliably fix this: `php artisan test` runs PHPUnit in a
+            genuinely separate child process (via Symfony Process, for
+            streamed/colored output), which starts fresh with the system
+            php.ini rather than inheriting the parent process's `-d`
+            overrides. Setting it here instead applies via ini_set() during
+            PHPUnit's own bootstrap, so it takes effect no matter how
+            PHPUnit ends up invoked (`vendor/bin/phpunit`, `php artisan
+            test`, an IDE runner, or CI).
+        -->
+        <ini name="memory_limit" value="1024M"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>

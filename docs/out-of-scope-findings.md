@@ -48,8 +48,20 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   - PDF unit column style (dedicated "Unit"/"Satuan" column vs. an
     inline suffix like the admin tables' "20 roll") was chosen per
     document by whichever agent built it — not reconciled to one single
-    convention across all PDFs. Status: open — worth a pass if a
-    consistent printed-document style is wanted.
+    convention across all PDFs. **Fixed 2026-09-17** (pre-release
+    cleanup): `invoice.blade.php`/`quotation.blade.php`/
+    `sales-order.blade.php`/`delivery-order.blade.php` had the dedicated
+    column; converted all four to the inline-suffix style already used
+    by `vendor-bill.blade.php`/`vendor-purchase-order.blade.php` (and
+    matching the admin item tables' own "20 roll" convention, and the
+    already-established rule that a missing unit renders nothing extra
+    rather than a placeholder — no dash). Dropped the now-unused
+    `documents.unit` `<th>` header on all four (confirmed no other view
+    references that translation key). Updated
+    `LineItemQuantityAndUnitTest::test_invoice_pdf_shows_a_dash_when_a_legacy_item_has_no_unit`,
+    renamed to `test_invoice_pdf_shows_a_bare_quantity_when_a_legacy_item_has_no_unit`,
+    since a dash was specifically the old dedicated-column behavior.
+    Status: fixed.
   - `getAbbreviation()` (compact, e.g. "roll") vs. `getLabel()` (full,
     e.g. "Roll") — Products catalog uses the full label, every
     document/table line uses the abbreviation. Status: accepted, by
@@ -116,9 +128,18 @@ trade-off, no action needed), `fixed` (resolved, commit noted).
   the outer process alone isn't sufficient — Laravel's test runner
   isn't propagating it to whatever sub-process actually renders the
   dompdf-heavy tests. Not caused by today's changes (isolated/targeted
-  runs of everything touched here are green). Status: open — worth a
-  proper look if a genuine full-suite local run is needed; CI's own
-  `tests.yml` may have a different php.ini and not hit this at all.
+  runs of everything touched here are green).
+  **Fixed 2026-09-17** (pre-release cleanup): root cause confirmed —
+  `php artisan test` runs PHPUnit in a genuinely separate child process
+  (Symfony Process, for streamed/colored output) that starts with the
+  system php.ini fresh, never inheriting the parent `php` invocation's
+  `-d` flags, so no `-d memory_limit=...` on the outer command could
+  ever have worked. Real fix: `phpunit.xml`'s `<php>` block now has
+  `<ini name="memory_limit" value="1024M"/>`, which PHPUnit applies via
+  `ini_set()` during its own bootstrap — takes effect regardless of
+  invocation method. Verified: plain `php artisan test` (no flags, CLI
+  `memory_limit` still 128M) now completes the full 791-test suite with
+  no crash. Status: fixed.
 - **Company-identity sanitization, follow-up pass (2026-09-17).** Owner
   flagged that the domain-only sanitization pass earlier that day still
   left the real company names/slugs (`Karunia Abadi`/`karunia-abadi`,
