@@ -28,7 +28,8 @@ class CompanySeeder extends Seeder
     {
         $companies = [
             [
-                // Source: chronopr_ninj226.sql (InvoiceNinja v4), accounts.id=1.
+                // Historical origin: InvoiceNinja v4; current cutover source
+                // is the upgraded v5 database (legacy_v5_company_a).
                 'name' => 'Company A',
                 'slug' => 'company-a',
                 // Matches the legacy invoice_prefix ("KJA-INV-") rather than
