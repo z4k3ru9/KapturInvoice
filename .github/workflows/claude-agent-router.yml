@@ -8,7 +8,7 @@ on:
 
 jobs:
   route-agent:
-    # Run on pull requests, or when a comment explicitly tags @claude.
+    # Only run on pull requests, or when an issue/PR comment explicitly tags @claude.
     if: >-
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude'))
@@ -31,21 +31,21 @@ jobs:
           COMMENT_BODY: ${{ github.event.comment.body }}
           LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
         run: |
-          # Tier 1: light tasks -> Haiku.
+          # Tier 1: micro tasks (linting, formatting, typos) -> Haiku 4.5.
           if [[ "$LABELS" == *"lint"* ]] || [[ "$LABELS" == *"formatting"* ]] || [[ "$COMMENT_BODY" == *"/fix-typo"* ]]; then
-            echo "MODEL=claude-3-5-haiku-20241022" >> "$GITHUB_OUTPUT"
+            echo "MODEL=claude-haiku-4.5" >> "$GITHUB_OUTPUT"
             echo "MAX_TURNS=5" >> "$GITHUB_OUTPUT"
             echo "PROMPT_TYPE=micro-fix" >> "$GITHUB_OUTPUT"
 
-          # Tier 3: complex multi-file refactoring -> Sonnet.
+          # Tier 3: complex architectural refactoring -> Sonnet 5.
           elif [[ "$LABELS" == *"refactor"* ]] || [[ "$COMMENT_BODY" == *"/refactor"* ]]; then
-            echo "MODEL=claude-3-5-sonnet-20241022" >> "$GITHUB_OUTPUT"
+            echo "MODEL=claude-sonnet-5" >> "$GITHUB_OUTPUT"
             echo "MAX_TURNS=12" >> "$GITHUB_OUTPUT"
             echo "PROMPT_TYPE=heavy-refactor" >> "$GITHUB_OUTPUT"
 
-          # Tier 2: standard reviews and audits -> Sonnet.
+          # Tier 2: standard PR reviews and bug audits -> Sonnet 5.
           else
-            echo "MODEL=claude-3-5-sonnet-20241022" >> "$GITHUB_OUTPUT"
+            echo "MODEL=claude-sonnet-5" >> "$GITHUB_OUTPUT"
             echo "MAX_TURNS=8" >> "$GITHUB_OUTPUT"
             echo "PROMPT_TYPE=pr-review" >> "$GITHUB_OUTPUT"
           fi
@@ -70,7 +70,7 @@ jobs:
             Review and process the changed files in `pr_changes.diff` from this PR.
             The workflow has intentionally provided only the PR diff to limit context.
 
-            Instructions:
-            1. If task is `micro-fix`, make targeted inline edits and run formatting scripts.
-            2. If task is `pr-review`, audit security, breaking API changes, and missing tests. Post a summary as a PR comment.
-            3. If task is `heavy-refactor`, follow the repository's CLAUDE.md rules and keep diffs focused.
+            Execution Guidelines:
+            1. `micro-fix`: perform targeted inline fixes and run formatters.
+            2. `pr-review`: audit security vulnerabilities, breaking contract changes, and missing tests. Post a summary as a PR comment.
+            3. `heavy-refactor`: strictly follow CLAUDE.md project standards. Keep diffs focused and verified.
