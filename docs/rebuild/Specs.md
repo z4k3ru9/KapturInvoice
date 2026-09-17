@@ -608,7 +608,8 @@ Handover Report and Job Cost report are launch requirements. Handover remains co
 
 ### Sources
 
-- Company A: InvoiceNinja 4, non-tax.
+- Company A: historically InvoiceNinja 4, upgraded to InvoiceNinja 5 before
+  cutover; current source is InvoiceNinja 5, non-tax.
 - Company B: InvoiceNinja 5, tax-enabled.
 
 Use version-specific mappers. Do not assume InvoiceNinja 4 and 5 have identical tables, statuses, tax fields, or relationships.
