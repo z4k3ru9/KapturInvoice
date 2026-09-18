@@ -152,6 +152,14 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   33. Audit action semantics globally: Save green/floppy, Delete red/cross,
       View green/eye, Download PDF orange, Resend blue/plane, Convert gold/
       next-arrow, with accessible text and consistent placement.
+  34. Keep Dashboard as a standalone primary navigation item, outside any
+      submenu, because it is the default landing page for every signed-in
+      user; preserve tenant routing, active-state styling and mobile behavior.
+  35. Evaluate a subtle fade-in transition for the main content frame after
+      page redraw/navigation, using an animation already included in the UI
+      library where possible. Exclude the navbar and search bar, respect
+      `prefers-reduced-motion`, avoid delaying interaction or causing layout
+      shift, and verify Livewire redraws do not replay the effect excessively.
 
 - [ ] **P08-09 — Image and file compression policy (discovery only; do not implement yet).**
   Owner decisions: compress every supported upload type where a safe,
