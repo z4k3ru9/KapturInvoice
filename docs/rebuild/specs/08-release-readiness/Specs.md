@@ -601,3 +601,6 @@ Phase 08 storage and logging checks are accepted. Remaining release evidence is 
 
 
 - **Company A line-item verification:** the correct field is `invoice_items.title` (not `product_name`). A Company A query returned `missing_item_names = 0`, confirming all scoped invoice lines have a populated item title in the current migrated database. The earlier display defect is not reproduced by this database check; retain the application regression check for future imports.
+
+
+- **Company A source-data exception:** two invoice lines (`invoice_item_id` 661 and 783) retain the source fallback title `Item` with no product link or description. This is an accepted historical exception, not a current schema or tenant-isolation failure. Do not “repair” these rows by inventing product data; retain them in migration exception evidence and ensure future imports flag equivalent rows.
