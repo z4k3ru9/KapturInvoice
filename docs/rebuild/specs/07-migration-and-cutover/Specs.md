@@ -126,3 +126,17 @@ Post-import checks confirm:
 - These counts agree with the clean importer reconciliation output. No duplicate import is indicated by this verification.
 
 Company B's migration checkpoint is therefore complete. Company A remains a separate migration and release checkpoint.
+
+
+## Owner acceptance update (2026-09-18 — Company A rounding)
+
+The Owner accepts the one-cent invoice-total variance in Company A's reconciliation as an allowed rounding tolerance:
+
+- Source invoice total: `8,012,448,499.71`
+- Imported invoice total: `8,012,448,499.72`
+- Difference: `0.01`
+- Payment total: exact match at `2,685,004,884`
+- Client count: exact match at 135
+- Vendor count: exact match at 0
+
+This acceptance applies to reconciliation evidence only. Company A still requires its separate live release checkpoint and operational verification.
