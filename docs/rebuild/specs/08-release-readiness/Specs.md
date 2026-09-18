@@ -297,6 +297,31 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   leakage, preserve localized templates and verify rendered subject/body
   previews plus actual sends against approved fixtures.
 
+- [ ] **P08-18 — Audit invoice PDF branding, bank accounts and payment method (discovery/bug).**
+  Trace company branding, bank-account records and payment-method labels from
+  settings through invoice/quotation PDF views, mail attachments and portal
+  output. Confirm whether each field has a customer-facing purpose, whether
+  bank details and a payment-method heading are duplicated or misleading, and
+  whether removal would affect receipts or other document types. Define the
+  canonical source, visibility controls, localization, tenant isolation,
+  snapshot behavior and migration/rollback path before removing or changing
+  any field. Add PDF visual/regression coverage for invoices with zero, one
+  and multiple bank accounts and each supported payment method.
+
+- [ ] **P08-19 — Add a self-test email action (feature).** Add a clearly scoped
+  “Send test email to myself” action wherever an email template or outbound
+  mail setting is configured. Resolve the authenticated user's verified
+  address, require explicit confirmation, render the selected template with
+  safe fixture data, and report delivery/failure without exposing recipients
+  or cross-tenant data. Cover authorization, rate limiting, localization,
+  attachments, audit/log redaction and disabled-mail environments.
+
+- [ ] **P08-20 — Improve the Add bank account card styling (cosmetic).** Make the
+  card header bold and apply restrained theme-aligned color while preserving
+  contrast, dark mode, keyboard focus, responsive layout and the existing
+  add/edit/delete semantics. Verify the visual result against the settings
+  design evidence and accessibility checks.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
