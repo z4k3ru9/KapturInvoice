@@ -264,6 +264,39 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   until visual, browser, mail, security and cPanel tests pass. This remains
   analysis only and does not authorize replacing dompdf.
 
+- [ ] **P08-13 — Preserve active tab across refresh (bug).** Record the active tab in a
+  URL/query or otherwise reload-safe state, restore it after refresh and browser
+  navigation, scope it to the current tenant/document, and fall back safely when
+  the tab no longer exists. Add desktop/mobile and direct-link coverage.
+
+- [ ] **P08-14 — Redirect safely after company slug changes (bug).** After a
+  successful slug change, redirect to the new canonical tenant URL while
+  preserving the current page/position when that destination exists. Prevent
+  stale-slug 404s, cross-company redirects and open redirects; invalidate stale
+  links and cover refresh/back-button behavior.
+
+- [ ] **P08-15 — Settings autosave and slug-change confirmation (bug/UX).**
+  Define field-level autosave eligibility, debounce, validation, retry/conflict
+  handling, dirty/error/success states and audit behavior. Remove or retain Save
+  controls only where autosave is reliable. A slug change must show a
+  confirmation dialog explaining the redirect and display the new login URL
+  before applying it; the redirect must occur only after explicit confirmation.
+
+- [ ] **P08-16 — Constrained logo image picker and preview (bug/UX).** Provide
+  an image picker with an aspect-ratio or custom crop/resize workflow, preview
+  the resulting logo before save, preserve readable quality and transparent
+  backgrounds where supported, enforce type/size/dimension limits, strip unsafe
+  metadata as appropriate, and keep uploads tenant-scoped. Define the
+  server-side canonical output and fallback for invalid or unavailable images.
+
+- [ ] **P08-17 — Smart fields in invoice email templates (bug/feature).**
+  Inventory the supported client/invoice/company fields, define an explicit
+  allowlist and escaping rules, and add an editor card that exposes valid
+  parameters with copy/insert help and preview data. Resolve missing/null
+  fields safely, prevent arbitrary variable access or cross-tenant data
+  leakage, preserve localized templates and verify rendered subject/body
+  previews plus actual sends against approved fixtures.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
