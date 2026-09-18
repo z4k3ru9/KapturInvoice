@@ -595,3 +595,6 @@ Release checks completed:
 - **Log inspection:** migration/import logs are available under `storage/logs`; no new storage or migration error was reported during this check.
 
 Phase 08 storage and logging checks are accepted. Remaining release evidence is limited to the unresolved checklist items above.
+
+
+- **Production backup:** Owner confirms the Company B database backup was created after the clean migration/reconciliation checkpoint. Preserve the backup with the migration log and record its timestamp and restore location.
