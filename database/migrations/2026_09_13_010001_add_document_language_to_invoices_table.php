@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\\Database\\Migrations\\Migration;
+use Illuminate\\Database\\Schema\\Blueprint;
+use Illuminate\\Support\\Facades\\Schema;
 
 return new class extends Migration
 {
@@ -16,7 +16,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invoices', function (Blueprint $table) {
-            $table->string('document_language')->nullable()->after('pricing_mode');
+            // pricing_mode is added by a later migration
+            // (2026_09_15_100000). Do not anchor this migration to that
+            // column or a fresh migration run will fail on timestamp order.
+            $table->string('document_language')->nullable();
         });
     }
 
