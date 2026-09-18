@@ -322,6 +322,46 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   add/edit/delete semantics. Verify the visual result against the settings
   design evidence and accessibility checks.
 
+- [ ] **P08-21 — Audit PDF signature rendering (bug).** Trace configured
+  signatory name, title/position, image/certificate data and approval state
+  through quotation, invoice and receipt models, snapshots, Blade views and
+  mail/download routes. Identify why configured signatures are absent, define
+  when each document may show one, preserve immutable issued/paid output,
+  prevent cross-tenant or unauthorized signatures, and add visual/PDF byte
+  regression coverage for configured and unset signatories.
+
+- [ ] **P08-22 — Number and group line items by catalog type (feature).** Add
+  editor-only line-item numbering for invoices/quotations without printing that
+  number. Group printed lines into Service/Labor, Material and Other sections
+  using the canonical item type, with deterministic ordering, totals, taxes,
+  discounts, empty-section behavior and localized headings. Preserve custom-line
+  behavior and verify PDF, portal, mail and snapshot output.
+
+- [ ] **P08-23 — Correct pricelist import category mapping (bug).** Reproduce the
+  wrong category insertion and document the workbook parser's sheet-name
+  contract. The category must come from the source sheet name; the imported
+  table's primary display field is the item name, not the category. Define
+  normalization, fallback and conflict rules, re-import/upsert behavior,
+  tenant isolation and regression fixtures for every supported workbook shape.
+
+- [ ] **P08-24 — Add editable item-category masters to navigation (feature).**
+  Add a tenant-scoped navbar submenu for authorized users to manage item
+  categories. Define create/edit/archive/delete rules, safeguards for categories
+  already used by products or historical lines, ordering, search, localization
+  and read-only role behavior.
+
+- [ ] **P08-25 — Manage pricelist-to-product links in bulk (feature).** Support
+  safe name matching with an explicit preview and confidence/ambiguity handling,
+  bulk approval, link, unlink and delete actions. Show linked/unlinked state
+  consistently, retain tenant scoping and audit/history, and prevent deletion
+  from changing historical invoice/quotation snapshots. Define duplicate-name,
+  soft-deleted-product and mismatch behavior.
+
+- [ ] **P08-26 — Filter pricelist items by link state (feature).** Add filters for
+  linked, unlinked and optionally ambiguous/multiple matches, with counts and
+  clear empty states. Ensure filtering uses scoped product relations and remains
+  consistent after bulk link/unlink/delete operations across desktop and mobile.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
