@@ -101,6 +101,7 @@ hosting profile has no shell:
 
    ```dotenv
    DEPLOY_MIGRATE_TOKEN=generate-a-long-random-token
+   DEPLOY_COMPANY_SLUG=company-a  # use company-b on the other deployment
    DEPLOY_ADMIN_NAME=Company Owner
    DEPLOY_ADMIN_EMAIL=owner@your-domain.example
    DEPLOY_ADMIN_PASSWORD=use-a-unique-password
@@ -111,7 +112,7 @@ hosting profile has no shell:
    `https://your-domain.example/deploy/bootstrap?token=YOUR_TOKEN`
 
    The route runs migrations and the idempotent Currency, Country, and
-   Company reference seeders. It creates or updates the configured Owner and
+   Company reference seeders for only the DEPLOY_COMPANY_SLUG tenant. It creates or updates the configured Owner and
    never runs the development `DatabaseSeeder` login.
 3. Confirm the response reports success, open `/login`, and sign in with the
    configured owner.
