@@ -1,6 +1,6 @@
 # Phase 08: Release Readiness
 
-> **Status (2026-09-18 rescope):** 54 work packages are tracked below; implementation and current release evidence are unverified. This revision scopes work, not a release approval.
+> **Status (2026-09-18 rescope):** 55 work packages are tracked below; implementation and current release evidence are unverified. This revision scopes work, not a release approval.
 
 ## Goal
 
@@ -49,15 +49,15 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
 ## Execution and tracking
 
 This section replaces the old flat backlog. The earlier 65 total double-counted
-P08-08 as a parent: there were 64 source entries, including duplicate requests.
-The 54 packages below combine overlapping work and split independently
+P08-08 as a parent: there were 65 source entries, including duplicate requests.
+The 55 packages below combine overlapping work and split independently
 reviewable parts (such as editor numbering versus printed grouping). The package
 list is kept in stable numeric order so assignments do not scatter; use each
 package's priority and dependency fields to choose the next eligible task.
 Old P08 identifiers are traceability references, not extra completion units.
 P08-23 remains cancelled; do not change positional import category mapping.
 
-Track **verified packages completed / 54**. Initial status is unverified/pending,
+Track **verified packages completed / 55**. Initial status is unverified/pending,
 not proof that nothing is implemented. Check a package only with recorded evidence.
 Discovery completion means a recommendation/decision exists; it does not mean the
 proposed feature is shipped. Any newly approved implementation scope adds a package
@@ -562,5 +562,12 @@ preserve earlier requests even where several sources now share one acceptance cy
   Category: Verification; priority: P0; size: M; deliverable: fix.
   Sources: owner progress 2026-09-18; dependencies: R47.
   Scope and acceptance: Reimplement the period selector for Daily, This week, This month, This year, Last year, Quarter, Last period (six months), and Custom. Define timezone, inclusive start/end boundaries, week and quarter start rules, and comparison with the existing financial period. Custom opens a functional start/end date picker, validates reversed or missing dates, preserves the selected range on reload, and applies the same scope to cards, charts, tables, exports and pagination. Replace all-time paid-invoice and payment summary cards with period-aware “paid in the selected period” cards; the invoice and payment sections must consume the same search-bar period state and update dynamically without a separate hidden date range. Verify leap days, year boundaries, empty ranges, tenant isolation, exact totals, payment status semantics and pagination. Extend the same search-bar period filter to recurring invoices, quotations, jobs, delivery orders and handover reports; each page must use the shared period state for its list, summary values, empty states and pagination, with no page-specific interpretation or hidden default range.
+  Evidence: pending current reproduction/verification.
+
+
+- [ ] **R55 (55/55) — Overdue status and receivable-card consistency**
+  Category: Integrity; priority: P0; size: M; deliverable: fix.
+  Sources: owner progress 2026-09-18; dependencies: R16,R47.
+  Scope and acceptance: The imported invoice dump verifies 36 invoice documents with a combined outstanding balance of Rp617,863,760.00. The amount is correct when filtered by invoice type, past `due_date`, positive `balance`, and open statuses, but the records remain `sent`, `viewed`, or `partial`, allowing a status-only overdue count to show zero. Reconcile the dashboard, invoice register, reports, reminders and scheduled `invoices:mark-overdue` command against one documented predicate: exclude quotations, drafts, paid/voided, recurring templates and zero-balance records; scope by company; use invoice-header `balance`, never an `invoice_items` sum; and make count, amount and drill-down use the same predicate. Run the transition after migration and daily thereafter, preserve holds and payment/reversal behavior, and add a regression fixture for the verified 36-record/Rp617,863,760 case plus mixed sent/viewed/partial statuses. Acceptance requires matching count/amount across surfaces, auditable drill-down, tenant isolation and no line-item double counting.
   Evidence: pending current reproduction/verification.
 
