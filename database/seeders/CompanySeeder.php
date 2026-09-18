@@ -77,6 +77,14 @@ class CompanySeeder extends Seeder
             ],
         ];
 
+        $onlySlug = config('deploy.company_slug');
+        if ($onlySlug !== null) {
+            $companies = array_values(array_filter(
+                $companies,
+                static fn (array $company): bool => $company['slug'] === $onlySlug,
+            ));
+        }
+
         // Company A is non-tax; Company B uses the
         // approved Indonesian PPN calculation (12% standard rate, 11/12 DPP
         // Nilai Lain factor) — see docs/rebuild/specs/FINALIZED-DECISIONS.md
