@@ -1,17 +1,13 @@
 <?php
 
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Database\\QueryException;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Schema;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Drop the client foreign key only when it exists. Imported databases may
-     * have the column without Laravel's conventional constraint name.
-     */
     private function dropClientForeignKey(): void
     {
         $database = Schema::getConnection()->getDatabaseName();
