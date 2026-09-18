@@ -585,3 +585,13 @@ Migration evidence for Company B is now recorded:
 - Remaining release evidence: authenticated login, tenant isolation, representative invoice/quote/payment PDFs, storage permissions, production backup/restore, cron execution/logs, and temporary-credential rotation.
 
 Mark R48 only after those operator checks are recorded. Phase 08 is not fully complete yet; the migration portion is complete, but release validation remains open.
+
+
+## Owner verification update (2026-09-18 — Company B operations)
+
+Release checks completed:
+
+- **Storage permissions:** `storage`, `storage/app`, `storage/framework`, and `storage/logs` are present and writable by the application account (`axentech:axentech`, group-writable).
+- **Log inspection:** migration/import logs are available under `storage/logs`; no new storage or migration error was reported during this check.
+
+Phase 08 storage and logging checks are accepted. Remaining release evidence is limited to the unresolved checklist items above.
