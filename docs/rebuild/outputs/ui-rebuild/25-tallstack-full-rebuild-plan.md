@@ -2,9 +2,12 @@
 
 > Historical reference. Current status and remaining assignments are in the [phase index](../../specs/README.md). Old TODOs, test counts and framework names are not current instructions.
 
-Status: **planning + Phase 0 done**. This file is the resume point if the
-session working on this is cut off — read it first, before re-deriving
-anything from `app/Filament/**` or re-fetching the Stitch project.
+Status: **TallStack rebuild complete; release verification remains** (reviewed 2026-09-18).
+The implementation checklist below records the completed TallStackUI/Livewire
+migration, parity-gap closure, and Filament removal. This file is now a
+completion record and maintenance handoff; do not restart the phase sequence.
+For active work, use Phase 07 (migration/cutover), Phase 08 (release evidence),
+and the current pending assignments in the phase index.
 
 ## Decision (confirmed with the user)
 
@@ -13,11 +16,11 @@ anything from `app/Filament/**` or re-fetching the Stitch project.
   Filament admin panel. The user has decided to **replace the entire admin
   interface with hand-built TallStackUI/Livewire pages**, matching the
   Google Stitch mockups as closely as possible.
-- **Filament stays installed and running in parallel** at `/admin/**`
-  throughout the migration. Nothing is deleted or uninstalled until a given
-  area's TallStackUI replacement exists and is verified. This is the lower-risk
-  option the user picked explicitly — do not start removing `app/Filament/**`
-  or the `filament/filament` package without a separate, explicit go-ahead.
+- **Filament has been removed** after the TallStackUI/Livewire replacements and
+  parity-gap closure were completed. `app/Filament/**`, the Filament package,
+  and the `/admin/**` admin surface are no longer implementation targets.
+  Historical references below identify the former source of behavior only;
+  do not recreate or extend a Filament admin in new work.
 - Scope: **full rebuild, prioritized by usage** (not just the core billing
   loop, not resource-by-resource on request) — work through the phase order
   below, committing and testing each phase before moving to the next.
@@ -60,7 +63,7 @@ Dashboard mockup comparison worked earlier this session.
 | Settings | "Company & Taxes Settings" | `App\Filament\Pages\Settings\*` |
 | Reports | "Financial Analytics & Tax Reports" | `App\Filament\Widgets\JobMarginReport` and friends — no dedicated Filament page today |
 | Client portal | "Client Read-Only Portal (TallStack UI - Company B)" — literally already speccing TallStackUI, "Client Portal - Access Expired & Security Verification" | `App\Livewire\Portal\*` — **already Livewire, not Filament**, but restyle to match this mockup |
-| Onboarding | "First-Run & Zero-State Onboarding" | `App\Filament\Support\SetupChecklist` dashboard widget |
+| Onboarding | "First-Run & Zero-State Onboarding" | `App\Support\Dashboard\SetupChecklist` dashboard widget |
 | Assets | "KapturInvoice Logo", "Company B Logo" (SVG) | reference art, not a page |
 | Clients | "Clients — Register and Detail View" (+ "(Company A)" variant) | `App\Filament\Resources\Clients` |
 | Users & roles | "Users & Roles — Company Permissions" | `App\Filament\Resources\Users` |
@@ -83,10 +86,26 @@ project's own `kapturinvoice-stitch-prompts.md` 1-9) were consolidated
 away 2026-09-17, all nine screens having since been built — see
 `docs/rebuild/outputs/HISTORY.md`.
 
-## Phase order
+## Current implementation state (reviewed 2026-09-18)
 
-Proposed order (usage-first, and matching what Stitch already covers) —
-confirm/adjust with the user before Phase 2 if anything looks off:
+- Phases 0–12, the formerly deferred areas, Statement of Accounts, and the
+  Filament-parity gap closure are complete in the repository checklist below.
+- The authenticated admin surface is TallStackUI/Livewire under
+  `/tall/{company:slug}/...`; the client portal remains a standalone Livewire
+  surface. Filament is historical context only.
+- The next work is evidence and hardening, not another TallStack phase:
+  Phase 07 owns migration/cutover defects and reconciliation; Phase 08 owns
+  current regression, browser, deployment, and release evidence. Product
+  follow-up bugs and vendor-price-list/image-import improvements remain in
+  their owning phase backlog.
+- Completion markers describe implementation history. They do not claim a
+  current green test suite, production cutover, or release approval; record
+  fresh commands and dates in Phase 08 when verifying those gates.
+
+## Phase order (historical sequence)
+
+The sequence below records the order used to complete the rebuild. It is not
+an instruction to start a new phase or to keep Filament in parallel:
 
 1. ~~**Phase 0 — Dashboard**~~ — done, see AGENTS.md entries this session.
 2. **Phase 1 — Quotations** (register/list, create/edit line editor, A4
@@ -121,9 +140,8 @@ confirm/adjust with the user before Phase 2 if anything looks off:
     with no completion visible at the time — at least one apparently
     finished server-side later) but is not yet built in TallStackUI.
 
-Only remove a Filament resource / drop the `filament/filament` package once
-**every** phase above is done and verified — that is a separate decision
-point, not implied by finishing this list.
+Filament removal is complete. Any future change that would reintroduce an
+admin framework must be a separately approved architecture decision.
 
 ## Established TallStackUI patterns (reuse, don't rediscover)
 
@@ -158,13 +176,14 @@ commits on `claude/invoiceninja-schema-reference-6s9aqc`:
   `getColor()` through `StatusColor::map()` before passing it to
   `<x-badge>`/`<x-stats>`'s `color` prop — never pass an enum's
   `getColor()` result straight through.
-- **Filament context for URL generation**: any page needing
-  `Resource::getUrl()` (e.g. via `App\Filament\Support\ActionQueue`) must
-  call `Filament::setCurrentPanel(...)` + `Filament::setTenant(...)` in
-  `mount()` — see `TallStackDashboard::mount()`.
-- **Reuse domain logic exactly** — `App\Filament\Support\DashboardPeriod`,
-  `RevenueBuckets`, `ActionQueue`, `Money` were reused unmodified; do the
-  same for every new page (never recompute a total/status list a Filament
+- **Route context and tenant ownership**: TallStack pages run outside a
+  Filament panel. Re-check the bound company/record ownership explicitly in
+  `mount()`/actions and generate `route()` URLs directly. Reuse
+  `App\Support\Dashboard\ActionQueue`, `DashboardPeriod`, `Money`, and
+  `RevenueBuckets`; do not restore Filament panel/tenant setup.
+- **Reuse domain logic exactly** — `App\Support\Dashboard\DashboardPeriod`, `RevenueBuckets`, `ActionQueue`,
+  and `Money` are the shared support classes; reuse them unmodified for every
+  page (never recompute a total/status list a Filament
   Resource already computes).
 - **`@interact('column_name', $row, $extra1, $extra2, ...)`** for
   `<x-table>` custom columns — any outer Blade variable used inside the
@@ -252,17 +271,17 @@ Read first, in order:
 3. app/Livewire/TallStackDashboard.php and
    resources/views/livewire/tallstack-dashboard.blade.php — the reference
    implementation. Match this file's structure and conventions (mount()
-   sets Filament panel/tenant context, render() reuses domain
-   actions/services unmodified, #[Layout(...)] + ->layoutData([...])).
+   verifies tenant ownership, render() reuses domain actions/services
+   unmodified, #[Layout(...)] + ->layoutData([...])).
 4. resources/views/components/tallstack/app.blade.php — the shared shell.
    Add this phase's page(s) to the $nav array in the correct nav group.
    Do not fork or duplicate this file — every TALL-stack page shares it.
 5. docs/rebuild/DESIGN.md — this project's own canonical UI/UX contract
    (not the Stitch-uploaded copy of the same filename).
-6. The relevant existing Filament resource under app/Filament/Resources/
-   (Schemas/, Tables/, Pages/) for [resource name] — this is the source
-   of truth for what fields/actions/authorization exist. Do not invent
-   fields or actions it doesn't have; do not drop any it does have.
+6. The corresponding TallStack/Livewire component and domain Action/Service
+   for [resource name]. Historical Filament files are deleted; use the
+   current component, model, policy, Action, and Service as the source of
+   truth. Do not invent fields/actions or silently drop existing behavior.
 
 Fetch the Stitch mockup(s) for this phase via the Google Stitch MCP tools:
 projectId = 17287642508359312726 ("KapturInvoice Admin Workflow UI"),
@@ -283,7 +302,7 @@ Build:
   x-badge, x-stats, etc. as appropriate) — never invent new
   hand-rolled equivalents when a package component exists for the job.
 - Reuse the EXACT SAME domain actions/services/policies/enums the
-  Filament resource already uses for every calculation, status
+  domain Action/Service already uses for every calculation, status
   transition, numbering, or authorization check. This is a
   presentation-layer swap only — zero business-logic changes. If
   something needs new UI-only logic (formatting, a computed display
@@ -312,8 +331,9 @@ Verify before considering this phase done:
 6. Clean up every scratch/temp file (Playwright scripts, throwaway seed
    commands) before finishing — none of that belongs in the commit.
 
-Do NOT touch app/Filament/** for this phase — Filament stays running in
-parallel per docs/rebuild/outputs/ui-rebuild/25-tallstack-full-rebuild-plan.md.
+Do not create new Filament files or routes. This template is retained only
+as historical context; new work belongs in the current TallStack/Livewire
+surface and its domain Actions/Services.
 Do NOT change any financial calculation, numbering rule, status
 transition, or authorization rule — flag it instead if the Stitch mockup
 seems to imply one and ask before implementing it.
@@ -442,7 +462,7 @@ status checklist.
       table `tabindex`/`role`/`aria-label` mobile a11y fix unchanged.)
 - [x] Phase 12 — Onboarding/zero-state (a Dashboard panel, not a separate
       route/page — matches the Stitch mockup's own placement. Reuses
-      `App\Filament\Support\SetupChecklist`'s real 5-step data/completion
+      `App\Support\Dashboard\SetupChecklist`'s real 5-step data/completion
       logic unmodified; hides itself once complete. A zero-state welcome
       panel replaces the revenue trend chart specifically when a company
       has no clients/quotations yet. The mockup's CSV-import and payment-
