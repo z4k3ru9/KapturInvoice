@@ -24,6 +24,10 @@ return [
 
     'migrate_token' => env('DEPLOY_MIGRATE_TOKEN'),
 
+    // Required for production bootstrap: seed and provision only this tenant.
+    // Leave unset for local development, where CompanySeeder seeds both fixtures.
+    'company_slug' => env('DEPLOY_COMPANY_SLUG'),
+
     /*
     |--------------------------------------------------------------------------
     | First admin user
