@@ -214,51 +214,47 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   updated PDF/browser/mail tests, and explicit owner approval. This entry is
   analysis only; it does not authorize removing dompdf or adding Python code.
 
-- [ ] **P08-11 — Evaluate Spatie Laravel Passkeys migration (discovery only; do not implement yet).**
-  The repository already declares `laravel/passkeys` and has passkey routes,
-  configuration, user integration and account-management UI. Compare that
-  implementation with `spatie/laravel-passkeys`: the package requires PHP 8.4+
-  and Laravel 12+, stores credentials in published database migrations, uses
-  `@simplewebauthn/browser`, adds `Route::passkeys()`, and supplies Blade/
-  Livewire registration and authentication components. Confirm the package
-  version supports this Laravel 13 application before changing dependencies.
+- [ ] **P08-11 — Passkey module compatibility review (discovery only; retain implementation).**
+  Keep the existing passkey module and its current package, routes, UI,
+  migration, user-model integration and tests. Do not remove or replace it as
+  part of the PDF work. Any future passkey change is a separate assignment;
+  verify its package/version compatibility, recovery path, tenant behavior and
+  deployment requirements before changing it.
 
-  Inventory the current login, logout, password reset, invitation, session,
-  remember-device, account passkey registration/removal, tenant membership,
-  role checks, throttling and recovery paths. Define a staged compatibility
-  plan: keep password login and recovery available, add passkey login as an
-  explicit option, require recent authenticated re-check plus confirmation
-  before adding/removing a credential, and never let a passkey ceremony choose
-  or switch the active company. Check WebAuthn relying-party ID/origins for the
-  admin host and both company domains, HTTPS/local-development behavior,
-  multi-device credentials, lost-device recovery, audit events, CSRF/session
-  fixation, rate limits, and browser support. Acceptance requires tests for
-  successful, cancelled, expired, cross-origin, cross-tenant and revoked-user
-  ceremonies. No password or current passkey may be removed until recovery is
-  proven and Owner approval is recorded.
-
-- [ ] **P08-12 — Evaluate Spatie Laravel PDF migration and driver choice (discovery only; do not implement yet).**
+- [ ] **P08-12 — Evaluate Spatie Laravel PDF versus tc-lib-pdf (discovery only; do not implement yet).**
   Compare the current direct `barryvdh/laravel-dompdf` calls with
-  `spatie/laravel-pdf` v2's driver-based API. The package requires PHP 8.2+
-  and Laravel 11+, can retain a pure-PHP DOMPDF driver, or use Browsershot/
-  Chromium, Gotenberg, Cloudflare, WeasyPrint or Chrome drivers. The package
-  can render existing Blade views, set A4/margins/scale/headers/footers,
-  attach PDFs to mail, queue generation, and provide PDF fakes/assertions; the
-  richer drivers add modern CSS, page counters, tagged PDFs and outlines but
-  introduce binaries, services or network dependencies.
+  `spatie/laravel-pdf` v2 and `tecnickcom/tc-lib-pdf`. Spatie provides a
+  Laravel-facing, driver-based Blade API with A4/margins/headers/footers,
+  queued generation, mail attachments and PDF test fakes; its DOMPDF driver
+  retains dompdf behavior, while richer drivers add Chromium, Gotenberg,
+  Cloudflare or WeasyPrint deployment requirements. `tc-lib-pdf` is a
+  low-level PHP PDF engine for drawing text, images, tables, barcodes and
+  metadata directly; it is not an HTML/Blade layout engine, so adopting it
+  would require a new renderer, pagination algorithm and template system.
 
-  Inventory every controller, mail attachment, immutable snapshot, page-number
-  helper, watermark, localized Blade view, image/data-URI path and test. Choose
-  a driver per hosting tier, with cPanel/no-SSH retaining a no-binary fallback
-  unless the host explicitly supports the selected runtime. Prove that the
-  same authorized tenant-scoped snapshot bytes are used for downloads, portal
-  views and mail; preserve filenames, audit records, status watermarks,
-  Bahasa/English output and historical immutability. Benchmark the current
-  driver against the candidate on all launch document types, long tables,
-  embedded images, exact monetary values, A4 fit, page breaks, memory, time,
-  output size and failure diagnostics. Use a feature flag and per-document
-  rollback path; do not remove dompdf or alter `composer.json` until visual,
-  browser, mail and PDF-content tests pass and cPanel feasibility is approved.
+  Inventory every controller, mail attachment, immutable snapshot, localized
+  view, image/data-URI path, page-number helper, watermark and test. Compare
+  all three paths on A4 fit, long tables, repeated headers, page breaks,
+  proposal HTML/CSS, Bahasa/English fonts, logos/product images, exact money,
+  metadata, output size, memory, generation time and diagnostics. Include
+  licensing and maintenance review, and verify the installed package versions
+  support Laravel 13/PHP 8.3 (or record the required PHP upgrade).
+
+  cPanel/no-SSH remains a hard constraint. Spatie's DOMPDF driver is the best
+  fit because it is PHP-only and can use the current uploaded Composer build,
+  but it preserves DOMPDF layout limits. Browsershot/Chrome need Node and a
+  Chromium binary; Gotenberg needs a continuously running Docker service;
+  WeasyPrint needs Python/binaries; Cloudflare needs outbound HTTPS, API
+  credentials, cost review and transmission of sensitive documents. Explicitly
+  set the DOMPDF driver on cPanel rather than accepting Spatie's Browsershot
+  default. `tc-lib-pdf` is also PHP-only and cPanel-friendly, but is a
+  low-level drawing engine requiring a ground-up pagination/template rebuild.
+
+  Preserve tenant authorization, snapshot immutability, download/portal/mail
+  byte identity, filenames, audit events, localization and rollback. Use a
+  renderer adapter and feature flag; retain direct dompdf per document type
+  until visual, browser, mail, security and cPanel tests pass. This remains
+  analysis only and does not authorize replacing dompdf.
 
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
