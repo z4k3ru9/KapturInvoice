@@ -337,13 +337,6 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   discounts, empty-section behavior and localized headings. Preserve custom-line
   behavior and verify PDF, portal, mail and snapshot output.
 
-- [ ] **P08-23 — Correct pricelist import category mapping (bug).** Reproduce the
-  wrong category insertion and document the workbook parser's sheet-name
-  contract. The category must come from the source sheet name; the imported
-  table's primary display field is the item name, not the category. Define
-  normalization, fallback and conflict rules, re-import/upsert behavior,
-  tenant isolation and regression fixtures for every supported workbook shape.
-
 - [ ] **P08-24 — Add editable item-category masters to navigation (feature).**
   Add a tenant-scoped navbar submenu for authorized users to manage item
   categories. Define create/edit/archive/delete rules, safeguards for categories
@@ -361,6 +354,32 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   linked, unlinked and optionally ambiguous/multiple matches, with counts and
   clear empty states. Ensure filtering uses scoped product relations and remains
   consistent after bulk link/unlink/delete operations across desktop and mobile.
+
+- [ ] **P08-27 — Hide item SKU from client-facing documents (bug/UX).** Keep SKU
+  available to authorized internal users where operationally useful, but omit
+  it from client portal, client-visible invoice/quotation views, emails and
+  PDFs unless a separately approved client-facing option enables it. Verify
+  tenant authorization, localization, snapshots and all document channels.
+
+- [ ] **P08-28 — Preserve imported item descriptions (bug).** Trace description
+  mapping from every supported pricelist/import source through products,
+  quotations, invoices, portals and PDFs. Define source precedence,
+  blank/HTML normalization, update-versus-snapshot behavior and regression
+  fixtures proving imported descriptions remain visible in the correct
+  internal and client-facing contexts.
+
+- [ ] **P08-29 — Propagate dealer price and MSRP (bug/feature).** Ensure dealer
+  price and MSRP are correctly stored and shown in quote/invoice edit fields
+  and every related catalog, pricelist, preview and reporting surface that
+  needs them. Define which value drives billing, preserve MSRP when required
+  for historical snapshots, handle missing/conflicting values and enforce
+  tenant/role visibility. Add import, edit, PDF, portal and recalculation tests.
+
+- [ ] **P08-30 — Use status-aware edit/view actions (bug/UX).** Draft records
+  should show the edit action/icon; sent or otherwise immutable records should
+  show view instead. Apply the rule consistently across invoices, quotations
+  and related lists/forms, preserving authorized amendment/correction flows,
+  accessible labels and responsive layouts.
 
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
