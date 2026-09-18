@@ -29,37 +29,50 @@ class DeployBootstrapControllerTest extends TestCase
 
     public function test_the_route_404s_with_a_wrong_token(): void
     {
-        config(['deploy.migrate_token' => 'the-real-token']);
+        config([
+            'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
+        ]);
 
         $this->get(route('deploy.bootstrap', ['token' => 'a-wrong-token']))->assertNotFound();
     }
 
     public function test_the_route_404s_with_no_token_query_param_at_all(): void
     {
-        config(['deploy.migrate_token' => 'the-real-token']);
+        config([
+            'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
+        ]);
 
         $this->get('/deploy/bootstrap')->assertNotFound();
     }
 
     public function test_a_correct_token_migrates_and_seeds_reference_data(): void
     {
-        config(['deploy.migrate_token' => 'the-real-token']);
+        config([
+            'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
+        ]);
 
         $this->get(route('deploy.bootstrap', ['token' => 'the-real-token']))
             ->assertOk()
             ->assertJsonPath('ok', true)
-            ->assertJsonPath('companies', 2)
+            ->assertJsonPath('company_slug', 'company-a')
+            ->assertJsonPath('companies', 1)
             ->assertJsonPath('admin_user', null);
 
         $this->assertDatabaseHas('companies', ['slug' => 'company-a']);
-        $this->assertDatabaseHas('companies', ['slug' => 'company-b']);
+        $this->assertDatabaseMissing('companies', ['slug' => 'company-b']);
         $this->assertGreaterThan(0, Currency::query()->count());
         $this->assertGreaterThan(0, Country::query()->count());
     }
 
     public function test_it_never_creates_the_dev_seed_test_user(): void
     {
-        config(['deploy.migrate_token' => 'the-real-token']);
+        config([
+            'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
+        ]);
 
         $this->get(route('deploy.bootstrap', ['token' => 'the-real-token']))->assertOk();
 
@@ -70,6 +83,7 @@ class DeployBootstrapControllerTest extends TestCase
     {
         config([
             'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
             'deploy.admin_name' => 'Real Owner',
             'deploy.admin_email' => 'owner@example.com',
             'deploy.admin_password' => 'a-strong-password',
@@ -83,17 +97,16 @@ class DeployBootstrapControllerTest extends TestCase
         $this->assertTrue($user->is_super_admin);
         $this->assertTrue(Hash::check('a-strong-password', $user->password));
 
-        $companies = Company::all();
-        $this->assertCount(2, $companies);
-        foreach ($companies as $company) {
-            $this->assertSame('owner', $user->companies()->whereKey($company->id)->first()->pivot->role);
-        }
+        $company = Company::where('slug', 'company-a')->firstOrFail();
+        $this->assertSame('owner', $user->companies()->whereKey($company->id)->first()->pivot->role);
+        $this->assertDatabaseMissing('companies', ['slug' => 'company-b']);
     }
 
     public function test_it_is_safe_to_run_twice_in_a_row(): void
     {
         config([
             'deploy.migrate_token' => 'the-real-token',
+            'deploy.company_slug' => 'company-a',
             'deploy.admin_email' => 'owner@example.com',
             'deploy.admin_password' => 'a-strong-password',
         ]);
@@ -102,6 +115,6 @@ class DeployBootstrapControllerTest extends TestCase
         $this->get(route('deploy.bootstrap', ['token' => 'the-real-token']))->assertOk();
 
         $this->assertSame(1, User::where('email', 'owner@example.com')->count());
-        $this->assertSame(2, Company::count());
+        $this->assertSame(1, Company::count());
     }
 }

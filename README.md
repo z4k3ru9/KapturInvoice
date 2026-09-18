@@ -375,7 +375,7 @@ unavailable on cPanel").
 
    **No Terminal on this account?** Some cPanel plans only give you cron,
    not an interactive shell, so the commands above can't be run by hand.
-   Set `DEPLOY_MIGRATE_TOKEN` (and optionally `DEPLOY_ADMIN_EMAIL`/
+   Set `DEPLOY_MIGRATE_TOKEN` and `DEPLOY_COMPANY_SLUG` (and optionally `DEPLOY_ADMIN_EMAIL`/
    `DEPLOY_ADMIN_PASSWORD`, so there's a real login afterward instead of
    none at all) in `.env`, then visit
    `https://your-domain/deploy/bootstrap?token=<that token>` once — it
