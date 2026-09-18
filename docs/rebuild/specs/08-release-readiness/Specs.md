@@ -598,3 +598,6 @@ Phase 08 storage and logging checks are accepted. Remaining release evidence is 
 
 
 - **Production backup:** Owner confirms the Company B database backup was created after the clean migration/reconciliation checkpoint. Preserve the backup with the migration log and record its timestamp and restore location.
+
+
+- **Company A line-item verification:** the correct field is `invoice_items.title` (not `product_name`). A Company A query returned `missing_item_names = 0`, confirming all scoped invoice lines have a populated item title in the current migrated database. The earlier display defect is not reproduced by this database check; retain the application regression check for future imports.
