@@ -381,19 +381,22 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   and related lists/forms, preserving authorized amendment/correction flows,
   accessible labels and responsive layouts.
 
-- [ ] **P08-31 — Optional embedded Excel image import (discovery/feature).**
+- [ ] **P08-31 — Optional embedded Excel image import switcher (discovery/feature).**
   Keep the current OpenSpout path as the default for occasional pricelist
-  updates, and evaluate an opt-in PhpSpreadsheet image-extraction path for
-  XLSX drawings. Match each extracted image to the nearest SKU/model row by
-  worksheet coordinates, require an explicit confidence/fallback rule, and
-  report unmatched or ambiguous images without guessing. Rescale and
-  losslessly compress supported images before tenant-scoped storage in the
-  product image field; enforce type, size, metadata, memory and upload limits.
-  Define re-import replacement/retention behavior, duplicate-name handling,
-  preview and audit output, cPanel/PHP 8.3 feasibility, and regression
-  fixtures for workbooks with no images, one image, multiple images and
-  misaligned images. Image extraction must be opt-in because it is slower and
-  more memory-intensive than the normal text/price import.
+  updates. During upload, detect whether the workbook contains embedded
+  images and show an explicit **Import embedded images** switch; default it
+  off so normal text/price imports stay fast, while allowing the user to turn
+  it on when images should be imported. If no images are detected, disable or
+  hide the switch and explain why. When enabled, use PhpSpreadsheet to match
+  each image to the nearest SKU/model row by worksheet coordinates, require
+  an explicit confidence/fallback rule, and report unmatched or ambiguous
+  images without guessing. Rescale and losslessly compress supported images
+  before tenant-scoped storage in the product image field; enforce type, size,
+  metadata, memory and upload limits. Define re-import replacement/retention
+  behavior, duplicate-name handling, preview and audit output, cPanel/PHP 8.3
+  feasibility, and regression fixtures for no-image, single-image,
+  multi-image and misaligned-image workbooks. Image extraction remains
+  opt-in because it is slower and more memory-intensive than normal import.
 
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
