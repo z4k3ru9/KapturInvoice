@@ -41,8 +41,10 @@ class DeployBootstrapController extends Controller
     public function __invoke(Request $request): JsonResponse
     {
         $token = config('deploy.migrate_token');
+        $companySlug = config('deploy.company_slug');
 
         abort_if(blank($token), 404);
+        abort_unless(in_array($companySlug, ['company-a', 'company-b'], true), 500, 'DEPLOY_COMPANY_SLUG must be company-a or company-b.');
         abort_unless(hash_equals((string) $token, (string) $request->query('token')), 404);
 
         $migrated = Artisan::call('migrate', ['--force' => true]);
@@ -52,13 +54,14 @@ class DeployBootstrapController extends Controller
         Artisan::call('db:seed', ['--class' => CountrySeeder::class, '--force' => true]);
         Artisan::call('db:seed', ['--class' => CompanySeeder::class, '--force' => true]);
 
-        $admin = $this->createOrUpdateAdmin();
+        $admin = $this->createOrUpdateAdmin($companySlug);
 
         return response()->json([
             'ok' => true,
             'migrate_exit_code' => $migrated,
             'migrate_output' => $migrateOutput,
-            'companies' => Company::query()->count(),
+            'company_slug' => $companySlug,
+            'companies' => Company::query()->where('slug', $companySlug)->count(),
             'currencies' => Currency::query()->count(),
             'countries' => Country::query()->count(),
             'admin_user' => $admin ? $admin->email : null,
@@ -73,7 +76,7 @@ class DeployBootstrapController extends Controller
      * admin-user step is optional, e.g. for a re-run that only needs to
      * pick up a new migration.
      */
-    private function createOrUpdateAdmin(): ?User
+    private function createOrUpdateAdmin(string $companySlug): ?User
     {
         $email = config('deploy.admin_email');
         $password = config('deploy.admin_password');
@@ -91,9 +94,10 @@ class DeployBootstrapController extends Controller
             ]
         );
 
-        Company::query()->each(function (Company $company) use ($user): void {
-            $company->users()->syncWithoutDetaching([$user->id => ['role' => 'owner', 'is_active' => true]]);
-        });
+        $company = Company::query()->where('slug', $companySlug)->firstOrFail();
+        $company->users()->syncWithoutDetaching([
+            $user->id => ['role' => 'owner', 'is_active' => true],
+        ]);
 
         return $user;
     }
