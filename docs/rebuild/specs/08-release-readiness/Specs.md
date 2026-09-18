@@ -487,10 +487,11 @@ preserve earlier requests even where several sources now share one acceptance cy
   Evidence: pending current reproduction/verification.
 
 
-- [ ] **R44 (44/54) — Passkey compatibility**
-  Category: Platform; priority: P2; size: S; deliverable: audit.
-  Sources: P08-11; dependencies: —.
-  Scope and acceptance: Verify current locked module on PHP 8.3/Laravel 13 and recovery/tenant behavior; retain existing implementation. No replacement project.
+- [ ] **R44 (44/54) — Passkey compatibility and Security profile**
+  Category: Platform/UI; priority: P1; size: M; deliverable: audit + fix.
+  Sources: P08-11; owner progress 2026-09-18; dependencies: —.
+  Scope and acceptance: Retain the current passkey implementation and verify PHP 8.3/Laravel 13 compatibility, recovery and tenant behavior. Rename the profile-dropdown “Add Passkeys” entry to “Security”; provide password change on the same Security page while a user enrolls, enables or disables passkeys; preserve current authorization, validation, session invalidation and recovery behavior. Fix passkey-page action/button spacing so controls have intentional separation from their containing box at desktop and mobile widths.
+  No replacement passkey project is authorized. Add focused feature and browser/accessibility coverage for password change, passkey enable/disable/enrollment, renamed navigation, and the spacing regression.
   Evidence: pending current reproduction/verification.
 
 
