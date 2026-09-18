@@ -78,6 +78,21 @@ exceptions. The Owner signs each checkpoint. Accountant and Admin may supply
 supporting evidence but cannot replace Owner approval for tax, balances,
 migration, restore verification, or release.
 
+
+## Owner progress (2026-09-18)
+
+- The module is deployed and usable in the current environment.
+- Migration has completed with minor hiccups. The known imported line-item display defect was corrected with a SQL repair; the canonical application fix remains tracked in Phase 08 R29/R47 so future imports do not require manual SQL.
+- Company A's migrated history is confirmed as the non-tax company path. Most core functions, including price-catalogue file import, are deployed; improvements remain in Phase 08.
+- Multi-user rollout is intentionally deferred because the current operation has one user; this does not waive tenant/authorization checks.
+- Document branding exists, but the second-company migration has not yet been reproduced and accepted in production.
+
+## Open cutover evidence
+
+- [ ] Run a fresh Company B trial import against its v5 tax-enabled source and record whether it joins the same target schema/table set as Company A while retaining company isolation, tax mode, numbering, balances and source provenance.
+- [ ] Reconcile Company A and Company B separately after the trial; do not infer Company B readiness from Company A's completed migration.
+- [ ] Preserve the original source archive, checksums, batch IDs, exceptions and restore point in the release evidence.
+
 ## Pause checkpoint
 
 Stop after both trial imports reconcile. Do not cut over production data without explicit business sign-off and a verified restore point. Next phase: `08-release-readiness`.
