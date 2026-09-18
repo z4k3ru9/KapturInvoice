@@ -96,3 +96,20 @@ migration, restore verification, or release.
 ## Pause checkpoint
 
 Stop after both trial imports reconcile. Do not cut over production data without explicit business sign-off and a verified restore point. Next phase: `08-release-readiness`.
+
+
+## Owner progress update (2026-09-18 — Company B)
+
+Company B's InvoiceNinja v5 tax-enabled migration completed on the production-like cPanel target.
+
+- Target database: `axentech_kapturinv237`.
+- Company ID: `1`.
+- Company slug: `axen-technology-indonesia`.
+- Domain: `axentechnology.web.id`.
+- Reconciliation status: **clean**.
+- Imported: 2 tax rates, 40 products, 7 clients, 8 contacts, 3 vendors, 5 vendor contacts, 2 projects, 4 task statuses, 16 invoices, 87 invoice items, 87 invoice-item taxes, 20 invitations, 2 quotes, 3 expenses, 1 credit and 8 payments.
+- Import log: `storage/logs/company-b-tax-import.log`.
+- A migration ordering defect for invoice `document_language` and an imported-schema foreign-key assumption for `credits.client_id` were corrected on `main`; the corrected migration files must be deployed before any fresh rebuild.
+- The primary-domain cPanel setup serves Laravel through a root rewrite into `public/`; this is an operational workaround and must be retained in deployment evidence.
+
+Company B migration and reconciliation are complete. Company A still requires its own separate checkpoint and reconciliation evidence; do not infer Company A readiness from Company B.
