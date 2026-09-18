@@ -571,3 +571,17 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: The imported invoice dump verifies 36 invoice documents with a combined outstanding balance of Rp617,863,760.00. The amount is correct when filtered by invoice type, past `due_date`, positive `balance`, and open statuses, but the records remain `sent`, `viewed`, or `partial`, allowing a status-only overdue count to show zero. Reconcile the dashboard, invoice register, reports, reminders and scheduled `invoices:mark-overdue` command against one documented predicate: exclude quotations, drafts, paid/voided, recurring templates and zero-balance records; scope by company; use invoice-header `balance`, never an `invoice_items` sum; and make count, amount and drill-down use the same predicate. Run the transition after migration and daily thereafter, preserve holds and payment/reversal behavior, and add a regression fixture for the verified 36-record/Rp617,863,760 case plus mixed sent/viewed/partial statuses. Acceptance requires matching count/amount across surfaces, auditable drill-down, tenant isolation and no line-item double counting.
   Evidence: pending current reproduction/verification.
 
+
+
+## Owner deployment evidence (2026-09-18 — Company B)
+
+Migration evidence for Company B is now recorded:
+
+- Database migration completed after correcting the invoice-column ordering and credits foreign-key compatibility issues.
+- Cache was temporarily switched to file storage while the database cache table was created.
+- InvoiceNinja v5 tax import completed with clean reconciliation.
+- The live tenant is Company ID `1`, slug `axen-technology-indonesia`, domain `axentechnology.web.id`.
+- The primary-domain cPanel deployment uses a root `.htaccess` rewrite to Laravel's `public/` directory because the primary domain document root cannot be changed.
+- Remaining release evidence: authenticated login, tenant isolation, representative invoice/quote/payment PDFs, storage permissions, production backup/restore, cron execution/logs, and temporary-credential rotation.
+
+Mark R48 only after those operator checks are recorded. Phase 08 is not fully complete yet; the migration portion is complete, but release validation remains open.
