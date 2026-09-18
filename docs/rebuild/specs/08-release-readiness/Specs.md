@@ -297,6 +297,107 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
   leakage, preserve localized templates and verify rendered subject/body
   previews plus actual sends against approved fixtures.
 
+- [ ] **P08-18 — Audit invoice PDF branding, bank accounts and payment method (discovery/bug).**
+  Trace company branding, bank-account records and payment-method labels from
+  settings through invoice/quotation PDF views, mail attachments and portal
+  output. Confirm whether each field has a customer-facing purpose, whether
+  bank details and a payment-method heading are duplicated or misleading, and
+  whether removal would affect receipts or other document types. Define the
+  canonical source, visibility controls, localization, tenant isolation,
+  snapshot behavior and migration/rollback path before removing or changing
+  any field. Add PDF visual/regression coverage for invoices with zero, one
+  and multiple bank accounts and each supported payment method.
+
+- [ ] **P08-19 — Add a self-test email action (feature).** Add a clearly scoped
+  “Send test email to myself” action wherever an email template or outbound
+  mail setting is configured. Resolve the authenticated user's verified
+  address, require explicit confirmation, render the selected template with
+  safe fixture data, and report delivery/failure without exposing recipients
+  or cross-tenant data. Cover authorization, rate limiting, localization,
+  attachments, audit/log redaction and disabled-mail environments.
+
+- [ ] **P08-20 — Improve the Add bank account card styling (cosmetic).** Make the
+  card header bold and apply restrained theme-aligned color while preserving
+  contrast, dark mode, keyboard focus, responsive layout and the existing
+  add/edit/delete semantics. Verify the visual result against the settings
+  design evidence and accessibility checks.
+
+- [ ] **P08-21 — Audit PDF signature rendering (bug).** Trace configured
+  signatory name, title/position, image/certificate data and approval state
+  through quotation, invoice and receipt models, snapshots, Blade views and
+  mail/download routes. Identify why configured signatures are absent, define
+  when each document may show one, preserve immutable issued/paid output,
+  prevent cross-tenant or unauthorized signatures, and add visual/PDF byte
+  regression coverage for configured and unset signatories.
+
+- [ ] **P08-22 — Number and group line items by catalog type (feature).** Add
+  editor-only line-item numbering for invoices/quotations without printing that
+  number. Group printed lines into Service/Labor, Material and Other sections
+  using the canonical item type, with deterministic ordering, totals, taxes,
+  discounts, empty-section behavior and localized headings. Preserve custom-line
+  behavior and verify PDF, portal, mail and snapshot output.
+
+- [ ] **P08-24 — Add editable item-category masters to navigation (feature).**
+  Add a tenant-scoped navbar submenu for authorized users to manage item
+  categories. Define create/edit/archive/delete rules, safeguards for categories
+  already used by products or historical lines, ordering, search, localization
+  and read-only role behavior.
+
+- [ ] **P08-25 — Manage pricelist-to-product links in bulk (feature).** Support
+  safe name matching with an explicit preview and confidence/ambiguity handling,
+  bulk approval, link, unlink and delete actions. Show linked/unlinked state
+  consistently, retain tenant scoping and audit/history, and prevent deletion
+  from changing historical invoice/quotation snapshots. Define duplicate-name,
+  soft-deleted-product and mismatch behavior.
+
+- [ ] **P08-26 — Filter pricelist items by link state (feature).** Add filters for
+  linked, unlinked and optionally ambiguous/multiple matches, with counts and
+  clear empty states. Ensure filtering uses scoped product relations and remains
+  consistent after bulk link/unlink/delete operations across desktop and mobile.
+
+- [ ] **P08-27 — Hide item SKU from client-facing documents (bug/UX).** Keep SKU
+  available to authorized internal users where operationally useful, but omit
+  it from client portal, client-visible invoice/quotation views, emails and
+  PDFs unless a separately approved client-facing option enables it. Verify
+  tenant authorization, localization, snapshots and all document channels.
+
+- [ ] **P08-28 — Preserve imported item descriptions (bug).** Trace description
+  mapping from every supported pricelist/import source through products,
+  quotations, invoices, portals and PDFs. Define source precedence,
+  blank/HTML normalization, update-versus-snapshot behavior and regression
+  fixtures proving imported descriptions remain visible in the correct
+  internal and client-facing contexts.
+
+- [ ] **P08-29 — Propagate dealer price and MSRP (bug/feature).** Ensure dealer
+  price and MSRP are correctly stored and shown in quote/invoice edit fields
+  and every related catalog, pricelist, preview and reporting surface that
+  needs them. Define which value drives billing, preserve MSRP when required
+  for historical snapshots, handle missing/conflicting values and enforce
+  tenant/role visibility. Add import, edit, PDF, portal and recalculation tests.
+
+- [ ] **P08-30 — Use status-aware edit/view actions (bug/UX).** Draft records
+  should show the edit action/icon; sent or otherwise immutable records should
+  show view instead. Apply the rule consistently across invoices, quotations
+  and related lists/forms, preserving authorized amendment/correction flows,
+  accessible labels and responsive layouts.
+
+- [ ] **P08-31 — Optional embedded Excel image import switcher (discovery/feature).**
+  Keep the current OpenSpout path as the default for occasional pricelist
+  updates. During upload, detect whether the workbook contains embedded
+  images and show an explicit **Import embedded images** switch; default it
+  off so normal text/price imports stay fast, while allowing the user to turn
+  it on when images should be imported. If no images are detected, disable or
+  hide the switch and explain why. When enabled, use PhpSpreadsheet to match
+  each image to the nearest SKU/model row by worksheet coordinates, require
+  an explicit confidence/fallback rule, and report unmatched or ambiguous
+  images without guessing. Rescale and losslessly compress supported images
+  before tenant-scoped storage in the product image field; enforce type, size,
+  metadata, memory and upload limits. Define re-import replacement/retention
+  behavior, duplicate-name handling, preview and audit output, cPanel/PHP 8.3
+  feasibility, and regression fixtures for no-image, single-image,
+  multi-image and misaligned-image workbooks. Image extraction remains
+  opt-in because it is slower and more memory-intensive than normal import.
+
 Deferred, not open bugs: live currency API (last development stage), gateway
 checkout, proposal portal/send flow and automatic PDF email attachments need
 explicit task/scope confirmation before expansion. Cancelled: automatic blank
