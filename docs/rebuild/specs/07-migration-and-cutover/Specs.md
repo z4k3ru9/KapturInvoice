@@ -113,3 +113,16 @@ Company B's InvoiceNinja v5 tax-enabled migration completed on the production-li
 - The primary-domain cPanel setup serves Laravel through a root rewrite into `public/`; this is an operational workaround and must be retained in deployment evidence.
 
 Company B migration and reconciliation are complete. Company A still requires its own separate checkpoint and reconciliation evidence; do not infer Company A readiness from Company B.
+
+
+## Verification update (2026-09-18 — Company B post-import)
+
+Post-import checks confirm:
+
+- Company ID `1` has one owner user: `ati@axentechnology.web.id`.
+- Company slug/domain: `axen-technology-indonesia` / `axentechnology.web.id`.
+- Tenant-scoped counts: 7 clients, 40 products, 8 payments, 16 invoice documents and 2 quotes.
+- The shared `invoices` table contains 18 rows for the company because invoice documents and quotes share the table; `type = 'quote'` correctly identifies the 2 quotes.
+- These counts agree with the clean importer reconciliation output. No duplicate import is indicated by this verification.
+
+Company B's migration checkpoint is therefore complete. Company A remains a separate migration and release checkpoint.
