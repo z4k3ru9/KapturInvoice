@@ -1,6 +1,6 @@
 # Phase 08: Release Readiness
 
-> **Status (2026-09-17):** Current release evidence remains unverified in this docs-only review. Existing tests and operations documentation are present; do not label all work “not started.” Apply finalized decisions §11 to non-blocking human/operations evidence.
+> **Status (2026-09-18 rescope):** 48 work packages are tracked below; implementation and current release evidence are unverified. This revision scopes work, not a release approval.
 
 ## Goal
 
@@ -46,359 +46,412 @@ Software shipping follows finalized decisions §11: a green automated suite and 
 
 This is the final phase. Produce a release report, deployment checklist, rollback procedure, and post-cutover monitoring schedule.
 
-## Pending assignments (2026-09-17 audit)
+## Execution and tracking
 
-- [ ] **P08-01 — Capture current verification (implementation owner).** Run the
-  required PHP, migration, asset and browser checks against one recorded commit;
-  record failures and skips separately. Existing 818/831 counts and historical
-  phase completion markers cannot satisfy this task. Include both company
-  themes, portal boundaries, document languages and the final matrix above.
-- [ ] **P08-02 — Reconcile invoice lifecycle contract (domain owner + implementation owner).**
-  The previous memory said overdue was derived-only and legacy statuses appeared
-  only on imports. `MarkInvoicesOverdue` writes Overdue on Issued/Partial records
-  and is scheduled daily. Compare `InvoiceStatus`, receivables recalculation,
-  imports, reminders, SOA and hold behavior; record the approved lifecycle and
-  add transition regressions. Do not silently remap historical statuses.
-- [ ] **P08-03 — Audit deferred-feature exposure (implementation owner; scope decision by Owner).**
-  `routes/console.php` schedules recurring auto-billing despite recurring billing
-  being deferred; legacy gateway/proposal/credit/recurring components also exist.
-  Check routes, navigation, cron and existing templates, then disable unintended
-  launch execution or record an explicit scope exception. Acceptance: direct
-  URLs and scheduled jobs cannot bypass the approved launch boundary.
-- [ ] **P08-04 — Close remaining UI regression evidence (implementation owner).**
-  Reconcile the [coverage matrix](../../../testing-coverage.md) against current tests.
-  Existing settings, hold and pagination tests replace some stale gaps. Verify
-  role/scoping and financial action wiring, invoice/payment status bypasses,
-  product-picker query bounds, client defaults and milestone computation.
-  Add only missing meaningful regressions; list exact tests and results.
-- [ ] **P08-05 — Verify browser coverage and accepted exceptions (implementation owner).**
-  Shared login/navigation now uses TallStack routes; the old “whole suite uses
-  /admin” claim is stale. `tests/browser/support/tenants.ts::pickDate` retains
-  Filament selectors. Three accessibility scans (dashboard, invoice form and
-  public portal) are explicitly `test.fixme` in `ux/accessibility.spec.ts`.
-  Their comments report accessible-name, invalid ARIA target, contrast,
-  nested-interactive and target-size problems, plus an unavailable portal
-  fixture. Reproduce each, repair the current cause and re-enable the scans;
-  a skipped scan is not a WCAG pass. Audit callers, dead helpers and exclusions;
-  run actual journeys before closing. Remove cancelled blank-row tests from
-  active requirements; retain reorder/delete-confirmation coverage. Record
-  autosave concurrency failures with project/server configuration.
-- [ ] **P08-06 — Record hosting validation (operator; non-blocking evidence).**
-  Per company: bootstrap/import result, deployed commit, SSL/mail/storage, cron
-  queue/scheduler, failed-job retry, backup/restore and production-like A4 samples.
-  Disable the deployment token after setup. This review did not execute these.
-- [ ] **P08-07 — Verify remaining small UI follow-up (UI owner; low priority).**
-  Settings tabs are mobile-scrollable but the prior memory requested a visible
-  scroll affordance. Verify current phone behavior and implement or explicitly
-  accept it. Jobs Hold and Users/Vendor Bills/POs/Handover row menus already exist.
+This section replaces the old flat backlog. The earlier 65 total double-counted
+P08-08 as a parent: there were 64 source entries, including duplicate requests.
+The 48 packages below combine overlapping work and split independently
+reviewable parts (such as editor numbering versus printed grouping).
+Old P08 identifiers are traceability references, not extra completion units.
+P08-23 remains cancelled; do not change positional import category mapping.
 
-- [ ] **P08-08 — Owner-requested product backlog (discovery only; do not implement from this list).**
-  Preserve the numbering below when these requests are reviewed. Each item
-  needs a code-path check, an explicit decision, and focused acceptance tests
-  before implementation is authorized:
-  [P08-08.01] Verify whether Send already issues/sends the document and whether a
-     separate Issue action is redundant; removing it must not create a lost
-     transition or bypass authorization.
-  [P08-08.02] Review mobile page width (target about 98% where safe), edit controls that
-     leave the viewport, and whether mobile editing should use a modal.
-  [P08-08.03] Consider an inline/expandable description preview on each item row.
-  [P08-08.04] Consolidate mobile row actions beside the section header behind a menu.
-  [P08-08.05] Use distinct, semantic colors for View and Edit actions.
-  [P08-08.06] Make Client modal sections card-based and collapsible.
-  [P08-08.07] Define a global footer for terms and conditions and payment terms.
-  [P08-08.08] Decide whether new documents default to tax-inclusive pricing; reconcile
-     this with finalized tax decisions before changing any default.
-  [P08-08.09] Replace percentage links with simple checkbox wording for “Discount is a
-     percentage” and “No End Date”; preserve saved values and accessibility.
-  [P08-08.10] Add chart hover values/tooltips where the current charts provide none.
-  [P08-08.11] Fix the Financial Report Revenue Rp 0 stat wrapping to match peer cards.
-  [P08-08.12] Fix payment-allocation overflow and the Incoming Stats one-line wrapping.
-  [P08-08.13] Verify Hold is unavailable for sent, cancelled, or paid records while
-      retaining the intended override behavior for eligible states.
-  [P08-08.14] Add configurable Item Units/Metrics under Settings and propagate the
-      choice through forms, validation, tables, PDFs and imports.
-  [P08-08.15] Define separate labor cost and item cost on quote/invoice lines and in
-      consolidated reporting; preserve margin and tax semantics.
-  [P08-08.16] Hide discount percentages from clients and show only total discount in
-      the portal; retain staff/owner detail.
-  [P08-08.17] When an item discount exists, show its value in the PDF and client portal.
-  [P08-08.18] Conditionally show Tax and Discount columns: hide Tax when disabled;
-      show Discount when populated; show both when applicable.
-  [P08-08.19] For staff/owner views, render discount value first and the percentage on
-      a smaller second line.
-  [P08-08.20] Recalculate combined global and per-item discount percentages and show
-      discount values on items, financial summary and PDF.
-  [P08-08.21] After quote conversion, verify Converted status persistence and removal
-      of the Convert action without losing the resulting invoice/job link.
-  [P08-08.22] Resolve the Issue-versus-Send behavior consistently with item 1.
-  [P08-08.23] Keep contextual actions in one stable location beside Download PDF/Save.
-  [P08-08.24] Label Save/Amend from the current status; audit every status-dependent
-      form action for the same mismatch.
-  [P08-08.25] Make sent invoices fully read-only, including hiding Add line item and
-      preventing mutation through alternate form paths.
-  [P08-08.26] Remove the “Links this invoice to a job...” footer/help text if it is no
-      longer accurate; preserve the scoped open-job picker and numbering rules.
-  [P08-08.27] Verify payment verification allocates an immutable receipt number
-      automatically and never exposes manual receipt-number entry.
-  [P08-08.28] Audit receipt and other PDFs for bank_transfer and every payment-method
-      label; add regression coverage for rendered output.
-  [P08-08.29] Add subtle, readable status watermarks to payment PDFs for draft, paid,
-      reversed and amended states after the document contract is approved.
-  [P08-08.30] When a payment is reversed, invalidate/remove amendment-allocation
-      actions while preserving the already-issued receipt number and history.
-  [P08-08.31] Design automatic allocation to the earliest eligible invoice for the
-      payment amount, with a reviewable override and no cross-client leakage.
-  [P08-08.32] Fix the allocation/amend-payment icon sizing and verify touch targets.
-  [P08-08.33] Audit action semantics globally: Save green/floppy, Delete red/cross,
-      View green/eye, Download PDF orange, Resend blue/plane, Convert gold/
-      next-arrow, with accessible text and consistent placement.
-  [P08-08.34] Keep Dashboard as a standalone primary navigation item, outside any
-      submenu, because it is the default landing page for every signed-in
-      user; preserve tenant routing, active-state styling and mobile behavior.
-  [P08-08.35] Evaluate a subtle fade-in transition for the main content frame after
-      page redraw/navigation, using an animation already included in the UI
-      library where possible. Exclude the navbar and search bar, respect
-      `prefers-reduced-motion`, avoid delaying interaction or causing layout
-      shift, and verify Livewire redraws do not replay the effect excessively.
+Track **verified packages completed / 48**. Initial status is unverified/pending,
+not proof that nothing is implemented. Check a package only with recorded evidence.
+Discovery completion means a recommendation/decision exists; it does not mean the
+proposed feature is shipped. Any newly approved implementation scope adds a package
+and updates the denominator explicitly. Retain IDs even when priorities change.
 
-- [ ] **P08-09 — Image and file compression policy (discovery only; do not implement yet).**
-  Owner decisions: compress every supported upload type where a safe,
-  format-specific optimization exists; retain only the compressed artifact;
-  prioritize readable, effective, lossless compression; and rescale photos to
-  a maximum 1440p-equivalent resolution. Define the per-format pipeline,
-  readable text/signature requirements, orientation and metadata handling,
-  private-storage guarantees, PDF/document renderability, checksum/audit
-  implications when the stored artifact differs from the source, retry and
-  failure behavior, and an exception path for formats that cannot be safely
-  optimized. Acceptance requires representative size/quality measurements and
-  tests proving compressed files remain scoped, downloadable and renderable;
-  no implementation is authorized by this backlog entry alone.
+Two low-cost gpt-5.6-luna reviewers independently reviewed grouping and risk.
+Their useful conclusions were lifecycle/financial integrity first, duplicate
+Issue/Send consolidation, one renderer evaluation, and explicit dependency gates.
+Not adopted: making a replacement PDF renderer a prerequisite for current PDF
+fixes, or treating category masters as prerequisites for unrelated existing filters.
 
-- [ ] **P08-10 — Evaluate a fit-to-page PDF renderer (discovery only; do not implement yet).**
-  Assess whether a small Python `fpdf2` rendering service or build step should
-  replace the current PHP `barryvdh/laravel-dompdf` path. `fpdf2` is a Python
-  3.10+ library with explicit page geometry, margins, tables, automatic page
-  breaks, Unicode TrueType subset embedding, images, links, headers and
-  footers; it is not a drop-in Blade/HTML renderer and its HTML conversion is
-  basic. The proposal must therefore compare measurable output quality and
-  operating cost before any dependency change.
+### Priority and size
 
-  Discovery must inventory every current PDF entry point, mail attachment,
-  immutable snapshot, localization path, logo/product-image embedding path,
-  watermark/page-number helper, and test that currently assumes dompdf or a
-  Blade view. Define a canonical document DTO/JSON contract so rendering is
-  independent of Livewire, Laravel models and tenant queries. Do not let a
-  Python process receive arbitrary model IDs or bypass the existing
-  authorization, tenant, snapshot, filename and audit checks.
+- **P0:** integrity and data-correctness contracts/fixes. Investigate first; confirmed
+  financial, authorization or historical-data corruption outranks any size estimate.
+- **P1:** core usability and current document correctness, smallest ready task first.
+- **P2:** optional enhancements/discovery, after core regressions. Owner can raise them.
+- **Evidence:** final checks and operator records; operator evidence remains non-blocking
+  under finalized decisions §11.
 
-  Compare three deployment options: keep dompdf; run `fpdf2` as a separately
-  versioned Python service/worker; or use a checked, host-supported Python
-  runtime during release generation. cPanel/no-SSH is a hard constraint:
-  document whether the target host can run Python through cron or WSGI, or
-  whether PDFs must be generated in CI and uploaded as immutable artifacts.
-  No design may require a persistent daemon, shell access, unrestricted
-  outbound networking, or a new public endpoint without an explicit approval.
+Sizes are planning estimates, not timing promises: XS = one local presentation
+change; S = one bounded behavior; M = several connected paths; L = schema or multiple
+channels; XL = architecture/financial model. Sort by priority, then satisfied
+dependencies, then size, then ID. IDs are stable identifiers, not mandatory order.
+Start with a baseline of focused checks on the actual checkout; finish with R47.
+Within P0, start R16/R27 decision work and independent R20/R29 investigations.
+While decisions await answers, independent P1 XS/S work can proceed.
+R44 is an independent compatibility audit and may run earlier if a real failure appears.
 
-  Build a representative proof-of-concept matrix before deciding: invoice,
-  quotation/COC, sales order, receipt, vendor documents, delivery/service/
-  handover reports, tax recap, statement of account, proposal HTML/CSS, long
-  descriptions, many line items, mixed Bahasa/English text, embedded logos and
-  product images, page numbering, status watermarks, and narrow/overflowing
-  tables. Check A4 fit, intentional page breaks, repeated table headers,
-  orphan/widow behavior, exact monetary values, fonts/glyphs, image quality,
-  links, accessibility metadata where required, byte size, generation time,
-  peak memory, failure diagnostics, and visual diffs against approved samples.
+### Claude handoff contract
 
-  Preserve the document contract: issued/amended/reversed PDFs remain
-  immutable snapshots; regenerated historical PDFs must be explicitly marked
-  and reconciled; Bahasa is default with an English override; private files
-  stay company-scoped; and mail attachments use the same verified bytes as the
-  download route. Define a feature flag and rollback path that can select the
-  existing dompdf renderer per document type until fpdf2 reaches parity.
+Read CLAUDE.md, AGENTS.md, applicable rules and finalized decisions once; then read
+only the selected package, its source references and relevant code. The paths below
+are entry points from repository inspection, not an exhaustive or guaranteed-current
+edit list. Recheck current main and existing tests before changing anything.
+Do not infer that an old reported bug still reproduces.
 
-  Exit criteria: a written recommendation with dependency/licensing and
-  security review, cPanel feasibility result, benchmark and visual-diff
-  artifacts, a renderer adapter/API design, a migration and rollback plan,
-  updated PDF/browser/mail tests, and explicit owner approval. This entry is
-  analysis only; it does not authorize removing dompdf or adding Python code.
+Each dispatch handles one package:
+1. Record commit, reproduce the symptom with synthetic data or a focused visual check.
+2. Check dependencies and resolve only the concrete decision blockers listed here.
+3. For a confirmed authorized fix, change the minimum surface and run focused checks;
+   for discovery, return a bounded recommendation and evidence without implementation.
+4. Record changed paths, exact checks/results, remaining risks and commit/PR.
+5. Mark the package verified only when its acceptance is met; partial work stays open.
 
-- [ ] **P08-11 — Passkey module compatibility review (discovery only; retain implementation).**
-  Keep the existing passkey module and its current package, routes, UI,
-  migration, user-model integration and tests. Do not remove or replace it as
-  part of the PDF work. Any future passkey change is a separate assignment;
-  verify its package/version compatibility, recovery path, tenant behavior and
-  deployment requirements before changing it.
+Prefer Haiku for XS/S presentation work after path/behavior is known. Use Sonnet for
+multi-file state, pricing, import, migration and authorization work; small diff size
+does not make a financial change a micro-task. Escalate only when the task needs it.
+Use separate branches/worktrees for independent packages; do not run simultaneous
+edits to the same Livewire form, PDF template or calculator. One package/PR keeps
+review and rollback cheap. Do not rerun the entire suite after every cosmetic edit;
+run required focused checks and a full suite at integration.
 
-- [ ] **P08-12 — Evaluate Spatie Laravel PDF versus tc-lib-pdf (discovery only; do not implement yet).**
-  Compare the current direct `barryvdh/laravel-dompdf` calls with
-  `spatie/laravel-pdf` v2 and `tecnickcom/tc-lib-pdf`. Spatie provides a
-  Laravel-facing, driver-based Blade API with A4/margins/headers/footers,
-  queued generation, mail attachments and PDF test fakes; its DOMPDF driver
-  retains dompdf behavior, while richer drivers add Chromium, Gotenberg,
-  Cloudflare or WeasyPrint deployment requirements. `tc-lib-pdf` is a
-  low-level PHP PDF engine for drawing text, images, tables, barcodes and
-  metadata directly; it is not an HTML/Blade layout engine, so adopting it
-  would require a new renderer, pagination algorithm and template system.
+Copy into Claude:
+> Scope RNN from docs/rebuild/specs/08-release-readiness/Specs.md. Read its constraints,
+> dependencies and category entry paths. Reproduce first. If already fixed, provide
+> current evidence. Implement only approved scope; discovery packages stop at a
+> recommendation. Preserve historical snapshots and tenant boundaries. Run focused
+> checks, update this package with evidence, and report verified progress out of 48.
 
-  Inventory every controller, mail attachment, immutable snapshot, localized
-  view, image/data-URI path, page-number helper, watermark and test. Compare
-  all three paths on A4 fit, long tables, repeated headers, page breaks,
-  proposal HTML/CSS, Bahasa/English fonts, logos/product images, exact money,
-  metadata, output size, memory, generation time and diagnostics. Include
-  licensing and maintenance review, and verify the installed package versions
-  support Laravel 13/PHP 8.3 (or record the required PHP upgrade).
+### Shared constraints and decision boundaries
 
-  cPanel/no-SSH remains a hard constraint. Spatie's DOMPDF driver is the best
-  fit because it is PHP-only and can use the current uploaded Composer build,
-  but it preserves DOMPDF layout limits. Browsershot/Chrome need Node and a
-  Chromium binary; Gotenberg needs a continuously running Docker service;
-  WeasyPrint needs Python/binaries; Cloudflare needs outbound HTTPS, API
-  credentials, cost review and transmission of sensitive documents. Explicitly
-  set the DOMPDF driver on cPanel rather than accepting Spatie's Browsershot
-  default. `tc-lib-pdf` is also PHP-only and cPanel-friendly, but is a
-  low-level drawing engine requiring a ground-up pagination/template rebuild.
+- PHP 8.3 / existing Laravel 13 lockfiles; cPanel with cron and no SSH. Build assets
+  outside production. Do not change dependencies merely to execute this plan.
+- Preserve original documents, receipts, numbering, payments, snapshots and audit.
+  No destructive production migrations or live imports are authorized here.
+- Company A stays non-tax; historical source tax/price/number values never get
+  recalculated from new settings. Discounts precede tax and finalized rounding applies.
+- Client-only discount totals and per-line discount visibility conflict: R27 must
+  settle that before R28. Dealer price must not silently become acquisition cost.
+- Configured signatory text and optional signature image are different; do not invent
+  an image or certificate. Current bankAccounts consumers must survive consolidation.
+- Product type is not category. Keep existing import category-location behavior.
+  SKU remains useful internally but must be hidden from client-facing output.
+- Compression stores only the optimized accepted artifact. Text must stay clear;
+  lossless encoding and owner-permitted photo resizing are distinct operations.
+  R39 defines exact 1440p geometry and unsupported-format behavior before rollout.
+- No new automatic email attachments, gateways, currency API, proposal send,
+  cancelled blank-row behavior or passkey replacement is implied by these packages.
+- Existing discovery restrictions remain: scope work is not blanket authorization
+  to change domain policy or replace PDF/image infrastructure. Resolve explicit
+  contradictions; do not ask again about decisions already settled by the Owner.
+- UI checks: desktop/mobile, light/dark, keyboard/labels and full monetary values.
+  Domain changes: meaningful failing regression then focused passing suite, PHP Pint;
+  frontend changes: asset build and relevant browser checks. PDFs: Bahasa/English,
+  long rows/A4, exact values, tenant isolation and immutable originals; compare
+  mail/download/portal bytes where those channels already exist.
+- R45 evaluation includes invoice, quotation/COC, receipts, jobs/vendor/delivery/service/
+  handover documents, SOA/tax recap, long text/images/fonts, memory/time/size, pagination,
+  repeated headers and rollback. Keep current dompdf until separately approved parity.
 
-  Preserve tenant authorization, snapshot immutability, download/portal/mail
-  byte identity, filenames, audit events, localization and rollback. Use a
-  renderer adapter and feature flag; retain direct dompdf per document type
-  until visual, browser, mail, security and cPanel tests pass. This remains
-  analysis only and does not authorize replacing dompdf.
+### Category entry paths
 
-- [ ] **P08-13 — Preserve active tab across refresh (bug).** Record the active tab in a
-  URL/query or otherwise reload-safe state, restore it after refresh and browser
-  navigation, scope it to the current tenant/document, and fall back safely when
-  the tab no longer exists. Add desktop/mobile and direct-link coverage.
+- **UI:** `resources/views/livewire/`, `resources/views/components/tallstack/`, `resources/css/`, `app/Livewire/`, `tests/browser/`.
+- **Settings:** `app/Livewire/TallStackSettingsIdentity.php`, `app/Livewire/TallStackSettingsBranding.php`, `resources/views/components/tallstack/settings-tabs.blade.php`, `tests/Feature/TallStack/`.
+- **Integrity:** `app/Console/Commands/MarkInvoicesOverdue.php`, `app/Actions/Billing/`, `app/Actions/Receivables/`, `app/Actions/Sales/`, `app/Enums/InvoiceStatus.php`, `routes/console.php`, `tests/Feature/`.
+- **Documents:** `resources/views/pdf/`, `app/Http/Controllers/`, `app/Models/Company.php`, `app/Livewire/TallStackSettingsBranding.php`, `app/Livewire/TallStackSettingsPaymentMethod.php`, `tests/Feature/`.
+- **Pricing:** `app/Services/InvoiceTotalsCalculator.php`, `app/Services/QuotationTotalsCalculator.php`, `app/Livewire/TallStackInvoiceForm.php`, `app/Livewire/TallStackQuotationForm.php`, `tests/Feature/Services/`.
+- **Catalog:** `app/Services/PriceListImporter.php`, `app/Services/ProductSync.php`, `app/Models/PriceListItem.php`, `app/Models/Product.php`, `app/Enums/CatalogItemType.php`, `app/Livewire/TallStackPriceListItems.php`, `tests/Feature/Services/`.
+- **Mail:** `app/Livewire/TallStackSettingsEmail.php`, `app/Services/Sales/QuotationMailer.php`, `tests/Feature/TallStack/TallStackSettingsEmailTest.php`, `tests/Feature/Sales/QuotationMailerTest.php`.
+- **Uploads:** `app/Services/PriceListImporter.php`, `app/Services/ProductSync.php`, `app/Livewire/TallStackSettingsBranding.php`, `app/Models/Product.php`, `tests/Feature/Services/PriceListImporterTest.php`.
+- **Finance:** `app/Actions/Receivables/`, `app/Services/`, `app/Livewire/TallStackPaymentAllocation.php`, `app/Livewire/TallStackSalesOrder.php`, `tests/Feature/`.
+- **Platform:** `composer.json`, `composer.lock`, `app/Livewire/TallStackAccountPasskeys.php`, `app/Http/Controllers/`, `resources/views/pdf/`, `tests/Feature/`.
+- **Verification:** `phpunit.xml`, `playwright.config.ts`, `tests/browser/`, `tests/Feature/`, `.github/workflows/tests.yml`, `docs/testing-coverage.md`.
+- **Operations:** `README.md`, `docs/data-import.md`, `docs/rebuild/specs/07-migration-and-cutover/Specs.md`, `routes/console.php`.
 
-- [ ] **P08-14 — Redirect safely after company slug changes (bug).** After a
-  successful slug change, redirect to the new canonical tenant URL while
-  preserving the current page/position when that destination exists. Prevent
-  stale-slug 404s, cross-company redirects and open redirects; invalidate stale
-  links and cover refresh/back-button behavior.
+## Scoped packages
 
-- [ ] **P08-15 — Settings autosave and slug-change confirmation (bug/UX).**
-  Define field-level autosave eligibility, debounce, validation, retry/conflict
-  handling, dirty/error/success states and audit behavior. Remove or retain Save
-  controls only where autosave is reliable. A slug change must show a
-  confirmation dialog explaining the redirect and display the new login URL
-  before applying it; the redirect must occur only after explicit confirmation.
+Each unchecked heading is one completion unit. Dependencies use R IDs. Source references
+preserve earlier requests even where several sources now share one acceptance cycle.
 
-- [ ] **P08-16 — Constrained logo image picker and preview (bug/UX).** Provide
-  an image picker with an aspect-ratio or custom crop/resize workflow, preview
-  the resulting logo before save, preserve readable quality and transparent
-  backgrounds where supported, enforce type/size/dimension limits, strip unsafe
-  metadata as appropriate, and keep uploads tenant-scoped. Define the
-  server-side canonical output and fallback for invalid or unavailable images.
+- [ ] **R01 (1/48) — Bank card heading**
+  Category: UI; priority: P1; size: XS; deliverable: fix.
+  Sources: P08-20; dependencies: —.
+  Scope and acceptance: Bold header and existing brand accents; light/dark and mobile screenshots; no banking data changes.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-17 — Smart fields in invoice email templates (bug/feature).**
-  Inventory the supported client/invoice/company fields, define an explicit
-  allowlist and escaping rules, and add an editor card that exposes valid
-  parameters with copy/insert help and preview data. Resolve missing/null
-  fields safely, prevent arbitrary variable access or cross-tenant data
-  leakage, preserve localized templates and verify rendered subject/body
-  previews plus actual sends against approved fixtures.
+- [ ] **R02 (2/48) — Stats wrapping and allocation layout**
+  Category: UI; priority: P1; size: XS; deliverable: fix.
+  Sources: P08-08.11,P08-08.12,P08-08.32; dependencies: —.
+  Scope and acceptance: Revenue/Incoming labels and amounts wrap consistently; allocation container and icons fit phone widths; retain full monetary digits.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-18 — Audit invoice PDF branding, bank accounts and payment method (discovery/bug).**
-  Trace company branding, bank-account records and payment-method labels from
-  settings through invoice/quotation PDF views, mail attachments and portal
-  output. Confirm whether each field has a customer-facing purpose, whether
-  bank details and a payment-method heading are duplicated or misleading, and
-  whether removal would affect receipts or other document types. Define the
-  canonical source, visibility controls, localization, tenant isolation,
-  snapshot behavior and migration/rollback path before removing or changing
-  any field. Add PDF visual/regression coverage for invoices with zero, one
-  and multiple bank accounts and each supported payment method.
+- [ ] **R03 (3/48) — Remove obsolete helper copy**
+  Category: UI; priority: P1; size: XS; deliverable: fix.
+  Sources: P08-08.26; dependencies: —.
+  Scope and acceptance: Remove the two owner-named job/numbering hints where present; keep scoped picker and sequence behavior.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-19 — Add a self-test email action (feature).** Add a clearly scoped
-  “Send test email to myself” action wherever an email template or outbound
-  mail setting is configured. Resolve the authenticated user's verified
-  address, require explicit confirmation, render the selected template with
-  safe fixture data, and report delivery/failure without exposing recipients
-  or cross-tenant data. Cover authorization, rate limiting, localization,
-  attachments, audit/log redaction and disabled-mail environments.
+- [ ] **R04 (4/48) — Checkbox wording**
+  Category: UI; priority: P1; size: XS; deliverable: fix.
+  Sources: P08-08.09; dependencies: —.
+  Scope and acceptance: Simple Discount is a percentage and No end date checkboxes; toggling preserves saved meaning and keyboard operation.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-20 — Improve the Add bank account card styling (cosmetic).** Make the
-  card header bold and apply restrained theme-aligned color while preserving
-  contrast, dark mode, keyboard focus, responsive layout and the existing
-  add/edit/delete semantics. Verify the visual result against the settings
-  design evidence and accessibility checks.
+- [ ] **R05 (5/48) — Shared action appearance**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-08.05,P08-08.33; dependencies: —.
+  Scope and acceptance: Apply requested color/icon vocabulary to existing controls; distinguish Edit/View; audit modal and list contexts without changing authorization.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-21 — Audit PDF signature rendering (bug).** Trace configured
-  signatory name, title/position, image/certificate data and approval state
-  through quotation, invoice and receipt models, snapshots, Blade views and
-  mail/download routes. Identify why configured signatures are absent, define
-  when each document may show one, preserve immutable issued/paid output,
-  prevent cross-tenant or unauthorized signatures, and add visual/PDF byte
-  regression coverage for configured and unset signatories.
+- [ ] **R06 (6/48) — Standalone Dashboard**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-08.34; dependencies: —.
+  Scope and acceptance: Top-level default home with tenant routing and active/mobile states; no duplicate submenu link.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-22 — Number and group line items by catalog type (feature).** Add
-  editor-only line-item numbering for invoices/quotations without printing that
-  number. Group printed lines into Service/Labor, Material and Other sections
-  using the canonical item type, with deterministic ordering, totals, taxes,
-  discounts, empty-section behavior and localized headings. Preserve custom-line
-  behavior and verify PDF, portal, mail and snapshot output.
+- [ ] **R07 (7/48) — Settings scroll affordance**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-07; dependencies: —.
+  Scope and acceptance: Reproduce on phone; add visible affordance only if absent; record evidence if current behavior already satisfies it.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-24 — Add editable item-category masters to navigation (feature).**
-  Add a tenant-scoped navbar submenu for authorized users to manage item
-  categories. Define create/edit/archive/delete rules, safeguards for categories
-  already used by products or historical lines, ordering, search, localization
-  and read-only role behavior.
+- [ ] **R08 (8/48) — Description row preview**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-08.03; dependencies: —.
+  Scope and acceptance: Readable inline/expandable existing description without opening edit; empty and long text work. Missing imported data belongs to catalog task.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-25 — Manage pricelist-to-product links in bulk (feature).** Support
-  safe name matching with an explicit preview and confidence/ambiguity handling,
-  bulk approval, link, unlink and delete actions. Show linked/unlinked state
-  consistently, retain tenant scoping and audit/history, and prevent deletion
-  from changing historical invoice/quotation snapshots. Define duplicate-name,
-  soft-deleted-product and mismatch behavior.
+- [ ] **R09 (9/48) — Chart values**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-08.10; dependencies: —.
+  Scope and acceptance: Hover/focus/tap exposes exact values; empty chart and keyboard access work.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-26 — Filter pricelist items by link state (feature).** Add filters for
-  linked, unlinked and optionally ambiguous/multiple matches, with counts and
-  clear empty states. Ensure filtering uses scoped product relations and remains
-  consistent after bulk link/unlink/delete operations across desktop and mobile.
+- [ ] **R10 (10/48) — Main-content fade**
+  Category: UI; priority: P2; size: S; deliverable: discovery.
+  Sources: P08-08.35; dependencies: —.
+  Scope and acceptance: Use existing animation capability if available, honor reduced motion, exclude shell/search and avoid replay on each keystroke; no new library solely for this.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-27 — Hide item SKU from client-facing documents (bug/UX).** Keep SKU
-  available to authorized internal users where operationally useful, but omit
-  it from client portal, client-visible invoice/quotation views, emails and
-  PDFs unless a separately approved client-facing option enables it. Verify
-  tenant authorization, localization, snapshots and all document channels.
+- [ ] **R11 (11/48) — Editor row numbering**
+  Category: UI; priority: P1; size: S; deliverable: fix.
+  Sources: P08-22; dependencies: —.
+  Scope and acceptance: Number visible invoice/quotation rows consistently after reorder/delete; numbers never enter PDF output; grouping is a later task.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-28 — Preserve imported item descriptions (bug).** Trace description
-  mapping from every supported pricelist/import source through products,
-  quotations, invoices, portals and PDFs. Define source precedence,
-  blank/HTML normalization, update-versus-snapshot behavior and regression
-  fixtures proving imported descriptions remain visible in the correct
-  internal and client-facing contexts.
+- [ ] **R12 (12/48) — Responsive editor and action placement**
+  Category: UI; priority: P1; size: M; deliverable: fix.
+  Sources: P08-08.02,P08-08.04,P08-08.23; dependencies: R05.
+  Scope and acceptance: Keep actions beside Download/Save and mobile menu; near-98% width only where safe; no horizontal escape. Decide mobile inline/modal using current editor evidence.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-29 — Propagate dealer price and MSRP (bug/feature).** Ensure dealer
-  price and MSRP are correctly stored and shown in quote/invoice edit fields
-  and every related catalog, pricelist, preview and reporting surface that
-  needs them. Define which value drives billing, preserve MSRP when required
-  for historical snapshots, handle missing/conflicting values and enforce
-  tenant/role visibility. Add import, edit, PDF, portal and recalculation tests.
+- [ ] **R13 (13/48) — Collapsible Client cards**
+  Category: UI; priority: P1; size: M; deliverable: feature.
+  Sources: P08-08.06; dependencies: —.
+  Scope and acceptance: Group current fields, preserve validation visibility and entered values, keyboard operation and mobile scroll position.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-30 — Use status-aware edit/view actions (bug/UX).** Draft records
-  should show the edit action/icon; sent or otherwise immutable records should
-  show view instead. Apply the rule consistently across invoices, quotations
-  and related lists/forms, preserving authorized amendment/correction flows,
-  accessible labels and responsive layouts.
+- [ ] **R14 (14/48) — Remember active tab**
+  Category: Settings; priority: P1; size: S; deliverable: fix.
+  Sources: P08-13; dependencies: —.
+  Scope and acceptance: Reload/back/direct-link restores valid scoped tab; removed or forbidden tabs fall back safely.
+  Evidence: pending current reproduction/verification.
 
-- [ ] **P08-31 — Optional embedded Excel image import switcher (discovery/feature).**
-  Keep the current OpenSpout path as the default for occasional pricelist
-  updates. During upload, detect whether the workbook contains embedded
-  images and show an explicit **Import embedded images** switch; default it
-  off so normal text/price imports stay fast, while allowing the user to turn
-  it on when images should be imported. If no images are detected, disable or
-  hide the switch and explain why. When enabled, use PhpSpreadsheet to match
-  each image to the nearest SKU/model row by worksheet coordinates, require
-  an explicit confidence/fallback rule, and report unmatched or ambiguous
-  images without guessing. Rescale and losslessly compress supported images
-  before tenant-scoped storage in the product image field; enforce type, size,
-  metadata, memory and upload limits. Define re-import replacement/retention
-  behavior, duplicate-name handling, preview and audit output, cPanel/PHP 8.3
-  feasibility, and regression fixtures for no-image, single-image,
-  multi-image and misaligned-image workbooks. Image extraction remains
-  opt-in because it is slower and more memory-intensive than normal import.
+- [ ] **R15 (15/48) — Slug redirect**
+  Category: Settings; priority: P1; size: M; deliverable: fix.
+  Sources: P08-14; dependencies: R14.
+  Scope and acceptance: Validate unique slug and construct local canonical destination after success; preserve valid tab/page; old tab refresh must not leak tenant data.
+  Evidence: pending current reproduction/verification.
 
-Deferred, not open bugs: live currency API (last development stage), gateway
-checkout, proposal portal/send flow and automatic PDF email attachments need
-explicit task/scope confirmation before expansion. Cancelled: automatic blank
-line insertion/removal. Do not turn either category into a release defect.
+- [ ] **R16 (16/48) — Lifecycle decision table**
+  Category: Integrity; priority: P0; size: S; deliverable: decision/fix.
+  Sources: P08-02,P08-08.01,P08-08.22,P08-08.13; dependencies: —.
+  Scope and acceptance: Map Draft/Issued/Sent/Overdue/Hold and actions, mail-failure semantics, imported status handling; resolve Issue/Send duplicate once. Produce accepted transition table before dependent edits. After approval, align overdue scheduling, Issue/Send and Hold guards with that table and transition regressions.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R17 (17/48) — Quote conversion persistence**
+  Category: Integrity; priority: P0; size: M; deliverable: fix.
+  Sources: P08-08.21; dependencies: R16.
+  Scope and acceptance: Successful conversion changes status and hides Convert; repeat/concurrent requests cannot duplicate resulting document/job.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R18 (18/48) — Immutable edit/view/amend behavior**
+  Category: Integrity; priority: P0; size: M; deliverable: fix.
+  Sources: P08-08.24,P08-08.25,P08-30; dependencies: R16,R05.
+  Scope and acceptance: Draft shows Edit; sent shows View; Save/Amend label matches permitted action. Deny server-side mutations including add-line alternate paths; preserve authorized corrections.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R19 (19/48) — Receipt numbering and reversal**
+  Category: Integrity; priority: P0; size: M; deliverable: fix.
+  Sources: P08-08.27,P08-08.30; dependencies: R16.
+  Scope and acceptance: Verification assigns one unique immutable receipt exactly once; historical imports consume none; reversal blocks allocation amendment; concurrent/retry regressions preserve originals.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R20 (20/48) — Deferred feature boundary**
+  Category: Integrity; priority: P0; size: M; deliverable: audit.
+  Sources: P08-03; dependencies: —.
+  Scope and acceptance: Audit direct routes, navigation and scheduled jobs; disable only unapproved launch exposure. Existing passkeys and approved portal signing stay.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R21 (21/48) — Payment-method labels**
+  Category: Documents; priority: P1; size: S; deliverable: fix.
+  Sources: P08-08.28; dependencies: —.
+  Scope and acceptance: Render human labels, never bank_transfer raw keys, on receipt and related PDFs; unknown legacy values get explicit safe fallback.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R22 (22/48) — Client SKU visibility**
+  Category: Documents; priority: P1; size: S; deliverable: fix.
+  Sources: P08-27; dependencies: —.
+  Scope and acceptance: Hide SKU on client views/portal/PDF/email; preserve internal lookup. Do not add a new SKU option the owner did not request.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R23 (23/48) — Canonical bank settings**
+  Category: Documents; priority: P1; size: M; deliverable: audit.
+  Sources: P08-18; dependencies: —.
+  Scope and acceptance: Trace legacy branding bank fields versus bankAccounts used by PDFs; retain active payment instructions. Propose data-preserving consolidation only after every consumer is known.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R24 (24/48) — Signatory output**
+  Category: Documents; priority: P1; size: M; deliverable: fix.
+  Sources: P08-21; dependencies: —.
+  Scope and acceptance: Show configured name/title on quotation/invoice/receipt; optional stored signature image only when provided. Name/title alone does not create a handwritten signature; preserve issued snapshots.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R25 (25/48) — Status watermarks**
+  Category: Documents; priority: P1; size: M; deliverable: discovery.
+  Sources: P08-08.29; dependencies: R19.
+  Scope and acceptance: Define which generated version carries draft/paid/reversed/amended watermark; subtle grey; never overwrite an original immutable issued PDF to reflect later state.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R26 (26/48) — Global terms defaults**
+  Category: Documents; priority: P1; size: M; deliverable: feature.
+  Sources: P08-08.07; dependencies: —.
+  Scope and acceptance: Define per-company defaults and document override; new drafts inherit terms, old documents retain theirs; test localized long terms and pagination.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R27 (27/48) — Pricing visibility decision**
+  Category: Pricing; priority: P0; size: S; deliverable: discovery.
+  Sources: P08-08.08,P08-08.16,P08-08.17,P08-08.18,P08-08.19,P08-08.20; dependencies: —.
+  Scope and acceptance: Record inclusive default for new taxable docs without taxing Company A. Resolve total-only client discount versus per-line discount values; define denominator/zero cases for effective discount percentage. No historical repricing.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R28 (28/48) — Discount/tax implementation**
+  Category: Pricing; priority: P0; size: L; deliverable: fix.
+  Sources: P08-08.16,P08-08.17,P08-08.18,P08-08.19,P08-08.20,P08-08.08; dependencies: R27.
+  Scope and acceptance: Implement accepted rules in calculators and all views; line+global discount before tax, mixed taxable lines, zero totals, rounding, internal value/percentage hierarchy and PDF/portal parity.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R29 (29/48) — Imported description propagation**
+  Category: Catalog; priority: P0; size: M; deliverable: fix.
+  Sources: P08-28; dependencies: —.
+  Scope and acceptance: Trace worksheet parser -> pricelist -> ProductSync -> new document snapshot; reproduce with synthetic workbook; reimport does not erase a valid description with blank input or mutate issued lines.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R30 (30/48) — Linked-product filters**
+  Category: Catalog; priority: P1; size: M; deliverable: fix.
+  Sources: P08-26; dependencies: —.
+  Scope and acceptance: Linked/unlinked filters, counts and pagination reflect current scoped relation including soft deletion; no matching heuristic needed.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R31 (31/48) — Bulk link operations**
+  Category: Catalog; priority: P1; size: M; deliverable: feature.
+  Sources: P08-25; dependencies: R30.
+  Scope and acceptance: Preview exact normalized name candidates; ambiguous names require choice; approve/link/unlink/delete respects selection across pages, authorization, referenced-product deletion and audit.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R32 (32/48) — Category masters**
+  Category: Catalog; priority: P2; size: L; deliverable: feature.
+  Sources: P08-24; dependencies: —.
+  Scope and acceptance: Tenant category create/rename/archive navigation; referenced data preserved. Keep current positional/sheet/section import categorization; P08-23 remains cancelled.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R33 (33/48) — Configurable units**
+  Category: Catalog; priority: P2; size: L; deliverable: feature.
+  Sources: P08-08.14; dependencies: —.
+  Scope and acceptance: Trace current enum/storage first; migration and validation strategy for configurable units; propagate to new lines/imports/PDF while retaining historical unit snapshots.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R34 (34/48) — Dealer/MSRP contract and propagation**
+  Category: Catalog; priority: P0; size: L; deliverable: discovery.
+  Sources: P08-29; dependencies: R29.
+  Scope and acceptance: Determine dealer price meaning (cost or sales tier) before calculator changes; preserve MSRP separately where needed; internal edit visibility and explicit customer-output rule; historical prices untouched.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R35 (35/48) — Printed type sections**
+  Category: Catalog; priority: P2; size: L; deliverable: feature.
+  Sources: P08-22; dependencies: R11.
+  Scope and acceptance: Map existing product/service/labor/other to Material/Service-Labor/Other; categories and types remain different. Stable grouping/reordering, subtotal and tax/discount parity; no duplicated lines.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R36 (36/48) — Settings autosave**
+  Category: Settings; priority: P2; size: L; deliverable: feature.
+  Sources: P08-15; dependencies: R15.
+  Scope and acceptance: Eligible fields save after validation/debounce with saved/error/retry/conflict states. Slug stays explicit Confirm showing new login URL; remove Save only where safely replaced.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R37 (37/48) — Template smart fields**
+  Category: Mail; priority: P2; size: M; deliverable: feature.
+  Sources: P08-17; dependencies: —.
+  Scope and acceptance: Allowlisted client/invoice/company tokens with insert-help card, escaped subject/body and null behavior; synthetic preview; no arbitrary model access or new automatic attachment scope.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R38 (38/48) — Test email to self**
+  Category: Mail; priority: P2; size: M; deliverable: feature.
+  Sources: P08-19; dependencies: R37.
+  Scope and acceptance: Check existing implementation before adding; current authorized user's address, rate-limit and clear transport error/result; no customer sends, no real invoice or status changes, tests use fake mail.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R39 (39/48) — Compression contract**
+  Category: Uploads; priority: P2; size: M; deliverable: discovery.
+  Sources: P08-09; dependencies: —.
+  Scope and acceptance: Format-safe lossless optimization, stored optimized artifact only, readable text and photo resizing up to 1440p policy; define unsupported/non-shrinking formats, failure and evidence retention; compare samples.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R40 (40/48) — Logo crop/preview**
+  Category: Uploads; priority: P2; size: L; deliverable: feature.
+  Sources: P08-16; dependencies: R39.
+  Scope and acceptance: Constrained/custom ratio preview, transparent images, orientation and server validation; scoped stored output matches preview in shell/PDF. Preserve sharp text.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R41 (41/48) — Excel image switch**
+  Category: Uploads; priority: P2; size: L; deliverable: discovery.
+  Sources: P08-31; dependencies: R39,R31,R29,R34.
+  Scope and acceptance: Cheap bounded image detection, switch default off, normal OpenSpout path unchanged. Evaluate anchored images and unsupported in-cell/image formulas; preview ambiguous row matches, dedupe and never overwrite product pictures silently.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R42 (42/48) — Automatic payment allocation**
+  Category: Finance; priority: P2; size: XL; deliverable: discovery.
+  Sources: P08-08.31; dependencies: R19.
+  Scope and acceptance: Earliest eligible outstanding invoice for same client/company, partial/overpayment and date ties; reviewable override, concurrency and receipt amendment rules; resolve original already-paid wording.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R43 (43/48) — Labor expense/income split**
+  Category: Finance; priority: P2; size: XL; deliverable: discovery.
+  Sources: P08-08.15; dependencies: R34,R35.
+  Scope and acceptance: Separate cost from sales income with snapshots; define allocation and reports against current job margin; custom lines, discounts, tax and vendor labor prevent double counting.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R44 (44/48) — Passkey compatibility**
+  Category: Platform; priority: P2; size: S; deliverable: audit.
+  Sources: P08-11; dependencies: —.
+  Scope and acceptance: Verify current locked module on PHP 8.3/Laravel 13 and recovery/tenant behavior; retain existing implementation. No replacement project.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R45 (45/48) — Single PDF renderer evaluation**
+  Category: Platform; priority: P2; size: XL; deliverable: discovery.
+  Sources: P08-10,P08-12; dependencies: R21,R23,R24,R28,R35.
+  Scope and acceptance: One inventory/benchmark of current dompdf vs tc-lib-pdf and Spatie DOMPDF; fpdf2 secondary feasibility only. PHP 8.3 cPanel cron/no SSH; no new renderer until choice is separately approved.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R46 (46/48) — Targeted UI/browser gap closure**
+  Category: Verification; priority: Evidence; size: M; deliverable: audit.
+  Sources: P08-04,P08-05; dependencies: R12,R18,R28,R36.
+  Scope and acceptance: Reproduce skipped accessibility and stale helpers, repair only verified gaps; retain deliberate reorder coverage; role/tenant, bounded picker, defaults, milestones and autosave concurrent-tab tests.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R47 (47/48) — Final integrated verification**
+  Category: Verification; priority: Evidence; size: L; deliverable: verification.
+  Sources: P08-01; dependencies: all implemented fixes.
+  Scope and acceptance: Run required suites/assets/migrations on recorded commit; fresh baseline first and final run after changes. Record failures/skips distinctly; never claim full release on partial checks.
+  Evidence: pending current reproduction/verification.
+
+- [ ] **R48 (48/48) — Company deployment evidence**
+  Category: Operations; priority: Evidence; size: L; deliverable: evidence.
+  Sources: P08-06; dependencies: R47.
+  Scope and acceptance: Per-company domain/mail/cron/storage/backup/restore/PDF version evidence; separate non-blocking operator work; no production import/reset authorization implied.
+  Evidence: pending current reproduction/verification.
+
