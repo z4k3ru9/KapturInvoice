@@ -140,3 +140,13 @@ The Owner accepts the one-cent invoice-total variance in Company A's reconciliat
 - Vendor count: exact match at 0
 
 This acceptance applies to reconciliation evidence only. Company A still requires its separate live release checkpoint and operational verification.
+
+
+## Exception acceptance update (2026-09-18 — Company A invoice lines)
+
+Company A verification found two historical invoice-item exceptions:
+
+- `invoice_item_id = 661`, `invoice_id = 188`
+- `invoice_item_id = 783`, `invoice_id = 213`
+
+Both rows have `title = 'Item'`, `description IS NULL`, `product_id IS NULL`, and no linked product description. The source data provides no recoverable item identity. These rows are retained as documented source exceptions; no fabricated title or description is permitted. All other scoped invoice items have populated titles, and financial reconciliation remains accepted.
