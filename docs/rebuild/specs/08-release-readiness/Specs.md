@@ -50,8 +50,10 @@ This is the final phase. Produce a release report, deployment checklist, rollbac
 
 This section replaces the old flat backlog. The earlier 65 total double-counted
 P08-08 as a parent: there were 64 source entries, including duplicate requests.
-The 48 packages below combine overlapping work and split independently
-reviewable parts (such as editor numbering versus printed grouping).
+The 54 packages below combine overlapping work and split independently
+reviewable parts (such as editor numbering versus printed grouping). The package
+list is kept in stable numeric order so assignments do not scatter; use each
+package's priority and dependency fields to choose the next eligible task.
 Old P08 identifiers are traceability references, not extra completion units.
 P08-23 remains cancelled; do not change positional import category mapping.
 
@@ -173,11 +175,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Bold header and existing brand accents; light/dark and mobile screenshots; no banking data changes.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R02 (2/54) — Stats wrapping and allocation layout**
   Category: UI; priority: P1; size: XS; deliverable: fix.
   Sources: P08-08.11,P08-08.12,P08-08.32; dependencies: —.
   Scope and acceptance: Revenue/Incoming labels and amounts wrap consistently; allocation container and icons fit phone widths; retain full monetary digits.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R03 (3/54) — Remove obsolete helper copy**
   Category: UI; priority: P1; size: XS; deliverable: fix.
@@ -185,11 +189,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Remove the two owner-named job/numbering hints where present; keep scoped picker and sequence behavior.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R04 (4/54) — Checkbox wording**
   Category: UI; priority: P1; size: XS; deliverable: fix.
   Sources: P08-08.09; dependencies: —.
   Scope and acceptance: Simple Discount is a percentage and No end date checkboxes; toggling preserves saved meaning and keyboard operation.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R05 (5/54) — Shared action appearance**
   Category: UI; priority: P1; size: S; deliverable: fix.
@@ -197,11 +203,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Apply requested color/icon vocabulary to existing controls; distinguish Edit/View; audit modal and list contexts without changing authorization.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R06 (6/54) — Standalone Dashboard**
   Category: UI; priority: P1; size: S; deliverable: fix.
   Sources: P08-08.34; dependencies: —.
   Scope and acceptance: Top-level default home with tenant routing and active/mobile states; no duplicate submenu link.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R07 (7/54) — Settings scroll affordance**
   Category: UI; priority: P1; size: S; deliverable: fix.
@@ -209,11 +217,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Reproduce on phone; add visible affordance only if absent; record evidence if current behavior already satisfies it.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R08 (8/54) — Description row preview**
   Category: UI; priority: P1; size: S; deliverable: fix.
   Sources: P08-08.03; dependencies: —.
   Scope and acceptance: Readable inline/expandable existing description without opening edit; empty and long text work. Missing imported data belongs to catalog task.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R09 (9/54) — Chart values**
   Category: UI; priority: P1; size: S; deliverable: fix.
@@ -221,11 +231,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Hover/focus/tap exposes exact values; empty chart and keyboard access work.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R10 (10/54) — Main-content fade**
   Category: UI; priority: P2; size: S; deliverable: discovery.
   Sources: P08-08.35; dependencies: —.
   Scope and acceptance: Use existing animation capability if available, honor reduced motion, exclude shell/search and avoid replay on each keystroke; no new library solely for this.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R11 (11/54) — Editor row numbering**
   Category: UI; priority: P1; size: S; deliverable: fix.
@@ -233,11 +245,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Number visible invoice/quotation rows consistently after reorder/delete; numbers never enter PDF output; grouping is a later task.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R12 (12/54) — Responsive editor and action placement**
   Category: UI; priority: P1; size: M; deliverable: fix.
   Sources: P08-08.02,P08-08.04,P08-08.23; dependencies: R05.
   Scope and acceptance: Keep actions beside Download/Save and mobile menu; near-98% width only where safe; no horizontal escape. Decide mobile inline/modal using current editor evidence.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R13 (13/54) — Collapsible Client cards**
   Category: UI; priority: P1; size: M; deliverable: feature.
@@ -245,11 +259,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Group current fields, preserve validation visibility and entered values, keyboard operation and mobile scroll position.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R14 (14/54) — Remember active tab**
   Category: Settings; priority: P1; size: S; deliverable: fix.
   Sources: P08-13; dependencies: —.
   Scope and acceptance: Reload/back/direct-link restores valid scoped tab; removed or forbidden tabs fall back safely.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R15 (15/54) — Slug redirect**
   Category: Settings; priority: P1; size: M; deliverable: fix.
@@ -257,11 +273,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Validate unique slug and construct local canonical destination after success; preserve valid tab/page; old tab refresh must not leak tenant data.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R16 (16/54) — Lifecycle decision table**
   Category: Integrity; priority: P0; size: S; deliverable: decision/fix.
   Sources: P08-02,P08-08.01,P08-08.22,P08-08.13; dependencies: —.
   Scope and acceptance: Map Draft/Issued/Sent/Overdue/Hold and actions, mail-failure semantics, imported status handling; resolve Issue/Send duplicate once. Produce accepted transition table before dependent edits. After approval, align overdue scheduling, Issue/Send and Hold guards with that table and transition regressions.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R17 (17/54) — Quote conversion persistence**
   Category: Integrity; priority: P0; size: M; deliverable: fix.
@@ -269,11 +287,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Successful conversion changes status and hides Convert; repeat/concurrent requests cannot duplicate resulting document/job.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R18 (18/54) — Immutable edit/view/amend behavior**
   Category: Integrity; priority: P0; size: M; deliverable: fix.
   Sources: P08-08.24,P08-08.25,P08-30; dependencies: R16,R05.
   Scope and acceptance: Draft shows Edit; sent shows View; Save/Amend label matches permitted action. Deny server-side mutations including add-line alternate paths; preserve authorized corrections.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R19 (19/54) — Receipt numbering and reversal**
   Category: Integrity; priority: P0; size: M; deliverable: fix.
@@ -281,11 +301,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Verification assigns one unique immutable receipt exactly once; historical imports consume none; reversal blocks allocation amendment; concurrent/retry regressions preserve originals.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R20 (20/54) — Deferred feature boundary**
   Category: Integrity; priority: P0; size: M; deliverable: audit.
   Sources: P08-03; dependencies: —.
   Scope and acceptance: Audit direct routes, navigation and scheduled jobs; disable only unapproved launch exposure. Existing passkeys and approved portal signing stay.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R21 (21/54) — Payment-method labels**
   Category: Documents; priority: P1; size: S; deliverable: fix.
@@ -293,11 +315,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Render human labels, never bank_transfer raw keys, on receipt and related PDFs; unknown legacy values get explicit safe fallback.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R22 (22/54) — Client SKU visibility**
   Category: Documents; priority: P1; size: S; deliverable: fix.
   Sources: P08-27; dependencies: —.
   Scope and acceptance: Hide SKU on client views/portal/PDF/email; preserve internal lookup. Do not add a new SKU option the owner did not request.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R23 (23/54) — Canonical bank settings**
   Category: Documents; priority: P1; size: M; deliverable: audit.
@@ -305,11 +329,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Trace legacy branding bank fields versus bankAccounts used by PDFs; retain active payment instructions. Propose data-preserving consolidation only after every consumer is known.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R24 (24/54) — Signatory output**
   Category: Documents; priority: P1; size: M; deliverable: fix.
   Sources: P08-21; dependencies: —.
   Scope and acceptance: Show configured name/title on quotation/invoice/receipt; optional stored signature image only when provided. Name/title alone does not create a handwritten signature; preserve issued snapshots.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R25 (25/54) — Status watermarks**
   Category: Documents; priority: P1; size: M; deliverable: discovery.
@@ -317,11 +343,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Define which generated version carries draft/paid/reversed/amended watermark; subtle grey; never overwrite an original immutable issued PDF to reflect later state.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R26 (26/54) — Global terms defaults**
   Category: Documents; priority: P1; size: M; deliverable: feature.
   Sources: P08-08.07; dependencies: —.
   Scope and acceptance: Define per-company defaults and document override; new drafts inherit terms, old documents retain theirs; test localized long terms and pagination.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R27 (27/54) — Pricing visibility decision**
   Category: Pricing; priority: P0; size: S; deliverable: discovery.
@@ -329,11 +357,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Record inclusive default for new taxable docs without taxing Company A. Resolve total-only client discount versus per-line discount values; define denominator/zero cases for effective discount percentage. No historical repricing.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R28 (28/54) — Discount/tax implementation**
   Category: Pricing; priority: P0; size: L; deliverable: fix.
   Sources: P08-08.16,P08-08.17,P08-08.18,P08-08.19,P08-08.20,P08-08.08; dependencies: R27.
   Scope and acceptance: Implement accepted rules in calculators and all views; line+global discount before tax, mixed taxable lines, zero totals, rounding, internal value/percentage hierarchy and PDF/portal parity.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R29 (29/54) — Imported description propagation**
   Category: Catalog; priority: P0; size: M; deliverable: fix.
@@ -341,11 +371,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Trace worksheet parser -> pricelist -> ProductSync -> new document snapshot; reproduce with synthetic workbook; reimport does not erase a valid description with blank input or mutate issued lines.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R30 (30/54) — Linked-product filters**
   Category: Catalog; priority: P1; size: M; deliverable: fix.
   Sources: P08-26; dependencies: —.
   Scope and acceptance: Linked/unlinked filters, counts and pagination reflect current scoped relation including soft deletion; no matching heuristic needed.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R31 (31/54) — Bulk link operations**
   Category: Catalog; priority: P1; size: M; deliverable: feature.
@@ -353,11 +385,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Preview exact normalized name candidates; ambiguous names require choice; approve/link/unlink/delete respects selection across pages, authorization, referenced-product deletion and audit.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R32 (32/54) — Category masters**
   Category: Catalog; priority: P2; size: L; deliverable: feature.
   Sources: P08-24; dependencies: —.
   Scope and acceptance: Tenant category create/rename/archive navigation; referenced data preserved. Keep current positional/sheet/section import categorization; P08-23 remains cancelled.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R33 (33/54) — Configurable units**
   Category: Catalog; priority: P2; size: L; deliverable: feature.
@@ -365,11 +399,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Trace current enum/storage first; migration and validation strategy for configurable units; propagate to new lines/imports/PDF while retaining historical unit snapshots.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R34 (34/54) — Dealer/MSRP contract and propagation**
   Category: Catalog; priority: P0; size: L; deliverable: discovery.
   Sources: P08-29; dependencies: R29.
   Scope and acceptance: Determine dealer price meaning (cost or sales tier) before calculator changes; preserve MSRP separately where needed; internal edit visibility and explicit customer-output rule; historical prices untouched.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R35 (35/54) — Printed type sections**
   Category: Catalog; priority: P2; size: L; deliverable: feature.
@@ -377,11 +413,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Map existing product/service/labor/other to Material/Service-Labor/Other; categories and types remain different. Stable grouping/reordering, subtotal and tax/discount parity; no duplicated lines.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R36 (36/54) — Settings autosave**
   Category: Settings; priority: P2; size: L; deliverable: feature.
   Sources: P08-15; dependencies: R15.
   Scope and acceptance: Eligible fields save after validation/debounce with saved/error/retry/conflict states. Slug stays explicit Confirm showing new login URL; remove Save only where safely replaced.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R37 (37/54) — Template smart fields**
   Category: Mail; priority: P2; size: M; deliverable: feature.
@@ -389,11 +427,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Allowlisted client/invoice/company tokens with insert-help card, escaped subject/body and null behavior; synthetic preview; no arbitrary model access or new automatic attachment scope.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R38 (38/54) — Test email to self**
   Category: Mail; priority: P2; size: M; deliverable: feature.
   Sources: P08-19; dependencies: R37.
   Scope and acceptance: Check existing implementation before adding; current authorized user's address, rate-limit and clear transport error/result; no customer sends, no real invoice or status changes, tests use fake mail.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R39 (39/54) — Compression contract**
   Category: Uploads; priority: P2; size: M; deliverable: discovery.
@@ -401,11 +441,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Format-safe lossless optimization, stored optimized artifact only, readable text and photo resizing up to 1440p policy; define unsupported/non-shrinking formats, failure and evidence retention; compare samples.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R40 (40/54) — Logo crop/preview**
   Category: Uploads; priority: P2; size: L; deliverable: feature.
   Sources: P08-16; dependencies: R39.
   Scope and acceptance: Constrained/custom ratio preview, transparent images, orientation and server validation; scoped stored output matches preview in shell/PDF. Preserve sharp text.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R41 (41/54) — Excel image switch**
   Category: Uploads; priority: P2; size: L; deliverable: discovery.
@@ -430,11 +472,13 @@ preserve earlier requests even where several sources now share one acceptance cy
 
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R42 (42/54) — Automatic payment allocation**
   Category: Finance; priority: P2; size: XL; deliverable: discovery.
   Sources: P08-08.31; dependencies: R19.
   Scope and acceptance: Earliest eligible outstanding invoice for same client/company, partial/overpayment and date ties; reviewable override, concurrency and receipt amendment rules; resolve original already-paid wording.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R43 (43/54) — Labor expense/income split**
   Category: Finance; priority: P2; size: XL; deliverable: discovery.
@@ -442,11 +486,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Separate cost from sales income with snapshots; define allocation and reports against current job margin; custom lines, discounts, tax and vendor labor prevent double counting.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R44 (44/54) — Passkey compatibility**
   Category: Platform; priority: P2; size: S; deliverable: audit.
   Sources: P08-11; dependencies: —.
   Scope and acceptance: Verify current locked module on PHP 8.3/Laravel 13 and recovery/tenant behavior; retain existing implementation. No replacement project.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R45 (45/54) — Single PDF renderer evaluation**
   Category: Platform; priority: P2; size: XL; deliverable: discovery.
@@ -454,11 +500,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: One inventory/benchmark of current dompdf vs tc-lib-pdf and Spatie DOMPDF; fpdf2 secondary feasibility only. PHP 8.3 cPanel cron/no SSH; no new renderer until choice is separately approved.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R46 (46/54) — Targeted UI/browser gap closure**
   Category: Verification; priority: Evidence; size: M; deliverable: audit.
   Sources: P08-04,P08-05; dependencies: R12,R18,R28,R36.
   Scope and acceptance: Reproduce skipped accessibility and stale helpers, repair only verified gaps; retain deliberate reorder coverage; role/tenant, bounded picker, defaults, milestones and autosave concurrent-tab tests.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R47 (47/54) — Final integrated verification**
   Category: Verification; priority: Evidence; size: L; deliverable: verification.
@@ -466,11 +514,20 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Run required suites/assets/migrations on recorded commit; fresh baseline first and final run after changes. Record failures/skips distinctly; never claim full release on partial checks.
   Evidence: pending current reproduction/verification.
 
+
+- [ ] **R48 (48/54) — Company deployment evidence**
+  Category: Operations; priority: Evidence; size: L; deliverable: evidence.
+  Sources: P08-06; dependencies: R47.
+  Scope and acceptance: Per-company domain/mail/cron/storage/backup/restore/PDF version evidence; separate non-blocking operator work; no production import/reset authorization implied.
+  Evidence: pending current reproduction/verification.
+
+
 - [ ] **R49 (49/54) — Client PIC selector**
   Category: Documents; priority: P1; size: S; deliverable: fix.
   Sources: owner progress 2026-09-18; dependencies: —.
   Scope and acceptance: When a client has multiple PICs, show a scoped dropdown with name/contact context; persist the selected PIC on the document snapshot and keep a safe single/empty fallback.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R50 (50/54) — Client-facing PDF privacy**
   Category: Documents; priority: P0; size: M; deliverable: fix.
@@ -478,11 +535,13 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Client PDFs show PIC name only; suppress company and user email addresses in rendered output while preserving internal settings and authorized staff views. Verify invoice, quotation and receipt templates plus mail/download bytes.
   Evidence: pending current reproduction/verification.
 
+
 - [ ] **R51 (51/54) — PDF header geometry**
   Category: Documents; priority: P1; size: M; deliverable: fix.
   Sources: owner progress 2026-09-18; dependencies: R23,R24.
   Scope and acceptance: Fit logo beside company name and optional tax ID, with document information in a right-side column on A4; preserve long names, missing logo/tax ID, Bahasa/English and page-break behavior.
   Evidence: pending current reproduction/verification.
+
 
 - [ ] **R52 (52/54) — Per-document rich payment terms**
   Category: Documents; priority: P1; size: L; deliverable: feature.
@@ -490,11 +549,6 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Store aligned rich-text defaults separately for invoices and quotations; drafts inherit the correct default, document overrides remain immutable, and PDF output includes the sanitized terms with stable pagination.
   Evidence: pending current reproduction/verification.
 
-- [ ] **R54 (54/54) — Date-period filtering**
-  Category: Verification; priority: P0; size: M; deliverable: fix.
-  Sources: owner progress 2026-09-18; dependencies: R47.
-  Scope and acceptance: Reimplement the period selector for Daily, This week, This month, This year, Last year, Quarter, Last period (six months), and Custom. Define timezone, inclusive start/end boundaries, week and quarter start rules, and comparison with the existing financial period. Custom opens a functional start/end date picker, validates reversed or missing dates, preserves the selected range on reload, and applies the same scope to cards, charts, tables, exports and pagination. Verify leap days, year boundaries, empty ranges, tenant isolation and exact totals.
-  Evidence: pending current reproduction/verification.
 
 - [ ] **R53 (53/54) — Document terms regression evidence**
   Category: Verification; priority: Evidence; size: M; deliverable: verification.
@@ -502,9 +556,10 @@ preserve earlier requests even where several sources now share one acceptance cy
   Scope and acceptance: Render invoice, quotation and receipt samples with zero/single/multiple PICs, absent emails, logo+company+tax header, long rich terms and both languages; compare PDF/download/mail bytes and record screenshots/text extraction.
   Evidence: pending current reproduction/verification.
 
-- [ ] **R48 (48/54) — Company deployment evidence**
-  Category: Operations; priority: Evidence; size: L; deliverable: evidence.
-  Sources: P08-06; dependencies: R47.
-  Scope and acceptance: Per-company domain/mail/cron/storage/backup/restore/PDF version evidence; separate non-blocking operator work; no production import/reset authorization implied.
+
+- [ ] **R54 (54/54) — Date-period filtering**
+  Category: Verification; priority: P0; size: M; deliverable: fix.
+  Sources: owner progress 2026-09-18; dependencies: R47.
+  Scope and acceptance: Reimplement the period selector for Daily, This week, This month, This year, Last year, Quarter, Last period (six months), and Custom. Define timezone, inclusive start/end boundaries, week and quarter start rules, and comparison with the existing financial period. Custom opens a functional start/end date picker, validates reversed or missing dates, preserves the selected range on reload, and applies the same scope to cards, charts, tables, exports and pagination. Verify leap days, year boundaries, empty ranges, tenant isolation and exact totals.
   Evidence: pending current reproduction/verification.
 
