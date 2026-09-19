@@ -149,7 +149,7 @@ class DocumentNumberingTest extends TestCase
     }
 
     /**
-     * The legacy Filament CreateQuote page (over `invoices`/`type=quote`)
+     * The legacy legacy admin CreateQuote page (over `invoices`/`type=quote`)
      * that this test used to exercise is gone without a TallStack
      * replacement — it only ever served already-imported legacy quotes going
      * forward, not new ones (the canonical replacement is
