@@ -14,12 +14,12 @@ import { pickSoaDate } from '../support/soa-helpers';
  *
  * Rewritten against the current TallStackUI implementation
  * (`App\Livewire\TallStackClientDetail` /
- * `App\Livewire\TallStackStatementOfAccount` — there is no Filament
+ * `App\Livewire\TallStackStatementOfAccount` — there is no legacy admin
  * admin panel anymore, and the SOA action lives on the Client Detail
  * page, not as a Clients-table row action the way the original,
  * pre-rebuild version of this file assumed):
  * - The modal's date fields are TallStackUI's own `<x-date>` component,
- *   not Filament's `DateTimePicker` — `pickSoaDate()` (new, see
+ *   not legacy admin's `DateTimePicker` — `pickSoaDate()` (new, see
  *   `tests/browser/support/soa-helpers.ts`) drives its real
  *   year-grid/month-grid/day-grid click sequence, confirmed against the
  *   live app rather than assumed from source.
