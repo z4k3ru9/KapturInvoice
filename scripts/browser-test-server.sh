@@ -28,8 +28,7 @@ php artisan db:seed --class="Database\\Seeders\\PlaywrightFixturesSeeder" --forc
 # same view hits the same corrupted file and fails identically for the
 # rest of the job — confirmed via a CI-only diagnostic
 # (tests/browser/support/diagnostics.ts) that caught the real exception:
-# "Undefined variable $getFiltersTriggerAction (View: vendor/filament/
-# tables/resources/views/index.blade.php)". Precompiling every reachable
+# "Undefined variable $getFiltersTriggerAction". Precompiling every reachable
 # view (app + package/vendor namespaces) here, once, before any test
 # traffic starts, collapses that whole request-time compile race into a
 # single low-risk startup step instead of exposure on every one of
@@ -52,7 +51,7 @@ php artisan view:cache
 # it was reverted: this app's single-threaded dev server is exactly
 # what `playwright.config.ts`'s `workers: 1` exists to keep free of
 # concurrent requests, because a concurrent request here can interrupt
-# Filament's reflection-cache build mid-population and permanently
+# the framework reflection-cache build mid-population and permanently
 # corrupt it for that component for the rest of the process's life (see
 # that config's own comment for the original, much larger incident this
 # caused). The watchdog's own periodic health-check request is exactly
