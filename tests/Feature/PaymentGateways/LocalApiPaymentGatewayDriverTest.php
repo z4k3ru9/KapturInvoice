@@ -19,7 +19,7 @@ use Tests\TestCase;
 /**
  * App\Services\PaymentGateways\LocalApiPaymentGatewayDriver — the stubbed
  * driver for the Indonesian in-house payment API mentioned in
- * docs/filament-admin-layout-design.md §3.4. Every call goes through
+ * docs/engineering.md §3.4. Every call goes through
  * Illuminate\Support\Facades\Http, so Http::fake() exercises the real
  * request/response mapping without a live provider.
  */
