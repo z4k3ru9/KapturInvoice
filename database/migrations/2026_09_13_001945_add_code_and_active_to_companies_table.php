@@ -18,7 +18,7 @@ return new class extends Migration
      * `codes_locked_at` is set the first time this company's numbering is
      * ever allocated (see DocumentNumberGenerator::next()), after which the
      * code is no longer editable. `is_active` lets a company be disabled as
-     * a whole (rejected by domain resolution and Filament tenant access)
+     * a whole (rejected by domain resolution and legacy admin tenant access)
      * without deleting its data.
      */
     public function up(): void
