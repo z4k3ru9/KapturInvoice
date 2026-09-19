@@ -30,7 +30,7 @@ use Tests\TestCase;
  * PDF export for the Phase 06B launch document set — Quotation (also the
  * printed Customer Order Confirmation), Sales Order, and Receipt — see
  * docs/rebuild/specs/06b-ux-browser-soa/Specs.md "Required launch document
- * coverage" and the same "outside the Filament panel, check tenant
+ * coverage" and the same "outside the legacy admin panel, check tenant
  * explicitly" pattern as tests/Feature/PdfExportTest.php.
  *
  * This task's instructions deliberately keep `routes/web.php` untouched
