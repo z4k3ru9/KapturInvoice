@@ -12,11 +12,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from the pre-TallStackUI Filament test suite's admin-panel
- * resources coverage during the Filament-removal Phase B — these two tests exercise
- * App\Services\InvoiceTotalsCalculator directly (no Filament UI involved)
+ * Ported from the pre-TallStackUI legacy admin test suite's admin-panel
+ * resources coverage during the legacy admin-removal Phase B — these two tests exercise
+ * App\Services\InvoiceTotalsCalculator directly (no legacy admin UI involved)
  * and had no other coverage, so they're kept here rather than dropped
- * along with the rest of that file's genuinely Filament-UI-only tests.
+ * along with the rest of that file's genuinely legacy admin-UI-only tests.
  */
 class InvoiceTotalsCalculatorTest extends TestCase
 {
