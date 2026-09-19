@@ -20,7 +20,7 @@ done before Phase 01 started. All six risks it flagged are now resolved:
 1. **Splitting `invoices` into `quotations` + `invoices`** — flagged as the
    single highest blast-radius change (`InvoiceTotalsCalculator`,
    `DocumentNumberGenerator`, PDF controllers, portal views, and three
-   Filament resources all shared one table). Resolved in Phase 03.
+   TallStackUI/Livewire screens all shared one table). Resolved in Phase 03.
 2. **`InvoiceTotalsCalculator`'s discount-after-tax bug** — the calculator
    applied the document-level discount after tax instead of before it.
    Fixed: discount now reduces each line's taxable base before tax is
@@ -108,11 +108,11 @@ previously-unknown app bugs found and fixed while building the Playwright
 suite (the suite itself has since gone stale against the TallStackUI
 rebuild — see `docs/testing-coverage.md`):
 
-- Every Filament `RelationManager`'s lazy loading never initialized on a
+- Every relation manager's lazy loading never initialized on a
   genuine full page load (only on `wire:navigate` soft navigation) — fixed
-  with `$isLazy = false` across all 17 relation managers (Filament-era;
-  moot now that Filament is removed, kept for the general "verify lazy
-  Livewire components on a real page load, not just soft navigation" lesson).
+  with `$isLazy = false` across all 17 relation managers. Retain the general
+  lesson: verify lazy Livewire components on a real page load, not just soft
+  navigation.
 - The public portal's invoice status badges failed WCAG contrast at
   "solid" style for every named color — fixed with a dedicated
   bg-100/text-800 status-badge component.
@@ -133,7 +133,7 @@ rebuild — see `docs/testing-coverage.md`):
   `aria-label`.
 
 Other reusable test-infrastructure lessons from this phase, independent of
-the now-removed Filament UI:
+the pre-TallStack UI:
 
 - A stale orphaned `php artisan serve` process left running from earlier
   manual debugging was silently reused by Playwright's `reuseExistingServer`
@@ -210,7 +210,7 @@ vendor bug in this same package
 
 A separate, later automated review pass over the Phase 03-06B financial
 core, independent of Phase 06B itself: action-owned invoice/payment
-lifecycle states could be set directly from the Filament forms,
+lifecycle states could be set directly from the earlier admin forms,
 bypassing Issue/Verify entirely (`InvoiceForm`/`PaymentForm` now
 `->disableOptionWhen()` those options); `IssueInvoice` had no
 server-side role check and no type/`is_recurring` scoping (now

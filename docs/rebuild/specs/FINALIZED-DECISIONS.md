@@ -124,3 +124,4 @@ These restate Owner decisions already recorded in the previous memory and
   do not blanket-remap them. Current overdue automation conflicts with the old
   “derived-only” wording: resolve the contract explicitly under Phase 08 P08-02.
 - Live currency API integration remains deferred to the last development stage.
+

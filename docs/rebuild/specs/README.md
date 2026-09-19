@@ -62,3 +62,4 @@ Do not mark a phase complete when its tests are failing, its migrations cannot r
 - Use fixed-precision decimal money calculations.
 - Apply the approved two-decimal maximum calculation and upward final-Rupiah rounding rule.
 - Use synchronous financial writes; queue only retryable non-critical work.
+

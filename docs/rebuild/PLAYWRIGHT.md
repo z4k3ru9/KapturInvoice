@@ -160,10 +160,11 @@ journeys. A test count alone is not evidence of useful coverage.
 
 ## Gotchas worth re-verifying if this suite is rebuilt
 
-The full suite currently targets a removed Filament UI and is unverified
-against TallStackUI except one spec (see `docs/testing-coverage.md`).
+The browser harness exists and uses TallStackUI/Livewire navigation. Current
+release verification remains pending; only one spec is currently verified
+(see `docs/testing-coverage.md`).
 These framework-level lessons from the original Phase 06B build are
-independent of Filament vs. TallStackUI and worth checking again whenever
+independent of UI implementation details and worth checking again whenever
 the suite is next touched:
 
 - Playwright's real device presets (`devices['iPad (gen 7)']`, `devices
