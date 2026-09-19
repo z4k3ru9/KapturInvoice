@@ -504,8 +504,8 @@ class StatementOfAccountTest extends TestCase
         // resource/relation manager/listing anywhere a previously
         // generated statement could be reopened from. Fixed via
         // App\Models\Client::statementOfAccounts(), listed on the
-        // pre-TallStackUI Filament admin's own Client relation manager at
-        // the time (since removed — Filament-removal Phase B) and,
+        // pre-TallStackUI legacy admin admin's own Client relation manager at
+        // the time (since removed — legacy admin-removal Phase B) and,
         // unchanged, App\Livewire\TallStackClientDetail's own statements table.
         $company = $this->company();
         $client = $this->client($company);
