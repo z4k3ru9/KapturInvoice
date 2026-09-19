@@ -28,7 +28,7 @@ use Tests\TestCase;
  * docs/rebuild/specs/FINALIZED-DECISIONS.md §7 — proof before
  * verification, one Vendor Payment Receipt per verified event, and
  * linked amendment/reversal for corrections, mirroring the pre-TallStackUI
- * Filament admin's payment-receivables-actions coverage of the
+ * legacy admin admin's payment-receivables-actions coverage of the
  * customer-side equivalent.
  */
 class VendorPaymentLifecycleTest extends TestCase
