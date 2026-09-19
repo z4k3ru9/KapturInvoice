@@ -90,9 +90,9 @@ class CompanyIsolationTest extends TestCase
      * The list of companies a user may act as tenant for — mirrors
      * App\Livewire\Login's own "first active company" resolution (a super
      * admin sees every active company, an ordinary user only their own
-     * active memberships in an active company). Filament's HasTenants
+     * active memberships in an active company). legacy admin's HasTenants
      * contract required a User::getTenants() method before the
-     * Filament-removal Phase B; nothing in the app calls the full list
+     * legacy admin-removal Phase B; nothing in the app calls the full list
      * today (only the "first one" a login redirects to), so this stays a
      * local test helper rather than a real app method built for no
      * current caller.
