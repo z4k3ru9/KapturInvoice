@@ -13,8 +13,8 @@ return new class extends Migration
      * portal toggles, split out of the legacy `accounts`/
      * `account_email_settings` ~140-column grab-bag per
      * docs/invoiceninja-v4-schema-reference.md §2.1/§4 and
-     * docs/filament-admin-layout-design.md §3.3/§3.5. Edited via two
-     * separate Filament settings pages (Email & Reminders, Client Portal)
+     * docs/engineering.md §3.3/§3.5. Edited via two
+     * separate legacy admin settings pages (Email & Reminders, Client Portal)
      * that both bind to this one table.
      */
     public function up(): void
