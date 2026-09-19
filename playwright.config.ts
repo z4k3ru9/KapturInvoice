@@ -19,7 +19,7 @@ import { existsSync } from 'node:fs';
  * example-a.com/example-b.com in CI or this sandbox, so every
  * project below launches Chromium with `--host-resolver-rules` mapping
  * both seeded company domains to 127.0.0.1, exactly the pattern CLAUDE.md
- * already documents for a manual Playwright session. The Filament admin
+ * already documents for a manual Playwright session. The tenant admin
  * panel itself is tenant-scoped by URL path/tenant menu, not by domain, so
  * admin-panel specs work against the plain 127.0.0.1 baseURL without
  * needing a company hostname at all.
@@ -72,7 +72,7 @@ export default defineConfig({
     // every local reproduction attempt passing cleanly. Reverted that script
     // entirely; fixing the same root cause from this side instead by keeping
     // Playwright itself to one worker, so it never sends the single PHP
-    // process concurrent requests in the first place — no more Filament
+    // process concurrent requests in the first place — no more framework
     // reflection-cache corruption. Running every project's tests through
     // one unbroken serial `workers: 1` process for the WHOLE suite then
     // surfaced a second, different CI-only problem: on this runner, that
@@ -128,9 +128,8 @@ export default defineConfig({
     projects: [
         // Logs in once and saves the session — every other project
         // depends on this instead of each spec calling loginAsOwner()
-        // itself, which otherwise trips Filament's own real 5-attempt
-        // login throttle (vendor/filament/filament/src/Auth/Pages/
-        // Login.php) across a suite with many admin-authenticated specs.
+        // itself, which otherwise trips the framework's real 5-attempt
+        // login throttle across a suite with many admin-authenticated specs.
         { name: 'setup', testMatch: /auth\.setup\.ts/ },
 
         // Both required system color schemes (docs/rebuild/DESIGN.md §10:
