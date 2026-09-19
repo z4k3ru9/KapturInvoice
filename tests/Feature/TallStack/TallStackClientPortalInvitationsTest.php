@@ -16,7 +16,7 @@ use Tests\TestCase;
 /**
  * Covers the TALL-stack Client Portal Invitations register
  * (App\Livewire\TallStackClientPortalInvitations) — same shape as the
- * pre-TallStackUI Filament admin's equivalent invitation coverage,
+ * pre-TallStackUI legacy admin admin's equivalent invitation coverage,
  * proving this read-mostly register scopes correctly (Invitation
  * has no company_id of its own — scoped only via its invoice), and that
  * search/Viewed/Signed filters and the "Copy portal link" action are all
