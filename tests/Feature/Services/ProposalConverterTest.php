@@ -10,14 +10,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from the pre-TallStackUI Filament test suite's proposals coverage
- * during the Filament-removal Phase B — these two tests exercise
- * App\Services\ProposalConverter directly (no Filament UI involved).
+ * Ported from the pre-TallStackUI legacy admin test suite's proposals coverage
+ * during the legacy admin-removal Phase B — these two tests exercise
+ * App\Services\ProposalConverter directly (no legacy admin UI involved).
  * tests/Feature/TallStack/TallStackProposalsTest.php covers the
  * TallStackUI "Convert to invoice" happy path via the Livewire component,
  * but not the "already converted" RuntimeException case asserted here, so
  * these are kept rather than dropped along with the rest of that file's
- * genuinely Filament-UI-only tests.
+ * genuinely legacy admin-UI-only tests.
  */
 class ProposalConverterTest extends TestCase
 {
