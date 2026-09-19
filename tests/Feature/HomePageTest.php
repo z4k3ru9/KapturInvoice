@@ -11,7 +11,7 @@ use Tests\TestCase;
 /**
  * The public homepage is resolved per-domain by
  * App\Http\Middleware\ResolveCompanyFromDomain — separate from, and
- * untouched by, the Filament admin panel's own tenancy.
+ * untouched by, the legacy admin admin panel's own tenancy.
  */
 class HomePageTest extends TestCase
 {
