@@ -179,10 +179,10 @@ class ProductPictureTest extends TestCase
         $this->assertStringContainsString('999.00', $second->html);
     }
 
-    // A Filament-specific table-column/filter-config assertion
+    // A legacy admin-specific table-column/filter-config assertion
     // ("Stitch gap analysis 06-products-settings-reports.md §1 item 10")
-    // used to live here — dropped, not ported, during the Filament-removal
-    // Phase B: it asserted internals of Filament's ImageColumn/
+    // used to live here — dropped, not ported, during the legacy admin-removal
+    // Phase B: it asserted internals of legacy admin's ImageColumn/
     // TernaryFilter config (no rendered column label, a `stock_flag`
     // filter registered on the table), which has no equivalent shape on
     // TallStackProducts (a plain Blade table with its own different
