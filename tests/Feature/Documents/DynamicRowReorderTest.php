@@ -29,14 +29,14 @@ use Tests\TestCase;
 
 /**
  * Rebuilds the drag/keyboard reorder coverage that lived in the
- * pre-TallStackUI Filament test suite before the Filament removal,
+ * pre-TallStackUI legacy admin test suite before the legacy admin removal,
  * against the plain TALL-stack forms' own `reorderItems()`
  * method (App\Livewire\Tallstack{Invoice,Quotation,VendorBill,
  * VendorPurchaseOrder}Form) — a clean 1:1 port of the persistence
  * contract, even though the UI trigger mechanism (native HTML5 drag and
  * drop / keyboard move buttons, see resources/views/components/tallstack/
  * reorderable-items-table.blade.php) is entirely different from
- * Filament's own `reorderTable()` table action.
+ * legacy admin's own `reorderTable()` table action.
  *
  * Rule (Codex review finding on PR #4, restated in each Form's own
  * docblock): reordering is a no-op — never even attempted — once the
