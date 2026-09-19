@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 /**
  * App\Console\Commands\SendInvoiceReminders — the reminder-schedule half of
- * docs/filament-admin-layout-design.md §3.3.
+ * docs/engineering.md §3.3.
  */
 class SendInvoiceRemindersTest extends TestCase
 {
