@@ -18,9 +18,9 @@ use Tests\TestCase;
 /**
  * Covers the TALL-stack Price List Items register
  * (App\Livewire\TallStackPriceListItems) — same shape as the
- * pre-TallStackUI Filament admin's equivalent test, proving the
+ * pre-TallStackUI legacy admin admin's equivalent test, proving the
  * import and "Create/update product" actions reuse the exact same
- * App\Services\PriceListImporter/App\Services\ProductSync the Filament
+ * App\Services\PriceListImporter/App\Services\ProductSync the legacy admin
  * resource uses, and that a cross-company row is never reachable.
  */
 class TallStackPriceListItemsTest extends TestCase
