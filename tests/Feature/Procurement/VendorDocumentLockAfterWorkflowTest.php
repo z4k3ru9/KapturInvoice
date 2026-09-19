@@ -24,14 +24,14 @@ use Tests\TestCase;
  * after the owner document left Draft, silently mutating already-approved
  * payable evidence.
  *
- * Ported from the Filament relation-manager table-action-visibility tests
- * during the Filament-removal Phase B — the same Draft-only guard now
+ * Ported from the legacy admin relation-manager table-action-visibility tests
+ * during the legacy admin-removal Phase B — the same Draft-only guard now
  * lives inline on App\Livewire\TallStackVendorPurchaseOrderForm::
  * saveItem()/deleteItem() and TallStackVendorBillForm::saveItem()/
  * deleteItem() (both silently no-op once the owner document has left
  * Draft), so this proves the guard through those methods instead.
  *
- * The Filament-only force-delete-bulk-action tests this file used to
+ * The legacy admin-only force-delete-bulk-action tests this file used to
  * carry were later rebuilt as a real TallStack row action
  * (`App\Actions\Procurement\ForceDeleteVendorBill`/
  * `ForceDeleteVendorPurchaseOrder`) and their coverage now lives in
