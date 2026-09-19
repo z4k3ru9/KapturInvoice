@@ -10,14 +10,14 @@ import { loadFixtures } from '../support/fixtures';
  * DynamicRowReorderTest.php) — this proves the real UI actually exposes
  * a reorder entry point and a delete confirmation for a populated row.
  *
- * Rewritten after the Filament admin panel was fully removed and rebuilt
+ * Rewritten after the legacy admin admin panel was fully removed and rebuilt
  * in TallStackUI/Livewire (see CLAUDE.md) — the Items table is a plain
- * Blade table now, not a Filament RelationManager, so there is no
+ * Blade table now, not a legacy admin RelationManager, so there is no
  * separate "enable reorder mode" toggle button: every Draft-status row
  * always shows its own drag handle
  * (resources/views/components/tallstack/reorder-handle.blade.php), and
  * "Delete" (wire:confirm) triggers the browser's native confirm()
- * dialog, not a custom Filament alertdialog modal.
+ * dialog, not a custom legacy admin alertdialog modal.
  *
  * "Add the next blank row after meaningful content / remove an untouched
  * blank row automatically" is NOT implemented — this project's line
