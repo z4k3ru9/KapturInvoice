@@ -19,9 +19,9 @@ use Tests\TestCase;
  * Proves the TallStackUI Recurring Invoices register/detail pages reuse
  * the exact same App\Models\Invoice (`is_recurring = true`) scope and
  * App\Services\InvoiceDuplicator::generateRecurringInstance() action the
- * Filament RecurringInvoicesTable's own row actions use — a
+ * legacy admin RecurringInvoicesTable's own row actions use — a
  * presentation-layer swap only — and that both pages re-check company
- * ownership/`is_recurring` explicitly (this route sits outside Filament's
+ * ownership/`is_recurring` explicitly (this route sits outside legacy admin's
  * own tenant-scoped binding), same reasoning as
  * tests/Feature/TallStack/TallStackQuotationSendTest.php.
  */
