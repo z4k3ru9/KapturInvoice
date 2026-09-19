@@ -5,8 +5,8 @@ import { COMPANIES, gotoAdminPage, loginAsOwner } from '../support/tenants';
  * Phase 06B Slice 4 foundation smoke test — the admin UI is tenant-scoped
  * by URL path (not Host header, see CLAUDE.md "Public homepage"), so this
  * exercises login against the plain baseURL/tall path rather than a
- * company hostname. (Was written against the Filament admin panel; that
- * panel was fully removed and rebuilt in TallStackUI/Livewire — routes
+ * company hostname. (The former admin panel was fully removed and rebuilt
+ * in TallStackUI/Livewire — routes
  * are `/tall/{company:slug}/...` now, see CLAUDE.md's note near the top
  * of "Conventions this codebase already commits to".)
  *
@@ -17,7 +17,7 @@ import { COMPANIES, gotoAdminPage, loginAsOwner } from '../support/tenants';
  */
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test('the seeded owner can log into the admin panel and reach the dashboard', async ({ page }) => {
+test('the seeded owner can log into the tenant admin and reach the dashboard', async ({ page }) => {
     await loginAsOwner(page);
 
     await expect(page).not.toHaveURL(/\/login/);
