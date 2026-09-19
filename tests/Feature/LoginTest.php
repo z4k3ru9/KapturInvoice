@@ -11,7 +11,7 @@ use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
- * Covers App\Livewire\Login — the app's only non-Filament, standalone
+ * Covers App\Livewire\Login — the app's only non-legacy admin, standalone
  * login page, and the App\Http\Controllers\LogoutController it pairs
  * with. This is the entry point every middleware('auth') route across
  * the TALL-stack/portal/register-company side of the app relies on

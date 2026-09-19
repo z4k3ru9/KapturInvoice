@@ -37,3 +37,4 @@ This glossary is the canonical language for the renovation. It describes busines
 - A client may exist in both companies as two separate records; matching names do not establish identity.
 - “Service Report” and “Handover Report” are not synonyms: the service report documents what was diagnosed and done on one visit; the handover report confirms the customer accepted the completed work.
 - A job can be operationally closed before financial closure only when the applicable delivery/handover rule is satisfied and the remaining financial work is tracked.
+

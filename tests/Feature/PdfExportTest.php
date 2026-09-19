@@ -17,9 +17,9 @@ use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * PDF export — see docs/filament-admin-layout-design.md §7. Both the
+ * PDF export — see docs/engineering.md §7. Both the
  * admin-side controllers (InvoicePdfController/CreditPdfController) and
- * the public portal one share the same "outside the Filament panel, so
+ * the public portal one share the same "outside the legacy admin panel, so
  * check the tenant explicitly" pattern as DocumentDownloadController.
  */
 class PdfExportTest extends TestCase

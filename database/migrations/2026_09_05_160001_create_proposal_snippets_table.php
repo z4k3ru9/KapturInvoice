@@ -11,7 +11,7 @@ return new class extends Migration
      *
      * Reusable HTML fragments droppable into a Proposal's body — see
      * docs/invoiceninja-v4-schema-reference.md §2.7 and
-     * docs/filament-admin-layout-design.md §2.7.
+     * docs/engineering.md §2.7.
      */
     public function up(): void
     {

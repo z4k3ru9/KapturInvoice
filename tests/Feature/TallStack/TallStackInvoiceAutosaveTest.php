@@ -20,7 +20,7 @@ use Tests\TestCase;
  * performs a financial action... Add server version or equivalent
  * optimistic concurrency protection... Preserve local values after failed
  * save and expose explicit retry." Ported from the deleted pre-TallStackUI
- * Filament admin's own AutosavesDraft coverage to exercise the
+ * legacy admin admin's own AutosavesDraft coverage to exercise the
  * TALL-stack replacement, App\Livewire\TallStackInvoiceForm +
  * App\Livewire\Concerns\AutosavesDraft, the reference implementation for
  * this app's plain-Livewire form shape.
@@ -224,7 +224,7 @@ class TallStackInvoiceAutosaveTest extends TestCase
     }
 
     /**
-     * Not in the original Filament coverage — added here because the
+     * Not in the original legacy admin coverage — added here because the
      * TALL-stack port's autosaveGuard() now explicitly re-checks the same
      * Gate::allows('update', ...) boundary save() already enforced,
      * closing a side channel a read-only role (e.g. Auditor) could

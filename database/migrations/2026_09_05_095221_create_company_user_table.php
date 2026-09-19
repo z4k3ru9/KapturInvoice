@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * Pivot backing Filament's multi-tenancy: a user can belong to (and
+     * Pivot backing legacy admin's multi-tenancy: a user can belong to (and
      * switch between) more than one company, unlike the legacy schema
      * where `users.account_id` pinned a user to exactly one account.
      */

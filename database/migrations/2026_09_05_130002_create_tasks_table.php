@@ -13,7 +13,7 @@ return new class extends Migration
      * the legacy `time_log` serialized-intervals text column: this rebuild
      * tracks a single active/last timer per task via started_at/stopped_at
      * rather than a full multi-segment child table — see
-     * docs/filament-admin-layout-design.md §2.5 for the fuller
+     * docs/engineering.md §2.5 for the fuller
      * `task_time_entries` design this can grow into if multiple segments
      * per task turn out to be needed.
      */

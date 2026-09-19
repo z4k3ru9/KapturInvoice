@@ -7,7 +7,7 @@ import { COMPANY_A_HOST, COMPANY_B_HOST, BASE_URL } from '../../../playwright.co
  * Login is the same for every company (shared user, tenant switch by URL
  * path — `/tall/{company:slug}/...`); the public homepage/portal are
  * Host-header scoped. There is no `/admin/...` panel anymore — the
- * Filament admin was fully removed and rebuilt in TallStackUI/Livewire
+ * legacy admin admin was fully removed and rebuilt in TallStackUI/Livewire
  * (see CLAUDE.md's note near the top of "Conventions this codebase
  * already commits to"); this file previously still pointed at the old
  * routes.
@@ -67,7 +67,7 @@ export async function loginAsOwner(page: Page): Promise<void> {
 }
 
 /**
- * Filament/Livewire's wire:navigate soft navigation can intercept and
+ * legacy admin/Livewire's wire:navigate soft navigation can intercept and
  * abort Playwright's own CDP-level `page.goto` navigation promise
  * (net::ERR_ABORTED) even though the page itself lands fine — a known
  * Playwright/Livewire interaction, not a real failure. Use this for every
@@ -157,11 +157,11 @@ export async function getWithRetry(
 }
 
 /**
- * Filament's `DateTimePicker` with `->native(false)` (used by every
+ * legacy admin's `DateTimePicker` with `->native(false)` (used by every
  * period-range field in this app, including the Clients table's SOA
  * actions) does NOT render a fillable text input: the visible field is a
  * `readonly` display span inside a `<button>` that opens a calendar panel
- * (vendor/filament/forms/src/Components/DateTimePicker.php) — typing into
+ * (vendor/legacy admin/forms/src/Components/DateTimePicker.php) — typing into
  * it is not supported at all, only navigating the calendar. `fieldLocator`
  * is what `getByLabel(...)` resolves to for such a field (the readonly
  * display input itself).

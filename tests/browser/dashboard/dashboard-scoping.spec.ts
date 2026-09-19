@@ -27,7 +27,7 @@ for (const [key, company] of Object.entries(COMPANIES)) {
     test(`${key}: the Invoices list paginates rather than dumping every row at once`, async ({ page }) => {
         await gotoAdminPage(page, `${company.adminUrl}/invoices`);
 
-        // Filament's own pagination controls render whenever a table
+        // legacy admin's own pagination controls render whenever a table
         // has more rows than the page size — presence proves the list
         // is a real paginated query, not an unbounded dump.
         await expect(page.locator('body')).toBeVisible();

@@ -15,7 +15,7 @@ use Tests\TestCase;
 
 /**
  * The public "view my invoice" page `invitations.key` resolves to — closes
- * the gap flagged in docs/filament-admin-layout-design.md §2.2/§3.5.
+ * the gap flagged in docs/engineering.md §2.2/§3.5.
  */
 class ViewInvoicePortalTest extends TestCase
 {

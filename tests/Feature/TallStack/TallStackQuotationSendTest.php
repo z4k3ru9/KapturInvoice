@@ -22,7 +22,7 @@ use Tests\TestCase;
  * (App\Livewire\TallStackQuotations::send() on the list page,
  * App\Livewire\TallStackQuotationForm::send() on the edit page) apply the
  * same App\Actions\Sales\TransitionQuotationStatus transition the
- * pre-TallStackUI Filament admin's table "Send" action used, and now also
+ * pre-TallStackUI legacy admin admin's table "Send" action used, and now also
  * dispatch App\Services\Sales\QuotationMailer alongside it.
  */
 class TallStackQuotationSendTest extends TestCase

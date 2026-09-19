@@ -22,7 +22,7 @@ use Tests\TestCase;
 /**
  * Codex review finding on PR #4: Phase 06B Slice 1 added filing/reference/
  * attachment and audited-adjustment fields to TaxRecap, but the only
- * Filament surface rendered them read-only, with no action anywhere that
+ * legacy admin surface rendered them read-only, with no action anywhere that
  * wrote `manual_entry_status`, filing metadata, `adjusted_by_user_id`, or
  * `adjustment_reason` — so an accountant could not actually file or
  * correct a generated recap through the application, contrary to
@@ -150,11 +150,11 @@ class FileOrAdjustTaxRecapTest extends TestCase
     }
 
     /**
-     * The pre-TallStackUI Filament admin's ViewInvoice Infolist this test
+     * The pre-TallStackUI legacy admin admin's ViewInvoice Infolist this test
      * used to exercise (and the real infinite-recursion bug it
      * regression-tested, in that admin's DownloadPdfAction::taxRecap()
      * combined with a `->record()` override on that Infolist section) is
-     * gone as of the Filament-removal Phase B. The
+     * gone as of the legacy admin-removal Phase B. The
      * TALL-stack replacement page (App\Livewire\TallStackInvoiceForm)
      * never had that override pattern, so there is no equivalent bug to
      * regression-test — this now just confirms the page renders the tax

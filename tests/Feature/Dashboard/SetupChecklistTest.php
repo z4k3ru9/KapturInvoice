@@ -12,9 +12,9 @@ use Tests\TestCase;
 /**
  * The first-run setup checklist.
  *
- * Ported from the pre-TallStackUI Filament admin's own test during the
- * Filament-removal Phase B — the pure SetupChecklist::for()/isComplete()
- * assertions only; that file's own Filament-widget render test is
+ * Ported from the pre-TallStackUI legacy admin admin's own test during the
+ * legacy admin-removal Phase B — the pure SetupChecklist::for()/isComplete()
+ * assertions only; that file's own legacy admin-widget render test is
  * dropped, since that widget no longer exists (the TallStack dashboard
  * renders the same checklist inline —
  * see App\Livewire\TallStackDashboard).

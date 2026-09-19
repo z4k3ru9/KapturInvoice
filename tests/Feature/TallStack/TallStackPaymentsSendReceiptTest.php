@@ -18,7 +18,7 @@ use Tests\TestCase;
 /**
  * Covers reconnecting App\Services\BillingMailer::sendPaymentReceipt() to
  * the UI — it existed but had no caller anywhere in the TallStackUI
- * rebuild (Filament's Payments table used to have a Send-receipt action;
+ * rebuild (legacy admin's Payments table used to have a Send-receipt action;
  * it was never reconnected). This tests the Livewire wiring
  * (TallStackPayments::sendReceipt()) only; the mailer's own template
  * rendering/contact-resolution behavior is already covered by

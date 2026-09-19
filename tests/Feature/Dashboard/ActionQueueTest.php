@@ -21,9 +21,9 @@ use Tests\TestCase;
  * Links go to plain TALL-stack register/index pages (no
  * `?tableFilters=` deep link this slice — see the class docblock).
  *
- * Ported from the pre-TallStackUI Filament admin's own test during the
- * Filament-removal Phase B — the pure ActionQueue::for() assertions only;
- * that file's own Filament-widget render test is dropped, since that
+ * Ported from the pre-TallStackUI legacy admin admin's own test during the
+ * legacy admin-removal Phase B — the pure ActionQueue::for() assertions only;
+ * that file's own legacy admin-widget render test is dropped, since that
  * widget no longer exists — see the
  * Phase B report's runtime verification of App\Livewire\TallStackDashboard
  * (the /tall/{company:slug}/dashboard route) for the equivalent manual

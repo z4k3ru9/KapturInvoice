@@ -10,7 +10,7 @@ return new class extends Migration
      * Run the migrations.
      *
      * Invoice defaults belong alongside the numbering columns already on
-     * `companies` (see the docs/filament-admin-layout-design.md §3.2
+     * `companies` (see the docs/engineering.md §3.2
      * "Numbering & Invoice Defaults" settings page) — account-level
      * fallback terms/taxes, referenced by FK now rather than the legacy
      * inline tax_name/rate columns.

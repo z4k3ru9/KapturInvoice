@@ -12,7 +12,7 @@ use Tests\TestCase;
 
 /**
  * Covers the TALL-stack Payment Gateways page (App\Livewire\TallStackPaymentGateways)
- * — a pre-Filament-removal audit gap, built as a pure UI swap over the existing
+ * — a pre-legacy admin-removal audit gap, built as a pure UI swap over the existing
  * App\Services\PaymentGateways\PaymentGatewayManager/App\Models\PaymentGateway
  * unmodified. See App\Livewire\TallStackReports's own test for the
  * established authorization-assertion shape this follows.

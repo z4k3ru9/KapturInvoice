@@ -19,7 +19,7 @@ use Tests\TestCase;
 
 /**
  * App\Services\BillingMailer closes the gap flagged in
- * docs/filament-admin-layout-design.md §3.3 — the invoice/quote/payment
+ * docs/engineering.md §3.3 — the invoice/quote/payment
  * templates and reminder schedule stored on CompanySetting are now
  * actually dispatched, not just stored config.
  */

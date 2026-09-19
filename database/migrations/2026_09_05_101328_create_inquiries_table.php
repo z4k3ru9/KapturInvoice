@@ -12,8 +12,8 @@ return new class extends Migration
      * Contact-form submissions from a company's public homepage
      * (App\Livewire\HomePage). Deliberately not scoped by
      * App\Models\Concerns\BelongsToCompany — that trait auto-fills/scopes
-     * via the Filament tenant, but inquiries are created from the public
-     * site (no Filament tenant in context), keyed instead by whichever
+     * via the legacy admin tenant, but inquiries are created from the public
+     * site (no legacy admin tenant in context), keyed instead by whichever
      * Company App\Http\Middleware\ResolveCompanyFromDomain resolved.
      */
     public function up(): void

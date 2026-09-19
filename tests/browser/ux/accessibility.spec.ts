@@ -38,7 +38,7 @@ test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async
     await expect(toast).toBeVisible({ timeout: 20_000 });
 
     // Gone within a generous window around the configured 4s (never
-    // Filament's flat 6s default, and not persistent) — widened for a
+    // legacy admin's flat 6s default, and not persistent) — widened for a
     // loaded CI runner, still tight enough to catch a toast that's
     // actually stuck rather than just slow to render.
     await expect(toast).toHaveCount(0, { timeout: 12_000 });
@@ -47,8 +47,8 @@ test('a success toast auto-dismisses around 4 seconds, per DESIGN.md §9', async
 // eslint-disable-next-line playwright/no-skipped-test
 test.fixme('WCAG 2.2 AA automated scan — dashboard', async () => {
     // A live axe run against this page (2026-09-16, after fixing this
-    // suite's stale Filament-era selectors/routes) found SIX distinct,
-    // currently-real violations, none of them Filament leftovers — all
+    // suite's stale legacy admin-era selectors/routes) found SIX distinct,
+    // currently-real violations, none of them legacy admin leftovers — all
     // against the current TallStackUI implementation:
     //   - button-name / aria-command-name: at least one icon-only button
     //     with no accessible name (this app's own markup — the same class

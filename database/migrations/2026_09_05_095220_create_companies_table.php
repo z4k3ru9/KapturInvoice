@@ -9,10 +9,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      *
-     * `companies` is the Filament tenant model: one row per billed entity.
+     * `companies` is the tenant model: one row per billed entity.
      * KapturInvoice runs (at least) two of these — each with its own public
      * homepage domain, branding, and invoice numbering sequence — sharing a
-     * single Filament admin panel.
+     * single tenant admin panel.
      *
      * See docs/invoiceninja-v4-schema-reference.md §4 for why this replaces
      * the legacy `accounts` table's ~140 flat settings columns with a

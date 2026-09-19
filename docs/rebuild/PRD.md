@@ -60,8 +60,9 @@ Owner has full company access and is the only role that can finalize an exceptio
 
 ## Experience and operations
 
-Use TallStack UI (Livewire) for the internal job-centric workspace, marketing, and portal surfaces — the internal workspace was originally planned on Filament and was later rebuilt onto a hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`, routed at `/tall/{company:slug}/...`; see `CLAUDE.md`'s "Stitch UI remake" / TallStackUI-migration notes). The desktop experience leads; phone and tablet remain usable for monitoring and approvals. The system uses OS-driven light/dark mode, company identity themes, globally fixed status colors, draft-only autosave, A4-first documents, private evidence storage, database queues, cPanel cron, and daily backups with restore verification.
+Use TallStack UI (Livewire) for the internal job-centric workspace, marketing, and portal surfaces via the hand-built TallStackUI/Livewire admin (`App\Livewire\TallStack*`, routed at `/tall/{company:slug}/...`; see `CLAUDE.md`'s "Stitch UI remake" / TallStackUI-migration notes). The desktop experience leads; phone and tablet remain usable for monitoring and approvals. The system uses OS-driven light/dark mode, company identity themes, globally fixed status colors, draft-only autosave, A4-first documents, private evidence storage, database queues, cPanel cron, and daily backups with restore verification.
 
 ## Release condition
 
 Apply finalized decisions §11: shipping requires a green automated suite and no open bugs. Full cutover, formal sign-off, professional review, restore verification and production PDF evidence remain documented follow-ups rather than software shipping gates. Current pending assignments and evidence are owned by Phases 07 and 08.
+

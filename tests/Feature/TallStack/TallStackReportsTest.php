@@ -22,7 +22,7 @@ use Tests\TestCase;
 
 /**
  * Covers the TALL-stack Reports page (App\Livewire\TallStackReports) —
- * same shape as the pre-TallStackUI Filament admin's Job Margin Report
+ * same shape as the pre-TallStackUI legacy admin admin's Job Margin Report
  * test, proving the job-margin section reuses that widget's exact
  * computation, and that the Tax Reports section both lists real
  * App\Models\TaxRecap rows and renders the tax-disabled empty state for a

@@ -33,17 +33,17 @@ use RuntimeException;
 use Tests\TestCase;
 
 /**
- * Ported from the deleted pre-TallStackUI Filament admin's own
- * ForceDeleteGuardsTest (removed, unreplaced, when Filament was) — same
+ * Ported from the deleted pre-TallStackUI legacy admin admin's own
+ * ForceDeleteGuardsTest (removed, unreplaced, when legacy admin was) — same
  * 14 guard predicate scenarios, now proven against the App\Actions\*
- * Action-layer classes that replaced each Filament Table's static
+ * Action-layer classes that replaced each legacy admin Table's static
  * `isSafeToForceDelete()`
  * guard, plus an authorization test proving
  * `App\Providers\AppServiceProvider::registerCompanyRoleGate()`'s
  * "physical deletion is Owner-only" rule holds through the new Action
  * (not just at the bare Gate level).
  *
- * The real drift this originally caught: Filament's
+ * The real drift this originally caught: legacy admin's
  * stock ForceDeleteBulkAction only hid itself while the Trashed filter
  * wasn't set — once switched to "With Trashed"/"Only Trashed", any
  * selected row (regardless of status) got `forceDelete()`'d directly,
@@ -231,7 +231,7 @@ class ForceDeleteGuardsTest extends TestCase
         app(ForceDeleteCredit::class)->forceDelete($credit->fresh(), $this->owner);
     }
 
-    // --- Ported from the deleted Filament-era force-delete-bulk-action
+    // --- Ported from the deleted legacy admin-era force-delete-bulk-action
     // tests in Tests\Feature\Procurement\VendorDocumentLockAfterWorkflowTest ---
 
     public function test_force_delete_skips_an_approved_vendor_purchase_order_with_a_bill(): void

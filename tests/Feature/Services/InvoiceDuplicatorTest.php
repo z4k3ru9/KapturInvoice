@@ -13,15 +13,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from the pre-TallStackUI Filament test suite's quotes/recurring
- * invoices coverage during the Filament-removal Phase B — these two tests exercise
- * App\Services\InvoiceDuplicator directly (no Filament UI involved).
+ * Ported from the pre-TallStackUI legacy admin test suite's quotes/recurring
+ * invoices coverage during the legacy admin-removal Phase B — these two tests exercise
+ * App\Services\InvoiceDuplicator directly (no legacy admin UI involved).
  * tests/Feature/Documents/DocumentNumberingTest.php also calls these same
  * two methods, but only asserts the assigned document number — not item
  * cloning, subtotal computation, or the recurring template's
  * `recurring_last_sent_at` stamp asserted here — so these are kept rather
  * than dropped along with the rest of that file's genuinely
- * Filament-UI-only tests.
+ * legacy admin-UI-only tests.
  */
 class InvoiceDuplicatorTest extends TestCase
 {

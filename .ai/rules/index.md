@@ -1,12 +1,12 @@
 # Project rules index
 
-Maps file globs to rule files under `.ai/rules/`. Per the Laravel Boost
-guidelines in `CLAUDE.md`, read every rule file whose glob covers the path(s)
-you're about to touch, and `grep -rin '<keyword>' .ai/rules` before entering
-plan mode or editing/creating any file — a path match alone misses
-cross-cutting rules like the TallStackUI one below.
+Read rule files whose globs cover the paths you will edit. Search the directory
+with `rg` when a cross-cutting concern may apply.
 
-| Glob                                 | Rule file                                                     | Covers |
-|---------------------------------------|----------------------------------------------------------------|--------|
-| `app/Providers/AppServiceProvider.php`, `resources/views/**/*.blade.php` | [tallstackui-customization.md](tallstackui-customization.md) | Verifying `TallStackUi::customize()->...->block([...])` key paths, and the app.css/tallstackui.css cascade-collision `!important` rule, before writing dark-mode or styling fixes. |
-| `resources/views/**/*.blade.php` | [views.md](views.md) | Never truncate/abbreviate a monetary or report value — full digits always, wrap instead of clip. |
+| Glob | Rule |
+|---|---|
+| `app/Providers/AppServiceProvider.php`, `resources/views/**/*.blade.php` | [`tallstackui-customization.md`](tallstackui-customization.md) |
+| `resources/views/**/*.blade.php` | [`views.md`](views.md) |
+
+The source rule files remain authoritative; this index is only their routing
+map. Keep it synchronized when adding or removing a rule.

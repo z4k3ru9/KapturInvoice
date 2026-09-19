@@ -11,7 +11,7 @@ return new class extends Migration
      *
      * Reusable starting points for Proposals — see
      * docs/invoiceninja-v4-schema-reference.md §2.7 and
-     * docs/filament-admin-layout-design.md §2.7. Raw html/css blobs, same
+     * docs/engineering.md §2.7. Raw html/css blobs, same
      * as the legacy `proposal_templates` table.
      */
     public function up(): void

@@ -21,10 +21,10 @@ use RuntimeException;
 use Tests\TestCase;
 
 /**
- * Covers the gap flagged in docs/filament-admin-layout-design.md and this
+ * Covers the gap flagged in docs/engineering.md and this
  * task's own prompt: the legacy Quotes register (`Invoice` rows with
  * `type = InvoiceType::Quote`) had no TallStackUI surface at all after
- * the old Filament `QuoteResource` was removed. This is new coverage —
+ * the old legacy admin `QuoteResource` was removed. This is new coverage —
  * tests/Feature/Services/InvoiceDuplicatorTest.php already covers
  * App\Services\InvoiceDuplicator::convertQuoteToInvoice() at the service
  * level (item cloning/subtotal), so this file does not repeat that; it

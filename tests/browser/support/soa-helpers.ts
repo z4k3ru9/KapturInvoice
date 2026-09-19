@@ -4,7 +4,7 @@ import type { Locator } from '@playwright/test';
  * TallStackUI's `<x-date>` component (Statement of Account's "Period
  * start"/"Period end" fields on `App\Livewire\TallStackClientDetail`'s
  * modal — see `resources/views/livewire/tallstack-client-detail.blade.php`)
- * is NOT the Filament `DateTimePicker` `tests/browser/support/tenants.ts`'s
+ * is NOT the legacy admin `DateTimePicker` `tests/browser/support/tenants.ts`'s
  * own `pickDate()` was written against (`.fi-fo-date-time-picker-panel`,
  * `x-data="dateTimePickerFormComponent"`, a year *text input*, a month
  * `<select>`). It's TallStackUI's own Alpine component

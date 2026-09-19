@@ -7,8 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Ported from a pre-TallStackUI Filament settings-page test during the
- * Filament-removal Phase B — App\Models\Company::getSignatureDataUri()
+ * Ported from a pre-TallStackUI legacy admin settings-page test during the
+ * legacy admin-removal Phase B — App\Models\Company::getSignatureDataUri()
  * had no other coverage.
  */
 class CompanyTest extends TestCase
